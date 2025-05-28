@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { useGeocaches } from "@/hooks/useGeocaches";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { GeocacheList } from "@/components/GeocacheList";
 import { LocationSearch } from "@/components/LocationSearch";
+import { GeolocationDebug } from "@/components/GeolocationDebug";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sortByDistance, formatDistance } from "@/lib/geo";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +26,9 @@ export default function Map() {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapZoom, setMapZoom] = useState(10);
   const [showNearMe, setShowNearMe] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const mapRef = useRef<any>(null);
+  
+  const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
   const { data: geocaches, isLoading } = useGeocaches({
     search: searchQuery,
@@ -34,20 +37,30 @@ export default function Map() {
   });
 
   useEffect(() => {
-    // Get user's location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
+    // Update user location when coords change
+    if (coords) {
+      const location = {
+        lat: coords.latitude,
+        lng: coords.longitude,
+      };
+      setUserLocation(location);
+      
+      // If Near Me is active, update the map center
+      if (showNearMe) {
+        setMapCenter(location);
+        setMapZoom(13);
+      }
     }
+  }, [coords, showNearMe]);
+
+  // Automatically get location when component mounts
+  useEffect(() => {
+    // Small delay to avoid immediate location prompt
+    const timer = setTimeout(() => {
+      getLocation();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Sort geocaches by distance if user location is available and "Near Me" is active
@@ -69,35 +82,8 @@ export default function Map() {
   };
 
   const handleNearMe = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
-
-    setIsGettingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setUserLocation(location);
-        setMapCenter(location);
-        setMapZoom(13);
-        setShowNearMe(true);
-        setIsGettingLocation(false);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        alert("Unable to get your location. Please check your browser settings.");
-        setIsGettingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
+    setShowNearMe(true);
+    getLocation();
   };
 
   return (
@@ -205,6 +191,11 @@ export default function Map() {
                   Clear location filter
                 </Button>
               )}
+              
+              {/* Debug tool - remove in production */}
+              <div className="pt-2 border-t">
+                <GeolocationDebug />
+              </div>
             </div>
           </div>
 

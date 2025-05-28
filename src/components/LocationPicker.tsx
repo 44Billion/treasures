@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 import "leaflet/dist/leaflet.css";
 
@@ -68,8 +69,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     lat: value?.lat?.toString() || "",
     lng: value?.lng?.toString() || "",
   });
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([40.7128, -74.0060]); // Default to NYC
+  const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
 
   useEffect(() => {
     if (value) {
@@ -81,34 +82,19 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     }
   }, [value]);
 
-  const handleGetCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
+  useEffect(() => {
+    if (coords) {
+      const location = {
+        lat: coords.latitude,
+        lng: coords.longitude,
+      };
+      onChange(location);
+      setMapCenter([location.lat, location.lng]);
     }
+  }, [coords, onChange]);
 
-    setIsGettingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        onChange(location);
-        setMapCenter([location.lat, location.lng]);
-        setIsGettingLocation(false);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        alert("Unable to get your location. Please enter coordinates manually or click on the map.");
-        setIsGettingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
+  const handleGetCurrentLocation = () => {
+    getLocation();
   };
 
   const handleManualInput = () => {
