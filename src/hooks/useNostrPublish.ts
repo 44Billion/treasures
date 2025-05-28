@@ -16,13 +16,20 @@ export function useNostrPublish() {
 
   return useMutation({
     mutationFn: async (t: EventTemplate) => {
-      if (user) {
+      if (!user) {
+        throw new Error("User is not logged in");
+      }
+
+      if (!user.signer) {
+        throw new Error("No signer available. Please check your Nostr extension.");
+      }
+
+      try {
         const tags = t.tags ?? [];
 
         // Add the client tag if it doesn't exist
         if (!tags.some((tag) => tag[0] === "client")) {
-          // FIXME: Replace "mkstack" with the actual client name
-          tags.push(["client", "mkstack"]);
+          tags.push(["client", "nostrcache"]);
         }
 
         const event = await user.signer.signEvent({
@@ -32,9 +39,22 @@ export function useNostrPublish() {
           created_at: t.created_at ?? Math.floor(Date.now() / 1000),
         });
 
-        await nostr.event(event, { signal: AbortSignal.timeout(5000) });
-      } else {
-        throw new Error("User is not logged in");
+        await nostr.event(event, { signal: AbortSignal.timeout(10000) }); // Increased timeout
+        
+        return event; // Return the signed event
+      } catch (error: any) {
+        console.error("Failed to publish event:", error);
+        
+        // Provide more specific error messages
+        if (error.message?.includes("timeout")) {
+          throw new Error("Connection timeout. Please check your internet connection.");
+        } else if (error.message?.includes("User rejected")) {
+          throw new Error("Event signing was cancelled.");
+        } else if (error.message?.includes("relay")) {
+          throw new Error("Failed to connect to Nostr relays. Please try again.");
+        }
+        
+        throw error;
       }
     },
     onError: (error) => {

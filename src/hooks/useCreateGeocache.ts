@@ -12,11 +12,28 @@ export function useCreateGeocache() {
 
   return useMutation({
     mutationFn: async (data: CreateGeocacheData) => {
+      // Validate data
+      if (!data.name?.trim()) {
+        throw new Error("Cache name is required");
+      }
+      if (!data.description?.trim()) {
+        throw new Error("Cache description is required");
+      }
+      if (!data.location || typeof data.location.lat !== 'number' || typeof data.location.lng !== 'number') {
+        throw new Error("Valid location coordinates are required");
+      }
+      if (!data.difficulty || data.difficulty < 1 || data.difficulty > 5) {
+        throw new Error("Difficulty must be between 1 and 5");
+      }
+      if (!data.terrain || data.terrain < 1 || data.terrain > 5) {
+        throw new Error("Terrain must be between 1 and 5");
+      }
+
       // Create the geocache event
       const content = JSON.stringify({
-        name: data.name,
-        description: data.description,
-        hint: data.hint,
+        name: data.name.trim(),
+        description: data.description.trim(),
+        hint: data.hint?.trim() || "",
         location: data.location,
         difficulty: data.difficulty,
         terrain: data.terrain,
@@ -25,12 +42,18 @@ export function useCreateGeocache() {
         images: data.images || [],
       });
 
+      console.log('Creating geocache with data:', { 
+        name: data.name, 
+        location: data.location,
+        contentLength: content.length 
+      });
+
       const event = await publishEvent({
         kind: 30078, // Application-specific data
         content,
         tags: [
           ['d', 'geocache'], // Identifier for geocache data
-          ['name', data.name], // For easier searching
+          ['name', data.name.trim()], // For easier searching
           ['g', getGeohash(data.location.lat, data.location.lng)], // Geohash for location-based queries
         ],
       });
@@ -49,11 +72,22 @@ export function useCreateGeocache() {
       // Navigate to the new geocache
       navigate(`/cache/${event.id}`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to create geocache:', error);
+      
+      let errorMessage = "Please try again later.";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.toString().includes("timeout")) {
+        errorMessage = "Connection timeout. Please check your internet connection.";
+      } else if (error.toString().includes("User rejected")) {
+        errorMessage = "You cancelled the event signing.";
+      }
+      
       toast({
         title: "Failed to create geocache",
-        description: "Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
