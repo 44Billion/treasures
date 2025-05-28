@@ -1,0 +1,50 @@
+/* Fix for Leaflet marker icons in Vite */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+/* Fix marker icon paths */
+.leaflet-default-icon-path {
+  background-image: url('https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png');
+}
+
+/* Ensure popups are above other elements */
+.leaflet-popup {
+  z-index: 1000;
+}
+
+/* Custom cache icon styles */
+.custom-cache-icon {
+  background: none !important;
+  border: none !important;
+}
+
+/* Improve popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  min-width: 200px;
+}
+
+/* Fix control positioning */
+.leaflet-control-container .leaflet-top {
+  top: 10px;
+}
+
+.leaflet-control-container .leaflet-bottom {
+  bottom: 10px;
+}
+
+.leaflet-control-container .leaflet-left {
+  left: 10px;
+}
+
+.leaflet-control-container .leaflet-right {
+  right: 10px;
+}

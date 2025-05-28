@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
+import './styles/leaflet-overrides.css';
 
 // DO NOT MODIFY THIS RELAY LIST UNLESS EXPLICITLY REQUESTED
 const defaultRelays = [
