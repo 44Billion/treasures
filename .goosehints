@@ -391,6 +391,17 @@ This project is configured for deployment to surge.sh:
 - **410 Gone errors**: Usually caused by missing CNAME file or incorrect base path
 - **SPA routing issues**: Ensure `404.html` exists and matches `index.html`
 - **Asset loading failures**: Check that Vite build output includes proper asset paths
+- **Missing favicon**: Ensure favicon files are in `/public` directory and referenced in `index.html`
+
+#### Favicon Setup
+The project includes comprehensive favicon support:
+- `favicon.ico` - Standard ICO format for older browsers
+- `icon.svg` - Modern SVG favicon
+- `favicon-16x16.png` and `favicon-32x32.png` - PNG fallbacks
+- `apple-touch-icon.png` - iOS home screen icon
+- `icon-192x192.png` and `icon-512x512.png` - PWA manifest icons
+
+All favicon files are automatically copied from `/public` to `/dist` during build.
 
 ## Testing Your Changes
 
