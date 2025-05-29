@@ -20,6 +20,31 @@ export interface Geocache {
   relays?: string[]; // Preferred relays from the geocache event
   sourceRelay?: string; // The relay this event was fetched from
   client?: string; // The client that created this event
+  // Additional metadata from OSM verification
+  accessibility?: {
+    wheelchair?: boolean;
+    parking?: boolean;
+    publicTransport?: boolean;
+    fee?: boolean;
+    openingHours?: string;
+  };
+  terrainInfo?: {
+    surface?: string;
+    hazards?: string[];
+    lit?: boolean;
+    covered?: boolean;
+  };
+  restrictions?: string[];
+  environmental?: {
+    nesting?: boolean;
+    protected?: string;
+    leaveNoTrace?: boolean;
+  };
+  safety?: {
+    surveillance?: boolean;
+    cellCoverage?: boolean;
+    lighting?: string;
+  };
 }
 
 export interface GeocacheLog {
@@ -48,6 +73,31 @@ export interface CreateGeocacheData {
   size: string;
   type: string;
   images?: string[];
+  // Additional metadata from OSM verification
+  accessibility?: {
+    wheelchair?: boolean;
+    parking?: boolean;
+    publicTransport?: boolean;
+    fee?: boolean;
+    openingHours?: string;
+  };
+  terrainInfo?: {
+    surface?: string;
+    hazards?: string[];
+    lit?: boolean;
+    covered?: boolean;
+  };
+  restrictions?: string[];
+  environmental?: {
+    nesting?: boolean;
+    protected?: string;
+    leaveNoTrace?: boolean;
+  };
+  safety?: {
+    surveillance?: boolean;
+    cellCoverage?: boolean;
+    lighting?: string;
+  };
 }
 
 export interface CreateLogData {

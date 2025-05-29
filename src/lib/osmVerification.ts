@@ -21,6 +21,38 @@ export interface LocationVerification {
     type: string;
     distance?: number;
   }[];
+  accessibility: {
+    wheelchair?: boolean;
+    parking?: boolean;
+    publicTransport?: boolean;
+    fee?: boolean;
+    openingHours?: string;
+  };
+  terrain: {
+    surface?: string;
+    difficulty?: string;
+    hazards?: string[];
+    lit?: boolean;
+    covered?: boolean;
+    width?: string;
+  };
+  legal: {
+    owner?: string;
+    operator?: string;
+    restrictions?: string[];
+    permits?: string[];
+  };
+  environmental: {
+    nesting?: boolean;
+    protected?: string;
+    leaveNoTrace?: boolean;
+  };
+  safety: {
+    surveillance?: boolean;
+    emergency?: string;
+    cellCoverage?: boolean;
+    lighting?: string;
+  };
 }
 
 // Restricted area types and their descriptions
@@ -68,6 +100,14 @@ const RESTRICTED_AREAS = {
   'aeroway=aerodrome': 'Airport',
   'railway=station': 'Train station',
   'amenity=bus_station': 'Bus station',
+  
+  // Additional restrictions
+  'boundary=protected_area': 'Protected area',
+  'boundary=national_park': 'National park (check regulations)',
+  'leisure=nature_reserve': 'Nature reserve (may have restrictions)',
+  'landuse=conservation': 'Conservation area',
+  'historic=*': 'Historic site (may be protected)',
+  'natural=wetland': 'Wetland (environmentally sensitive)',
 };
 
 // Tags that indicate public spaces (generally safe for geocaching)
@@ -87,6 +127,11 @@ const PUBLIC_AREAS = [
 export async function verifyLocation(lat: number, lng: number): Promise<LocationVerification> {
   const warnings: string[] = [];
   const nearbyFeatures: LocationVerification['nearbyFeatures'] = [];
+  const accessibility: LocationVerification['accessibility'] = {};
+  const terrain: LocationVerification['terrain'] = { hazards: [] };
+  const legal: LocationVerification['legal'] = { restrictions: [], permits: [] };
+  const environmental: LocationVerification['environmental'] = {};
+  const safety: LocationVerification['safety'] = {};
   
   try {
     // Query Overpass API for features at and near the location
@@ -121,6 +166,11 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
         isRestricted: false,
         warnings: ['Unable to verify location restrictions. Please manually verify the location is appropriate.'],
         nearbyFeatures: [],
+        accessibility: {},
+        terrain: { hazards: [] },
+        legal: { restrictions: [], permits: [] },
+        environmental: {},
+        safety: {},
       };
     }
     
@@ -203,6 +253,193 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
           type: element.tags.amenity,
         });
       }
+      
+      // Collect accessibility information
+      if (element.tags.wheelchair) {
+        accessibility.wheelchair = element.tags.wheelchair === 'yes';
+      }
+      if (element.tags.parking) {
+        accessibility.parking = element.tags.parking === 'yes' || 
+                               element.tags['amenity'] === 'parking';
+      }
+      if (element.tags.fee) {
+        accessibility.fee = element.tags.fee === 'yes';
+        if (element.tags.fee === 'yes' && element.tags.charge) {
+          warnings.push(`Area may require fee: ${element.tags.charge}`);
+        }
+      }
+      if (element.tags.opening_hours) {
+        accessibility.openingHours = element.tags.opening_hours;
+        if (element.tags.opening_hours !== '24/7') {
+          warnings.push(`Area has restricted hours: ${element.tags.opening_hours}`);
+        }
+      }
+      
+      // Collect terrain information
+      if (element.tags.surface) {
+        terrain.surface = element.tags.surface;
+      }
+      if (element.tags.trail_visibility) {
+        terrain.difficulty = element.tags.trail_visibility;
+      }
+      if (element.tags.sac_scale) {
+        terrain.difficulty = `Hiking difficulty: ${element.tags.sac_scale}`;
+      }
+      
+      // Check for hazards
+      if (element.tags.hazard) {
+        terrain.hazards?.push(element.tags.hazard);
+      }
+      if (element.tags.flood_prone === 'yes') {
+        terrain.hazards?.push('Flood prone area');
+      }
+      if (element.tags.cliff === 'yes' || element.tags.natural === 'cliff') {
+        terrain.hazards?.push('Cliff nearby');
+      }
+      if (element.tags.waterway) {
+        terrain.hazards?.push(`Near ${element.tags.waterway}`);
+      }
+      
+      // Legal/ownership information
+      if (element.tags.owner) {
+        legal.owner = element.tags.owner;
+      }
+      if (element.tags.operator) {
+        legal.operator = element.tags.operator;
+      }
+      
+      // Additional access restrictions
+      if (element.tags.dog) {
+        if (element.tags.dog === 'no') {
+          legal.restrictions?.push('No dogs allowed');
+        } else if (element.tags.dog === 'leashed') {
+          legal.restrictions?.push('Dogs must be leashed');
+        }
+      }
+      if (element.tags.motor_vehicle === 'no') {
+        legal.restrictions?.push('No motor vehicles');
+      }
+      if (element.tags.bicycle === 'no') {
+        legal.restrictions?.push('No bicycles');
+      }
+      
+      // Environmental sensitivity
+      if (element.tags.protected === 'yes' || element.tags.protection_title) {
+        warnings.push(`Protected area: ${element.tags.protection_title || 'Environmental protection'}`);
+      }
+      
+      // Seasonal restrictions
+      if (element.tags.seasonal === 'yes' || element.tags.access?.includes('seasonal')) {
+        warnings.push('Area may have seasonal restrictions');
+      }
+      
+      // Check for public transport nearby
+      if (element.tags.public_transport || 
+          element.tags.highway === 'bus_stop' || 
+          element.tags.railway === 'station') {
+        accessibility.publicTransport = true;
+      }
+      
+      // Additional terrain information
+      if (element.tags.lit) {
+        terrain.lit = element.tags.lit === 'yes';
+      }
+      if (element.tags.covered) {
+        terrain.covered = element.tags.covered === 'yes';
+      }
+      if (element.tags.width) {
+        terrain.width = element.tags.width;
+      }
+      if (element.tags.incline) {
+        terrain.hazards?.push(`Incline: ${element.tags.incline}`);
+      }
+      if (element.tags.steps) {
+        terrain.hazards?.push('Steps/stairs present');
+      }
+      
+      // Environmental concerns
+      if (element.tags.nesting_site === 'yes') {
+        environmental.nesting = true;
+        warnings.push('⚠️ Wildlife nesting area - seasonal restrictions may apply');
+      }
+      if (element.tags['protected_area:type']) {
+        environmental.protected = element.tags['protected_area:type'];
+      }
+      if (element.tags.conservation) {
+        environmental.leaveNoTrace = true;
+        warnings.push('Conservation area - practice Leave No Trace');
+      }
+      
+      // Safety information
+      if (element.tags.surveillance || element.tags['camera:type']) {
+        safety.surveillance = true;
+      }
+      if (element.tags.emergency) {
+        safety.emergency = element.tags.emergency;
+      }
+      if (element.tags['mobile_phone:signal']) {
+        safety.cellCoverage = element.tags['mobile_phone:signal'] !== 'no';
+      }
+      if (element.tags.lighting) {
+        safety.lighting = element.tags.lighting;
+      }
+      
+      // Legal/permit requirements
+      if (element.tags.permit) {
+        legal.permits?.push(element.tags.permit);
+        warnings.push(`Permit required: ${element.tags.permit}`);
+      }
+      if (element.tags.reservation === 'required' || element.tags.reservation === 'yes') {
+        legal.restrictions?.push('Reservation required');
+      }
+      
+      // Time-based restrictions
+      if (element.tags.hour_on || element.tags.hour_off) {
+        const hours = `${element.tags.hour_on || '?'} - ${element.tags.hour_off || '?'}`;
+        if (!legal.restrictions?.some(r => r.includes('Restricted hours'))) {
+          legal.restrictions?.push(`Restricted hours: ${hours}`);
+        }
+      }
+      
+      // Noise restrictions
+      if (element.tags.quiet === 'yes' || element.tags.silence === 'yes') {
+        legal.restrictions?.push('Quiet zone - maintain silence');
+      }
+      
+      // Photography restrictions
+      if (element.tags.photography === 'no' || element.tags.photo === 'no') {
+        legal.restrictions?.push('Photography prohibited');
+      }
+      
+      // Check for hunting areas
+      if (element.tags.hunting === 'yes' || element.tags.leisure === 'hunting_stand') {
+        terrain.hazards?.push('⚠️ Hunting area - wear bright colors');
+        warnings.push('Hunting area - check seasons and wear safety colors');
+      }
+      
+      // Mining areas
+      if (element.tags.landuse === 'quarry' || element.tags.historic === 'mine') {
+        terrain.hazards?.push('⚠️ Mining/quarry area - unstable ground');
+        warnings.push('Former mining area - beware of unstable ground');
+      }
+      
+      // Water hazards
+      if (element.tags.tidal === 'yes') {
+        terrain.hazards?.push('⚠️ Tidal area - check tide times');
+      }
+      if (element.tags.intermittent === 'yes') {
+        terrain.hazards?.push('Intermittent water - seasonal flooding');
+      }
+      
+      // Climbing restrictions
+      if (element.tags['climbing:forbidden'] === 'yes') {
+        legal.restrictions?.push('Climbing forbidden');
+      }
+      
+      // Drone restrictions
+      if (element.tags['drone:forbidden'] === 'yes' || element.tags.no_drone === 'yes') {
+        legal.restrictions?.push('No drones allowed');
+      }
     }
     
     // Check if location is in a public area (good for geocaching)
@@ -225,6 +462,18 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
       isRestricted: warnings.length > 0,
       warnings: [...new Set(warnings)], // Remove duplicates
       nearbyFeatures: nearbyFeatures.slice(0, 5), // Limit to 5 most relevant
+      accessibility,
+      terrain: {
+        ...terrain,
+        hazards: [...new Set(terrain.hazards || [])], // Remove duplicate hazards
+      },
+      legal: {
+        ...legal,
+        restrictions: [...new Set(legal.restrictions || [])], // Remove duplicate restrictions
+        permits: [...new Set(legal.permits || [])], // Remove duplicate permits
+      },
+      environmental,
+      safety,
     };
     
   } catch (error) {
@@ -233,6 +482,11 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
       isRestricted: false,
       warnings: ['Unable to verify location restrictions. Please manually verify the location is appropriate.'],
       nearbyFeatures: [],
+      accessibility: {},
+      terrain: { hazards: [] },
+      legal: { restrictions: [], permits: [] },
+      environmental: {},
+      safety: {},
     };
   }
 }

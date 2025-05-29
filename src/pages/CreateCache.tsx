@@ -27,6 +27,7 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { useUploadFile } from "@/hooks/useUploadFile";
 import { useToast } from "@/hooks/useToast";
 import { verifyLocation, getVerificationSummary, type LocationVerification } from "@/lib/osmVerification";
+import { LocationWarnings } from "@/components/LocationWarnings";
 
 import "leaflet/dist/leaflet.css";
 
@@ -398,136 +399,76 @@ export default function CreateCache() {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              Confirm Cache Location
-            </AlertDialogTitle>
+            <AlertDialogTitle>Confirm Cache Location</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3">
-                <p>
-                  Please review the exact location where your cache will be placed:
-                </p>
-                
                 {location && (
-                  <>
-                    {/* Map Preview */}
-                    <div className="w-full h-64 rounded-lg overflow-hidden border">
-                      <MapContainer
-                        center={[location.lat, location.lng]}
-                        zoom={17}
-                        style={{ height: "100%", width: "100%" }}
-                        scrollWheelZoom={false}
-                        dragging={false}
-                        zoomControl={false}
-                        doubleClickZoom={false}
-                      >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                          maxZoom={19}
-                        />
-                        <Marker 
-                          position={[location.lat, location.lng]} 
-                          icon={confirmLocationIcon}
-                        />
-                      </MapContainer>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Map Preview & Coordinates */}
+                    <div className="space-y-2">
+                      <div className="h-32 rounded-md overflow-hidden border">
+                        <MapContainer
+                          center={[location.lat, location.lng]}
+                          zoom={17}
+                          style={{ height: "100%", width: "100%" }}
+                          scrollWheelZoom={false}
+                          dragging={false}
+                          zoomControl={false}
+                          doubleClickZoom={false}
+                        >
+                          <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                            maxZoom={19}
+                          />
+                          <Marker 
+                            position={[location.lat, location.lng]} 
+                            icon={confirmLocationIcon}
+                          />
+                        </MapContainer>
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded text-center">
+                        <div className="font-mono text-xs text-gray-700">
+                          {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="bg-gray-50 p-3 rounded-md font-mono text-sm text-center">
-                      Coordinates: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                    {/* Confirmation */}
+                    <div className="flex items-center">
+                      <div className="text-sm">
+                        <div className="font-medium mb-2 text-gray-700">By submitting, you confirm:</div>
+                        <div className="space-y-1 text-xs text-gray-600">
+                          <div>✓ You have permission to place this cache</div>
+                          <div>✓ The location is publicly accessible</div>
+                          <div>✓ The location is safe and appropriate</div>
+                          <div>✓ The coordinates are accurate</div>
+                        </div>
+                      </div>
                     </div>
-                  </>
-                )}
-                
-                {/* OSM Verification Results */}
-                {locationVerification && (
-                  <div className="border rounded-lg p-3 space-y-2">
-                    {(() => {
-                      const summary = getVerificationSummary(locationVerification);
-                      return (
-                        <>
-                          <div className={`flex items-start gap-2 font-medium ${
-                            summary.status === 'safe' ? 'text-green-700' :
-                            summary.status === 'warning' ? 'text-yellow-700' :
-                            'text-red-700'
-                          }`}>
-                            {summary.status === 'safe' ? (
-                              <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                            ) : summary.status === 'warning' ? (
-                              <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                            ) : (
-                              <XCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                            )}
-                            <span>{summary.message}</span>
-                          </div>
-                          
-                          {locationVerification.warnings.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              <p className="text-sm font-medium text-gray-700">Detected issues:</p>
-                              <ul className="text-sm text-gray-600 space-y-1">
-                                {locationVerification.warnings.map((warning, idx) => (
-                                  <li key={idx} className="flex items-start gap-2">
-                                    <span className="text-yellow-600 mt-0.5">⚠</span>
-                                    <span>{warning}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {locationVerification.nearbyFeatures.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              <p className="text-sm font-medium text-gray-700">Nearby features:</p>
-                              <ul className="text-sm text-gray-600 space-y-1">
-                                {locationVerification.nearbyFeatures.map((feature, idx) => (
-                                  <li key={idx}>
-                                    • {feature.name ? `${feature.name} (${feature.type})` : feature.type}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
                   </div>
                 )}
                 
-                <div className="border-t pt-3">
-                  <p className="font-medium mb-2">Please confirm:</p>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5">•</span>
-                      <span>The location is NOT on private property without permission</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5">•</span>
-                      <span>The location is NOT near sensitive areas (schools, government buildings, etc.)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5">•</span>
-                      <span>The location is accessible to the public</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5">•</span>
-                      <span>You have verified the coordinates are accurate</span>
-                    </li>
-                  </ul>
-                </div>
-                
-                <p className="text-sm text-gray-600 italic">
-                  Remember: You are responsible for ensuring your geocache placement follows all local laws and regulations.
-                </p>
+                {/* Location Analysis */}
+                {locationVerification && (
+                  <LocationWarnings 
+                    verification={locationVerification} 
+                    className="space-y-2"
+                  />
+                )}
+
+
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>Review Location</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmSubmit}
               disabled={locationVerification && getVerificationSummary(locationVerification).status === 'restricted'}
+              className="bg-green-600 hover:bg-green-700"
             >
-              Confirm & Create Cache
+              ✓ Confirm & Create Cache
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
