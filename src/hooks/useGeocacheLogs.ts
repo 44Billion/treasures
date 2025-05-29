@@ -9,27 +9,23 @@ export function useGeocacheLogs(geocacheId: string) {
   return useQuery({
     queryKey: ['geocache-logs', geocacheId],
     queryFn: async (c) => {
-      console.log('🔄 [GEOCACHE LOGS] Starting fresh query for geocache:', geocacheId);
-      console.log('🔄 [GEOCACHE LOGS] Query triggered at:', new Date().toISOString());
+      console.log('🔄 [GEOCACHE LOGS] Starting query for geocache:', geocacheId);
       
       try {
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(10000)]); // Increased timeout to 10s
+        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]); // Fast 3 second timeout
       
-      // Based on debugging, we know primary queries with multiple tags fail on relays
-      // So let's start with the working strategy: t-tag only + local filtering
-      console.log('🔄 Using proven working strategy: t-tag + local filtering...');
-      
+      // Use the working strategy from last time: t-tag + local filtering
       const workingFilter: NostrFilter = {
         kinds: [30078],
-        '#t': ['geocache-log'], // Changed from #d to #t to allow multiple unique logs
-        limit: 500, // Get more events to filter locally
+        '#t': ['geocache-log'],
+        limit: 200, // Reasonable limit
       };
       
       console.log('Working filter:', JSON.stringify(workingFilter));
       let events = await nostr.query([workingFilter], { signal });
-      console.log('Working query returned:', events.length, 'events');
+      console.log('Query returned:', events.length, 'events');
       
-      // Filter by geocache tag locally
+      // Filter by geocache tag locally (this was working well)
       events = events.filter(event => 
         event.tags.some(tag => tag[0] === 'geocache' && tag[1] === geocacheId)
       );
@@ -65,8 +61,7 @@ export function useGeocacheLogs(geocacheId: string) {
       console.log('✅ [GEOCACHE LOGS] Final result:', {
         geocacheId,
         logsFound: logs.length,
-        logIds: logs.map(l => l.id.slice(0, 8)),
-        queryCompletedAt: new Date().toISOString()
+        logIds: logs.map(l => l.id.slice(0, 8))
       });
 
       return logs;
@@ -76,11 +71,12 @@ export function useGeocacheLogs(geocacheId: string) {
     }
     },
     enabled: !!geocacheId,
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 15000, // Consider data stale after 15 seconds (longer than before)
-    gcTime: 300000, // Keep in cache for 5 minutes
-    refetchOnWindowFocus: false, // Prevent refetch when window gets focus
-    refetchOnReconnect: true, // Refetch when network reconnects
+    retry: 1, // Quick retry
+    retryDelay: 500, // Fast retry 
+    staleTime: 15000, // 15 seconds
+    gcTime: 300000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
   });
 }
 

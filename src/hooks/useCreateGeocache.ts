@@ -66,11 +66,42 @@ export function useCreateGeocache() {
         description: "Your geocache has been successfully hidden.",
       });
       
-      // Invalidate queries to refresh the list
+      // Optimistically update the cache with the new geocache
+      queryClient.setQueryData(['geocache', event.id], () => {
+        try {
+          const content = JSON.parse(event.content);
+          return {
+            id: event.id,
+            pubkey: event.pubkey,
+            created_at: event.created_at,
+            name: content.name,
+            description: content.description,
+            hint: content.hint,
+            location: content.location,
+            difficulty: content.difficulty,
+            terrain: content.terrain,
+            size: content.size,
+            type: content.type,
+            images: content.images,
+            foundCount: 0,
+            logCount: 0,
+          };
+        } catch (error) {
+          console.error('Failed to parse geocache content for cache:', error);
+          return null;
+        }
+      });
+      
+      // Also update the geocaches list
       queryClient.invalidateQueries({ queryKey: ['geocaches'] });
       
-      // Navigate to the new geocache
+      // Navigate to the new geocache immediately (uses optimistic data)
       navigate(`/cache/${event.id}`);
+      
+      // Background refresh after navigation to ensure data consistency
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['geocache', event.id] });
+      }, 2000);
     },
     onError: (error: any) => {
       console.error('Failed to create geocache:', error);

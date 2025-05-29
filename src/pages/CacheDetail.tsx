@@ -23,7 +23,7 @@ export default function CacheDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { data: geocache, isLoading } = useGeocache(id!);
+  const { data: geocache, isLoading, error, isError, refetch } = useGeocache(id!);
   const { data: logs, refetch: refetchLogs } = useGeocacheLogs(id!);
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
   const { mutate: deleteGeocache } = useDeleteGeocache();
@@ -92,12 +92,59 @@ export default function CacheDetail() {
         <div className="text-center">
           <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-pulse" />
           <p className="text-gray-600">Loading geocache...</p>
+          <p className="text-sm text-gray-500 mt-2">Checking multiple relays for the best connection...</p>
         </div>
       </div>
     );
   }
 
-  if (!geocache) {
+  // Show error with retry option if there was an error and no cached data
+  if (isError && !geocache) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="border-b bg-white">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-2">
+                <MapPin className="h-8 w-8 text-green-600" />
+                <h1 className="text-2xl font-bold text-gray-900">NostrCache</h1>
+              </Link>
+              <LoginArea />
+            </div>
+          </div>
+        </header>
+        
+        <div className="container mx-auto px-4 py-16">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="pt-6 text-center">
+              <MapPin className="h-12 w-12 text-red-400 mx-auto mb-4" />
+              <p className="text-lg font-medium mb-2">Connection Issue</p>
+              <p className="text-gray-600 mb-4">
+                Unable to load geocache. This might be a temporary network issue.
+              </p>
+              <div className="space-y-2">
+                <Button onClick={() => refetch()} className="w-full">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Try Again
+                </Button>
+                <Link to="/" className="block">
+                  <Button variant="outline" className="w-full">Back to Home</Button>
+                </Link>
+              </div>
+              {error && (
+                <p className="text-xs text-gray-500 mt-4">
+                  Error: {error instanceof Error ? error.message : 'Unknown error'}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show "not found" if we're sure it doesn't exist (no loading, no error, no data)
+  if (!isLoading && !isError && !geocache) {
     return (
       <div className="min-h-screen bg-gray-50">
         <header className="border-b bg-white">
@@ -118,9 +165,15 @@ export default function CacheDetail() {
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg font-medium mb-2">Geocache Not Found</p>
               <p className="text-gray-600 mb-4">This geocache may have been removed or doesn't exist.</p>
-              <Link to="/">
-                <Button>Back to Home</Button>
-              </Link>
+              <div className="space-y-2">
+                <Button onClick={() => refetch()} variant="outline" className="w-full">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Check Again
+                </Button>
+                <Link to="/" className="block">
+                  <Button className="w-full">Back to Home</Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
