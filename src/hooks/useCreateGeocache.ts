@@ -71,10 +71,13 @@ export function useCreateGeocache() {
       queryClient.setQueryData(['geocache', event.id], () => {
         try {
           const content = JSON.parse(event.content);
+          const dTag = event.tags.find(t => t[0] === 'd')?.[1];
+          
           return {
             id: event.id,
             pubkey: event.pubkey,
             created_at: event.created_at,
+            dTag: dTag || `geocache-${Date.now()}`, // Store the d-tag
             name: content.name,
             description: content.description,
             hint: content.hint,

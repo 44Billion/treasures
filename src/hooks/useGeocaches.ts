@@ -107,7 +107,7 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const isGeocache = (dTag === 'geocache') || (tTag === 'geocache') || 
                       (dTag?.startsWith('geocache-'));
     
-    if (!isGeocache) return null;
+    if (!isGeocache || !dTag) return null;
 
     const data = JSON.parse(event.content);
     
@@ -115,6 +115,7 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       id: event.id,
       pubkey: event.pubkey,
       created_at: event.created_at,
+      dTag: dTag, // Store the d-tag for proper replacement
       name: data.name,
       description: data.description,
       hint: data.hint,

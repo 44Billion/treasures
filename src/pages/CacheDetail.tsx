@@ -127,15 +127,6 @@ export default function CacheDetail() {
   };
 
   const handleSaveEdit = () => {
-    if (!geocache) {
-      toast({
-        title: "Error",
-        description: "Geocache not loaded",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!editFormData.name.trim()) {
       toast({
         title: "Cache name required",
@@ -267,7 +258,6 @@ export default function CacheDetail() {
     );
   }
 
-  // Only show "not found" if we're sure it doesn't exist (no loading, no error, no data)
   if (!isLoading && !isError && !geocache) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -303,6 +293,11 @@ export default function CacheDetail() {
         </div>
       </div>
     );
+  }
+
+  // Ensure geocache is not null from here onwards
+  if (!geocache) {
+    return null;
   }
 
   const isOwner = user && user.pubkey === geocache.pubkey;
@@ -355,7 +350,7 @@ export default function CacheDetail() {
                         </>
                       ) : (
                         <>
-                          <Button variant="outline" size="sm" onClick={handleEdit} disabled={isEditingGeocache || !geocache}>
+                          <Button variant="outline" size="sm" onClick={handleEdit} disabled={isEditingGeocache}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <AlertDialog>

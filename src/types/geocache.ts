@@ -2,6 +2,7 @@ export interface Geocache {
   id: string;
   pubkey: string;
   created_at: number;
+  dTag: string; // Store the d-tag for proper replacement
   name: string;
   description: string;
   hint?: string;

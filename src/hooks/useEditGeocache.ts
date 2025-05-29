@@ -57,12 +57,13 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       console.log('Publishing geocache edit with data:', { 
         name: data.name, 
         originalId: originalGeocache.id,
+        originalDTag: originalGeocache.dTag,
         contentLength: content.length 
       });
 
-      // SIMPLEST APPROACH: Use the original event ID as the d-tag
+      // FIXED: Use the original d-tag for proper replacement
       // This ensures any edits will replace the original properly
-      console.log('Using replacement strategy with original event ID as d-tag');
+      console.log('Using replacement strategy with original d-tag:', originalGeocache.dTag);
       
       // Extract geohash from original location
       const geohash = getGeohash(originalGeocache.location.lat, originalGeocache.location.lng);
@@ -71,7 +72,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         kind: 30078, // Application-specific data
         content,
         tags: [
-          ['d', originalGeocache.id], // Use original event ID as d-tag - this will replace it!
+          ['d', originalGeocache.dTag], // Use original d-tag - this will replace it!
           ['t', 'geocache'], // Type tag for filtering
           ['name', data.name.trim()], // For easier searching
           ['g', geohash], // Geohash for location-based queries
@@ -87,14 +88,14 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       });
       
       // Update the specific geocache in cache
-      queryClient.setQueryData(['geocache', originalGeocache?.id], (oldData: any) => {
+      queryClient.setQueryData(['geocache', originalGeocache?.id], (oldData: unknown) => {
         if (!oldData || !originalGeocache) return oldData;
         
         try {
           const content = JSON.parse(event.content);
           return {
             ...oldData,
-            // Update with new content but keep original ID and metadata
+            // Update with new content but keep original ID, dTag and metadata
             name: content.name,
             description: content.description,
             hint: content.hint,
@@ -118,17 +119,20 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         queryClient.invalidateQueries({ queryKey: ['geocache', originalGeocache?.id] });
       }, 2000);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Failed to edit geocache:', error);
       
       let errorMessage = "Please try again later.";
       
-      if (error.message) {
+      if (error instanceof Error && error.message) {
         errorMessage = error.message;
-      } else if (error.toString().includes("timeout")) {
-        errorMessage = "Connection timeout. Please check your internet connection.";
-      } else if (error.toString().includes("User rejected")) {
-        errorMessage = "You cancelled the event signing.";
+      } else if (error && typeof error === 'object' && 'toString' in error) {
+        const errorStr = error.toString();
+        if (errorStr.includes("timeout")) {
+          errorMessage = "Connection timeout. Please check your internet connection.";
+        } else if (errorStr.includes("User rejected")) {
+          errorMessage = "You cancelled the event signing.";
+        }
       }
       
       toast({
