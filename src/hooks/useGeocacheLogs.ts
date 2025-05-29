@@ -96,8 +96,6 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
     gcTime: 600000, // 10 minutes - increased to keep data longer
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
-    // Keep previous data while fetching
-    keepPreviousData: true,
   });
 }
 
@@ -120,18 +118,43 @@ function parseLogEvent(event: NostrEvent): GeocacheLog | null {
     const [, pubkey, dTag] = aTag.split(':');
     const geocacheId = `${pubkey}:${dTag}`; // Use a composite ID
 
-    const data = JSON.parse(event.content);
-    console.log('Parsed log data:', { geocacheId, type: data.type, text: data.text?.substring(0, 50) });
-    
-    return {
-      id: event.id,
-      pubkey: event.pubkey,
-      created_at: event.created_at,
-      geocacheId,
-      type: data.type || 'note',
-      text: data.text || '',
-      images: data.images || [],
-    };
+    // Try to parse from tags first (new format)
+    const logType = event.tags.find(t => t[0] === 'log-type')?.[1];
+    const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+
+    if (logType) {
+      // New tag-based format
+      console.log('Parsed log data from tags:', { geocacheId, type: logType, text: event.content.substring(0, 50) });
+      
+      return {
+        id: event.id,
+        pubkey: event.pubkey,
+        created_at: event.created_at,
+        geocacheId,
+        type: logType as any,
+        text: event.content, // Text is now in content field
+        images: images,
+      };
+    }
+
+    // Fall back to legacy JSON format
+    try {
+      const data = JSON.parse(event.content);
+      console.log('Parsed log data from JSON:', { geocacheId, type: data.type, text: data.text?.substring(0, 50) });
+      
+      return {
+        id: event.id,
+        pubkey: event.pubkey,
+        created_at: event.created_at,
+        geocacheId,
+        type: data.type || 'note',
+        text: data.text || '',
+        images: data.images || [],
+      };
+    } catch (jsonError) {
+      console.error('Failed to parse legacy log JSON:', jsonError);
+      return null;
+    }
   } catch (error) {
     console.error('Failed to parse log event:', error, event);
     return null;

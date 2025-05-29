@@ -25,7 +25,7 @@ interface GeocacheDialogProps {
 export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialogProps) {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { data: logs, refetch: refetchLogs } = useGeocacheLogs(
+  const { data: logs = [], refetch: refetchLogs } = useGeocacheLogs(
     geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
     geocache?.dTag,
     geocache?.pubkey

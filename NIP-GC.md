@@ -25,43 +25,26 @@ A geocache listing is an addressable event that describes a hidden geocache. The
 
 ### Content
 
-The `.content` field MUST be a JSON-stringified object containing the following fields:
-
-```json
-{
-  "name": "Cache Name",
-  "description": "Detailed description of the cache and its location",
-  "hint": "Optional encrypted hint to help find the cache",
-  "difficulty": 3,
-  "terrain": 2,
-  "size": "regular",
-  "type": "traditional",
-  "images": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
-}
-```
-
-#### Field Definitions
-
-- `name` (required): The name of the geocache
-- `description` (required): Detailed description including cache placement details and any special instructions
-- `hint` (optional): An encrypted hint that can help seekers find the cache. Should be ROT13 encoded by convention
-- `difficulty` (required): Integer from 1-5 indicating puzzle/finding difficulty (1=easiest, 5=hardest)
-- `terrain` (required): Integer from 1-5 indicating physical difficulty (1=wheelchair accessible, 5=specialized equipment required)
-- `size` (required): One of: `"micro"`, `"small"`, `"regular"`, `"large"`
-- `type` (required): One of: `"traditional"`, `"multi"`, `"mystery"`, `"earth"`, `"virtual"`, `"letterbox"`, `"event"`
-- `images` (optional): Array of image URLs related to the cache location or container
+The `.content` field contains the cache description as plain text.
 
 ### Tags
 
 Required tags:
 - `d` (required): Unique identifier for the geocache
+- `name` (required): The name of the geocache
 - `g` (required): Geohash of the cache location (minimum 6 characters precision)
 - `location` (required): Human-readable location description (e.g., "Central Park, New York")
+- `difficulty` (required): Integer from 1-5 indicating puzzle/finding difficulty (1=easiest, 5=hardest)
+- `terrain` (required): Integer from 1-5 indicating physical difficulty (1=wheelchair accessible, 5=specialized equipment required)
+- `size` (required): One of: `micro`, `small`, `regular`, `large`
+- `cache-type` (required): One of: `traditional`, `multi`, `mystery`, `earth`, `virtual`, `letterbox`, `event`
 
 Optional tags:
+- `hint` (optional): An encrypted hint that can help seekers find the cache. Should be ROT13 encoded by convention
+- `image` (optional, repeated): Image URLs related to the cache location or container
 - `t` (optional, repeated): Hashtags/categories (e.g., "urban", "forest", "historical")
 - `published_at` (optional): Unix timestamp when the cache was first hidden
-- `status` (optional): Current cache status - `"active"` (default), `"disabled"`, or `"archived"`
+- `status` (optional): Current cache status - `active` (default), `disabled`, or `archived`
 
 ### Example
 
@@ -70,11 +53,18 @@ Optional tags:
   "kind": 37515,
   "pubkey": "<cache owner's pubkey>",
   "created_at": 1234567890,
-  "content": "{\"name\":\"Riverside Mystery\",\"description\":\"A scenic cache along the river trail. Please be mindful of muggles during busy hours.\",\"hint\":\"Ybbx sbe gur byq bnx gerr\",\"difficulty\":2,\"terrain\":3,\"size\":\"small\",\"type\":\"traditional\",\"images\":[\"https://example.com/cache-area.jpg\"]}",
+  "content": "A scenic cache along the river trail. Please be mindful of muggles during busy hours.",
   "tags": [
     ["d", "riverside-mystery-2024"],
+    ["name", "Riverside Mystery"],
     ["g", "dp3wfg"],
     ["location", "Riverside Park, Portland, OR"],
+    ["difficulty", "2"],
+    ["terrain", "3"],
+    ["size", "small"],
+    ["cache-type", "traditional"],
+    ["hint", "Ybbx sbe gur byq bnx gerr"],
+    ["image", "https://example.com/cache-area.jpg"],
     ["t", "scenic"],
     ["t", "river"],
     ["published_at", "1704067200"],
@@ -89,35 +79,23 @@ A geocache log represents a user's visit to a geocache. These are regular (non-a
 
 ### Content
 
-The `.content` field MUST be a JSON-stringified object containing:
-
-```json
-{
-  "type": "found",
-  "text": "Great cache! TFTC. The hint was very helpful.",
-  "images": ["https://example.com/log-photo.jpg"]
-}
-```
-
-#### Field Definitions
-
-- `type` (required): One of:
-  - `"found"`: Successfully found the cache
-  - `"dnf"`: Did Not Find despite searching
-  - `"note"`: General comment without searching
-  - `"maintenance"`: Maintenance performed by cache owner
-  - `"disabled"`: Cache temporarily disabled by owner
-  - `"enabled"`: Cache re-enabled by owner
-  - `"archived"`: Cache permanently retired
-- `text` (required): The log message
-- `images` (optional): Array of image URLs from the visit
+The `.content` field contains the log message as plain text.
 
 ### Tags
 
 Required tags:
 - `a` (required): Reference to the geocache being logged using NIP-01 `a` tag format: `["a", "37515:<cache-owner-pubkey>:<d-tag>", "<optional-relay-url>"]`
+- `log-type` (required): One of:
+  - `found`: Successfully found the cache
+  - `dnf`: Did Not Find despite searching
+  - `note`: General comment without searching
+  - `maintenance`: Maintenance performed by cache owner
+  - `disabled`: Cache temporarily disabled by owner
+  - `enabled`: Cache re-enabled by owner
+  - `archived`: Cache permanently retired
 
 Optional tags:
+- `image` (optional, repeated): Image URLs from the visit
 - `g` (optional): Geohash of where the log was created (for privacy, should be less precise than cache location)
 - `published_at` (optional): Unix timestamp of the actual visit (may differ from event creation time)
 
@@ -128,9 +106,11 @@ Optional tags:
   "kind": 37516,
   "pubkey": "<finder's pubkey>",
   "created_at": 1234567890,
-  "content": "{\"type\":\"found\",\"text\":\"Beautiful location! Took me 20 minutes to find it. TFTC!\",\"images\":[\"https://example.com/selfie.jpg\"]}",
+  "content": "Beautiful location! Took me 20 minutes to find it. TFTC!",
   "tags": [
     ["a", "37515:abc123...:riverside-mystery-2024", "wss://relay.example.com"],
+    ["log-type", "found"],
+    ["image", "https://example.com/selfie.jpg"],
     ["g", "dp3w"],
     ["published_at", "1704153600"]
   ]
@@ -145,13 +125,14 @@ Clients SHOULD use the following filters to query geocaches:
 
 1. **All active geocaches**: `{"kinds": [37515], "#status": ["active"]}`
 2. **Geocaches by location**: `{"kinds": [37515], "#g": ["dp3w"]}` (using geohash prefix)
-3. **Geocaches by type**: `{"kinds": [37515], "#t": ["mystery"]}`
-4. **User's hidden caches**: `{"kinds": [37515], "authors": ["<pubkey>"]}`
+3. **Geocaches by type**: `{"kinds": [37515], "#cache-type": ["mystery"]}`
+4. **Geocaches by tag**: `{"kinds": [37515], "#t": ["scenic"]}`
+5. **User's hidden caches**: `{"kinds": [37515], "authors": ["<pubkey>"]}`
 
 ### Querying Logs
 
 1. **Logs for a specific cache**: `{"kinds": [37516], "#a": ["37515:<pubkey>:<d-tag>"]}`
-2. **User's found caches**: Query user's logs with type "found", then fetch referenced caches
+2. **User's found caches**: `{"kinds": [37516], "authors": ["<pubkey>"], "#log-type": ["found"]}`
 3. **Recent activity**: `{"kinds": [37516], "limit": 50}` with time-based sorting
 
 ### Privacy Considerations
@@ -169,9 +150,44 @@ Clients SHOULD use the following filters to query geocaches:
 ### Statistics
 
 Clients MAY calculate statistics by counting log events:
-- **Find count**: Count of logs with `type: "found"` for a cache
+- **Find count**: Count of logs with `log-type: "found"` for a cache
 - **DNF rate**: Ratio of "dnf" to total "found" + "dnf" logs
 - **User stats**: Count of unique caches found by a user
+
+## Migration and Backward Compatibility
+
+To ensure smooth transition from JSON-based content to tag-based format:
+
+1. **Writing**: Clients implementing this NIP SHOULD write geocache data using tags as specified above
+2. **Reading**: Clients SHOULD first attempt to read data from tags. If essential tags are missing, clients MAY fall back to parsing JSON from the content field for backward compatibility
+3. **Transition Period**: During the transition period, clients MAY write both tags and JSON content to ensure maximum compatibility
+
+### Legacy JSON Format (Deprecated)
+
+The following JSON format in the content field is deprecated but MAY be supported for reading:
+
+For kind 37515:
+```json
+{
+  "name": "Cache Name",
+  "description": "Detailed description",
+  "hint": "Optional encrypted hint",
+  "difficulty": 3,
+  "terrain": 2,
+  "size": "regular",
+  "type": "traditional",
+  "images": ["https://example.com/image1.jpg"]
+}
+```
+
+For kind 37516:
+```json
+{
+  "type": "found",
+  "text": "Log message",
+  "images": ["https://example.com/log-photo.jpg"]
+}
+```
 
 ## Appendix: Geocaching Terminology
 

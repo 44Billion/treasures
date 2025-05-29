@@ -66,30 +66,35 @@ export function useCreateLog() {
         throw new Error('Log text is required');
       }
       
-      // Create the log event
-      const content = JSON.stringify({
-        type: data.type,
-        text: data.text.trim(),
-        images: data.images || [],
-      });
-
-      // IMPORTANT: Kind 37516 is in the addressable range (30000-40000)
-      // We MUST add a unique 'd' tag to prevent logs from being replaced
-      // Generate a unique identifier for this log
+      // Create the log event using tag-based format
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substring(2, 9);
       const uniqueDTag = `${timestamp}-${randomId}`;
       
+      // Build tags array
+      const tags: string[][] = [
+        ['d', uniqueDTag], // Unique identifier for this log
+        ['a', `37515:${data.geocachePubkey}:${data.geocacheDTag}`, data.relayUrl || ''], // Reference to the geocache
+        ['log-type', data.type], // Type of log
+        ['published_at', Math.floor(timestamp / 1000).toString()], // When the log was created
+      ];
+
+      // Add optional tags
+      if (data.images && data.images.length > 0) {
+        data.images.forEach(image => {
+          tags.push(['image', image]);
+        });
+      }
+
+      // Add approximate location (less precise for privacy)
+      if (data.location) {
+        tags.push(['g', getGeohash(data.location.lat, data.location.lng, 4)]); // Less precise geohash
+      }
+      
       const event = await publishEvent({
         kind: 37516, // Geocache log event
-        content,
-        tags: [
-          ['d', uniqueDTag], // Unique identifier for this log
-          ['a', `37515:${data.geocachePubkey}:${data.geocacheDTag}`, data.relayUrl || ''], // Reference to the geocache
-          ['published_at', Math.floor(timestamp / 1000).toString()], // When the log was created
-          // Optional: Add approximate location (less precise for privacy)
-          ...(data.location ? [['g', getGeohash(data.location.lat, data.location.lng, 4)]] : []), // Less precise geohash
-        ],
+        content: data.text.trim(), // Plain text log message in content
+        tags,
       });
 
       console.log('Log event created:', event.id);

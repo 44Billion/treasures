@@ -30,7 +30,7 @@ export default function CacheDetail() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
   const { data: geocache, isLoading, error, isError, refetch } = useGeocacheByDTag(dtag!);
-  const { data: logs, refetch: refetchLogs } = useGeocacheLogs(
+  const { data: logs = [], refetch: refetchLogs } = useGeocacheLogs(
     geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
     geocache?.dTag, 
     geocache?.pubkey

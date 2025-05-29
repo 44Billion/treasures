@@ -41,24 +41,11 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         throw new Error("Terrain must be between 1 and 5");
       }
 
-      // Create the updated geocache event content
-      const content = JSON.stringify({
-        name: data.name.trim(),
-        description: data.description.trim(),
-        hint: data.hint?.trim() || "",
-        location: originalGeocache.location, // Keep original location
-        difficulty: data.difficulty,
-        terrain: data.terrain,
-        size: data.size,
-        type: data.type,
-        images: data.images || [],
-      });
-
+      // Create the updated geocache event using tag-based format
       console.log('Publishing geocache edit with data:', { 
         name: data.name, 
         originalId: originalGeocache.id,
         originalDTag: originalGeocache.dTag,
-        contentLength: content.length 
       });
 
       // FIXED: Use the original d-tag for proper replacement
@@ -67,20 +54,42 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       
       // Extract geohash from original location
       const geohash = getGeohash(originalGeocache.location.lat, originalGeocache.location.lng);
+      const locationStr = `${originalGeocache.location.lat.toFixed(6)}, ${originalGeocache.location.lng.toFixed(6)}`;
+
+      // Build tags array
+      const tags: string[][] = [
+        ['d', originalGeocache.dTag], // Use original d-tag - this will replace it!
+        ['name', data.name.trim()],
+        ['g', geohash], // Geohash for location-based queries
+        ['location', locationStr], // Human-readable location
+        ['difficulty', data.difficulty.toString()],
+        ['terrain', data.terrain.toString()],
+        ['size', data.size],
+        ['cache-type', data.type],
+        ['status', 'active'], // Cache status
+        ['published_at', Math.floor(originalGeocache.created_at).toString()], // Keep original publish time
+      ];
+
+      // Add optional tags
+      if (data.hint?.trim()) {
+        tags.push(['hint', data.hint.trim()]);
+      }
+
+      if (data.images && data.images.length > 0) {
+        data.images.forEach(image => {
+          tags.push(['image', image]);
+        });
+      }
+
+      // Add type-specific hashtags
+      if (data.type === 'mystery') tags.push(['t', 'mystery']);
+      if (data.type === 'multi') tags.push(['t', 'multi']);
+      if (data.type === 'earth') tags.push(['t', 'earth']);
 
       const event = await publishEvent({
         kind: 37515, // Geocache listing event
-        content,
-        tags: [
-          ['d', originalGeocache.dTag], // Use original d-tag - this will replace it!
-          ['g', geohash], // Geohash for location-based queries
-          ['location', `${originalGeocache.location.lat.toFixed(6)}, ${originalGeocache.location.lng.toFixed(6)}`], // Human-readable location
-          ['status', 'active'], // Cache status
-          ['published_at', Math.floor(originalGeocache.created_at).toString()], // Keep original publish time
-          ...(data.type === 'mystery' ? [['t', 'mystery']] : []),
-          ...(data.type === 'multi' ? [['t', 'multi']] : []),
-          ...(data.type === 'earth' ? [['t', 'earth']] : []),
-        ],
+        content: data.description.trim(), // Plain text description in content
+        tags,
       });
 
       return event;
@@ -99,26 +108,29 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         queryClient.setQueryData(['geocache', eventId], (oldData: unknown) => {
           if (!oldData || !originalGeocache) return oldData;
           
-          try {
-            const content = JSON.parse(event.content);
-            return {
-              ...oldData,
-              // Update event ID since replaceable events get new IDs
-              id: event.id,
-              // Update with new content but keep dTag stable
-              name: content.name,
-              description: content.description,
-              hint: content.hint,
-              difficulty: content.difficulty,
-              terrain: content.terrain,
-              size: content.size,
-              type: content.type,
-              images: content.images,
-            };
-          } catch (error) {
-            console.error('Failed to parse updated geocache content:', error);
-            return oldData;
-          }
+          // Parse from tags
+          const name = event.tags.find(t => t[0] === 'name')?.[1];
+          const difficulty = parseInt(event.tags.find(t => t[0] === 'difficulty')?.[1] || '1');
+          const terrain = parseInt(event.tags.find(t => t[0] === 'terrain')?.[1] || '1');
+          const size = event.tags.find(t => t[0] === 'size')?.[1] as any;
+          const type = event.tags.find(t => t[0] === 'cache-type')?.[1] as any;
+          const hint = event.tags.find(t => t[0] === 'hint')?.[1];
+          const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+          
+          return {
+            ...oldData,
+            // Update event ID since replaceable events get new IDs
+            id: event.id,
+            // Update with new content but keep dTag stable
+            name: name || 'Unnamed Cache',
+            description: event.content, // Description is now in content field
+            hint,
+            difficulty,
+            terrain,
+            size: size || 'regular',
+            type: type || 'traditional',
+            images,
+          };
         });
       }
 
@@ -126,26 +138,29 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         queryClient.setQueryData(['geocache-by-dtag', dTag], (oldData: unknown) => {
           if (!oldData || !originalGeocache) return oldData;
           
-          try {
-            const content = JSON.parse(event.content);
-            return {
-              ...oldData,
-              // Update event ID since replaceable events get new IDs
-              id: event.id,
-              // Update with new content but keep dTag stable
-              name: content.name,
-              description: content.description,
-              hint: content.hint,
-              difficulty: content.difficulty,
-              terrain: content.terrain,
-              size: content.size,
-              type: content.type,
-              images: content.images,
-            };
-          } catch (error) {
-            console.error('Failed to parse updated geocache content:', error);
-            return oldData;
-          }
+          // Parse from tags
+          const name = event.tags.find(t => t[0] === 'name')?.[1];
+          const difficulty = parseInt(event.tags.find(t => t[0] === 'difficulty')?.[1] || '1');
+          const terrain = parseInt(event.tags.find(t => t[0] === 'terrain')?.[1] || '1');
+          const size = event.tags.find(t => t[0] === 'size')?.[1] as any;
+          const type = event.tags.find(t => t[0] === 'cache-type')?.[1] as any;
+          const hint = event.tags.find(t => t[0] === 'hint')?.[1];
+          const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+          
+          return {
+            ...oldData,
+            // Update event ID since replaceable events get new IDs
+            id: event.id,
+            // Update with new content but keep dTag stable
+            name: name || 'Unnamed Cache',
+            description: event.content, // Description is now in content field
+            hint,
+            difficulty,
+            terrain,
+            size: size || 'regular',
+            type: type || 'traditional',
+            images,
+          };
         });
       }
       
