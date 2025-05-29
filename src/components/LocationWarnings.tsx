@@ -8,9 +8,10 @@ import { useState } from "react";
 interface LocationWarningsProps {
   verification: LocationVerification;
   className?: string;
+  hideCreatorWarnings?: boolean;
 }
 
-export function LocationWarnings({ verification, className }: LocationWarningsProps) {
+export function LocationWarnings({ verification, className, hideCreatorWarnings = false }: LocationWarningsProps) {
   const [showDetails, setShowDetails] = useState(false);
   const summary = getVerificationSummary(verification);
   
@@ -48,11 +49,13 @@ export function LocationWarnings({ verification, className }: LocationWarningsPr
   }
   
   // Neutral info
-  if (verification.accessibility.fee) {
-    locationFeatures.push({ label: "Entry fee required", type: "neutral" });
-  }
   if (verification.terrain.surface) {
     locationFeatures.push({ label: `${verification.terrain.surface} surface`, type: "neutral" });
+  }
+  
+  // Heads up items (yellow - important to know but not impediments)
+  if (verification.accessibility.fee) {
+    hindrances.push({ label: "Entry fee required", type: "headsup" });
   }
   
   // Hindrances (yellow - things that might affect everyone negatively)
@@ -74,6 +77,11 @@ export function LocationWarnings({ verification, className }: LocationWarningsPr
     verification.terrain.hazards.forEach(hazard => {
       categorizedWarnings.other.push(`Safety hazard: ${hazard}`);
     });
+  }
+
+  // Add restricted hours as heads up item
+  if (verification.accessibility.openingHours && verification.accessibility.openingHours !== '24/7') {
+    hindrances.push({ label: `Hours: ${verification.accessibility.openingHours}`, type: "headsup" });
   }
 
   const StatusIcon = summary.status === 'safe' ? CheckCircle : 
@@ -112,6 +120,7 @@ export function LocationWarnings({ verification, className }: LocationWarningsPr
                     variant="outline"
                     className={`text-xs h-5 ${
                       feature.type === 'positive' ? 'bg-green-50 text-green-700 border-green-200' :
+                      feature.type === 'headsup' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                       feature.type === 'hindrance' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                       'bg-gray-50 text-gray-700 border-gray-200' // neutral
                     }`}
@@ -133,8 +142,8 @@ export function LocationWarnings({ verification, className }: LocationWarningsPr
         </div>
       </div>
 
-      {/* Status Alert (only if there are actual warnings) */}
-      {(summary.status === 'warning' || summary.status === 'restricted') && (
+      {/* Status Alert (only if there are actual warnings and not hiding creator warnings) */}
+      {!hideCreatorWarnings && (summary.status === 'warning' || summary.status === 'restricted') && (
         <div className={`p-3 rounded-md border border-gray-200 ${
           summary.status === 'warning' ? 'bg-yellow-50' : 'bg-red-50'
         }`}>

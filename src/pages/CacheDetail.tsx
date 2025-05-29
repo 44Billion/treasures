@@ -25,6 +25,8 @@ import { useAuthor } from "@/hooks/useAuthor";
 import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";
 import { EventSourceInfo } from "@/components/EventSourceInfo";
+import { LocationWarnings } from "@/components/LocationWarnings";
+import { verifyLocation, type LocationVerification } from "@/lib/osmVerification";
 
 export default function CacheDetail() {
   const { dtag } = useParams<{ dtag: string }>();
@@ -60,6 +62,7 @@ export default function CacheDetail() {
     type: "traditional",
   });
   const [editImages, setEditImages] = useState<string[]>([]);
+  const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   
   // Initialize edit form when geocache loads
   useEffect(() => {
@@ -76,6 +79,18 @@ export default function CacheDetail() {
       setEditImages(geocache.images || []);
     }
   }, [geocache]);
+
+  // Verify location when geocache loads
+  useEffect(() => {
+    if (geocache?.location) {
+      verifyLocation(geocache.location.lat, geocache.location.lng)
+        .then(setLocationVerification)
+        .catch(() => {
+          // Silently fail - location verification is optional for viewing
+          setLocationVerification(null);
+        });
+    }
+  }, [geocache?.location]);
 
   const handleCreateLog = () => {
     if (!logText.trim() || !geocache) return;
@@ -759,6 +774,22 @@ export default function CacheDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Location Information */}
+            {locationVerification && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Location Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LocationWarnings 
+                    verification={locationVerification} 
+                    className="space-y-2"
+                    hideCreatorWarnings={true}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
