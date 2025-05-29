@@ -21,8 +21,7 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
       
       // Build filter for geocache events
       const filter: NostrFilter = {
-        kinds: [30078], // Application-specific data
-        '#t': ['geocache'], // Type tag for filtering (allows multiple unique geocaches)
+        kinds: [37515], // Geocache listing events
         limit: options.limit || 50,
       };
 
@@ -32,12 +31,27 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
 
       const events = await nostr.query([filter], { signal });
       
+      console.log('Raw events from query:', events.length, 'events');
+      console.log('Event kinds:', events.map(e => e.kind));
+      if (events.length > 0) {
+        console.log('Sample event:', events[0]);
+        // Log content of first few events to debug
+        events.slice(0, 3).forEach((event, i) => {
+          try {
+            const content = JSON.parse(event.content);
+            console.log(`Event ${i} content:`, content);
+          } catch (e) {
+            console.log(`Event ${i} has invalid JSON content`);
+          }
+        });
+      }
+      
       // Parse and filter geocaches (no need for complex edit handling now)
       let geocaches: Geocache[] = events
         .map(parseGeocacheEvent)
         .filter((g): g is Geocache => g !== null);
       
-      console.log('Found', geocaches.length, 'geocaches');
+      console.log('Found', geocaches.length, 'geocaches after parsing');
 
       // Apply client-side filters
       if (options.search) {
@@ -59,48 +73,36 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
       // Sort by creation date (newest first)
       geocaches.sort((a, b) => b.created_at - a.created_at);
 
-      // Get log counts for each geocache using both old and new linking methods
+      // Get log counts for each geocache
       if (geocaches.length > 0) {
-        const logFilter: NostrFilter = {
-          kinds: [30078],
-          '#t': ['geocache-log'], // Get all logs and filter locally
-          limit: 500, // Reasonable limit for all logs
-        };
+        // Create filters for logs of each geocache
+        const logFilters: NostrFilter[] = geocaches.map(geocache => ({
+          kinds: [37516], // Geocache log events
+          '#a': [`37515:${geocache.pubkey}:${geocache.dTag}`],
+          limit: 100, // Limit per cache
+        }));
 
-        const logEvents = await nostr.query([logFilter], { signal });
+        const logEvents = await nostr.query(logFilters, { signal });
         
-        // Count logs per geocache - support both old and new linking
+        // Count logs per geocache
         const logCounts = new Map<string, { total: number; found: number }>();
         
         logEvents.forEach(event => {
-          geocaches.forEach(geocache => {
-            // Check if this log relates to this geocache
-            let isRelated = false;
-            
-            // NEW method: d-tag based linking
-            const hasNewLink = event.tags.some(tag => 
-              tag[0] === 'geocache-dtag' && tag[1] === geocache.dTag
-            );
-            if (hasNewLink) isRelated = true;
-            
-            // OLD method: event ID based linking (for backward compatibility)
-            if (!isRelated) {
-              const hasOldLink = event.tags.some(tag => 
-                (tag[0] === 'geocache' || tag[0] === 'geocache-id') && tag[1] === geocache.id
-              );
-              if (hasOldLink) isRelated = true;
-            }
-            
-            if (isRelated) {
-              const data = parseLogData(event);
-              if (data) {
-                const current = logCounts.get(geocache.id) || { total: 0, found: 0 };
-                current.total++;
-                if (data.type === 'found') current.found++;
-                logCounts.set(geocache.id, current);
-              }
-            }
-          });
+          // Find which geocache this log belongs to
+          const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
+          if (!aTag) return;
+          
+          const [, pubkey, dTag] = aTag.split(':');
+          const geocache = geocaches.find(g => g.pubkey === pubkey && g.dTag === dTag);
+          if (!geocache) return;
+          
+          const data = parseLogData(event);
+          if (data) {
+            const current = logCounts.get(geocache.id) || { total: 0, found: 0 };
+            current.total++;
+            if (data.type === 'found') current.found++;
+            logCounts.set(geocache.id, current);
+          }
         });
 
         // Add counts to geocaches
@@ -118,34 +120,74 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
 
 function parseGeocacheEvent(event: NostrEvent): Geocache | null {
   try {
-    // Check if this is a geocache event (support both old and new formats)
+    // Only process kind 37515 events
+    if (event.kind !== 37515) return null;
+    
     const dTag = event.tags.find(t => t[0] === 'd')?.[1];
-    const tTag = event.tags.find(t => t[0] === 't')?.[1];
-    
-    const isGeocache = (dTag === 'geocache') || (tTag === 'geocache') || 
-                      (dTag?.startsWith('geocache-'));
-    
-    if (!isGeocache || !dTag) return null;
+    if (!dTag) return null;
 
     const data = JSON.parse(event.content);
+    
+    // Handle different location formats
+    let location: { lat: number; lng: number } | null = null;
+    
+    if (!data.location) {
+      console.warn(`Geocache "${data.name || 'unnamed'}" has no location data, skipping`);
+      return null;
+    }
+    
+    // Check if location is already in the correct format
+    if (typeof data.location.lat === 'number' && typeof data.location.lng === 'number') {
+      location = data.location;
+    }
+    // Handle GeoJSON FeatureCollection format
+    else if (data.location.type === 'FeatureCollection' && data.location.features?.length > 0) {
+      const feature = data.location.features[0];
+      if (feature.geometry?.coordinates?.length >= 2) {
+        // GeoJSON uses [lng, lat] order
+        location = {
+          lng: feature.geometry.coordinates[0],
+          lat: feature.geometry.coordinates[1]
+        };
+      }
+    }
+    // Handle GeoJSON Point format
+    else if (data.location.type === 'Point' && data.location.coordinates?.length >= 2) {
+      // GeoJSON uses [lng, lat] order
+      location = {
+        lng: data.location.coordinates[0],
+        lat: data.location.coordinates[1]
+      };
+    }
+    
+    if (!location) {
+      console.warn(`Geocache "${data.name || 'unnamed'}" has invalid location format:`, data.location);
+      return null;
+    }
+    
+    // Validate coordinates are within valid ranges
+    if (location.lat < -90 || location.lat > 90 || location.lng < -180 || location.lng > 180) {
+      console.warn(`Geocache "${data.name || 'unnamed'}" has invalid coordinates:`, location);
+      return null;
+    }
     
     return {
       id: event.id,
       pubkey: event.pubkey,
       created_at: event.created_at,
-      dTag: dTag, // Store the d-tag for proper replacement
-      name: data.name,
-      description: data.description,
+      dTag: dTag,
+      name: data.name || 'Unnamed Cache',
+      description: data.description || '',
       hint: data.hint,
-      location: data.location,
-      difficulty: data.difficulty,
-      terrain: data.terrain,
-      size: data.size,
-      type: data.type,
-      images: data.images,
+      location: location,
+      difficulty: data.difficulty || 1,
+      terrain: data.terrain || 1,
+      size: data.size || 'regular',
+      type: data.type || 'traditional',
+      images: data.images || [],
     };
   } catch (error) {
-    console.error('Failed to parse geocache event:', error);
+    console.error('Failed to parse geocache event:', error, event);
     return null;
   }
 }

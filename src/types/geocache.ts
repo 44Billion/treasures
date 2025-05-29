@@ -46,8 +46,11 @@ export interface CreateGeocacheData {
 
 export interface CreateLogData {
   geocacheId: string;
-  geocacheDTag?: string; // NEW: For linking to stable d-tag
-  type: "found" | "dnf" | "note";
+  geocacheDTag?: string; // For linking to stable d-tag
+  geocachePubkey?: string; // Pubkey of the cache owner
+  relayUrl?: string; // Optional relay URL where the cache can be found
+  type: "found" | "dnf" | "note" | "maintenance" | "disabled" | "enabled" | "archived";
   text: string;
   images?: string[];
+  location?: { lat: number; lng: number }; // Optional user location for the log
 }

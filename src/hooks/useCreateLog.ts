@@ -3,6 +3,52 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import type { CreateLogData } from '@/types/geocache';
 
+// Simple geohash implementation for location-based queries
+function getGeohash(lat: number, lng: number, precision: number = 6): string {
+  const base32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+  let idx = 0;
+  let bit = 0;
+  let evenBit = true;
+  let geohash = '';
+
+  let latMin = -90, latMax = 90;
+  let lngMin = -180, lngMax = 180;
+
+  while (geohash.length < precision) {
+    if (evenBit) {
+      // longitude
+      const mid = (lngMin + lngMax) / 2;
+      if (lng > mid) {
+        idx |= (1 << (4 - bit));
+        lngMin = mid;
+      } else {
+        lngMax = mid;
+      }
+    } else {
+      // latitude
+      const mid = (latMin + latMax) / 2;
+      if (lat > mid) {
+        idx |= (1 << (4 - bit));
+        latMin = mid;
+      } else {
+        latMax = mid;
+      }
+    }
+
+    evenBit = !evenBit;
+
+    if (bit < 4) {
+      bit++;
+    } else {
+      geohash += base32[idx];
+      bit = 0;
+      idx = 0;
+    }
+  }
+
+  return geohash;
+}
+
 export function useCreateLog() {
   const queryClient = useQueryClient();
   const { mutateAsync: publishEvent } = useNostrPublish();
@@ -28,14 +74,13 @@ export function useCreateLog() {
       });
 
       const event = await publishEvent({
-        kind: 30078, // Application-specific data
+        kind: 37516, // Geocache log event
         content,
         tags: [
-          ['d', `geocache-log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`], // Unique identifier for each log
-          ['t', 'geocache-log'], // Type tag for filtering
-          ['geocache-id', data.geocacheId], // KEEP for backward compatibility
-          ['geocache-dtag', data.geocacheDTag || data.geocacheId], // NEW: Reference the stable d-tag
-          ['type', data.type], // Log type for filtering
+          ['a', `37515:${data.geocachePubkey}:${data.geocacheDTag}`, data.relayUrl || ''], // Reference to the geocache
+          ['published_at', Math.floor(Date.now() / 1000).toString()], // When the log was created
+          // Optional: Add approximate location (less precise for privacy)
+          ...(data.location ? [['g', getGeohash(data.location.lat, data.location.lng, 4)]] : []), // Less precise geohash
         ],
       });
 

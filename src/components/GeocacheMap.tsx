@@ -203,10 +203,10 @@ export function GeocacheMap({
     ? [center.lat, center.lng]
     : searchLocation
       ? [searchLocation.lat, searchLocation.lng]
-      : geocaches.length > 0 
+      : geocaches.length > 0 && geocaches.every(g => g.location)
         ? [
-            geocaches.reduce((sum, g) => sum + g.location.lat, 0) / geocaches.length,
-            geocaches.reduce((sum, g) => sum + g.location.lng, 0) / geocaches.length,
+            geocaches.reduce((sum, g) => sum + (g.location?.lat || 0), 0) / geocaches.length,
+            geocaches.reduce((sum, g) => sum + (g.location?.lng || 0), 0) / geocaches.length,
           ]
         : [40.7128, -74.0060]; // Default to NYC
 
@@ -273,7 +273,7 @@ export function GeocacheMap({
       )}
       
       {/* Geocache markers */}
-      {geocaches.map((geocache) => (
+      {geocaches.filter(g => g.location).map((geocache) => (
         <Marker
           key={geocache.dTag}
           position={[geocache.location.lat, geocache.location.lng]}

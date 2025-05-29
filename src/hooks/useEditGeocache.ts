@@ -69,13 +69,17 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       const geohash = getGeohash(originalGeocache.location.lat, originalGeocache.location.lng);
 
       const event = await publishEvent({
-        kind: 30078, // Application-specific data
+        kind: 37515, // Geocache listing event
         content,
         tags: [
           ['d', originalGeocache.dTag], // Use original d-tag - this will replace it!
-          ['t', 'geocache'], // Type tag for filtering
-          ['name', data.name.trim()], // For easier searching
           ['g', geohash], // Geohash for location-based queries
+          ['location', `${originalGeocache.location.lat.toFixed(6)}, ${originalGeocache.location.lng.toFixed(6)}`], // Human-readable location
+          ['status', 'active'], // Cache status
+          ['published_at', Math.floor(originalGeocache.created_at).toString()], // Keep original publish time
+          ...(data.type === 'mystery' ? [['t', 'mystery']] : []),
+          ...(data.type === 'multi' ? [['t', 'multi']] : []),
+          ...(data.type === 'earth' ? [['t', 'earth']] : []),
         ],
       });
 

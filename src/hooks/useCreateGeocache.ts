@@ -49,13 +49,17 @@ export function useCreateGeocache() {
       });
 
       const event = await publishEvent({
-        kind: 30078, // Application-specific data
+        kind: 37515, // Geocache listing event
         content,
         tags: [
-          ['d', `geocache-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`], // Unique identifier for each geocache
-          ['t', 'geocache'], // Type tag for filtering
-          ['name', data.name.trim()], // For easier searching
+          ['d', `${data.name.trim().toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`], // Unique identifier
           ['g', getGeohash(data.location.lat, data.location.lng)], // Geohash for location-based queries
+          ['location', `${data.location.lat.toFixed(6)}, ${data.location.lng.toFixed(6)}`], // Human-readable location
+          ['status', 'active'], // Cache status
+          ['published_at', Math.floor(Date.now() / 1000).toString()], // When cache was hidden
+          ...(data.type === 'mystery' ? [['t', 'mystery']] : []),
+          ...(data.type === 'multi' ? [['t', 'multi']] : []),
+          ...(data.type === 'earth' ? [['t', 'earth']] : []),
         ],
       });
 

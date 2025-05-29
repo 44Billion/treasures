@@ -48,6 +48,9 @@ export default function Map() {
   console.log('Map page - isLoading:', isLoading);
   console.log('Map page - error:', error);
   console.log('Map page - geocaches:', geocaches?.length, 'caches');
+  if (geocaches && geocaches.length > 0) {
+    console.log('Map page - sample geocache:', geocaches[0]);
+  }
   console.log('Map page - search params:', {
     search: searchQuery,
     difficulty: difficulty === "all" ? undefined : parseInt(difficulty),
@@ -195,7 +198,7 @@ export default function Map() {
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
                     className="flex-1 h-8"
-                    size="sm"
+                    
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
                   >
@@ -206,7 +209,7 @@ export default function Map() {
                   {(showNearMe || searchLocation) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(parseInt(v))}>
-                        <SelectTrigger className="w-24 h-8" size="sm">
+                        <SelectTrigger className="w-24 h-8" >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -220,7 +223,7 @@ export default function Map() {
                       
                       <Button
                         variant="ghost"
-                        size="sm"
+                        
                         className="h-8 w-8 p-0"
                         onClick={() => {
                           setShowNearMe(false);
@@ -334,7 +337,7 @@ export default function Map() {
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
                     className="flex-1 h-9"
-                    size="sm"
+                    
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
                   >
@@ -359,7 +362,7 @@ export default function Map() {
                       
                       <Button
                         variant="ghost"
-                        size="sm"
+                        
                         className="h-9 w-9 p-0"
                         onClick={() => {
                           setShowNearMe(false);
