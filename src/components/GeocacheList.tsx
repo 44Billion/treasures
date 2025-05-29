@@ -92,16 +92,14 @@ function GeocacheCard({ geocache, compact }: GeocacheCardProps) {
             <Badge variant="secondary">{geocache.size}</Badge>
           </div>
           <CardTitle className="line-clamp-2">{geocache.name}</CardTitle>
-          <CardDescription>
-            <div className="flex items-center justify-between">
-              <span>by {authorName} • {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}</span>
-              {'distance' in geocache && geocache.distance !== undefined && (
-                <Badge variant="secondary" className="text-xs ml-2">
-                  <Navigation className="h-3 w-3 mr-1" />
-                  {formatDistance(geocache.distance)}
-                </Badge>
-              )}
-            </div>
+          <CardDescription className="flex items-center justify-between">
+            <span>by {authorName} • {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}</span>
+            {'distance' in geocache && geocache.distance !== undefined && (
+              <Badge variant="secondary" className="text-xs ml-2">
+                <Navigation className="h-3 w-3 mr-1" />
+                {formatDistance(geocache.distance)}
+              </Badge>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
