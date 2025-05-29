@@ -48,7 +48,12 @@ const RESTRICTED_AREAS = {
   // Private property indicators
   'access=private': 'Private property',
   'access=no': 'No public access',
+  'access=customers': 'Customer-only area',
   'landuse=residential': 'Residential area',
+  'landuse=commercial': 'Commercial property',
+  'landuse=industrial': 'Industrial property',
+  'landuse=farmyard': 'Private farm',
+  'landuse=farmland': 'Agricultural land',
   
   // Sensitive infrastructure
   'power=plant': 'Power plant',
@@ -84,16 +89,21 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
   const nearbyFeatures: LocationVerification['nearbyFeatures'] = [];
   
   try {
-    // Query Overpass API for nearby features (within 50 meters)
-    const radius = 50; // meters
+    // Query Overpass API for features at and near the location
+    const radius = 50; // meters for nearby features
     const query = `
       [out:json][timeout:10];
       (
+        // Get ways/areas that contain this point
+        way(around:1,${lat},${lng});
+        relation(around:1,${lat},${lng});
+        
+        // Also get nearby features within radius
         node(around:${radius},${lat},${lng});
         way(around:${radius},${lat},${lng});
         relation(around:${radius},${lat},${lng});
       );
-      out tags;
+      out tags center;
     `;
     
     const response = await fetch('https://overpass-api.de/api/interpreter', {
@@ -116,9 +126,23 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
     
     const data: OSMResponse = await response.json();
     
+    // Separate elements by distance (at location vs nearby)
+    const elementsAtLocation: OSMElement[] = [];
+    const elementsNearby: OSMElement[] = [];
+    
     // Check each element for restricted tags
     for (const element of data.elements) {
       if (!element.tags) continue;
+      
+      // Determine if this element is at the exact location or just nearby
+      // Elements with center info that are very close (within 1-2m) are considered "at location"
+      const isAtLocation = element.type === 'way' || element.type === 'relation';
+      
+      if (isAtLocation) {
+        elementsAtLocation.push(element);
+      } else {
+        elementsNearby.push(element);
+      }
       
       // Check for restricted areas
       for (const [tagKey, description] of Object.entries(RESTRICTED_AREAS)) {
@@ -127,14 +151,16 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
         if (value === '*') {
           // Wildcard match (e.g., military=*)
           if (key in element.tags) {
-            warnings.push(`Location is near/in a ${description}`);
+            const prefix = isAtLocation ? 'Location is inside' : 'Location is near';
+            warnings.push(`${prefix} a ${description}`);
             nearbyFeatures.push({
               name: element.tags.name,
               type: description,
             });
           }
         } else if (element.tags[key] === value) {
-          warnings.push(`Location is near/in a ${description}`);
+          const prefix = isAtLocation ? 'Location is inside' : 'Location is near';
+          warnings.push(`${prefix} a ${description}`);
           nearbyFeatures.push({
             name: element.tags.name,
             type: description,
@@ -142,9 +168,32 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
         }
       }
       
-      // Check for general access restrictions
-      if (element.tags.access === 'private' || element.tags.access === 'no') {
-        warnings.push('Location appears to be on private property or restricted access area');
+      // Check for general access restrictions with more detail
+      if (element.tags.access === 'private') {
+        if (isAtLocation) {
+          warnings.push('⚠️ Location is INSIDE private property');
+        } else {
+          warnings.push('Location is near private property');
+        }
+      } else if (element.tags.access === 'no') {
+        if (isAtLocation) {
+          warnings.push('⚠️ Location is INSIDE a no-access area');
+        } else {
+          warnings.push('Location is near a no-access area');
+        }
+      }
+      
+      // Also check for other access restrictions
+      if (element.tags.access === 'customers' || element.tags.access === 'permissive') {
+        warnings.push(`Location has restricted access: ${element.tags.access} only`);
+      }
+      
+      // Check building tags which often indicate private property
+      if (element.tags.building && isAtLocation) {
+        // Most buildings are private unless specifically marked otherwise
+        if (!element.tags.access || element.tags.access !== 'yes') {
+          warnings.push('⚠️ Location appears to be inside a building (likely private)');
+        }
       }
       
       // Add notable nearby features for context
@@ -206,15 +255,36 @@ export function getVerificationSummary(verification: LocationVerification): {
     };
   }
   
+  // Check for severe restrictions (inside private property or sensitive areas)
+  if (verification.warnings.some(w => 
+    w.includes('INSIDE private property') ||
+    w.includes('INSIDE a no-access area') ||
+    w.includes('inside a building') ||
+    w.includes('is inside') && (
+      w.includes('School') || 
+      w.includes('Military') || 
+      w.includes('Prison') ||
+      w.includes('Hospital') ||
+      w.includes('Government')
+    )
+  )) {
+    return {
+      status: 'restricted',
+      message: 'This location is inside a restricted area. Please choose a different location.',
+    };
+  }
+  
+  // Check for moderate restrictions (near but not inside)
   if (verification.warnings.some(w => 
     w.includes('School') || 
     w.includes('Military') || 
     w.includes('Prison') ||
-    w.includes('private property')
+    w.includes('private property') ||
+    w.includes('no-access area')
   )) {
     return {
-      status: 'restricted',
-      message: 'This location appears to be restricted. Please choose a different location.',
+      status: 'warning',
+      message: 'This location is near restricted areas. Please verify it is appropriate for a geocache.',
     };
   }
   
