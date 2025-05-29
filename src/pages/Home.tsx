@@ -21,7 +21,7 @@ export default function Home() {
     setLoginDialogOpen(false);
     // Small delay to let the dialog close gracefully before showing the new button
     setTimeout(() => {
-      // The user state will automatically update and show "Hide a Cache" button
+      // The user state will automatically update and show "Hide a Treasure" button
       // with the animate-fade-in class for a smooth transition
     }, 100);
   };
@@ -60,7 +60,7 @@ export default function Home() {
                 <Link to="/create">
                   <Button variant="ghost" size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Hide a Cache
+                    Hide a Treasure
                   </Button>
                 </Link>
               )}
