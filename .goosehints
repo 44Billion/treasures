@@ -369,8 +369,28 @@ export function Post(/* ...props */) {
 
 ## Build & Deployment
 
+### Local Development
 - Build for production: `npm run build`
 - Development build: `npm run build:dev`
+- Development server: `npm run dev`
+
+### Deployment to Surge.sh
+This project is configured for deployment to surge.sh:
+
+- **Quick deploy**: `npm run deploy` - Builds and deploys automatically
+- **Manual deploy**: `cd dist && npx -y surge@latest . nostrcache.surge.sh`
+- **Live URL**: https://nostrcache.surge.sh
+
+#### Deployment Configuration
+- Uses `404.html` copy of `index.html` for SPA routing support
+- Includes `.surgeignore` to exclude unnecessary files
+- CNAME file specifies the custom domain
+- Build output goes to `dist/` directory
+
+### Deployment Troubleshooting
+- **410 Gone errors**: Usually caused by missing CNAME file or incorrect base path
+- **SPA routing issues**: Ensure `404.html` exists and matches `index.html`
+- **Asset loading failures**: Check that Vite build output includes proper asset paths
 
 ## Testing Your Changes
 
@@ -380,6 +400,101 @@ Whenever you modify code, you should test your changes after you're finished by 
 npm run test
 ```
 
-This command will typecheck the code and attempt to build it.
+This command will:
+1. Install dependencies (`npm i`)
+2. TypeScript type checking (`tsc -p tsconfig.app.json --noEmit`)
+3. Linting (`eslint`)
+4. Unit tests (`vitest run`)
+5. Production build (`vite build`)
 
 Your task is not considered finished until this test passes without errors.
+
+## Common TypeScript Issues
+
+### Fixing `@typescript-eslint/no-explicit-any` Errors
+Replace `any` types with proper TypeScript types:
+
+```ts
+// ❌ Wrong
+function handleData(data: any) {
+  return data.someProperty;
+}
+
+// ✅ Correct
+function handleData(data: Record<string, unknown>) {
+  const obj = data as { someProperty?: string };
+  return obj.someProperty;
+}
+
+// For API responses
+function handleApiResponse(response: unknown) {
+  const data = response as Record<string, unknown>;
+  return {
+    name: data.name as string,
+    value: data.value as number,
+  };
+}
+
+// For error handling
+catch (error: unknown) {
+  const errorObj = error as { message?: string };
+  console.error(errorObj.message || 'Unknown error');
+}
+```
+
+## UI Component Best Practices
+
+### LoginArea Component
+- Automatically handles login state
+- Use `compact` prop for smaller spaces: `<LoginArea compact />`
+- **Don't use `w-full`** in headers - let it size naturally
+- For centered placement: wrap in `<div className="flex justify-center">`
+
+### Responsive Design
+- Use TailwindCSS responsive prefixes: `md:block`, `lg:grid-cols-3`
+- Hidden on mobile, shown on desktop: `hidden md:block`
+- Mobile-first approach: base styles for mobile, prefix for larger screens
+
+### shadcn/ui Components
+- All components use `forwardRef` pattern
+- Use `cn()` utility for conditional classes
+- Built on Radix UI primitives for accessibility
+- Customizable through Tailwind CSS classes
+
+## Nostr Development Tips
+
+### Event Publishing
+- Always handle signing errors gracefully
+- Provide user feedback during event creation
+- Use AbortSignal with timeouts for network requests
+- Verify events are published by querying back from relays
+
+### Query Optimization
+- Use TanStack Query for caching and state management
+- Combine multiple Nostr queries in single `queryFn` when needed
+- Set appropriate `staleTime` and `cacheTime` for different data types
+- Use `AbortSignal.timeout()` to prevent hanging requests
+
+### Error Handling
+```ts
+// Robust error handling for Nostr operations
+try {
+  const event = await publishEvent(eventData);
+  // Verify publication
+  const verification = await nostr.query([{ ids: [event.id] }], { 
+    signal: AbortSignal.timeout(5000) 
+  });
+  if (verification.length === 0) {
+    throw new Error('Event not found on relays');
+  }
+} catch (error: unknown) {
+  const errorObj = error as { message?: string };
+  if (errorObj.message?.includes('timeout')) {
+    // Handle timeout
+  } else if (errorObj.message?.includes('User rejected')) {
+    // Handle user cancellation
+  } else {
+    // Handle other errors
+  }
+}
+```

@@ -106,7 +106,9 @@ export default function CreateCache() {
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg font-medium mb-2">Login Required</p>
               <p className="text-gray-600 mb-4">You need to be logged in to create a geocache.</p>
-              <LoginArea />
+              <div className="flex justify-center">
+                <LoginArea />
+              </div>
             </CardContent>
           </Card>
         </div>

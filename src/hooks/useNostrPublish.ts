@@ -55,15 +55,16 @@ export function useNostrPublish() {
         
         console.log('Event verified on relays:', event.id);
         return event; // Return the signed event
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Failed to publish event:", error);
         
+        const errorObj = error as { message?: string };
         // Provide more specific error messages
-        if (error.message?.includes("timeout")) {
+        if (errorObj.message?.includes("timeout")) {
           throw new Error("Connection timeout. Please check your internet connection.");
-        } else if (error.message?.includes("User rejected")) {
+        } else if (errorObj.message?.includes("User rejected")) {
           throw new Error("Event signing was cancelled.");
-        } else if (error.message?.includes("relay")) {
+        } else if (errorObj.message?.includes("relay")) {
           throw new Error("Failed to connect to Nostr relays. Please try again.");
         }
         

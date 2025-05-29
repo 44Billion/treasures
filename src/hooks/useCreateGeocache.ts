@@ -111,16 +111,17 @@ export function useCreateGeocache() {
         queryClient.invalidateQueries({ queryKey: ['geocache', event.id] });
       }, 2000);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Failed to create geocache:', error);
       
       let errorMessage = "Please try again later.";
+      const errorObj = error as { message?: string };
       
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.toString().includes("timeout")) {
+      if (errorObj.message) {
+        errorMessage = errorObj.message;
+      } else if (String(error).includes("timeout")) {
         errorMessage = "Connection timeout. Please check your internet connection.";
-      } else if (error.toString().includes("User rejected")) {
+      } else if (String(error).includes("User rejected")) {
         errorMessage = "You cancelled the event signing.";
       }
       

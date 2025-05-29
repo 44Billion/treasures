@@ -14,9 +14,9 @@ const IP_SERVICES = [
   {
     name: 'ipapi.co',
     url: 'https://ipapi.co/json/',
-    parser: (data: any): IPLocation => ({
-      lat: parseFloat(data.latitude),
-      lng: parseFloat(data.longitude),
+    parser: (data: Record<string, unknown>): IPLocation => ({
+      lat: parseFloat(data.latitude as string),
+      lng: parseFloat(data.longitude as string),
       accuracy: 50000, // 50km accuracy for IP-based
       source: 'ipapi.co'
     })
@@ -24,9 +24,9 @@ const IP_SERVICES = [
   {
     name: 'ip-api.com',
     url: 'http://ip-api.com/json/',
-    parser: (data: any): IPLocation => ({
-      lat: data.lat,
-      lng: data.lon,
+    parser: (data: Record<string, unknown>): IPLocation => ({
+      lat: data.lat as number,
+      lng: data.lon as number,
       accuracy: 50000,
       source: 'ip-api.com'
     })
@@ -34,8 +34,8 @@ const IP_SERVICES = [
   {
     name: 'ipinfo.io',
     url: 'https://ipinfo.io/json',
-    parser: (data: any): IPLocation => {
-      const [lat, lng] = data.loc.split(',').map(parseFloat);
+    parser: (data: Record<string, unknown>): IPLocation => {
+      const [lat, lng] = (data.loc as string).split(',').map(parseFloat);
       return {
         lat,
         lng,

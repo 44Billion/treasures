@@ -49,7 +49,7 @@ export function useCreateLog() {
       });
       
       // Optimistically update the cache immediately
-      queryClient.setQueryData(['geocache-logs', variables.geocacheId], (oldData: any) => {
+      queryClient.setQueryData(['geocache-logs', variables.geocacheId], (oldData: unknown) => {
         if (!oldData) return oldData;
         
         // Create a new log entry from our event
@@ -64,8 +64,8 @@ export function useCreateLog() {
         };
         
         // Add to the beginning of the list (newest first) and remove duplicates
-        const existingLogs = oldData || [];
-        const updatedLogs = [newLog, ...existingLogs.filter((log: any) => log.id !== event.id)];
+        const existingLogs = (oldData as { id: string }[]) || [];
+        const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== event.id)];
         
         console.log('Optimistically updated cache with new log:', newLog.id);
         return updatedLogs;
@@ -82,15 +82,16 @@ export function useCreateLog() {
         queryClient.invalidateQueries({ queryKey: ['geocaches'] });
       }, 5000); // Increased from 2000ms to 5000ms
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Failed to create log:', error);
       
       let errorMessage = "Please try again later.";
+      const errorObj = error as { message?: string };
       
-      if (error.message?.includes('not found on relays')) {
+      if (errorObj.message?.includes('not found on relays')) {
         errorMessage = "Log was created but couldn't be verified. It may appear after a delay.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (errorObj.message) {
+        errorMessage = errorObj.message;
       }
       
       toast({

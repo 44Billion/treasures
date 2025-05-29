@@ -164,19 +164,23 @@ export function LocationSearch({ onLocationSelect, placeholder = "Search by city
 
       const data = await response.json();
       
-      const searchResults: SearchResult[] = data.map((item: any) => ({
-        name: item.display_name.split(',')[0],
-        lat: parseFloat(item.lat),
-        lng: parseFloat(item.lon),
-        display_name: item.display_name,
-        importance: item.importance,
-        type: item.type || item.class || 'place'
-      }));
+      const searchResults: SearchResult[] = data.map((item: unknown) => {
+        const obj = item as Record<string, unknown>;
+        return {
+          name: (obj.display_name as string)?.split(',')[0] || '',
+          lat: parseFloat(obj.lat as string),
+          lng: parseFloat(obj.lon as string),
+          display_name: obj.display_name as string,
+          importance: obj.importance as number,
+          type: (obj.type as string) || (obj.class as string) || 'place'
+        };
+      });
       
       setResults(searchResults);
       setIsSearching(false);
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error: unknown) {
+      const errorObj = error as { name?: string };
+      if (errorObj.name !== 'AbortError') {
         console.error('Geocoding error:', error);
         setResults([]);
       }
