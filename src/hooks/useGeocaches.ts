@@ -32,10 +32,12 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
 
       const events = await nostr.query([filter], { signal });
       
-      // Parse and filter geocaches
+      // Parse and filter geocaches (no need for complex edit handling now)
       let geocaches: Geocache[] = events
         .map(parseGeocacheEvent)
         .filter((g): g is Geocache => g !== null);
+      
+      console.log('Found', geocaches.length, 'geocaches');
 
       // Apply client-side filters
       if (options.search) {
