@@ -218,7 +218,7 @@ export default function CacheDetail() {
   if (isError && !geocache) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="border-b bg-white">
+        <header className="hidden md:block border-b bg-white">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function CacheDetail() {
   if (!isLoading && !isError && !geocache) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="border-b bg-white">
+        <header className="hidden md:block border-b bg-white">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function CacheDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white">
+      <header className="hidden md:block border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
