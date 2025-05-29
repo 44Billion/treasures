@@ -35,15 +35,6 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
       console.log('Event kinds:', events.map(e => e.kind));
       if (events.length > 0) {
         console.log('Sample event:', events[0]);
-        // Log content of first few events to debug
-        events.slice(0, 3).forEach((event, i) => {
-          try {
-            const content = JSON.parse(event.content);
-            console.log(`Event ${i} content:`, content);
-          } catch (e) {
-            console.log(`Event ${i} has invalid JSON content`);
-          }
-        });
       }
       
       // Parse and filter geocaches (no need for complex edit handling now)
@@ -126,7 +117,7 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const dTag = event.tags.find(t => t[0] === 'd')?.[1];
     if (!dTag) return null;
 
-    // Try to parse from tags first (new format)
+    // Parse from tags
     const name = event.tags.find(t => t[0] === 'name')?.[1];
     const difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
     const terrain = event.tags.find(t => t[0] === 'terrain')?.[1];
@@ -136,106 +127,42 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const locationTag = event.tags.find(t => t[0] === 'location')?.[1];
     const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
 
-    // If we have the new tag format, use it
-    if (name && locationTag && difficulty && terrain && size && cacheType) {
-      // Parse location from tag
-      const [latStr, lngStr] = locationTag.split(',').map(s => s.trim());
-      const location = {
-        lat: parseFloat(latStr),
-        lng: parseFloat(lngStr)
-      };
-
-      // Validate coordinates
-      if (isNaN(location.lat) || isNaN(location.lng) ||
-          location.lat < -90 || location.lat > 90 || 
-          location.lng < -180 || location.lng > 180) {
-        console.warn(`Geocache "${name}" has invalid coordinates:`, location);
-        return null;
-      }
-
-      return {
-        id: event.id,
-        pubkey: event.pubkey,
-        created_at: event.created_at,
-        dTag: dTag,
-        name: name,
-        description: event.content, // Description is now in content field
-        hint: hint,
-        location: location,
-        difficulty: parseInt(difficulty) || 1,
-        terrain: parseInt(terrain) || 1,
-        size: size as any,
-        type: cacheType as any,
-        images: images,
-      };
-    }
-
-    // Fall back to legacy JSON format for backward compatibility
-    try {
-      const data = JSON.parse(event.content);
-      
-      // Handle different location formats
-      let location: { lat: number; lng: number } | null = null;
-      
-      if (!data.location) {
-        console.warn(`Geocache "${data.name || 'unnamed'}" has no location data, skipping`);
-        return null;
-      }
-      
-      // Check if location is already in the correct format
-      if (typeof data.location.lat === 'number' && typeof data.location.lng === 'number') {
-        location = data.location;
-      }
-      // Handle GeoJSON FeatureCollection format
-      else if (data.location.type === 'FeatureCollection' && data.location.features?.length > 0) {
-        const feature = data.location.features[0];
-        if (feature.geometry?.coordinates?.length >= 2) {
-          // GeoJSON uses [lng, lat] order
-          location = {
-            lng: feature.geometry.coordinates[0],
-            lat: feature.geometry.coordinates[1]
-          };
-        }
-      }
-      // Handle GeoJSON Point format
-      else if (data.location.type === 'Point' && data.location.coordinates?.length >= 2) {
-        // GeoJSON uses [lng, lat] order
-        location = {
-          lng: data.location.coordinates[0],
-          lat: data.location.coordinates[1]
-        };
-      }
-      
-      if (!location) {
-        console.warn(`Geocache "${data.name || 'unnamed'}" has invalid location format:`, data.location);
-        return null;
-      }
-      
-      // Validate coordinates are within valid ranges
-      if (location.lat < -90 || location.lat > 90 || location.lng < -180 || location.lng > 180) {
-        console.warn(`Geocache "${data.name || 'unnamed'}" has invalid coordinates:`, location);
-        return null;
-      }
-      
-      return {
-        id: event.id,
-        pubkey: event.pubkey,
-        created_at: event.created_at,
-        dTag: dTag,
-        name: data.name || 'Unnamed Cache',
-        description: data.description || '',
-        hint: data.hint,
-        location: location,
-        difficulty: data.difficulty || 1,
-        terrain: data.terrain || 1,
-        size: data.size || 'regular',
-        type: data.type || 'traditional',
-        images: data.images || [],
-      };
-    } catch (error) {
-      console.error('Failed to parse legacy geocache JSON:', error);
+    // Validate required fields
+    if (!name || !locationTag || !difficulty || !terrain || !size || !cacheType) {
+      console.warn('Geocache event missing required tags:', { name, locationTag, difficulty, terrain, size, cacheType });
       return null;
     }
+
+    // Parse location from tag
+    const [latStr, lngStr] = locationTag.split(',').map(s => s.trim());
+    const location = {
+      lat: parseFloat(latStr),
+      lng: parseFloat(lngStr)
+    };
+
+    // Validate coordinates
+    if (isNaN(location.lat) || isNaN(location.lng) ||
+        location.lat < -90 || location.lat > 90 || 
+        location.lng < -180 || location.lng > 180) {
+      console.warn(`Geocache "${name}" has invalid coordinates:`, location);
+      return null;
+    }
+
+    return {
+      id: event.id,
+      pubkey: event.pubkey,
+      created_at: event.created_at,
+      dTag: dTag,
+      name: name,
+      description: event.content, // Description is in content field
+      hint: hint,
+      location: location,
+      difficulty: parseInt(difficulty) || 1,
+      terrain: parseInt(terrain) || 1,
+      size: size as any,
+      type: cacheType as any,
+      images: images,
+    };
   } catch (error) {
     console.error('Failed to parse geocache event:', error, event);
     return null;
@@ -243,17 +170,12 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
 }
 
 function parseLogData(event: NostrEvent): { type: string } | null {
-  // Try to get type from tags first (new format)
+  // Get type from tags
   const logType = event.tags.find(t => t[0] === 'log-type')?.[1];
   if (logType) {
     return { type: logType };
   }
-
-  // Fall back to legacy JSON format
-  try {
-    const data = JSON.parse(event.content);
-    return { type: data.type };
-  } catch {
-    return null;
-  }
+  
+  console.warn('Log event missing log-type tag');
+  return null;
 }
