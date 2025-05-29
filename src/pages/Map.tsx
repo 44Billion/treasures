@@ -13,7 +13,9 @@ import { useGeocaches } from "@/hooks/useGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { GeocacheList } from "@/components/GeocacheList";
+import { GeocacheDialog } from "@/components/GeocacheDialog";
 import { LocationSearch } from "@/components/LocationSearch";
+import type { Geocache } from "@/types/geocache";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sortByDistance, formatDistance, filterByRadius } from "@/lib/geo";
@@ -30,6 +32,8 @@ export default function Map() {
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchRadius, setSearchRadius] = useState(25); // km
   const [mapUpdateKey, setMapUpdateKey] = useState(0);
+  const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
@@ -92,6 +96,11 @@ export default function Map() {
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
     getLocation();
+  };
+
+  const handleMarkerClick = (geocache: Geocache) => {
+    setSelectedGeocache(geocache);
+    setDialogOpen(true);
   };
 
   return (
@@ -255,6 +264,7 @@ export default function Map() {
             searchRadius={searchRadius}
             center={mapCenter || undefined}
             zoom={mapZoom}
+            onMarkerClick={handleMarkerClick}
           />
         </div>
       </div>
@@ -394,11 +404,19 @@ export default function Map() {
                 searchRadius={searchRadius}
                 center={mapCenter || undefined}
                 zoom={mapZoom}
+                onMarkerClick={handleMarkerClick}
               />
             </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      {/* Geocache Dialog */}
+      <GeocacheDialog 
+        geocache={selectedGeocache}
+        isOpen={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }

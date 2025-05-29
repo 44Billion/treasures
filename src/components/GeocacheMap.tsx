@@ -214,6 +214,7 @@ export function GeocacheMap({
     if (onMarkerClick) {
       onMarkerClick(geocache);
     } else {
+      // Fallback to navigation if no callback provided
       navigate(`/cache/${geocache.dTag}`);
     }
   };
@@ -277,9 +278,6 @@ export function GeocacheMap({
           key={geocache.dTag}
           position={[geocache.location.lat, geocache.location.lng]}
           icon={createCacheIcon(geocache.type)}
-          eventHandlers={{
-            click: () => handleMarkerClick(geocache),
-          }}
         >
           <Popup>
             <div className="p-2 min-w-[200px]">
@@ -313,7 +311,7 @@ export function GeocacheMap({
                 <Button
                   size="sm"
                   className="flex-1"
-                  onClick={() => navigate(`/cache/${geocache.dTag}`)}
+                  onClick={() => handleMarkerClick(geocache)}
                 >
                   View Details
                 </Button>
