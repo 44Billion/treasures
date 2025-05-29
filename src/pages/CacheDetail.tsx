@@ -33,7 +33,8 @@ export default function CacheDetail() {
   const { data: logs = [], refetch: refetchLogs } = useGeocacheLogs(
     geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
     geocache?.dTag, 
-    geocache?.pubkey
+    geocache?.pubkey,
+    geocache?.relays
   );
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
   const { mutate: deleteGeocache } = useDeleteGeocache();
@@ -88,6 +89,7 @@ export default function CacheDetail() {
       geocacheDTag: geocache.dTag, // Pass the stable d-tag for new logs
       geocachePubkey: geocache.pubkey, // Pass the cache owner's pubkey
       relayUrl: primaryRelay, // Pass the primary relay from the cache
+      preferredRelays: geocache.relays, // Pass all preferred relays for publishing
       type: logType,
       text: logText,
     }, {

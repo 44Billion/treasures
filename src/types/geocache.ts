@@ -50,6 +50,7 @@ export interface CreateLogData {
   geocacheDTag?: string; // For linking to stable d-tag
   geocachePubkey?: string; // Pubkey of the cache owner
   relayUrl?: string; // Optional relay URL where the cache can be found
+  preferredRelays?: string[]; // Preferred relays from the geocache for publishing logs
   type: "found" | "dnf" | "note" | "maintenance" | "disabled" | "enabled" | "archived";
   text: string;
   images?: string[];

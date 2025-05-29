@@ -2,12 +2,14 @@ import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
+import { useNostrQueryRelays } from './useNostrQueryRelays';
 
-export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string) {
+export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[]) {
   const { nostr } = useNostr();
+  const { queryWithRelays } = useNostrQueryRelays();
 
   return useQuery({
-    queryKey: ['geocache-logs', geocacheDTag, geocachePubkey],
+    queryKey: ['geocache-logs', geocacheDTag, geocachePubkey, preferredRelays],
     queryFn: async (c) => {
       console.log('🔄 [GEOCACHE LOGS] Starting query for geocache:', {
         geocacheId,
@@ -30,7 +32,13 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       }
       
       console.log('Working filter:', JSON.stringify(filter));
-      let events = await nostr.query([filter], { signal });
+      console.log('Using preferred relays:', preferredRelays);
+      
+      // Use the custom query function that queries both preferred and default relays
+      let events = await queryWithRelays([filter], { 
+        signal, 
+        relays: preferredRelays 
+      });
       console.log('Query returned:', events.length, 'events');
       
       // Additional filtering for edge cases

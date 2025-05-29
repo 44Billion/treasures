@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useNostrPublishToRelays } from '@/hooks/useNostrPublishToRelays';
 import { useToast } from '@/hooks/useToast';
 import type { CreateLogData, GeocacheLog } from '@/types/geocache';
 
@@ -51,7 +51,7 @@ function getGeohash(lat: number, lng: number, precision: number = 6): string {
 
 export function useCreateLog() {
   const queryClient = useQueryClient();
-  const { mutateAsync: publishEvent } = useNostrPublish();
+  const { mutateAsync: publishEvent } = useNostrPublishToRelays();
   const { toast } = useToast();
 
   return useMutation({
@@ -91,10 +91,48 @@ export function useCreateLog() {
         tags.push(['g', getGeohash(data.location.lat, data.location.lng, 4)]); // Less precise geohash
       }
       
+      // Add relay tags
+      // For owner-specific log types (maintenance, disabled, enabled, archived), 
+      // use the user's relay preferences instead of the geocache's
+      const ownerLogTypes = ['maintenance', 'disabled', 'enabled', 'archived'];
+      if (ownerLogTypes.includes(data.type)) {
+        // Use user's relay preferences for owner logs
+        const savedRelays = localStorage.getItem('geocaching-relays');
+        let userRelays: string[] = [];
+        if (savedRelays) {
+          try {
+            userRelays = JSON.parse(savedRelays);
+          } catch {
+            userRelays = [];
+          }
+        }
+        
+        if (userRelays.length > 0) {
+          userRelays.forEach(relay => {
+            tags.push(['relay', relay]);
+          });
+        } else if (data.preferredRelays && data.preferredRelays.length > 0) {
+          // Fallback to geocache's relays if user has no preferences
+          data.preferredRelays.forEach(relay => {
+            tags.push(['relay', relay]);
+          });
+        }
+      } else if (data.preferredRelays && data.preferredRelays.length > 0) {
+        // For regular logs (found, dnf, note), use the geocache's preferred relays
+        data.preferredRelays.forEach(relay => {
+          tags.push(['relay', relay]);
+        });
+      }
+      
       const event = await publishEvent({
-        kind: 37516, // Geocache log event
-        content: data.text.trim(), // Plain text log message in content
-        tags,
+        event: {
+          kind: 37516, // Geocache log event
+          content: data.text.trim(), // Plain text log message in content
+          tags,
+        },
+        options: {
+          relays: data.preferredRelays, // Use the geocache's preferred relays if provided
+        },
       });
 
       console.log('Log event created:', event.id);
