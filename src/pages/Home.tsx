@@ -184,7 +184,7 @@ export default function Home() {
                 onClick={handleLoginClick}
               >
                 <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12" />
-                Login to Hide Caches
+                Login to Hide Treasures
               </Button>
             )}
           </div>
