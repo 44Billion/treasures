@@ -38,7 +38,17 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
-  const { data: geocaches, isLoading } = useGeocaches({
+  const { data: geocaches, isLoading, error } = useGeocaches({
+    search: searchQuery,
+    difficulty: difficulty === "all" ? undefined : parseInt(difficulty),
+    terrain: terrain === "all" ? undefined : parseInt(terrain),
+  });
+
+  // Add debugging
+  console.log('Map page - isLoading:', isLoading);
+  console.log('Map page - error:', error);
+  console.log('Map page - geocaches:', geocaches?.length, 'caches');
+  console.log('Map page - search params:', {
     search: searchQuery,
     difficulty: difficulty === "all" ? undefined : parseInt(difficulty),
     terrain: terrain === "all" ? undefined : parseInt(terrain),
@@ -269,9 +279,9 @@ export default function Map() {
         </div>
       </div>
 
-      {/* Mobile View - Account for top header (56px) + bottom nav (65px) */}
-      <div className="block lg:hidden h-[calc(100vh-121px)]">
-        {/* Mobile Filters Header - Fixed */}
+      {/* Mobile View */}
+      <div className="block lg:hidden">
+        {/* Mobile Filters Header */}
         <div className="bg-white border-b shadow-sm">
           <div className="p-3">
             <div className="space-y-3">
@@ -366,17 +376,20 @@ export default function Map() {
           </div>
         </div>
         
-        {/* Mobile Content Area - Fills remaining space below filters, above bottom nav */}
-        <div className="h-[calc(100%-140px)] overflow-hidden">
-          <Tabs defaultValue="list" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
-              <TabsTrigger value="list">List</TabsTrigger>
-              <TabsTrigger value="map">Map</TabsTrigger>
+        {/* Mobile Content Area */}
+        <div className="h-[calc(100vh-56px-65px-140px)]">
+          <Tabs defaultValue="list" className="h-full">
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white h-12">
+              <TabsTrigger value="list" className="h-10">List</TabsTrigger>
+              <TabsTrigger value="map" className="h-10">Map</TabsTrigger>
             </TabsList>
-            <TabsContent value="list" className="flex-1 overflow-y-auto p-4 mt-0">
+            <TabsContent value="list" className="h-[calc(100%-48px)] overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               {isLoading ? (
-                <div className="text-center text-gray-500 py-8">
-                  Loading geocaches...
+                <div className="flex items-center justify-center flex-1">
+                  <div className="text-center text-gray-500">
+                    <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-2 animate-pulse" />
+                    <p>Loading geocaches...</p>
+                  </div>
                 </div>
               ) : filteredGeocaches.length > 0 ? (
                 <div className="space-y-4">
@@ -387,25 +400,29 @@ export default function Map() {
                   <GeocacheList geocaches={filteredGeocaches} compact />
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
-                  <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p>No geocaches found</p>
-                  <p className="text-sm mt-2">
-                    {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
-                  </p>
+                <div className="flex items-center justify-center flex-1">
+                  <div className="text-center text-gray-500">
+                    <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p>No geocaches found</p>
+                    <p className="text-sm mt-2">
+                      {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
+                    </p>
+                  </div>
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="map" className="flex-1 mt-0">
-              <GeocacheMap 
-                geocaches={filteredGeocaches} 
-                userLocation={userLocation}
-                searchLocation={searchLocation || (showNearMe ? userLocation : null)}
-                searchRadius={searchRadius}
-                center={mapCenter || undefined}
-                zoom={mapZoom}
-                onMarkerClick={handleMarkerClick}
-              />
+            <TabsContent value="map" className="h-[calc(100%-48px)] m-0 p-0 data-[state=active]:block">
+              <div className="h-full">
+                <GeocacheMap 
+                  geocaches={filteredGeocaches} 
+                  userLocation={userLocation}
+                  searchLocation={searchLocation || (showNearMe ? userLocation : null)}
+                  searchRadius={searchRadius}
+                  center={mapCenter || undefined}
+                  zoom={mapZoom}
+                  onMarkerClick={handleMarkerClick}
+                />
+              </div>
             </TabsContent>
           </Tabs>
         </div>
