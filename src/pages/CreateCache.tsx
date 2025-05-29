@@ -100,7 +100,7 @@ export default function CreateCache() {
           </div>
         </header>
         
-        <div className="container mx-auto px-4 py-16">
+        <div className="container mx-auto px-4 py-16 pb-20 md:pb-16">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6 text-center">
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -128,7 +128,7 @@ export default function CreateCache() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Hide a New Geocache</CardTitle>

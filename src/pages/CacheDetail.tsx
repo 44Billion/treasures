@@ -318,7 +318,7 @@ export default function CacheDetail() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -569,18 +569,6 @@ export default function CacheDetail() {
               </TabsList>
               
               <TabsContent value="logs" className="space-y-4">
-                <div className="flex justify-end mb-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => refetchLogs()}
-                    title="Refresh logs"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-1" />
-                    Refresh
-                  </Button>
-                </div>
-                
                 {user && (
                   <Card>
                     <CardHeader>
