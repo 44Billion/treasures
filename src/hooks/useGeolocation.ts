@@ -34,7 +34,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       return;
     }
 
-    setState({ loading: true, error: null, coords: null });
+    setState(prev => ({ ...prev, loading: true, error: null }));
 
     const geoOptions: PositionOptions = {
       enableHighAccuracy: options.enableHighAccuracy ?? true,
@@ -102,131 +102,80 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       });
     };
 
-    // Try multiple strategies in parallel for faster results
-    const strategies = [
-      // Strategy 1: Quick network-based (fastest)
-      { 
-        enableHighAccuracy: false, 
-        timeout: 5000,
-        maximumAge: 300000 // 5 minutes
-      },
-      // Strategy 2: High accuracy GPS (most accurate)
-      { 
-        enableHighAccuracy: true, 
-        timeout: 10000,
-        maximumAge: 60000 // 1 minute
-      },
-      // Strategy 3: Any cached position (instant)
-      { 
-        enableHighAccuracy: false, 
-        timeout: 1000,
-        maximumAge: Infinity 
-      }
-    ];
-
-    let locationFound = false;
-    let bestPosition: GeolocationPosition | null = null;
-    let failureCount = 0;
-
-    // Start IP geolocation immediately in parallel
-    const ipLocationPromise = getIPLocation().catch(() => null);
-
-    // Try all strategies in parallel
-    strategies.forEach((strategy, index) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log(`Strategy ${index + 1} succeeded with accuracy: ${position.coords.accuracy}m`);
-          
-          // Use this position if it's the first one or more accurate
-          if (!locationFound || (bestPosition && position.coords.accuracy < bestPosition.coords.accuracy)) {
-            bestPosition = position;
-            if (!locationFound) {
-              locationFound = true;
-              handleSuccess(position);
-            } else if (position.coords.accuracy < 100) {
-              // Update to more accurate position if significantly better
-              handleSuccess(position);
-            }
-          }
-        },
-        async (error) => {
-          console.log(`Strategy ${index + 1} failed:`, error.message);
-          failureCount++;
-          
-          // If all GPS strategies failed, use IP location
-          if (failureCount === strategies.length && !locationFound) {
-            console.log('All GPS strategies failed, checking IP location...');
-            
-            const ipLocation = await ipLocationPromise;
-            if (ipLocation && !locationFound) {
-              const mockPosition: GeolocationPosition = {
-                coords: {
-                  latitude: ipLocation.lat,
-                  longitude: ipLocation.lng,
-                  accuracy: ipLocation.accuracy,
-                  altitude: null,
-                  altitudeAccuracy: null,
-                  heading: null,
-                  speed: null,
-                  toJSON: () => ({
-                    latitude: ipLocation.lat,
-                    longitude: ipLocation.lng,
-                    accuracy: ipLocation.accuracy,
-                    altitude: null,
-                    altitudeAccuracy: null,
-                    heading: null,
-                    speed: null,
-                  })
-                },
-                timestamp: Date.now(),
-                toJSON: function() {
-                  return {
-                    coords: this.coords.toJSON(),
-                    timestamp: this.timestamp
+    // Start with a simple getCurrentPosition call
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      async (error) => {
+        console.log('Primary geolocation failed:', error.message);
+        
+        // If primary fails, try with less strict options
+        if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
+          navigator.geolocation.getCurrentPosition(
+            handleSuccess,
+            async (secondError) => {
+              console.log('Secondary geolocation failed:', secondError.message);
+              
+              // Fall back to IP geolocation
+              try {
+                const ipLocation = await getIPLocation();
+                if (ipLocation) {
+                  const mockPosition: GeolocationPosition = {
+                    coords: {
+                      latitude: ipLocation.lat,
+                      longitude: ipLocation.lng,
+                      accuracy: ipLocation.accuracy,
+                      altitude: null,
+                      altitudeAccuracy: null,
+                      heading: null,
+                      speed: null,
+                      toJSON: () => ({
+                        latitude: ipLocation.lat,
+                        longitude: ipLocation.lng,
+                        accuracy: ipLocation.accuracy,
+                        altitude: null,
+                        altitudeAccuracy: null,
+                        heading: null,
+                        speed: null,
+                      })
+                    },
+                    timestamp: Date.now(),
+                    toJSON: function() {
+                      return {
+                        coords: this.coords.toJSON(),
+                        timestamp: this.timestamp
+                      };
+                    }
                   };
+                  
+                  setState({
+                    loading: false,
+                    error: null,
+                    coords: mockPosition.coords,
+                  });
+                  
+                  toast({
+                    title: "Location found",
+                    description: `Using approximate location (~${Math.round(ipLocation.accuracy / 1000)}km accuracy)`,
+                  });
+                } else {
+                  handleError(secondError);
                 }
-              };
-              
-              locationFound = true;
-              setState({
-                loading: false,
-                error: null,
-                coords: mockPosition.coords,
-              });
-              
-              toast({
-                title: "Location found",
-                description: `Using approximate location (~${Math.round(ipLocation.accuracy / 1000)}km accuracy)`,
-              });
-            } else if (!locationFound) {
-              handleError(error);
+              } catch {
+                handleError(secondError);
+              }
+            },
+            {
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 300000 // 5 minutes
             }
-          }
-        },
-        strategy
-      );
-    });
-
-    // Also try watchPosition for continuous updates
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        if (!locationFound || (position.coords.accuracy < (bestPosition?.coords.accuracy || Infinity))) {
-          console.log(`Watch position update with accuracy: ${position.coords.accuracy}m`);
-          bestPosition = position;
-          if (!locationFound) {
-            locationFound = true;
-            handleSuccess(position);
-          }
+          );
+        } else {
+          handleError(error);
         }
       },
-      () => {}, // Ignore watch errors
-      { enableHighAccuracy: false, maximumAge: 0 }
+      geoOptions
     );
-
-    // Clear watch after 15 seconds
-    setTimeout(() => {
-      navigator.geolocation.clearWatch(watchId);
-    }, 15000);
   }, [options.enableHighAccuracy, options.timeout, options.maximumAge, toast]);
 
   return {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
@@ -126,6 +126,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([40.7128, -74.0060]); // Default to NYC
   const [beaconLocation, setBeaconLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
+  const lastCoordsRef = useRef<GeolocationCoordinates | null>(null);
 
   useEffect(() => {
     if (value) {
@@ -139,7 +140,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   // Only update location when user explicitly gets location, not automatically
   useEffect(() => {
-    if (coords) {
+    // Only process if we have new coords that are different from last time
+    if (coords && coords !== lastCoordsRef.current) {
+      lastCoordsRef.current = coords;
+      
       // Apply autocorrection even to GPS coordinates (in case of device errors)
       const { lat, lng } = autocorrectCoordinates(coords.latitude, coords.longitude);
       const location = { lat, lng };
