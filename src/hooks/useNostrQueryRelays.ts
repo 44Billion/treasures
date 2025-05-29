@@ -1,6 +1,10 @@
 import { NostrEvent, NostrFilter, NRelay1 } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 
+export interface NostrEventWithRelay extends NostrEvent {
+  sourceRelay?: string;
+}
+
 export function useNostrQueryRelays() {
   const { nostr } = useNostr();
 
@@ -10,8 +14,8 @@ export function useNostrQueryRelays() {
       signal?: AbortSignal;
       relays?: string[];
     }
-  ): Promise<NostrEvent[]> => {
-    const allEvents: NostrEvent[] = [];
+  ): Promise<NostrEventWithRelay[]> => {
+    const allEvents: NostrEventWithRelay[] = [];
     const eventIds = new Set<string>();
 
     // Query the specified relays if provided
@@ -23,7 +27,8 @@ export function useNostrQueryRelays() {
           const relay = new NRelay1(url);
           const events = await relay.query(filters, { signal: options.signal });
           console.log(`Got ${events.length} events from ${url}`);
-          return events;
+          // Add source relay to each event
+          return events.map(event => ({ ...event, sourceRelay: url }));
         } catch (error) {
           console.error(`Failed to query ${url}:`, error);
           return [];
@@ -51,7 +56,8 @@ export function useNostrQueryRelays() {
       for (const event of defaultEvents) {
         if (!eventIds.has(event.id)) {
           eventIds.add(event.id);
-          allEvents.push(event);
+          // For default relays, we don't know the specific relay
+          allEvents.push({ ...event, sourceRelay: undefined });
         }
       }
     } catch (error) {

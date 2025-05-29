@@ -147,6 +147,10 @@ export function useCreateLog() {
       // Optimistically update the cache immediately
       queryClient.setQueryData(['geocache-logs', variables.geocacheDTag, variables.geocachePubkey], (oldData: unknown) => {
         // Create a new log entry from our event
+        // Extract client and relay info from the event tags
+        const clientTag = event.tags.find(t => t[0] === 'client')?.[1];
+        const relayTags = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+        
         const newLog = {
           id: event.id,
           pubkey: event.pubkey,
@@ -155,6 +159,8 @@ export function useCreateLog() {
           type: variables.type,
           text: variables.text.trim(),
           images: variables.images || [],
+          client: clientTag, // Include the client info
+          relays: relayTags, // Include relay tags
         };
         
         // Handle the case where oldData might be undefined or an empty array

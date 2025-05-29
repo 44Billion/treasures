@@ -72,7 +72,13 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       console.log(`Removed ${events.length - deduplicatedEvents.length} duplicate events`);
 
       // Parse log events
-      const parsedLogs = deduplicatedEvents.map(parseLogEvent);
+      const parsedLogs = deduplicatedEvents.map(event => {
+        const parsed = parseLogEvent(event);
+        if (parsed && 'sourceRelay' in event) {
+          parsed.sourceRelay = (event as NostrEvent & { sourceRelay?: string }).sourceRelay;
+        }
+        return parsed;
+      });
       const logs: GeocacheLog[] = parsedLogs.filter((log): log is GeocacheLog => log !== null);
       
       console.log('Parsing results:', {
@@ -129,13 +135,20 @@ function parseLogEvent(event: NostrEvent): GeocacheLog | null {
     // Parse from tags
     const logType = event.tags.find(t => t[0] === 'log-type')?.[1];
     const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+    const client = event.tags.find(t => t[0] === 'client')?.[1];
+    const relayTags = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
 
     if (!logType) {
       console.warn('Log event missing log-type tag:', event);
       return null;
     }
 
-    console.log('Parsed log data from tags:', { geocacheId, type: logType, text: event.content.substring(0, 50) });
+    console.log('Parsed log data from tags:', { 
+      geocacheId, 
+      type: logType, 
+      text: event.content.substring(0, 50),
+      client: client 
+    });
     
     return {
       id: event.id,
@@ -145,6 +158,8 @@ function parseLogEvent(event: NostrEvent): GeocacheLog | null {
       type: logType as "found" | "dnf" | "note" | "maintenance" | "disabled" | "enabled" | "archived",
       text: event.content, // Text is in content field
       images: images,
+      client: client,
+      relays: relayTags,
     };
   } catch (error) {
     console.error('Failed to parse log event:', error, event);

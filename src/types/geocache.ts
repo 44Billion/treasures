@@ -18,6 +18,8 @@ export interface Geocache {
   foundCount?: number;
   logCount?: number;
   relays?: string[]; // Preferred relays from the geocache event
+  sourceRelay?: string; // The relay this event was fetched from
+  client?: string; // The client that created this event
 }
 
 export interface GeocacheLog {
@@ -28,6 +30,9 @@ export interface GeocacheLog {
   type: "found" | "dnf" | "note" | "maintenance" | "disabled" | "enabled" | "archived";
   text: string;
   images?: string[];
+  sourceRelay?: string; // The relay this event was fetched from
+  client?: string; // The client that created this event
+  relays?: string[]; // Relay tags from the event
 }
 
 export interface CreateGeocacheData {

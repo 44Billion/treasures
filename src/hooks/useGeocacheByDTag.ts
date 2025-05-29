@@ -108,6 +108,7 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const locationTag = event.tags.find(t => t[0] === 'location')?.[1];
     const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
     const relays = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+    const client = event.tags.find(t => t[0] === 'client')?.[1];
 
     // Validate required fields
     if (!name || !locationTag || !difficulty || !terrain || !size || !cacheType) {
@@ -145,6 +146,7 @@ function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       type: cacheType as "traditional" | "multi" | "mystery" | "earth" | "virtual" | "letterbox" | "event",
       images: images,
       relays: relays,
+      client: client,
     };
   } catch (error) {
     console.error('Failed to parse geocache event:', error);

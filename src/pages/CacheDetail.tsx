@@ -24,6 +24,7 @@ import { LogList } from "@/components/LogList";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";
+import { EventSourceInfo } from "@/components/EventSourceInfo";
 
 export default function CacheDetail() {
   const { dtag } = useParams<{ dtag: string }>();
@@ -347,6 +348,11 @@ export default function CacheDetail() {
                         {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
                       </span>
                     </CardDescription>
+                    <EventSourceInfo 
+                      relayUrl={geocache.relays?.[0]} 
+                      client={geocache.client}
+                      className="mt-1"
+                    />
                   </div>
                   {isOwner && (
                     <div className="flex gap-2">
