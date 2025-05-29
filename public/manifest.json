@@ -9,6 +9,10 @@
   "scope": "/",
   "start_url": "/",
   "categories": ["games", "travel", "lifestyle", "social"],
+  "permissions": [
+    "geolocation",
+    "device-orientation"
+  ],
   "icons": [
     {
       "src": "/icon-192x192.png",
