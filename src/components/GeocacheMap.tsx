@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import type { Geocache } from "@/types/geocache";
+import { isIOS, logIOSInfo, getIOSCompatibleMapOptions } from "@/lib/ios";
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -219,6 +220,20 @@ export function GeocacheMap({
     }
   };
 
+  // iOS-specific map options
+  const iosDetected = isIOS();
+  const mapOptions = getIOSCompatibleMapOptions();
+  
+  // Log iOS info for debugging
+  if (iosDetected) {
+    logIOSInfo();
+  }
+  
+  console.log('GeocacheMap - iOS detected:', iosDetected);
+  console.log('GeocacheMap - geocaches count:', geocaches.length);
+  console.log('GeocacheMap - mapCenter:', mapCenter);
+  console.log('GeocacheMap - mapOptions:', mapOptions);
+
   return (
     <MapContainer
       center={mapCenter}
@@ -226,9 +241,9 @@ export function GeocacheMap({
       style={{ height: "100%", width: "100%" }}
       className="rounded-lg z-0"
       zoomControl={true}
-      scrollWheelZoom={true}
       doubleClickZoom={true}
       touchZoom={true}
+      {...mapOptions}
     >
       <TileLayer
         attribution={mapStyle.attribution}

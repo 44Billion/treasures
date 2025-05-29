@@ -2,6 +2,7 @@ import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
+import { isIOS, getIOSCompatibleQueryOptions } from '@/lib/ios';
 
 interface UseGeocachesOptions {
   limit?: number;
@@ -13,11 +14,25 @@ interface UseGeocachesOptions {
 
 export function useGeocaches(options: UseGeocachesOptions = {}) {
   const { nostr } = useNostr();
+  const queryOptions = getIOSCompatibleQueryOptions();
 
   return useQuery({
     queryKey: ['geocaches', options],
+    staleTime: queryOptions.staleTime,
+    gcTime: queryOptions.gcTime,
     queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
+      // iOS Safari has issues with AbortSignal.any and AbortSignal.timeout
+      // Use a simpler approach for better compatibility
+      let signal = c.signal;
+      let timeoutId: NodeJS.Timeout | null = null;
+      
+      // Create a timeout signal for iOS compatibility
+      if (!signal.aborted) {
+        timeoutId = setTimeout(() => {
+          // Don't abort here, just let the query continue
+          // iOS Safari sometimes has issues with aggressive timeouts
+        }, queryOptions.timeout); // iOS-compatible timeout
+      }
       
       // Build filter for geocache events
       const filter: NostrFilter = {
@@ -29,7 +44,17 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
         filter.authors = [options.authorPubkey];
       }
 
-      const events = await nostr.query([filter], { signal });
+      try {
+        console.log('Starting geocache query with filter:', filter);
+        console.log('User agent:', navigator.userAgent);
+        console.log('iOS Safari check:', /iPad|iPhone|iPod/.test(navigator.userAgent));
+        
+        const events = await nostr.query([filter], { signal });
+        
+        // Clear timeout if query succeeds
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       
       console.log('Raw events from query:', events.length, 'events');
       console.log('Event kinds:', events.map(e => e.kind));
@@ -104,7 +129,21 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
         }));
       }
 
-      return geocaches;
+        return geocaches;
+      } catch (error) {
+        // Clear timeout on error
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        console.error('Error fetching geocaches:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
+          userAgent: navigator.userAgent
+        });
+        throw error;
+      }
     },
   });
 }

@@ -5,6 +5,11 @@
   z-index: 0;
   /* Improve touch performance on mobile */
   touch-action: manipulation;
+  /* iOS-specific fixes */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Fix marker icon paths */
@@ -75,5 +80,32 @@
   /* Fix touch interactions */
   .leaflet-container a {
     -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .leaflet-container {
+    /* Force hardware acceleration on iOS */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Prevent iOS Safari from interfering with touch events */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Fix iOS Safari viewport issues */
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Fix iOS Safari tile loading issues */
+  .leaflet-tile {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Improve iOS Safari performance */
+  .leaflet-map-pane {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 }
