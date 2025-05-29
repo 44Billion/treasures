@@ -52,7 +52,8 @@ export function useCreateGeocache() {
         kind: 30078, // Application-specific data
         content,
         tags: [
-          ['d', 'geocache'], // Identifier for geocache data
+          ['d', `geocache-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`], // Unique identifier for each geocache
+          ['t', 'geocache'], // Type tag for filtering
           ['name', data.name.trim()], // For easier searching
           ['g', getGeohash(data.location.lat, data.location.lng)], // Geohash for location-based queries
         ],

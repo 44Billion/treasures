@@ -22,7 +22,7 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
       // Build filter for geocache events
       const filter: NostrFilter = {
         kinds: [30078], // Application-specific data
-        '#d': ['geocache'], // Identifier for geocache data
+        '#t': ['geocache'], // Type tag for filtering (allows multiple unique geocaches)
         limit: options.limit || 50,
       };
 
@@ -98,9 +98,14 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
 
 function parseGeocacheEvent(event: NostrEvent): Geocache | null {
   try {
-    // Check if this is a geocache event
+    // Check if this is a geocache event (support both old and new formats)
     const dTag = event.tags.find(t => t[0] === 'd')?.[1];
-    if (dTag !== 'geocache') return null;
+    const tTag = event.tags.find(t => t[0] === 't')?.[1];
+    
+    const isGeocache = (dTag === 'geocache') || (tTag === 'geocache') || 
+                      (dTag?.startsWith('geocache-'));
+    
+    if (!isGeocache) return null;
 
     const data = JSON.parse(event.content);
     
