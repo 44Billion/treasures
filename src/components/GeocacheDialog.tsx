@@ -25,7 +25,11 @@ interface GeocacheDialogProps {
 export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialogProps) {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { data: logs, refetch: refetchLogs } = useGeocacheLogs(geocache?.id || '', geocache?.dTag);
+  const { data: logs, refetch: refetchLogs } = useGeocacheLogs(
+    geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
+    geocache?.dTag,
+    geocache?.pubkey
+  );
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
   const author = useAuthor(geocache?.pubkey || "");
   
@@ -45,6 +49,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
     createLog({
       geocacheId: geocache.id,
       geocacheDTag: geocache.dTag,
+      geocachePubkey: geocache.pubkey,
       type: logType,
       text: logText,
     }, {
@@ -52,7 +57,6 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         setPostingStatus("Posted! Refreshing...");
         setLogText("");
         setTimeout(() => {
-          refetchLogs();
           setPostingStatus("");
         }, 2000);
       },

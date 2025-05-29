@@ -7,7 +7,7 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
   const { nostr } = useNostr();
 
   return useQuery({
-    queryKey: ['geocache-logs', geocacheId, geocacheDTag, geocachePubkey],
+    queryKey: ['geocache-logs', geocacheDTag, geocachePubkey],
     queryFn: async (c) => {
       console.log('🔄 [GEOCACHE LOGS] Starting query for geocache:', {
         geocacheId,
@@ -33,7 +33,7 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       let events = await nostr.query([filter], { signal });
       console.log('Query returned:', events.length, 'events');
       
-      // If we didn't have pubkey/dtag, filter locally
+      // Additional filtering for edge cases
       if (!geocachePubkey || !geocacheDTag) {
         events = events.filter(event => {
           const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
@@ -43,12 +43,13 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
           const [, pubkey, dTag] = aTag.split(':');
           return (dTag === geocacheDTag) || (geocacheId && aTag.includes(geocacheId));
         });
-        console.log('After local filtering:', events.length, 'events');
+        console.log('After additional filtering:', events.length, 'events');
       }
       
       // Log first few events for debugging
       if (events.length > 0) {
-        console.log('Sample event:', events[0]);
+        console.log('Sample events:', events.slice(0, 3));
+        console.log('All event IDs:', events.map(e => e.id.slice(0, 8)));
       }
     
       // Remove duplicates by event ID (multiple relays may return the same event)
@@ -63,11 +64,14 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       console.log(`Removed ${events.length - deduplicatedEvents.length} duplicate events`);
 
       // Parse log events
-      const logs: GeocacheLog[] = deduplicatedEvents
-        .map(parseLogEvent)
-        .filter((log): log is GeocacheLog => log !== null);
-
-      console.log('Parsed logs:', logs.length);
+      const parsedLogs = deduplicatedEvents.map(parseLogEvent);
+      const logs: GeocacheLog[] = parsedLogs.filter((log): log is GeocacheLog => log !== null);
+      
+      console.log('Parsing results:', {
+        totalEvents: deduplicatedEvents.length,
+        parsedSuccessfully: logs.length,
+        failedToParse: parsedLogs.filter(l => l === null).length
+      });
 
       // Sort by creation date (newest first)
       logs.sort((a, b) => b.created_at - a.created_at);
@@ -85,20 +89,25 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       throw error;
     }
     },
-    enabled: !!geocacheId,
+    enabled: !!(geocacheDTag && geocachePubkey),
     retry: 1, // Quick retry
     retryDelay: 500, // Fast retry 
-    staleTime: 15000, // 15 seconds
-    gcTime: 300000, // 5 minutes
+    staleTime: 30000, // 30 seconds - increased to reduce refetches
+    gcTime: 600000, // 10 minutes - increased to keep data longer
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    // Keep previous data while fetching
+    keepPreviousData: true,
   });
 }
 
 function parseLogEvent(event: NostrEvent): GeocacheLog | null {
   try {
     // Only process kind 37516 events
-    if (event.kind !== 37516) return null;
+    if (event.kind !== 37516) {
+      console.log('Skipping non-log event kind:', event.kind);
+      return null;
+    }
 
     // Get the geocache reference from the a-tag
     const aTag = event.tags.find(t => t[0] === 'a')?.[1];

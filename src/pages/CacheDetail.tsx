@@ -30,7 +30,11 @@ export default function CacheDetail() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
   const { data: geocache, isLoading, error, isError, refetch } = useGeocacheByDTag(dtag!);
-  const { data: logs, refetch: refetchLogs } = useGeocacheLogs(geocache?.id || '', geocache?.dTag, geocache?.pubkey);
+  const { data: logs, refetch: refetchLogs } = useGeocacheLogs(
+    geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
+    geocache?.dTag, 
+    geocache?.pubkey
+  );
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
   const { mutate: deleteGeocache } = useDeleteGeocache();
   const { mutate: editGeocache, isPending: isEditingGeocache } = useEditGeocache(geocache || null);
@@ -86,9 +90,8 @@ export default function CacheDetail() {
       onSuccess: () => {
         setPostingStatus("Posted! Refreshing...");
         setLogText("");
-        // Force refresh logs after a short delay
+        // Don't force refresh - let the background refresh in useCreateLog handle it
         setTimeout(() => {
-          refetchLogs();
           setPostingStatus("");
         }, 2000);
       },

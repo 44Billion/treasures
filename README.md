@@ -150,7 +150,6 @@ The app connects to multiple Nostr relays for redundancy:
 - `wss://ditto.pub/relay`
 - `wss://relay.damus.io`
 - `wss://nos.lol`
-- `wss://relay.snort.social`
 
 ### Data Format
 Geocaches are stored as Nostr events with custom tags for location, difficulty, terrain, and other metadata. All data is cryptographically signed and verifiable.
