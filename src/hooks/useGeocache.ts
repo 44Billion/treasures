@@ -13,6 +13,9 @@ export function useGeocache(id: string) {
       console.log('🔍 [GEOCACHE] Starting query for ID:', id);
       
       try {
+        // Create signal for non-Safari queries
+        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(8000)]);
+        
         // Primary strategy: Direct ID lookup
         const filter: NostrFilter = {
           ids: [id],
@@ -38,7 +41,6 @@ export function useGeocache(id: string) {
             throw error;
           }
         } else {
-          const signal = AbortSignal.any([c.signal, AbortSignal.timeout(8000)]);
           events = await nostr.query([filter], { signal });
         }
         console.log('🎯 [GEOCACHE] Query returned:', events.length, 'events');

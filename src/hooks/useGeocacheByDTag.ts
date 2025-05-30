@@ -14,6 +14,9 @@ export function useGeocacheByDTag(dTag: string) {
       console.log('🔍 [GEOCACHE BY DTAG] Starting query for d-tag:', dTag);
       
       try {
+        // Create signal for non-Safari queries
+        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(8000)]);
+        
         // Query by d-tag - this is the stable identifier
         const filter: NostrFilter = {
           kinds: [37515], // Geocache listing events
@@ -39,7 +42,6 @@ export function useGeocacheByDTag(dTag: string) {
             throw error;
           }
         } else {
-          const signal = AbortSignal.any([c.signal, AbortSignal.timeout(8000)]);
           events = await nostr.query([filter], { signal });
         }
         console.log('🎯 [GEOCACHE BY DTAG] Query returned:', events.length, 'events');
