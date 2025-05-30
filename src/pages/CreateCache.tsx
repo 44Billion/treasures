@@ -348,11 +348,6 @@ export default function CreateCache() {
                   value={location}
                   onChange={setLocation}
                 />
-                {!location && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Click on the map to set the cache location
-                  </p>
-                )}
               </div>
 
               {/* Images */}
