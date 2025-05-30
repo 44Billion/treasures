@@ -7,9 +7,7 @@ import CacheDetail from "./pages/CacheDetail";
 import MyCaches from "./pages/MyCaches";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
-import SensorTest from "./pages/SensorTest";
-import BasicSensorTest from "./pages/BasicSensorTest";
-import ModernSensorTest from "./pages/ModernSensorTest";
+
 import Debug from "./pages/Debug";
 import { LocationTestPage } from "./pages/LocationTestPage";
 import NotFound from "./pages/NotFound";
@@ -28,9 +26,7 @@ export function AppRouter() {
         <Route path="/saved" element={<MyCaches />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/install" element={<Install />} />
-        <Route path="/sensor-test" element={<SensorTest />} />
-        <Route path="/basic-sensor-test" element={<BasicSensorTest />} />
-        <Route path="/modern-sensor-test" element={<ModernSensorTest />} />
+
         <Route path="/debug" element={<Debug />} />
         <Route path="/location-test" element={<LocationTestPage />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

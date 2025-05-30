@@ -28,7 +28,7 @@ import { formatDistanceToNow } from "@/lib/date";
 import { EventSourceInfo } from "@/components/EventSourceInfo";
 import { LocationWarnings } from "@/components/LocationWarnings";
 import { verifyLocation, type LocationVerification } from "@/lib/osmVerification";
-import { TreasureCompass } from "@/components/TreasureCompass";
+import { Compass } from "@/components/Compass";
 
 export default function CacheDetail() {
   const { dtag } = useParams<{ dtag: string }>();
@@ -721,7 +721,7 @@ export default function CacheDetail() {
               <TabsContent value="compass">
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center">
-                    <TreasureCompass 
+                    <Compass 
                       targetLat={geocache.location.lat}
                       targetLng={geocache.location.lng}
                     />
