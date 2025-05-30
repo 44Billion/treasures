@@ -48,10 +48,11 @@ export function useNostrSavedCaches() {
           limit: 1000
         };
         
+        // Safari-compatible query with shorter timeout
         const events = await Promise.race([
           nostr.query([query]),
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Bookmark query timeout')), 10000)
+            setTimeout(() => reject(new Error('Bookmark query timeout')), 5000)
           )
         ]);
         
@@ -124,12 +125,26 @@ export function useNostrSavedCaches() {
           };
         });
         
-        const events = await Promise.race([
-          nostr.query(filters),
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Saved cache query timeout')), 15000)
-          )
-        ]);
+        // Safari-compatible query with batch processing
+        let events: any[] = [];
+        
+        // Process filters in smaller batches for Safari
+        const batchSize = 5;
+        for (let i = 0; i < filters.length; i += batchSize) {
+          const batch = filters.slice(i, i + batchSize);
+          try {
+            const batchEvents = await Promise.race([
+              nostr.query(batch),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Batch query timeout')), 5000)
+              )
+            ]);
+            events.push(...batchEvents);
+          } catch (error) {
+            console.warn(`Batch ${i / batchSize + 1} failed:`, error);
+            // Continue with other batches
+          }
+        }
         
         return events;
       } catch (error) {
@@ -155,10 +170,11 @@ export function useNostrSavedCaches() {
           limit: 1000,
         };
         
+        // Safari-compatible log query with reduced scope
         const allLogEvents = await Promise.race([
           nostr.query([logFilter]),
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Log count query timeout')), 10000)
+            setTimeout(() => reject(new Error('Log count query timeout')), 4000)
           )
         ]);
         

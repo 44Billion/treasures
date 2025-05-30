@@ -21,12 +21,17 @@ export function PWAUpdatePrompt() {
 
   if (updateAvailable) {
     return (
-      <Alert className="fixed bottom-4 left-4 right-4 z-50 md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
-        <RefreshCw className="h-4 w-4" />
+      <Alert className="fixed bottom-20 left-2 right-2 z-50 md:bottom-4 md:left-auto md:right-4 md:max-w-sm shadow-lg border-green-200 bg-green-50">
+        <RefreshCw className="h-4 w-4 text-green-600" />
         <AlertDescription>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-sm">New version available!</span>
-            <Button size="sm" onClick={handleUpdate} className="shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="text-sm font-medium text-green-800">New version available!</span>
+            <Button 
+              size="sm" 
+              onClick={handleUpdate} 
+              className="shrink-0 w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
               Update
             </Button>
           </div>

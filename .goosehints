@@ -79,6 +79,65 @@ These components follow a consistent pattern using React's `forwardRef` and use 
 
 This project comes with custom hooks for querying and publishing events on the Nostr network.
 
+### Safari Compatibility
+
+This project includes Safari-specific optimizations for Nostr protocol handling. Safari has stricter WebSocket timing requirements that can cause standard Nostr queries to timeout.
+
+#### Safari Detection and Client
+```typescript
+import { isSafari, createSafariNostr } from '@/lib/safariNostr';
+
+// Automatic Safari detection
+if (isSafari()) {
+  // Use Safari-optimized client
+  const safariClient = createSafariNostr(['wss://relay.damus.io', 'wss://nos.lol']);
+  const events = await safariClient.query([filter], { timeout: 5000, maxRetries: 2 });
+  safariClient.close();
+}
+```
+
+#### Safari Optimizations Applied
+- **Shorter timeouts**: 4-6 seconds instead of 10+ seconds
+- **Smaller query limits**: Reduced event limits for Safari compatibility
+- **Retry logic**: Multiple attempts across different relays
+- **Direct WebSocket management**: Bypasses complex pooling for better timing control
+- **Graceful degradation**: Returns partial results instead of complete failures
+
+#### Hooks with Safari Support
+The following hooks automatically detect Safari and use optimized queries:
+- `useGeocaches()` - Main cache listing
+- `useGeocache()` - Individual cache by ID
+- `useGeocacheByDTag()` - Individual cache by d-tag
+- `useNostrSavedCaches()` - Saved/bookmarked caches
+
+When developing new Nostr hooks, include Safari detection:
+```typescript
+import { isSafari, createSafariNostr } from '@/lib/safariNostr';
+
+export function useMyNostrHook() {
+  const { nostr } = useNostr();
+  
+  return useQuery({
+    queryKey: ['my-data', isSafari()], // Include Safari in cache key
+    queryFn: async () => {
+      if (isSafari()) {
+        const safariClient = createSafariNostr(relays);
+        try {
+          const events = await safariClient.query([filter], { timeout: 5000 });
+          safariClient.close();
+          return events;
+        } catch (error) {
+          safariClient.close();
+          throw error;
+        }
+      } else {
+        return await nostr.query([filter]);
+      }
+    }
+  });
+}
+```
+
 ### The `useNostr` Hook
 
 The `useNostr` hook returns an object containing a `nostr` property, with `.query()` and `.event()` methods for querying and publishing Nostr events respectively.

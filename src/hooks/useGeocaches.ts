@@ -2,6 +2,7 @@ import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
+import { isSafari, createSafariNostr } from '@/lib/safariNostr';
 
 interface UseGeocachesOptions {
   limit?: number;
@@ -15,7 +16,7 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
   const { nostr } = useNostr();
 
   return useQuery({
-    queryKey: ['geocaches', options],
+    queryKey: ['geocaches', options, isSafari()],
     staleTime: 60000, // 1 minute
     gcTime: 300000, // 5 minutes
     queryFn: async () => {
@@ -25,7 +26,7 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
         // Build filter for geocache events
         const filter: NostrFilter = {
           kinds: [37515], // Geocache listing events
-          limit: options.limit || 50,
+          limit: options.limit || (isSafari() ? 20 : 50), // Smaller limit for Safari
         };
 
         if (options.authorPubkey) {
@@ -34,13 +35,32 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
 
         console.log('Filter:', filter);
         
-        // Simple query with basic timeout
-        const events = await Promise.race([
-          nostr.query([filter]),
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Query timeout')), 15000)
-          )
-        ]);
+        let events: NostrEvent[];
+        
+        if (isSafari()) {
+          console.log('Using Safari-specific Nostr client...');
+          const safariClient = createSafariNostr([
+            'wss://relay.damus.io',
+            'wss://nos.lol',
+            'wss://relay.nostr.band'
+          ]);
+          
+          try {
+            events = await safariClient.query([filter], { timeout: 6000, maxRetries: 2 });
+            safariClient.close();
+          } catch (error) {
+            safariClient.close();
+            throw error;
+          }
+        } else {
+          // Standard query for non-Safari browsers
+          events = await Promise.race([
+            nostr.query([filter]),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Query timeout')), 15000)
+            )
+          ]);
+        }
         
         console.log('Raw events from query:', events.length, 'events');
         
@@ -71,22 +91,41 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
         // Sort by creation date (newest first)
         geocaches.sort((a, b) => b.created_at - a.created_at);
 
-        // Simplified log count fetching
+        // Log count fetching with Safari compatibility
         if (geocaches.length > 0) {
           try {
-            // Create a single filter for all logs
+            // Limit the number of caches we query logs for
+            const limitedCaches = geocaches.slice(0, isSafari() ? 5 : 10);
             const logFilter: NostrFilter = {
               kinds: [37516], // Geocache log events
-              '#a': geocaches.map(g => `37515:${g.pubkey}:${g.dTag}`),
-              limit: 1000,
+              '#a': limitedCaches.map(g => `37515:${g.pubkey}:${g.dTag}`),
+              limit: isSafari() ? 100 : 500,
             };
 
-            const logEvents = await Promise.race([
-              nostr.query([logFilter]),
-              new Promise<never>((_, reject) => 
-                setTimeout(() => reject(new Error('Log query timeout')), 10000)
-              )
-            ]);
+            let logEvents: NostrEvent[];
+            
+            if (isSafari()) {
+              const safariClient = createSafariNostr([
+                'wss://relay.damus.io',
+                'wss://nos.lol'
+              ]);
+              
+              try {
+                logEvents = await safariClient.query([logFilter], { timeout: 4000, maxRetries: 1 });
+                safariClient.close();
+              } catch (error) {
+                safariClient.close();
+                console.warn('Safari log query failed:', error);
+                logEvents = []; // Continue without log counts
+              }
+            } else {
+              logEvents = await Promise.race([
+                nostr.query([logFilter]),
+                new Promise<never>((_, reject) => 
+                  setTimeout(() => reject(new Error('Log query timeout')), 10000)
+                )
+              ]);
+            }
             
             // Count logs per geocache
             const logCounts = new Map<string, { total: number; found: number }>();

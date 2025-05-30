@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNostr } from '@nostrify/react';
+import { NRelay1 } from '@nostrify/nostrify';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { isSafari, createSafariNostr } from '@/lib/safariNostr';
 
 interface DebugLog {
   timestamp: string;
@@ -49,47 +51,83 @@ export default function Debug() {
       }
       addLog('success', 'Nostr object exists');
 
-      // Test 2: Simple query test
+      // Test 2: Simple query test with detailed debugging
       addLog('info', 'Testing simple query...');
       const startTime = Date.now();
       
       try {
+        addLog('info', 'About to call nostr.query...');
+        addLog('info', 'Filter being used:', { kinds: [1], limit: 1 });
+        
+        // Check if query method exists and is callable
+        if (!nostr.query) {
+          addLog('error', 'nostr.query method does not exist');
+          return;
+        }
+        
+        if (typeof nostr.query !== 'function') {
+          addLog('error', 'nostr.query is not a function, it is:', typeof nostr.query);
+          return;
+        }
+        
+        addLog('info', 'Calling nostr.query...');
+        const queryPromise = nostr.query([{ kinds: [1], limit: 1 }]);
+        
+        addLog('info', 'Query promise created, waiting for result...');
+        addLog('info', 'Promise type:', typeof queryPromise);
+        addLog('info', 'Is Promise?', queryPromise instanceof Promise);
+        
         const simpleEvents = await Promise.race([
-          nostr.query([{ kinds: [1], limit: 1 }]),
+          queryPromise,
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Query timeout after 10s')), 10000)
+            setTimeout(() => {
+              addLog('warn', 'Query timeout reached after 8s');
+              reject(new Error('Query timeout after 8s'));
+            }, 8000)
           )
         ]);
         
         const duration = Date.now() - startTime;
         addLog('success', `Simple query completed in ${duration}ms`);
         addLog('info', `Found ${simpleEvents.length} events`);
+        addLog('info', 'Result type:', typeof simpleEvents);
+        addLog('info', 'Is array?', Array.isArray(simpleEvents));
         
         if (simpleEvents.length > 0) {
           addLog('info', 'Sample event structure:', {
-            id: simpleEvents[0].id,
+            id: simpleEvents[0].id?.slice(0, 8) + '...',
             kind: simpleEvents[0].kind,
             created_at: simpleEvents[0].created_at,
-            pubkey: simpleEvents[0].pubkey.slice(0, 8) + '...',
-            tags_count: simpleEvents[0].tags.length
+            pubkey: simpleEvents[0].pubkey?.slice(0, 8) + '...',
+            tags_count: simpleEvents[0].tags?.length || 0
           });
         }
       } catch (queryError) {
-        addLog('error', 'Simple query failed:', {
+        const duration = Date.now() - startTime;
+        addLog('error', `Simple query failed after ${duration}ms:`, {
           message: queryError instanceof Error ? queryError.message : String(queryError),
-          name: queryError instanceof Error ? queryError.name : 'Unknown'
+          name: queryError instanceof Error ? queryError.name : 'Unknown',
+          stack: queryError instanceof Error ? queryError.stack?.slice(0, 300) : 'No stack'
+        });
+        
+        // Additional debugging
+        addLog('info', 'Error analysis:', {
+          isTimeoutError: queryError instanceof Error && queryError.message.includes('timeout'),
+          isNetworkError: queryError instanceof Error && queryError.message.includes('network'),
+          errorType: typeof queryError
         });
       }
 
-      // Test 3: Geocache query test
-      addLog('info', 'Testing geocache query (kind 37515)...');
+      // Test 3: Safari-optimized geocache query test
+      addLog('info', 'Testing Safari-optimized geocache query (kind 37515)...');
       const geocacheStartTime = Date.now();
       
       try {
+        // Use shorter timeout and smaller limit for Safari
         const geocacheEvents = await Promise.race([
-          nostr.query([{ kinds: [37515], limit: 10 }]),
+          nostr.query([{ kinds: [37515], limit: 5 }]),
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Geocache query timeout after 15s')), 15000)
+            setTimeout(() => reject(new Error('Geocache query timeout after 8s')), 8000)
           )
         ]);
         
@@ -191,6 +229,163 @@ export default function Debug() {
     setIsRunning(false);
   };
 
+  const testSafariSpecific = async () => {
+    setIsRunning(true);
+    clearLogs();
+    
+    addLog('info', 'Running Safari-specific tests...');
+    
+    try {
+      // Test 0: Inspect nostr object
+      addLog('info', 'Inspecting nostr object...');
+      addLog('info', 'Nostr object type:', typeof nostr);
+      addLog('info', 'Nostr object keys:', Object.keys(nostr || {}));
+      addLog('info', 'Query method type:', typeof nostr?.query);
+      
+      if (!nostr) {
+        addLog('error', 'Nostr object is null/undefined');
+        return;
+      }
+      
+      if (typeof nostr.query !== 'function') {
+        addLog('error', 'Nostr query is not a function');
+        return;
+      }
+      
+      // Test 1: Very simple query with detailed error handling
+      addLog('info', 'Testing minimal query...');
+      try {
+        addLog('info', 'Calling nostr.query with filter:', { kinds: [1], limit: 1 });
+        
+        const queryPromise = nostr.query([{ kinds: [1], limit: 1 }]);
+        addLog('info', 'Query promise created, type:', typeof queryPromise);
+        addLog('info', 'Is promise?', queryPromise instanceof Promise);
+        
+        const simpleEvents = await Promise.race([
+          queryPromise,
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Simple query timeout after 5s')), 5000)
+          )
+        ]);
+        
+        addLog('success', `Simple query worked: ${simpleEvents.length} events`);
+        addLog('info', 'Events type:', typeof simpleEvents);
+        addLog('info', 'Is array?', Array.isArray(simpleEvents));
+        
+        if (simpleEvents.length > 0) {
+          addLog('info', 'Sample event:', {
+            id: simpleEvents[0].id?.slice(0, 8) + '...',
+            kind: simpleEvents[0].kind,
+            created_at: simpleEvents[0].created_at
+          });
+        }
+        
+      } catch (queryError) {
+        addLog('error', 'Simple query failed with error:', {
+          message: queryError instanceof Error ? queryError.message : String(queryError),
+          name: queryError instanceof Error ? queryError.name : 'Unknown',
+          stack: queryError instanceof Error ? queryError.stack?.slice(0, 200) : 'No stack'
+        });
+        
+        // Try to understand what went wrong
+        addLog('info', 'Error details:', {
+          errorType: typeof queryError,
+          errorConstructor: queryError?.constructor?.name,
+          isError: queryError instanceof Error,
+          isTimeoutError: queryError instanceof Error && queryError.message.includes('timeout')
+        });
+        
+        return; // Don't continue if basic query fails
+      }
+      
+      // Test 2: Direct relay connection test
+      addLog('info', 'Testing direct relay connection...');
+      try {
+        const relay = new NRelay1('wss://relay.damus.io');
+        addLog('info', 'Created direct relay connection');
+        
+        const directEvents = await Promise.race([
+          relay.query([{ kinds: [1], limit: 1 }]),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Direct relay timeout')), 5000)
+          )
+        ]);
+        
+        addLog('success', `Direct relay query worked: ${directEvents.length} events`);
+        
+        // Clean up
+        try {
+          relay.close();
+          addLog('info', 'Closed direct relay connection');
+        } catch (closeError) {
+          addLog('warn', 'Error closing relay:', closeError);
+        }
+        
+      } catch (error) {
+        addLog('error', 'Direct relay test failed:', {
+          message: error instanceof Error ? error.message : String(error),
+          name: error instanceof Error ? error.name : 'Unknown'
+        });
+      }
+      
+      // Test 3: Safari-specific client test
+      if (isSafari()) {
+        addLog('info', 'Testing Safari-specific Nostr client...');
+        try {
+          const safariClient = createSafariNostr(['wss://relay.damus.io', 'wss://nos.lol']);
+          
+          const safariEvents = await safariClient.query([{ kinds: [1], limit: 2 }], { 
+            timeout: 5000, 
+            maxRetries: 2 
+          });
+          
+          addLog('success', `Safari client worked: ${safariEvents.length} events`);
+          
+          if (safariEvents.length > 0) {
+            addLog('info', 'Safari client sample event:', {
+              id: safariEvents[0].id?.slice(0, 8) + '...',
+              kind: safariEvents[0].kind,
+              created_at: safariEvents[0].created_at
+            });
+          }
+          
+          safariClient.close();
+          
+        } catch (error) {
+          addLog('error', 'Safari client failed:', {
+            message: error instanceof Error ? error.message : String(error)
+          });
+        }
+      } else {
+        addLog('info', 'Not Safari, skipping Safari-specific client test');
+      }
+      
+      // Test 4: Geocache query with very small limit
+      addLog('info', 'Testing tiny geocache query...');
+      try {
+        const tinyEvents = await Promise.race([
+          nostr.query([{ kinds: [37515], limit: 2 }]),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Tiny query timeout')), 4000)
+          )
+        ]);
+        addLog('success', `Tiny geocache query worked: ${tinyEvents.length} events`);
+      } catch (error) {
+        addLog('error', 'Tiny geocache query failed:', {
+          message: error instanceof Error ? error.message : String(error)
+        });
+      }
+      
+    } catch (error) {
+      addLog('error', 'Safari-specific test failed:', {
+        message: error instanceof Error ? error.message : String(error),
+        name: error instanceof Error ? error.name : 'Unknown'
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const testBrowserInfo = () => {
     clearLogs();
     
@@ -267,6 +462,15 @@ export default function Debug() {
               >
                 {isRunning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                 Test Cache Loading
+              </Button>
+              <Button 
+                onClick={testSafariSpecific} 
+                disabled={isRunning}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                {isRunning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                Safari Tests
               </Button>
               <Button 
                 onClick={testRelayConnections} 

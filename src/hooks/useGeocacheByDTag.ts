@@ -3,19 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
 import { decodeHint } from '@/lib/rot13';
+import { isSafari, createSafariNostr } from '@/lib/safariNostr';
 
 export function useGeocacheByDTag(dTag: string) {
   const { nostr } = useNostr();
 
   return useQuery({
-    queryKey: ['geocache-by-dtag', dTag],
+    queryKey: ['geocache-by-dtag', dTag, isSafari()],
     queryFn: async (c) => {
       console.log('🔍 [GEOCACHE BY DTAG] Starting query for d-tag:', dTag);
       
       try {
-        // Fast timeout - let the fastest relay win
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
-        
         // Query by d-tag - this is the stable identifier
         const filter: NostrFilter = {
           kinds: [37515], // Geocache listing events
@@ -23,7 +21,27 @@ export function useGeocacheByDTag(dTag: string) {
           limit: 1,
         };
 
-        const events = await nostr.query([filter], { signal });
+        let events: NostrEvent[];
+        
+        if (isSafari()) {
+          console.log('🍎 [GEOCACHE BY DTAG] Using Safari client for individual cache');
+          const safariClient = createSafariNostr([
+            'wss://relay.damus.io',
+            'wss://nos.lol',
+            'wss://relay.nostr.band'
+          ]);
+          
+          try {
+            events = await safariClient.query([filter], { timeout: 5000, maxRetries: 2 });
+            safariClient.close();
+          } catch (error) {
+            safariClient.close();
+            throw error;
+          }
+        } else {
+          const signal = AbortSignal.any([c.signal, AbortSignal.timeout(8000)]);
+          events = await nostr.query([filter], { signal });
+        }
         console.log('🎯 [GEOCACHE BY DTAG] Query returned:', events.length, 'events');
 
         if (events.length === 0) {
@@ -46,10 +64,28 @@ export function useGeocacheByDTag(dTag: string) {
         const logFilter: NostrFilter = {
           kinds: [37516], // Geocache log events
           '#a': [`37515:${geocache.pubkey}:${geocache.dTag}`],
-          limit: 200, // Reasonable limit
+          limit: isSafari() ? 50 : 200, // Smaller limit for Safari
         };
 
-        const logEvents = await nostr.query([logFilter], { signal });
+        let logEvents: NostrEvent[];
+        
+        if (isSafari()) {
+          const safariClient = createSafariNostr([
+            'wss://relay.damus.io',
+            'wss://nos.lol'
+          ]);
+          
+          try {
+            logEvents = await safariClient.query([logFilter], { timeout: 4000, maxRetries: 1 });
+            safariClient.close();
+          } catch (error) {
+            safariClient.close();
+            console.warn('🍎 [GEOCACHE BY DTAG] Safari log query failed, continuing without counts');
+            logEvents = [];
+          }
+        } else {
+          logEvents = await nostr.query([logFilter], { signal });
+        }
       
         let foundCount = 0;
         const logCount = logEvents.length;
