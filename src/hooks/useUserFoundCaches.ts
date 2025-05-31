@@ -25,19 +25,22 @@ interface FoundCache {
   logCount?: number;
 }
 
-export function useUserFoundCaches() {
+export function useUserFoundCaches(targetPubkey?: string) {
   const { user } = useCurrentUser();
   const { nostr } = useNostr();
   const { queryWithRelays } = useNostrQueryRelays();
 
+  // Use provided pubkey or fall back to current user's pubkey
+  const pubkey = targetPubkey || user?.pubkey;
+
   return useQuery({
-    queryKey: ['user-found-caches', user?.pubkey],
+    queryKey: ['user-found-caches', pubkey],
     queryFn: async (c) => {
-      if (!user?.pubkey) {
+      if (!pubkey) {
         return [];
       }
 
-      console.log('🔄 [USER FOUND CACHES] Starting query for user:', user.pubkey.slice(0, 8));
+      console.log('🔄 [USER FOUND CACHES] Starting query for user:', pubkey.slice(0, 8));
       
       try {
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(5000)]);
@@ -45,7 +48,7 @@ export function useUserFoundCaches() {
         // First, get all "found" logs by the user
         const logFilter: NostrFilter = {
           kinds: [37516], // Geocache log events
-          authors: [user.pubkey],
+          authors: [pubkey],
           limit: 500,
         };
         
@@ -191,7 +194,7 @@ export function useUserFoundCaches() {
         throw error;
       }
     },
-    enabled: !!user?.pubkey,
+    enabled: !!pubkey,
     retry: 1,
     retryDelay: 1000,
     staleTime: 60000, // 1 minute

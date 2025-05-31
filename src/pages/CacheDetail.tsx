@@ -32,6 +32,7 @@ import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rati
 import { GeocacheForm, type GeocacheFormData } from "@/components/ui/geocache-form";
 
 import { ImageGallery } from "@/components/ImageGallery";
+import { ProfileDialog } from "@/components/ProfileDialog";
 
 export default function CacheDetail() {
   const { dtag } = useParams<{ dtag: string }>();
@@ -74,6 +75,10 @@ export default function CacheDetail() {
   
   // Hint visibility state
   const [isHintVisible, setIsHintVisible] = useState(false);
+  
+  // Profile dialog state
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [selectedProfilePubkey, setSelectedProfilePubkey] = useState<string | null>(null);
   
   // Initialize edit form when geocache loads
   useEffect(() => {
@@ -200,6 +205,11 @@ export default function CacheDetail() {
     setGalleryOpen(true);
   };
 
+  const handleProfileClick = (pubkey: string) => {
+    setSelectedProfilePubkey(pubkey);
+    setProfileDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <LoadingState 
@@ -290,7 +300,15 @@ export default function CacheDetail() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="flex items-center gap-1">
                           <User className="h-4 w-4" />
-                          Hidden by {authorName}
+                          <span>
+                            Hidden by{' '}
+                            <button
+                              onClick={() => handleProfileClick(geocache.pubkey)}
+                              className="hover:underline cursor-pointer"
+                            >
+                              {authorName}
+                            </button>
+                          </span>
                           {profilePicture && (
                             <img 
                               src={profilePicture} 
@@ -581,6 +599,13 @@ export default function CacheDetail() {
           initialIndex={galleryIndex}
         />
       )}
+      
+      {/* Profile Dialog */}
+      <ProfileDialog
+        pubkey={selectedProfilePubkey}
+        isOpen={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+      />
     </div>
   );
 }

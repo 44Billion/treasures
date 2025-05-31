@@ -5,17 +5,20 @@ import { useNostrQueryRelays } from './useNostrQueryRelays';
 import type { Geocache } from '@/types/geocache';
 import { NostrFilter } from '@nostrify/nostrify';
 
-export function useUserGeocaches() {
+export function useUserGeocaches(targetPubkey?: string) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const { queryWithRelays } = useNostrQueryRelays();
 
+  // Use provided pubkey or fall back to current user's pubkey
+  const pubkey = targetPubkey || user?.pubkey;
+
   return useQuery({
-    queryKey: ['user-geocaches', user?.pubkey],
+    queryKey: ['user-geocaches', pubkey],
     queryFn: async (c) => {
-      if (!user?.pubkey || !nostr) return [];
+      if (!pubkey || !nostr) return [];
       
-      console.log('🔄 [USER GEOCACHES] Starting query for user:', user.pubkey.slice(0, 8));
+      console.log('🔄 [USER GEOCACHES] Starting query for user:', pubkey.slice(0, 8));
       
       try {
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(10000)]);
@@ -24,7 +27,7 @@ export function useUserGeocaches() {
         const geocacheEvents = await queryWithRelays(
           [{ 
             kinds: [37515], 
-            authors: [user.pubkey],
+            authors: [pubkey],
             limit: 100
           }],
           { signal }
@@ -129,7 +132,7 @@ export function useUserGeocaches() {
         throw error;
       }
     },
-    enabled: !!user?.pubkey && !!nostr,
+    enabled: !!pubkey && !!nostr,
     retry: 1,
     retryDelay: 1000,
     staleTime: 60000, // 1 minute

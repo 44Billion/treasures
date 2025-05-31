@@ -5,6 +5,7 @@ import Map from "./pages/Map";
 import CreateCache from "./pages/CreateCache";
 import CacheDetail from "./pages/CacheDetail";
 import MyCaches from "./pages/MyCaches";
+import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
 
@@ -22,6 +23,8 @@ export function AppRouter() {
         <Route path="/create" element={<CreateCache />} />
         <Route path="/cache/:dtag" element={<CacheDetail />} />
         <Route path="/saved" element={<MyCaches />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/:pubkey" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/install" element={<Install />} />
 

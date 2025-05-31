@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Search, Plus } from 'lucide-react';
+import { MapPin, Search, Plus, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -34,12 +34,20 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
             </Link>
             
             {user && (
-              <Link to="/create">
-                <Button variant="ghost" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Hide a Treasure
-                </Button>
-              </Link>
+              <>
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Link to="/create">
+                  <Button variant="ghost" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Hide a Treasure
+                  </Button>
+                </Link>
+              </>
             )}
             
             <LoginArea />

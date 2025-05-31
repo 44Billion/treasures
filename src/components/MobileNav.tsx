@@ -60,16 +60,16 @@ export function MobileNav() {
                 {user && (
                   <>
                     <Link
-                      to="/settings"
+                      to="/profile"
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
-                        location.pathname === '/settings'
+                        location.pathname === '/profile'
                           ? 'bg-accent text-accent-foreground'
                           : 'text-muted-foreground'
                       }`}
                     >
-                      <Edit className="h-4 w-4" />
-                      Edit Profile
+                      <User className="h-4 w-4" />
+                      My Profile
                     </Link>
                     <Link
                       to="/settings"

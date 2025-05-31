@@ -27,6 +27,7 @@ interface GeocacheDialogProps {
 }
 
 import { ImageGallery } from "@/components/ImageGallery";
+import { ProfileDialog } from "@/components/ProfileDialog";
 
 export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialogProps) {
   // All hooks must be called before any conditional logic
@@ -47,6 +48,10 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
   // Image gallery state
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  
+  // Profile dialog state
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [selectedProfilePubkey, setSelectedProfilePubkey] = useState<string | null>(null);
 
   // Early return after all hooks
   if (!geocache) return null;
@@ -91,6 +96,11 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
     setGalleryOpen(true);
   };
 
+  const handleProfileClick = (pubkey: string) => {
+    setSelectedProfilePubkey(pubkey);
+    setProfileDialogOpen(true);
+  };
+
   return (
     <>
       <BaseDialog 
@@ -104,7 +114,13 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 -mt-2">
           <span className="flex items-center gap-1">
             <User className="h-4 w-4" />
-            Hidden by {authorName}
+            Hidden by{' '}
+            <button
+              onClick={() => handleProfileClick(geocache.pubkey)}
+              className="hover:underline cursor-pointer"
+            >
+              {authorName}
+            </button>
             {profilePicture && (
               <img 
                 src={profilePicture} 
@@ -292,6 +308,13 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
           initialIndex={galleryIndex}
         />
       )}
+      
+      {/* Profile Dialog */}
+      <ProfileDialog
+        pubkey={selectedProfilePubkey}
+        isOpen={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+      />
     </>
   );
 }
