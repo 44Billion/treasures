@@ -28,7 +28,7 @@ export function EventSourceInfo({ relayUrl, client, className = "" }: EventSourc
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1 hover:text-foreground transition-colors cursor-help">
                 <Globe className="h-3 w-3" />
-                <span className="hidden sm:inline">{getRelayDomain(relayUrl)}</span>
+                <span className="text-[10px] sm:text-xs">{getRelayDomain(relayUrl)}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent>

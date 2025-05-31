@@ -97,6 +97,11 @@ export default function Map() {
       const sorted = sortByDistance(caches, userLocation.lat, userLocation.lng);
       return sorted;
     }
+    // If user location is available but no active filtering, preserve distances
+    else if (userLocation) {
+      const sorted = sortByDistance(caches, userLocation.lat, userLocation.lng);
+      return sorted;
+    }
     
     return caches;
   })();
@@ -124,7 +129,7 @@ export default function Map() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <DesktopHeader variant="map" />
 
       <div className="hidden lg:flex h-[calc(100vh-73px)]">
@@ -207,6 +212,7 @@ export default function Map() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="1">1 km</SelectItem>
                           <SelectItem value="5">5 km</SelectItem>
                           <SelectItem value="10">10 km</SelectItem>
                           <SelectItem value="25">25 km</SelectItem>
@@ -285,9 +291,9 @@ export default function Map() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden">
+      <div className="block lg:hidden h-screen flex flex-col">
         {/* Mobile Filters Header */}
-        <div className="bg-white border-b shadow-sm">
+        <div className="bg-white border-b shadow-sm flex-shrink-0">
           <div className="p-3">
             <div className="space-y-3">
               <div>
@@ -354,6 +360,7 @@ export default function Map() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="1">1km</SelectItem>
                           <SelectItem value="5">5km</SelectItem>
                           <SelectItem value="10">10km</SelectItem>
                           <SelectItem value="25">25km</SelectItem>
@@ -382,13 +389,13 @@ export default function Map() {
         </div>
         
         {/* Mobile Content Area */}
-        <div className="h-[calc(100vh-56px-65px-140px)]">
-          <Tabs defaultValue="list" className="h-full">
-            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white h-12">
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="list" className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white h-12 flex-shrink-0">
               <TabsTrigger value="list" className="h-10">List</TabsTrigger>
               <TabsTrigger value="map" className="h-10">Map</TabsTrigger>
             </TabsList>
-            <TabsContent value="list" className="h-[calc(100%-48px)] overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+            <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col">
               {isLoading ? (
                 <div className="flex items-center justify-center flex-1">
                   <div className="text-center text-gray-500">
@@ -424,7 +431,7 @@ export default function Map() {
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="map" className="h-[calc(100%-48px)] m-0 p-0 data-[state=active]:block">
+            <TabsContent value="map" className="flex-1 m-0 p-0 data-[state=active]:block">
               <div className="h-full">
                 <GeocacheMap 
                   geocaches={filteredGeocaches} 

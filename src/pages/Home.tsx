@@ -13,7 +13,7 @@ import { GeocacheList } from "@/components/GeocacheList";
 
 export default function Home() {
   const { user } = useCurrentUser();
-  const { data: geocaches, isLoading } = useGeocaches({ limit: 6 });
+  const { data: geocaches, isLoading } = useGeocaches({ limit: 3 });
   
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
@@ -193,7 +193,7 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="py-12 md:py-16 px-4">
+      <section className="py-12 md:py-16 px-4 pb-20 md:pb-16">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <h3 className="text-2xl md:text-3xl font-bold">Recent Geocaches</h3>

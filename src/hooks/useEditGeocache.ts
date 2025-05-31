@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import type { Geocache } from '@/types/geocache';
-import { encodeHint } from '@/lib/rot13';
 
 interface EditGeocacheData {
   name: string;
@@ -73,8 +72,8 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
 
       // Add optional tags
       if (data.hint?.trim()) {
-        // ROT13 encode the hint as per NIP-GC convention
-        tags.push(['hint', encodeHint(data.hint.trim())]);
+        // Store hint as plaintext for better user experience
+        tags.push(['hint', data.hint.trim()]);
       }
 
       if (data.images && data.images.length > 0) {

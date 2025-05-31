@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import type { Geocache } from "@/types/geocache";
 import { isIOS, logIOSInfo, getIOSCompatibleMapOptions } from "@/lib/ios";
+import { findClosestGeocache } from "@/lib/geo";
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -204,12 +205,19 @@ export function GeocacheMap({
     ? [center.lat, center.lng]
     : searchLocation
       ? [searchLocation.lat, searchLocation.lng]
-      : geocaches.length > 0 && geocaches.every(g => g.location)
-        ? [
-            geocaches.reduce((sum, g) => sum + (g.location?.lat || 0), 0) / geocaches.length,
-            geocaches.reduce((sum, g) => sum + (g.location?.lng || 0), 0) / geocaches.length,
-          ]
-        : [40.7128, -74.0060]; // Default to NYC
+      : userLocation && geocaches.length > 0 && geocaches.every(g => g.location)
+        ? (() => {
+            // Snap to the closest geocache to user location
+            const closestCache = findClosestGeocache(geocaches, userLocation.lat, userLocation.lng);
+            return closestCache ? [closestCache.location.lat, closestCache.location.lng] : [userLocation.lat, userLocation.lng];
+          })()
+        : geocaches.length > 0 && geocaches.every(g => g.location)
+          ? (() => {
+              // When no user location, snap to the first geocache instead of averaging
+              const firstCache = geocaches[0];
+              return [firstCache.location.lat, firstCache.location.lng];
+            })()
+          : [40.7128, -74.0060]; // Default to NYC
 
   const handleMarkerClick = (geocache: Geocache) => {
     if (onMarkerClick) {
@@ -336,7 +344,7 @@ export function GeocacheMap({
                   variant="outline"
                   onClick={() => {
                     window.open(
-                      `https://www.google.com/maps/dir/?api=1&destination=${geocache.location.lat},${geocache.location.lng}`,
+                      `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
                       "_blank"
                     );
                   }}

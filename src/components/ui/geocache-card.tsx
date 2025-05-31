@@ -109,7 +109,7 @@ export function GeocacheCard({
         <img 
           src={profilePicture} 
           alt={authorName}
-          className="h-3 w-3 rounded-full object-cover"
+          className="h-4 w-4 rounded-full object-cover"
         />
       )}
     </span>
@@ -163,7 +163,7 @@ export function GeocacheCard({
                       <img 
                         src={profilePicture} 
                         alt={authorName}
-                        className="h-3 w-3 rounded-full object-cover"
+                        className="h-4 w-4 rounded-full object-cover"
                       />
                     )}
                   </span>
@@ -260,7 +260,6 @@ export function GeocacheCard({
         <div className="flex items-start justify-between">
           <div className="text-3xl">{getTypeIcon(cache.type)}</div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">{cache.size}</Badge>
             {actions || (
               <SaveButton geocache={cache as any} size="icon" showText={false} />
             )}

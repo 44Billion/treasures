@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { MapPin, Navigation, Calendar, User, MessageSquare, Trophy, Edit, Trash2, RefreshCw, Upload, X, Save, RotateCcw, Compass as CompassIcon } from "lucide-react";
+import { MapPin, Navigation, Calendar, User, MessageSquare, Trophy, Edit, Trash2, RefreshCw, Upload, X, Save, RotateCcw, Compass as CompassIcon, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,9 @@ export default function CacheDetail() {
   // Image gallery state
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  
+  // Hint visibility state
+  const [isHintVisible, setIsHintVisible] = useState(false);
   
   // Initialize edit form when geocache loads
   useEffect(() => {
@@ -301,31 +304,34 @@ export default function CacheDetail() {
     <div className="min-h-screen bg-gray-50">
       <DesktopHeader />
 
-      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-2 sm:px-4 py-8 pb-20 md:pb-8 max-w-full overflow-hidden">
+        <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 lg:space-y-6 min-w-0">
             <Card>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-2xl">{geocache.name}</CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2">
-                      <span className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        Hidden by {authorName}
-                        {profilePicture && (
-                          <img 
-                            src={profilePicture} 
-                            alt={authorName}
-                            className="h-4 w-4 rounded-full object-cover"
-                          />
-                        )}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
-                      </span>
+                <div className="flex items-start gap-2 sm:gap-4">
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-2xl break-words">{geocache.name}</CardTitle>
+                    
+                    <CardDescription className="space-y-1 mt-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <User className="h-4 w-4" />
+                          Hidden by {authorName}
+                          {profilePicture && (
+                            <img 
+                              src={profilePicture} 
+                              alt={authorName}
+                              className="h-4 w-4 rounded-full object-cover"
+                            />
+                          )}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
+                        </span>
+                      </div>
                     </CardDescription>
                     <EventSourceInfo 
                       relayUrl={geocache.relays?.[0]} 
@@ -333,7 +339,7 @@ export default function CacheDetail() {
                       className="mt-1"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2 flex-shrink-0 ml-2">
                     {!isOwner && <SaveButton geocache={geocache} />}
                     {isOwner && (
                       <>
@@ -378,7 +384,7 @@ export default function CacheDetail() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-hidden">
                 {isEditing ? (
                   // Edit form
                   <div className="space-y-4">
@@ -413,7 +419,7 @@ export default function CacheDetail() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="edit-type">Cache Type</Label>
                         <Select value={editFormData.type} onValueChange={(value) => setEditFormData({ ...editFormData, type: value })}>
@@ -526,19 +532,42 @@ export default function CacheDetail() {
                     </div>
                     
                     <div className="prose max-w-none">
-                      <p className="whitespace-pre-wrap">{geocache.description}</p>
+                      <p className="whitespace-pre-wrap break-words">{geocache.description}</p>
                       
                       {geocache.hint && (
-                        <Alert className="mt-4">
-                          <AlertDescription>
-                            <strong>Hint:</strong> {geocache.hint}
+                        <Alert className="mt-4 py-2">
+                          <AlertDescription className="break-words">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1">
+                                <strong>Hint:</strong>{' '}
+                                <span 
+                                  className={`transition-all duration-200 ${
+                                    isHintVisible ? '' : 'blur-sm'
+                                  }`}
+                                >
+                                  {geocache.hint}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => setIsHintVisible(!isHintVisible)}
+                                className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-gray-100 transition-colors"
+                                title={isHintVisible ? "Hide hint" : "Reveal hint"}
+                                type="button"
+                              >
+                                {isHintVisible ? (
+                                  <EyeOff className="h-3.5 w-3.5 text-gray-600" />
+                                ) : (
+                                  <Eye className="h-3.5 w-3.5 text-gray-600" />
+                                )}
+                              </button>
+                            </div>
                           </AlertDescription>
                         </Alert>
                       )}
                     </div>
 
                     {geocache.images && geocache.images.length > 0 && (
-                      <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {geocache.images.map((url, index) => (
                           <img
                             key={index}
@@ -580,7 +609,7 @@ export default function CacheDetail() {
                       <CardTitle>Post a Log</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant={logType === "found" ? "default" : "outline"}
                           size="sm"
@@ -606,7 +635,7 @@ export default function CacheDetail() {
                       </div>
                       
                       {isOwner && (
-                        <div className="flex gap-2 pt-2 border-t">
+                        <div className="flex flex-wrap gap-2 pt-2 border-t">
                           <Button
                             variant={logType === "maintenance" ? "default" : "outline"}
                             size="sm"
@@ -708,7 +737,7 @@ export default function CacheDetail() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Cache Details</CardTitle>
@@ -717,11 +746,12 @@ export default function CacheDetail() {
                 <DifficultyTerrainRating 
                   difficulty={geocache.difficulty}
                   terrain={geocache.terrain}
+                  cacheSize={geocache.size}
                 />
                 
                 <div>
                   <p className="text-sm font-medium text-gray-600">Coordinates</p>
-                  <p className="text-sm font-mono mt-1">
+                  <p className="text-xs md:text-sm font-mono mt-1 break-all">
                     {geocache.location.lat.toFixed(6)}, {geocache.location.lng.toFixed(6)}
                   </p>
                   <Button
@@ -730,7 +760,7 @@ export default function CacheDetail() {
                     className="mt-2 w-full"
                     onClick={() => {
                       window.open(
-                        `https://www.google.com/maps/dir/?api=1&destination=${geocache.location.lat},${geocache.location.lng}`,
+                        `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
                         "_blank"
                       );
                     }}

@@ -252,6 +252,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
               <DifficultyTerrainRating 
                 difficulty={geocache.difficulty}
                 terrain={geocache.terrain}
+                cacheSize={geocache.size}
                 size="small"
               />
               
@@ -298,7 +299,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 className="w-full"
                 onClick={() => {
                   window.open(
-                    `https://www.google.com/maps/dir/?api=1&destination=${geocache.location.lat},${geocache.location.lng}`,
+                    `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
                     "_blank"
                   );
                 }}

@@ -74,3 +74,17 @@ export function filterByRadius<T extends { location: { lat: number; lng: number 
     return distance <= radiusKm;
   });
 }
+
+/**
+ * Find the closest geocache to a reference point
+ */
+export function findClosestGeocache<T extends { location: { lat: number; lng: number } }>(
+  items: T[],
+  refLat: number,
+  refLng: number
+): T | null {
+  if (items.length === 0) return null;
+  
+  const sorted = sortByDistance(items, refLat, refLng);
+  return sorted[0];
+}

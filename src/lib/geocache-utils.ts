@@ -20,6 +20,16 @@ export function getSizeLabel(size: string): string {
   return size.charAt(0).toUpperCase() + size.slice(1);
 }
 
+export function getSizeLevel(size: string): number {
+  const sizeMap: Record<string, number> = {
+    micro: 1,
+    small: 2,  
+    regular: 3,
+    large: 4,
+  };
+  return sizeMap[size.toLowerCase()] || 2;
+}
+
 export function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
     traditional: '📦',
