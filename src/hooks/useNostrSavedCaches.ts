@@ -78,8 +78,6 @@ export function useNostrSavedCaches() {
       return [];
     }
     
-    console.log('Processing bookmark events:', bookmarkEvents.length);
-    
     // Track the latest action for each cache
     const cacheActions = new Map<string, { action: string; timestamp: number }>();
     
@@ -89,11 +87,8 @@ export function useNostrSavedCaches() {
       const actionTag = event.tags.find(tag => tag[0] === 'action');
       if (actionTag && actionTag[1] === 'clear-all') {
         clearAllTimestamp = Math.max(clearAllTimestamp, event.created_at);
-        console.log('Found clear-all event at timestamp:', event.created_at, 'new clearAllTimestamp:', clearAllTimestamp);
       }
     });
-    
-    console.log('Final clearAllTimestamp:', clearAllTimestamp);
     
     bookmarkEvents.forEach((event) => {
       const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
@@ -104,11 +99,8 @@ export function useNostrSavedCaches() {
         const action = actionTag[1];
         const timestamp = event.created_at;
         
-        console.log(`Processing action: ${action} for ${coord} at ${timestamp}, clearAllTimestamp: ${clearAllTimestamp}`);
-        
         // Skip actions that happened before the most recent clear-all
         if (timestamp <= clearAllTimestamp) {
-          console.log(`Skipping action ${action} for ${coord} - happened before clear-all`);
           return;
         }
         
@@ -116,7 +108,6 @@ export function useNostrSavedCaches() {
         const existing = cacheActions.get(coord);
         if (!existing || timestamp > existing.timestamp) {
           cacheActions.set(coord, { action, timestamp });
-          console.log(`Set action ${action} for ${coord}`);
         }
       }
     });
@@ -129,7 +120,6 @@ export function useNostrSavedCaches() {
       }
     });
     
-    console.log('Final saved coords:', savedCoords);
     return savedCoords;
   }, [bookmarkEvents]);
 

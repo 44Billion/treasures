@@ -101,9 +101,8 @@ treasures.to {
     header @static Cache-Control "public, max-age=31536000, immutable"
     
     @health path /health
-    respond @health "healthy" 200 {
-        header Content-Type text/plain
-    }
+    respond @health "healthy" 200
+    header @health Content-Type text/plain
     
     encode gzip
 }
@@ -130,18 +129,74 @@ log "🔄 Switching to new files..."
 ssh root@$DROPLET_IP << 'EOF' || error_exit "File switch failed"
     cd /opt/treasures
     
-    # Atomic switch
+    # Ensure new directory has content
+    if [ ! -f "new/index.html" ]; then
+        echo "ERROR: No index.html found in new deployment!"
+        ls -la new/ || echo "New directory is empty"
+        exit 1
+    fi
+    
+    # Atomic switch with validation
     if [ -d "current" ]; then
-        mv current old
+        mv current old || true
     fi
     mv new current
     
-    # Update Caddy
-    docker cp Caddyfile caddy:/etc/caddy/Caddyfile
-    docker exec caddy caddy reload
+    # Verify current directory has content
+    if [ ! -f "current/index.html" ]; then
+        echo "ERROR: Switch failed - no index.html in current directory"
+        # Try to restore from old
+        if [ -d "old" ] && [ -f "old/index.html" ]; then
+            echo "Restoring from backup..."
+            mv current failed_deploy || true
+            mv old current
+        fi
+        exit 1
+    fi
     
-    # Clean up
-    rm -rf old
+    echo "Files switched successfully, current directory contains:"
+    ls -la current/ | head -5
+    
+    # Update Caddy configuration safely
+    # Method 1: Try graceful reload first (Caddy can auto-detect file changes via volume mount)
+    if docker exec caddy caddy reload 2>/dev/null; then
+        echo "Caddy configuration reloaded successfully"
+    else
+        echo "Graceful reload failed, trying container restart..."
+        # Method 2: Restart the container if reload fails
+        docker restart caddy
+        sleep 5
+        
+        # Verify Caddy is running
+        if ! docker ps | grep -q "caddy.*Up"; then
+            echo "Caddy restart failed, recreating container..."
+            docker rm -f caddy 2>/dev/null || true
+            docker run -d \
+                --name caddy \
+                --restart unless-stopped \
+                -p 80:80 \
+                -p 443:443 \
+                -v /opt/treasures/Caddyfile:/etc/caddy/Caddyfile \
+                -v /opt/treasures:/opt/treasures \
+                -v caddy_data:/data \
+                -v caddy_config:/config \
+                caddy:latest
+            sleep 3
+        fi
+    fi
+    
+    # Final verification that Caddy is running
+    if docker ps | grep -q "caddy.*Up"; then
+        echo "✅ Caddy is running"
+        docker logs caddy --tail 5 2>/dev/null || true
+    else
+        echo "❌ Caddy failed to start"
+        docker logs caddy --tail 10 2>/dev/null || true
+        exit 1
+    fi
+    
+    # Clean up old files
+    rm -rf old failed_deploy 2>/dev/null || true
 EOF
 
 # Step 6: Verification
