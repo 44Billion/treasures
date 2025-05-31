@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { MapPin, Plus, X, Globe, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoCard, DetailsCard } from "@/components/ui/card-patterns";
+import { DesktopHeader } from "@/components/DesktopHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -153,29 +155,16 @@ export default function Settings() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="hidden md:block border-b bg-white">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2">
-                <MapPin className="h-8 w-8 text-green-600" />
-                <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-              </Link>
-              <LoginArea />
-            </div>
-          </div>
-        </header>
+        <DesktopHeader />
         
         <div className="container mx-auto px-4 py-16 pb-20 md:pb-16">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="pt-6 text-center">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">Login Required</p>
-              <p className="text-gray-600 mb-4">You need to be logged in to access settings.</p>
-              <div className="flex justify-center">
-                <LoginArea />
-              </div>
-            </CardContent>
-          </Card>
+          <InfoCard
+            icon={MapPin}
+            title="Login Required"
+            description="You need to be logged in to access settings."
+            action={<LoginArea />}
+            className="max-w-md mx-auto"
+          />
         </div>
       </div>
     );
@@ -183,17 +172,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="hidden md:block border-b bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-            </Link>
-            <LoginArea />
-          </div>
-        </div>
-      </header>
+      <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="max-w-2xl mx-auto space-y-6">
@@ -221,18 +200,16 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Geocaching Relay Preferences
-              </CardTitle>
-              <CardDescription>
-                Configure preferred relays for geocaching events. These relays will be included in your cache listings
-                and used when querying for caches and logs. Relays are listed in order of preference.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <DetailsCard title={
+            <div className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Geocaching Relay Preferences
+            </div>
+          }>
+            <CardDescription className="mb-4">
+              Configure preferred relays for geocaching events. These relays will be included in your cache listings
+              and used when querying for caches and logs. Relays are listed in order of preference.
+            </CardDescription>
               <Alert>
                 <AlertDescription>
                   When you create a geocache, these relays will be added as preferred relays for log submissions.
@@ -314,8 +291,7 @@ export default function Settings() {
                   Reset to Defaults
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </DetailsCard>
         </div>
       </div>
     </div>

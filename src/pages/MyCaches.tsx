@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, MapPin, Navigation, Trophy, MessageSquare, Trash2, Cloud, Loader2, MoreVertical, Plus, Edit, Eye, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DetailedGeocacheCard } from '@/components/ui/geocache-card';
+import { InfoCard, EmptyStateCard } from '@/components/ui/card-patterns';
+import { DesktopHeader } from '@/components/DesktopHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,246 +15,9 @@ import { useSavedCaches } from '@/hooks/useSavedCaches';
 import { useUserGeocaches } from '@/hooks/useUserGeocaches';
 import { useUserFoundCaches, type FoundCache } from '@/hooks/useUserFoundCaches';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useAuthor } from '@/hooks/useAuthor';
 import { formatDistanceToNow } from '@/lib/date';
 import { formatDistance } from '@/lib/geo';
 import { useGeolocation } from '@/hooks/useGeolocation';
-
-function getTypeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    traditional: '📦',
-    multi: '🔗',
-    mystery: '❓',
-    letterbox: '📮',
-    event: '📅',
-    virtual: '👻',
-    earthcache: '🌍',
-    wherigo: '📱',
-  };
-  return icons[type.toLowerCase()] || '📦';
-}
-
-interface SavedCacheCardProps {
-  cache: {
-    id: string;
-    dTag: string;
-    pubkey: string;
-    name: string;
-    savedAt: number;
-    location: {
-      lat: number;
-      lng: number;
-    };
-    difficulty: number;
-    terrain: number;
-    size: string;
-    type: string;
-  };
-  distance?: number;
-  onRemove: (cacheId: string) => void;
-}
-
-function SavedCacheCard({ cache, distance, onRemove }: SavedCacheCardProps) {
-  const author = useAuthor(cache.pubkey);
-  const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
-  const profilePicture = author.data?.metadata?.picture;
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRemove(cache.id);
-  };
-
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <Link to={`/cache/${cache.dTag}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
-            <div className="text-2xl">{getTypeIcon(cache.type)}</div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
-              <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
-                by {authorName}
-                {profilePicture && (
-                  <img 
-                    src={profilePicture} 
-                    alt={authorName}
-                    className="h-3 w-3 rounded-full object-cover"
-                  />
-                )}
-                • saved {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
-              </p>
-              <div className="flex gap-2 mb-2">
-                <Badge variant="outline">D{cache.difficulty}</Badge>
-                <Badge variant="outline">T{cache.terrain}</Badge>
-                <Badge variant="secondary">{cache.size}</Badge>
-                {distance !== undefined && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Navigation className="h-3 w-3" />
-                    {formatDistance(distance)}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </Link>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRemove}
-              title="Remove from saved caches"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-interface UserCacheCardProps {
-  cache: {
-    id: string;
-    dTag: string;
-    name: string;
-    description: string;
-    created_at: number;
-    location: {
-      lat: number;
-      lng: number;
-    };
-    difficulty: number;
-    terrain: number;
-    size: string;
-    type: string;
-    foundCount?: number;
-    logCount?: number;
-  };
-  distance?: number;
-}
-
-function UserCacheCard({ cache, distance }: UserCacheCardProps) {
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <Link to={`/cache/${cache.dTag}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
-            <div className="text-2xl">{getTypeIcon(cache.type)}</div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Created {formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}
-              </p>
-              <p className="text-sm text-gray-700 mb-2 line-clamp-2">{cache.description}</p>
-              <div className="flex gap-2 mb-2">
-                <Badge variant="outline">D{cache.difficulty}</Badge>
-                <Badge variant="outline">T{cache.terrain}</Badge>
-                <Badge variant="secondary">{cache.size}</Badge>
-                {distance !== undefined && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Navigation className="h-3 w-3" />
-                    {formatDistance(distance)}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <Trophy className="h-4 w-4" />
-                  {cache.foundCount || 0} finds
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  {cache.logCount || 0} logs
-                </span>
-              </div>
-            </div>
-          </Link>
-          <div className="flex items-center gap-2 shrink-0">
-            <Link to={`/cache/${cache.dTag}`}>
-              <Button variant="outline" size="icon" title="View cache">
-                <Eye className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-interface FoundCacheCardProps {
-  cache: FoundCache;
-  distance?: number;
-}
-
-function FoundCacheCard({ cache, distance }: FoundCacheCardProps) {
-  const author = useAuthor(cache.pubkey);
-  const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
-  const profilePicture = author.data?.metadata?.picture;
-
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <Link to={`/cache/${cache.dTag}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
-            <div className="text-2xl">{getTypeIcon(cache.type)}</div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
-              <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
-                by {authorName}
-                {profilePicture && (
-                  <img 
-                    src={profilePicture} 
-                    alt={authorName}
-                    className="h-3 w-3 rounded-full object-cover"
-                  />
-                )}
-                • found {formatDistanceToNow(new Date(cache.foundAt * 1000), { addSuffix: true })}
-              </p>
-              {cache.logText && (
-                <p className="text-sm text-gray-700 mb-2 line-clamp-2 italic">"{cache.logText}"</p>
-              )}
-              <div className="flex gap-2 mb-2">
-                <Badge variant="outline">D{cache.difficulty}</Badge>
-                <Badge variant="outline">T{cache.terrain}</Badge>
-                <Badge variant="secondary">{cache.size}</Badge>
-                <Badge variant="default" className="flex items-center gap-1 bg-green-600">
-                  <CheckCircle className="h-3 w-3" />
-                  Found
-                </Badge>
-                {distance !== undefined && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Navigation className="h-3 w-3" />
-                    {formatDistance(distance)}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <Trophy className="h-4 w-4" />
-                  {cache.foundCount || 0} finds
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  {cache.logCount || 0} logs
-                </span>
-              </div>
-            </div>
-          </Link>
-          <div className="flex items-center gap-2 shrink-0">
-            <Link to={`/cache/${cache.dTag}`}>
-              <Button variant="outline" size="icon" title="View cache">
-                <Eye className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function MyCaches() {
   const { user } = useCurrentUser();
@@ -318,40 +84,14 @@ export default function MyCaches() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
-        {/* Desktop Header */}
-        <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 hidden md:block">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2">
-                <MapPin className="h-8 w-8 text-green-600" />
-                <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-              </Link>
-              <nav className="flex items-center gap-4">
-                <Link to="/map">
-                  <Button variant="ghost" size="sm">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Explore Map
-                  </Button>
-                </Link>
-                <LoginArea />
-              </nav>
-            </div>
-          </div>
-        </header>
-
+        <DesktopHeader />
         <div className="container mx-auto px-4 py-8">
-          <Card className="text-center py-12">
-            <CardContent>
-              <Bookmark className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Login Required</h2>
-              <p className="text-gray-600 mb-6">
-                Please log in with your Nostr account to view your caches.
-              </p>
-              <div className="flex justify-center">
-                <LoginArea />
-              </div>
-            </CardContent>
-          </Card>
+          <InfoCard
+            icon={Bookmark}
+            title="Login Required"
+            description="Please log in with your Nostr account to view your caches."
+            action={<LoginArea />}
+          />
         </div>
       </div>
     );
@@ -359,32 +99,7 @@ export default function MyCaches() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
-      {/* Desktop Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 hidden md:block">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-            </Link>
-            <nav className="flex items-center gap-4">
-              <Link to="/map">
-                <Button variant="ghost" size="sm">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Explore Map
-                </Button>
-              </Link>
-              <Link to="/create">
-                <Button variant="ghost" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Hide a Treasure
-                </Button>
-              </Link>
-              <LoginArea />
-            </nav>
-          </div>
-        </div>
-      </header>
+      <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
@@ -467,39 +182,53 @@ export default function MyCaches() {
             </div>
 
             {isLoadingSaved ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Loader2 className="h-16 w-16 mx-auto text-gray-400 mb-4 animate-spin" />
-                  <h2 className="text-xl font-semibold mb-2">Loading saved caches...</h2>
-                  <p className="text-gray-600">
-                    Fetching your bookmarks from Nostr relays
-                  </p>
-                </CardContent>
-              </Card>
+              <InfoCard
+                icon={Loader2}
+                title="Loading saved caches..."
+                description="Fetching your bookmarks from Nostr relays"
+                className="text-center py-12"
+              />
             ) : savedCaches.length === 0 ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Bookmark className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">No saved caches yet</h2>
-                  <p className="text-gray-600 mb-6">
-                    Start exploring and save interesting caches for later!
-                  </p>
+              <EmptyStateCard
+                icon={Bookmark}
+                title="No saved caches yet"
+                description="Start exploring and save interesting caches for later!"
+                action={
                   <Link to="/map">
                     <Button>
                       <MapPin className="h-4 w-4 mr-2" />
                       View Map
                     </Button>
                   </Link>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {savedCachesWithDistance.map((cache) => (
-                  <SavedCacheCard
+                  <DetailedGeocacheCard
                     key={cache.id}
                     cache={cache}
                     distance={cache.distance}
-                    onRemove={unsaveCache}
+                    metadata={
+                      <>
+                        • saved {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
+                      </>
+                    }
+                    actions={
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          unsaveCache(cache.id);
+                        }}
+                        title="Remove from saved caches"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    }
                   />
                 ))}
               </div>
@@ -514,38 +243,45 @@ export default function MyCaches() {
             </div>
 
             {isLoadingFoundCaches ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Loader2 className="h-16 w-16 mx-auto text-gray-400 mb-4 animate-spin" />
-                  <h2 className="text-xl font-semibold mb-2">Loading found caches...</h2>
-                  <p className="text-gray-600">
-                    Fetching your geocaching achievements
-                  </p>
-                </CardContent>
-              </Card>
+              <InfoCard
+                icon={Loader2}
+                title="Loading found caches..."
+                description="Fetching your geocaching achievements"
+                className="text-center py-12"
+              />
             ) : !foundCaches || foundCaches.length === 0 ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <CheckCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">No finds yet</h2>
-                  <p className="text-gray-600 mb-6">
-                    Start exploring and log your first find!
-                  </p>
+              <EmptyStateCard
+                icon={CheckCircle}
+                title="No finds yet"
+                description="Start exploring and log your first find!"
+                action={
                   <Link to="/map">
                     <Button>
                       <MapPin className="h-4 w-4 mr-2" />
                       View Map
                     </Button>
                   </Link>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {foundCachesWithDistance.map((cache) => (
-                  <FoundCacheCard
+                  <DetailedGeocacheCard
                     key={cache.logId}
                     cache={cache}
                     distance={cache.distance}
+                    metadata={
+                      <>
+                        • found {formatDistanceToNow(new Date(cache.foundAt * 1000), { addSuffix: true })}
+                      </>
+                    }
+                    actions={
+                      <Link to={`/cache/${cache.dTag}`}>
+                        <Button variant="outline" size="icon" title="View cache">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    }
                   />
                 ))}
               </div>
@@ -567,38 +303,46 @@ export default function MyCaches() {
             </div>
 
             {isLoadingUserCaches ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Loader2 className="h-16 w-16 mx-auto text-gray-400 mb-4 animate-spin" />
-                  <h2 className="text-xl font-semibold mb-2">Loading your caches...</h2>
-                  <p className="text-gray-600">
-                    Fetching caches you've created
-                  </p>
-                </CardContent>
-              </Card>
+              <InfoCard
+                icon={Loader2}
+                title="Loading your caches..."
+                description="Fetching caches you've created"
+                className="text-center py-12"
+              />
             ) : !userCaches || userCaches.length === 0 ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <Trophy className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">No caches created yet</h2>
-                  <p className="text-gray-600 mb-6">
-                    Start your geocaching journey by hiding your first treasure!
-                  </p>
+              <EmptyStateCard
+                icon={Trophy}
+                title="No caches created yet"
+                description="Start your geocaching journey by hiding your first treasure!"
+                action={
                   <Link to="/create">
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
                       Hide Your First Cache
                     </Button>
                   </Link>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {userCachesWithDistance.map((cache) => (
-                  <UserCacheCard
+                  <DetailedGeocacheCard
                     key={cache.id}
                     cache={cache}
                     distance={cache.distance}
+                    metadata={
+                      <>
+                        Created {formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}
+                      </>
+                    }
+                    showAuthor={false}
+                    actions={
+                      <Link to={`/cache/${cache.dTag}`}>
+                        <Button variant="outline" size="icon" title="View cache">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    }
                   />
                 ))}
               </div>

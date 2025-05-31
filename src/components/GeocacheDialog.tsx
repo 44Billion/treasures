@@ -3,8 +3,9 @@ import { MapPin, Navigation, Calendar, User, MessageSquare, Trophy, ExternalLink
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BaseDialog } from "@/components/ui/base-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DetailsCard, StatsCard, EmptyStateCard, InteractiveCard } from "@/components/ui/card-patterns";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { useGeocacheLogs } from "@/hooks/useGeocacheLogs";
@@ -241,12 +242,10 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 {logs && logs.length > 0 ? (
                   <LogList logs={logs} compact />
                 ) : (
-                  <Card>
-                    <CardContent className="text-center py-6">
-                      <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">No logs yet</p>
-                    </CardContent>
-                  </Card>
+                  <EmptyStateCard
+                    icon={MessageSquare}
+                    title="No logs yet"
+                  />
                 )}
               </TabsContent>
               
@@ -265,77 +264,67 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Cache Details Card */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h4 className="font-medium">Cache Details</h4>
-                
-                <div>
-                  <p className="text-xs font-medium text-gray-600">Difficulty</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className={`h-3 w-3 rounded ${
-                            i <= geocache.difficulty ? "bg-green-600" : "bg-gray-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs">{getDifficultyLabel(geocache.difficulty)}</span>
+            <DetailsCard title="Cache Details">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Difficulty</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-3 w-3 rounded ${
+                          i <= geocache.difficulty ? "bg-green-600" : "bg-gray-200"
+                        }`}
+                      />
+                    ))}
                   </div>
+                  <span className="text-xs">{getDifficultyLabel(geocache.difficulty)}</span>
                 </div>
-                
-                <div>
-                  <p className="text-xs font-medium text-gray-600">Terrain</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className={`h-3 w-3 rounded ${
-                            i <= geocache.terrain ? "bg-blue-600" : "bg-gray-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs">{getDifficultyLabel(geocache.terrain)}</span>
+              </div>
+              
+              <div>
+                <p className="text-xs font-medium text-gray-600">Terrain</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-3 w-3 rounded ${
+                          i <= geocache.terrain ? "bg-blue-600" : "bg-gray-200"
+                        }`}
+                      />
+                    ))}
                   </div>
+                  <span className="text-xs">{getDifficultyLabel(geocache.terrain)}</span>
                 </div>
-                
-                <div>
-                  <p className="text-xs font-medium text-gray-600">Coordinates</p>
-                  <p className="text-xs font-mono mt-1">
-                    {geocache.location.lat.toFixed(6)}, {geocache.location.lng.toFixed(6)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              
+              <div>
+                <p className="text-xs font-medium text-gray-600">Coordinates</p>
+                <p className="text-xs font-mono mt-1">
+                  {geocache.location.lat.toFixed(6)}, {geocache.location.lng.toFixed(6)}
+                </p>
+              </div>
+            </DetailsCard>
 
             {/* Statistics Card */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h4 className="font-medium">Statistics</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-xs text-gray-600">Total Finds</span>
-                    <span className="text-xs font-medium">
-                      {logs?.filter(log => log.type === "found").length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs text-gray-600">DNFs</span>
-                    <span className="text-xs font-medium">
-                      {logs?.filter(log => log.type === "dnf").length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs text-gray-600">Total Logs</span>
-                    <span className="text-xs font-medium">{logs?.length || 0}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <StatsCard
+              title="Statistics"
+              stats={[
+                {
+                  label: "Total Finds",
+                  value: logs?.filter(log => log.type === "found").length || 0
+                },
+                {
+                  label: "DNFs",
+                  value: logs?.filter(log => log.type === "dnf").length || 0
+                },
+                {
+                  label: "Total Logs",
+                  value: logs?.length || 0
+                }
+              ]}
+            />
 
             {/* Action Buttons */}
             <div className="space-y-2">

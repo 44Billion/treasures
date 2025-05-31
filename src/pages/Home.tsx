@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Plus, Search, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FeatureCard, EmptyStateCard } from "@/components/ui/card-patterns";
+import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginArea } from "@/components/auth/LoginArea";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
@@ -41,34 +42,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
-      {/* Desktop Header - Hidden on Mobile */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 hidden md:block">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-            </Link>
-            <nav className="flex items-center gap-4">
-              <Link to="/map">
-                <Button variant="ghost" size="sm">
-                  <Search className="h-4 w-4 mr-2" />
-                  Explore Map
-                </Button>
-              </Link>
-              {user && (
-                <Link to="/create">
-                  <Button variant="ghost" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Hide a Treasure
-                  </Button>
-                </Link>
-              )}
-              <LoginArea />
-            </nav>
-          </div>
-        </div>
-      </header>
+      <DesktopHeader />
 
       {/* Hero Section */}
       <section className="relative py-12 px-4 md:py-20 overflow-hidden">
@@ -196,42 +170,24 @@ export default function Home() {
         <div className="container mx-auto">
           <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why Treasures?</h3>
           <div className="grid gap-6 md:grid-cols-3 md:gap-8">
-            <Card>
-              <CardHeader className="text-center md:text-left">
-                <MapPin className="h-10 w-10 text-green-600 mb-4 mx-auto md:mx-0" />
-                <CardTitle>Decentralized</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Your geocaches are stored on the Nostr network, ensuring they're 
-                  always accessible and censorship-resistant.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="text-center md:text-left">
-                <Trophy className="h-10 w-10 text-green-600 mb-4 mx-auto md:mx-0" />
-                <CardTitle>Community Driven</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Connect with fellow geocachers, share experiences, and build 
-                  lasting friendships through adventure.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="text-center md:text-left">
-                <Search className="h-10 w-10 text-green-600 mb-4 mx-auto md:mx-0" />
-                <CardTitle>Global Adventure</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Discover caches hidden by explorers from around the world, 
-                  each with its own unique story and challenge.
-                </CardDescription>
-              </CardContent>
-            </Card>
+            <FeatureCard
+              icon={MapPin}
+              title="Decentralized"
+              description="Your geocaches are stored on the Nostr network, ensuring they're always accessible and censorship-resistant."
+              centered={true}
+            />
+            <FeatureCard
+              icon={Trophy}
+              title="Community Driven"
+              description="Connect with fellow geocachers, share experiences, and build lasting friendships through adventure."
+              centered={true}
+            />
+            <FeatureCard
+              icon={Search}
+              title="Global Adventure"
+              description="Discover caches hidden by explorers from around the world, each with its own unique story and challenge."
+              centered={true}
+            />
           </div>
         </div>
       </section>
@@ -257,12 +213,11 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No geocaches found yet. Be the first to hide one!</p>
-              </CardContent>
-            </Card>
+            <EmptyStateCard
+              icon={MapPin}
+              title="No geocaches found yet."
+              description="Be the first to hide one!"
+            />
           )}
         </div>
       </section>

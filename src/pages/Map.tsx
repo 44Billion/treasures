@@ -8,11 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
-import { GeocacheList } from "@/components/GeocacheList";
+import { DetailedGeocacheCard, CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
 import { LocationSearch } from "@/components/LocationSearch";
 import type { Geocache } from "@/types/geocache";
@@ -20,8 +21,10 @@ import type { Geocache } from "@/types/geocache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sortByDistance, formatDistance, filterByRadius } from "@/lib/geo";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 export default function Map() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<string>("all");
   const [terrain, setTerrain] = useState<string>("all");
@@ -118,20 +121,7 @@ export default function Map() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Desktop Header */}
-      <header className="hidden lg:block border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-            </Link>
-            <div className="flex items-center gap-4">
-              <LoginArea />
-            </div>
-          </div>
-        </div>
-      </header>
+      <DesktopHeader variant="map" />
 
       <div className="hidden lg:flex h-[calc(100vh-73px)]">
         {/* Sidebar */}
@@ -254,7 +244,15 @@ export default function Map() {
                   {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                   {(searchLocation || (showNearMe && userLocation)) && ` • ${searchRadius}km radius`}
                 </p>
-                <GeocacheList geocaches={filteredGeocaches} compact />
+                <div className="space-y-3">
+                  {filteredGeocaches.map((cache) => (
+                    <CompactGeocacheCard
+                      key={cache.id}
+                      cache={cache}
+                      distance={('distance' in cache) ? cache.distance : undefined}
+                    />
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="p-4 text-center text-gray-500">
@@ -400,7 +398,15 @@ export default function Map() {
                     {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                     {(searchLocation || (showNearMe && userLocation)) && ` • ${searchRadius}km radius`}
                   </p>
-                  <GeocacheList geocaches={filteredGeocaches} compact />
+                  <div className="space-y-3">
+                    {filteredGeocaches.map((cache) => (
+                      <CompactGeocacheCard
+                        key={cache.id}
+                        cache={cache}
+                        distance={('distance' in cache) ? cache.distance : undefined}
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-center flex-1">
