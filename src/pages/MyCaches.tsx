@@ -54,6 +54,7 @@ interface SavedCacheCardProps {
 function SavedCacheCard({ cache, distance, onRemove }: SavedCacheCardProps) {
   const author = useAuthor(cache.pubkey);
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
+  const profilePicture = author.data?.metadata?.picture;
 
   const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -69,8 +70,16 @@ function SavedCacheCard({ cache, distance, onRemove }: SavedCacheCardProps) {
             <div className="text-2xl">{getTypeIcon(cache.type)}</div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                by {authorName} • saved {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
+              <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                by {authorName}
+                {profilePicture && (
+                  <img 
+                    src={profilePicture} 
+                    alt={authorName}
+                    className="h-3 w-3 rounded-full object-cover"
+                  />
+                )}
+                • saved {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
               </p>
               <div className="flex gap-2 mb-2">
                 <Badge variant="outline">D{cache.difficulty}</Badge>
@@ -180,6 +189,7 @@ interface FoundCacheCardProps {
 function FoundCacheCard({ cache, distance }: FoundCacheCardProps) {
   const author = useAuthor(cache.pubkey);
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
+  const profilePicture = author.data?.metadata?.picture;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -189,8 +199,16 @@ function FoundCacheCard({ cache, distance }: FoundCacheCardProps) {
             <div className="text-2xl">{getTypeIcon(cache.type)}</div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                by {authorName} • found {formatDistanceToNow(new Date(cache.foundAt * 1000), { addSuffix: true })}
+              <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                by {authorName}
+                {profilePicture && (
+                  <img 
+                    src={profilePicture} 
+                    alt={authorName}
+                    className="h-3 w-3 rounded-full object-cover"
+                  />
+                )}
+                • found {formatDistanceToNow(new Date(cache.foundAt * 1000), { addSuffix: true })}
               </p>
               {cache.logText && (
                 <p className="text-sm text-gray-700 mb-2 line-clamp-2 italic">"{cache.logText}"</p>

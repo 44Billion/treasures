@@ -37,6 +37,7 @@ function GeocacheCard({ geocache, compact }: GeocacheCardProps) {
   const navigate = useNavigate();
   const author = useAuthor(geocache.pubkey);
   const authorName = author.data?.metadata?.name || geocache.pubkey.slice(0, 8);
+  const profilePicture = author.data?.metadata?.picture;
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -73,7 +74,16 @@ function GeocacheCard({ geocache, compact }: GeocacheCardProps) {
               <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                 <span>D{geocache.difficulty}/T{geocache.terrain}</span>
                 <span>{geocache.size}</span>
-                <span>by {authorName}</span>
+                <span className="flex items-center gap-1">
+                  by {authorName}
+                  {profilePicture && (
+                    <img 
+                      src={profilePicture} 
+                      alt={authorName}
+                      className="h-3 w-3 rounded-full object-cover"
+                    />
+                  )}
+                </span>
                 {'distance' in geocache && geocache.distance !== undefined && (
                   <Badge variant="secondary" className="text-xs">
                     <Navigation className="h-3 w-3 mr-1" />
@@ -107,7 +117,17 @@ function GeocacheCard({ geocache, compact }: GeocacheCardProps) {
         </div>
         <CardTitle className="line-clamp-2">{geocache.name}</CardTitle>
         <CardDescription className="flex items-center justify-between">
-          <span>by {authorName} • {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}</span>
+          <span className="flex items-center gap-1">
+            by {authorName}
+            {profilePicture && (
+              <img 
+                src={profilePicture} 
+                alt={authorName}
+                className="h-3 w-3 rounded-full object-cover"
+              />
+            )}
+            • {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
+          </span>
           {'distance' in geocache && geocache.distance !== undefined && (
             <Badge variant="secondary" className="text-xs ml-2">
               <Navigation className="h-3 w-3 mr-1" />

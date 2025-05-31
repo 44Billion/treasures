@@ -40,6 +40,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
   if (!geocache) return null;
 
   const authorName = author.data?.metadata?.name || geocache.pubkey.slice(0, 8);
+  const profilePicture = author.data?.metadata?.picture;
 
   const handleCreateLog = () => {
     if (!logText.trim() || !geocache) return;
@@ -99,6 +100,13 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
             <span className="flex items-center gap-1">
               <User className="h-4 w-4" />
               Hidden by {authorName}
+              {profilePicture && (
+                <img 
+                  src={profilePicture} 
+                  alt={authorName}
+                  className="h-4 w-4 rounded-full object-cover"
+                />
+              )}
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />

@@ -331,6 +331,7 @@ export default function CacheDetail() {
 
   const isOwner = user && user.pubkey === geocache.pubkey;
   const authorName = author.data?.metadata?.name || geocache.pubkey.slice(0, 8);
+  const profilePicture = author.data?.metadata?.picture;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -359,6 +360,13 @@ export default function CacheDetail() {
                       <span className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         Hidden by {authorName}
+                        {profilePicture && (
+                          <img 
+                            src={profilePicture} 
+                            alt={authorName}
+                            className="h-4 w-4 rounded-full object-cover"
+                          />
+                        )}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
@@ -602,10 +610,12 @@ export default function CacheDetail() {
                   <MapPin className="h-4 w-4 mr-2" />
                   Map
                 </TabsTrigger>
+                {/* Temporarily hidden - experimental feature
                 <TabsTrigger value="compass">
                   <CompassIcon className="h-4 w-4 mr-2" />
                   Treasure Compass
                 </TabsTrigger>
+                */}
               </TabsList>
               
               <TabsContent value="logs" className="space-y-4">
@@ -718,6 +728,7 @@ export default function CacheDetail() {
                 </div>
               </TabsContent>
               
+              {/* Temporarily hidden - experimental feature
               <TabsContent value="compass">
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center">
@@ -737,6 +748,7 @@ export default function CacheDetail() {
                   </div>
                 </div>
               </TabsContent>
+              */}
             </Tabs>
           </div>
 
