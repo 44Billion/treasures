@@ -50,19 +50,19 @@ export default function Home() {
         <div className="absolute inset-0 -z-10">
           {/* Map markers - replacing dots */}
           <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
-            <MapPin className="w-6 h-6 text-green-500 opacity-60 drop-shadow-sm" />
+            <MapPin className="w-6 h-6 text-green-500 opacity-70 drop-shadow-sm" />
           </div>
           <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '1s'}}>
-            <MapPin className="w-5 h-5 text-green-600 opacity-50 drop-shadow-sm" />
+            <MapPin className="w-5 h-5 text-green-600 opacity-65 drop-shadow-sm" />
           </div>
           <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '2s'}}>
-            <MapPin className="w-6 h-6 text-emerald-500 opacity-45 drop-shadow-sm" />
+            <MapPin className="w-6 h-6 text-emerald-500 opacity-60 drop-shadow-sm" />
           </div>
           <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '0.5s'}}>
-            <MapPin className="w-4 h-4 text-green-700 opacity-40 drop-shadow-sm" />
+            <MapPin className="w-4 h-4 text-green-700 opacity-55 drop-shadow-sm" />
           </div>
           <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '1.5s'}}>
-            <MapPin className="w-5 h-5 text-emerald-600 opacity-55 drop-shadow-sm" />
+            <MapPin className="w-5 h-5 text-emerald-600 opacity-65 drop-shadow-sm" />
           </div>
           
           {/* Globe-style curved grid lines */}
@@ -72,42 +72,42 @@ export default function Home() {
               {/* Top latitude line */}
               <path 
                 d="M 10,25 Q 50,22 90,25" 
-                stroke="rgb(34 197 94 / 0.2)" 
-                strokeWidth="0.2" 
+                stroke="rgb(34 197 94 / 0.35)" 
+                strokeWidth="0.3" 
                 fill="none"
               />
               {/* Middle latitude line */}
               <path 
                 d="M 5,50 Q 50,48 95,50" 
-                stroke="rgb(34 197 94 / 0.15)" 
-                strokeWidth="0.2" 
+                stroke="rgb(34 197 94 / 0.4)" 
+                strokeWidth="0.3" 
                 fill="none"
               />
               {/* Bottom latitude line */}
               <path 
                 d="M 10,75 Q 50,78 90,75" 
-                stroke="rgb(34 197 94 / 0.2)" 
-                strokeWidth="0.2" 
+                stroke="rgb(34 197 94 / 0.35)" 
+                strokeWidth="0.3" 
                 fill="none"
               />
               
               {/* Vertical longitude lines - curved to show globe curvature */}
               <path 
                 d="M 25,10 Q 22,50 25,90" 
-                stroke="rgb(34 197 94 / 0.15)" 
-                strokeWidth="0.1" 
+                stroke="rgb(34 197 94 / 0.3)" 
+                strokeWidth="0.2" 
                 fill="none"
               />
               <path 
                 d="M 50,5 Q 48,50 50,95" 
-                stroke="rgb(34 197 94 / 0.2)" 
-                strokeWidth="0.1" 
+                stroke="rgb(34 197 94 / 0.4)" 
+                strokeWidth="0.2" 
                 fill="none"
               />
               <path 
                 d="M 75,10 Q 78,50 75,90" 
-                stroke="rgb(34 197 94 / 0.15)" 
-                strokeWidth="0.1" 
+                stroke="rgb(34 197 94 / 0.3)" 
+                strokeWidth="0.2" 
                 fill="none"
               />
             </svg>
