@@ -120,10 +120,15 @@ export default function Home() {
         </div>
         
         <div className="container mx-auto text-center relative">
-          <Link to="/install" className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in hover:bg-green-200 transition-colors">
-            <Trophy className="w-4 h-4" />
-            <span>Join the Quest</span>
-          </Link>
+          <div className="mb-6 animate-fade-in">
+            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-200 transition-colors">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-4 h-4" />
+                <span>Join the Quest</span>
+              </div>
+              <span className="text-[10px] opacity-75 leading-none">Install the PWA</span>
+            </Link>
+          </div>
           
           <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-6 animate-slide-up">
             Discover Hidden 

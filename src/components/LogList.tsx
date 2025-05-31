@@ -1,4 +1,4 @@
-import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical } from "lucide-react";
+import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 import { useAuthor } from "@/hooks/useAuthor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeleteLog } from "@/hooks/useDeleteLog";
+import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";
 import { EventSourceInfo } from "@/components/EventSourceInfo";
 import type { GeocacheLog } from "@/types/geocache";
@@ -52,6 +53,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
   const author = useAuthor(log.pubkey);
   const { user } = useCurrentUser();
   const { mutate: deleteLog, isPending: isDeleting } = useDeleteLog();
+  const { toast } = useToast();
   const authorName = author.data?.metadata?.name || log.pubkey.slice(0, 8);
   const authorAvatar = author.data?.metadata?.picture;
   
@@ -66,6 +68,49 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
 
   const handleDeleteLog = () => {
     deleteLog(log.id);
+  };
+
+  const handleCopyEventId = async () => {
+    try {
+      await navigator.clipboard.writeText(log.id);
+      toast({
+        title: "Event ID copied",
+        description: "The event ID has been copied to your clipboard.",
+      });
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = log.id;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      toast({
+        title: "Event ID copied",
+        description: "The event ID has been copied to your clipboard.",
+      });
+    }
+    
+    // Remove focus from the trigger button after copying
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+        // Force remove any lingering focus styles
+        activeElement.style.outline = 'none';
+        activeElement.style.boxShadow = 'none';
+      }
+      // Also blur any button elements in the area
+      const buttons = document.querySelectorAll('button[data-state]');
+      buttons.forEach((button) => {
+        if (button instanceof HTMLElement) {
+          button.blur();
+          button.style.outline = 'none';
+          button.style.boxShadow = 'none';
+        }
+      });
+    }, 100);
   };
 
   const getLogIcon = () => {
@@ -88,7 +133,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
       case "dnf":
         return "Didn't find it";
       case "note":
-        return "Write note";
+        return "Note";
       default:
         return log.type;
     }
@@ -157,29 +202,36 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
                 )}
               </div>
               
-              {isOwnLog && (
-                <AlertDialog>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size={compact ? "sm" : "sm"}
-                        className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
-                        disabled={isDeleting}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+              <AlertDialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size={compact ? "sm" : "sm"}
+                      className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus:shadow-none focus-visible:shadow-none active:outline-none"
+                      disabled={isDeleting}
+                      style={{ outline: 'none', boxShadow: 'none' }}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleCopyEventId} className="focus:outline-none">
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Event ID
+                    </DropdownMenuItem>
+                    {isOwnLog && (
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="text-red-600 focus:text-red-600">
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete log
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                {isOwnLog && (
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete log?</AlertDialogTitle>
@@ -198,8 +250,8 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
-                </AlertDialog>
-              )}
+                )}
+              </AlertDialog>
             </div>
             
             <p className={`whitespace-pre-wrap ${compact ? "text-xs" : "text-sm"}`}>{log.text}</p>

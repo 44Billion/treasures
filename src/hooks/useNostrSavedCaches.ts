@@ -38,36 +38,49 @@ export function useNostrSavedCaches() {
   const { mutateAsync: publishEvent } = useNostrPublish();
   const queryClient = useQueryClient();
 
-  // Query user's cache bookmark events
+  // Query user's cache bookmark and deletion events
   const { data: bookmarkEvents, refetch: refetchBookmarks, isLoading: isLoadingBookmarks } = useQuery({
     queryKey: ['cache-bookmarks', user?.pubkey],
     queryFn: async () => {
       if (!user?.pubkey || !nostr) return [];
       
       try {
-        // Simple query for bookmark events
-        const query = { 
-          kinds: [CACHE_BOOKMARK_KIND], 
-          authors: [user.pubkey],
-          '#l': ['treasures/cache-bookmark'],
-          limit: 1000
-        };
+        // Query both bookmark events (kind 1985) and deletion events (kind 5)
+        const queries = [
+          { 
+            kinds: [CACHE_BOOKMARK_KIND], 
+            authors: [user.pubkey],
+            '#l': ['treasures/cache-bookmark'],
+            limit: 1000
+          },
+          {
+            kinds: [5], // Deletion events
+            authors: [user.pubkey],
+            limit: 1000
+          }
+        ];
         
         // Safari-compatible query with shorter timeout
         const events = await Promise.race([
-          nostr.query([query]),
+          nostr.query(queries),
           new Promise<never>((_, reject) => 
             setTimeout(() => reject(new Error('Bookmark query timeout')), 5000)
           )
         ]);
         
-        // Filter to only cache bookmark events (including clear-all events)
-        const cacheBookmarkEvents = events.filter(event => 
-          event.tags.some(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:')) ||
-          event.tags.some(tag => tag[0] === 'action' && tag[1] === 'clear-all')
-        );
+        // Filter to only cache bookmark events and relevant deletion events
+        const relevantEvents = events.filter(event => {
+          if (event.kind === CACHE_BOOKMARK_KIND) {
+            // Include bookmark events for caches
+            return event.tags.some(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
+          } else if (event.kind === 5) {
+            // Include deletion events that reference bookmark events
+            return event.tags.some(tag => tag[0] === 'e');
+          }
+          return false;
+        });
         
-        return cacheBookmarkEvents.sort((a, b) => b.created_at - a.created_at);
+        return relevantEvents.sort((a, b) => b.created_at - a.created_at);
       } catch (error) {
         console.warn('Failed to fetch bookmark events:', error);
         return [];
@@ -77,51 +90,37 @@ export function useNostrSavedCaches() {
     staleTime: 30000, // 30 seconds
   });
 
-  // Extract saved cache coordinates from bookmark events
+  // Extract saved cache coordinates from bookmark events, considering deletions
   const savedCacheCoords = useMemo(() => {
     if (!bookmarkEvents || bookmarkEvents.length === 0) {
       return [];
     }
     
-    // Track the latest action for each cache
-    const cacheActions = new Map<string, { action: string; timestamp: number }>();
+    // Separate bookmark events and deletion events
+    const bookmarks = bookmarkEvents.filter(event => event.kind === CACHE_BOOKMARK_KIND);
+    const deletions = bookmarkEvents.filter(event => event.kind === 5);
     
-    // First, find if there's a clear-all event and get its timestamp
-    let clearAllTimestamp = 0;
-    bookmarkEvents.forEach((event) => {
-      const actionTag = event.tags.find(tag => tag[0] === 'action');
-      if (actionTag && actionTag[1] === 'clear-all') {
-        clearAllTimestamp = Math.max(clearAllTimestamp, event.created_at);
-      }
+    // Create a set of deleted event IDs
+    const deletedEventIds = new Set<string>();
+    deletions.forEach(deletion => {
+      deletion.tags.forEach(tag => {
+        if (tag[0] === 'e') {
+          deletedEventIds.add(tag[1]);
+        }
+      });
     });
     
-    bookmarkEvents.forEach((event) => {
+    // Filter out deleted bookmark events
+    const activeBookmarks = bookmarks.filter(event => !deletedEventIds.has(event.id));
+    
+    // Extract coordinates from active bookmark events with 'save' action
+    const savedCoords: string[] = [];
+    activeBookmarks.forEach((event) => {
       const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
       const actionTag = event.tags.find(tag => tag[0] === 'action');
       
-      if (aTag && actionTag) {
-        const coord = aTag[1];
-        const action = actionTag[1];
-        const timestamp = event.created_at;
-        
-        // Skip actions that happened before the most recent clear-all
-        if (timestamp <= clearAllTimestamp) {
-          return;
-        }
-        
-        // Only keep the most recent action for each cache after clear-all
-        const existing = cacheActions.get(coord);
-        if (!existing || timestamp > existing.timestamp) {
-          cacheActions.set(coord, { action, timestamp });
-        }
-      }
-    });
-    
-    // Return only caches that have 'save' as their latest action after clear-all
-    const savedCoords: string[] = [];
-    cacheActions.forEach((actionData, coord) => {
-      if (actionData.action === 'save') {
-        savedCoords.push(coord);
+      if (aTag && actionTag && actionTag[1] === 'save') {
+        savedCoords.push(aTag[1]);
       }
     });
     
@@ -305,30 +304,35 @@ export function useNostrSavedCaches() {
     queryClient.invalidateQueries({ queryKey: ['saved-geocaches'] });
   }, [user, savedCacheCoords, publishEvent, refetchBookmarks, queryClient]);
 
-  // Unsave cache by publishing a removal bookmark event
+  // Unsave cache by deleting the bookmark event
   const unsaveCache = useCallback(async (geocache: Geocache) => {
     if (!user) throw new Error('User must be logged in to unsave caches');
 
     const coord = `37515:${geocache.pubkey}:${geocache.dTag}`;
     
-    // Publish a bookmark removal event for this cache
-    await publishEvent({
-      kind: CACHE_BOOKMARK_KIND,
-      content: `Removed cache: ${geocache.name}`,
-      tags: [
-        ['L', 'treasures/cache-bookmark'],
-        ['l', 'treasures/cache-bookmark'],
-        ['a', coord],
-        ['name', geocache.name],
-        ['action', 'remove'],
-        ['client', 'treasures']
-      ],
+    // Find the bookmark event to delete
+    const bookmarkEvent = bookmarkEvents?.find(event => {
+      const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1] === coord);
+      const actionTag = event.tags.find(tag => tag[0] === 'action' && tag[1] === 'save');
+      return aTag && actionTag;
     });
+
+    if (bookmarkEvent) {
+      // Publish a deletion event for the bookmark
+      await publishEvent({
+        kind: 5, // Event deletion request
+        content: `Removed bookmark for cache: ${geocache.name}`,
+        tags: [
+          ['e', bookmarkEvent.id], // Reference to the bookmark event to delete
+          ['client', 'treasures']
+        ],
+      });
+    }
 
     // Refetch bookmarks to update UI
     await refetchBookmarks();
     queryClient.invalidateQueries({ queryKey: ['saved-geocaches'] });
-  }, [user, publishEvent, refetchBookmarks, queryClient]);
+  }, [user, bookmarkEvents, publishEvent, refetchBookmarks, queryClient]);
 
   // Toggle save cache
   const toggleSaveCache = useCallback(async (geocache: Geocache) => {
@@ -345,21 +349,28 @@ export function useNostrSavedCaches() {
     }
   }, [isCacheSaved, saveCache, unsaveCache, user]);
 
-  // Clear all saved caches
+  // Clear all saved caches by deleting all bookmark events
   const clearAllSaved = useCallback(async () => {
     if (!user) return;
     
-    // Publish a clear all event
-    await publishEvent({
-      kind: CACHE_BOOKMARK_KIND,
-      content: 'Cleared all saved caches',
-      tags: [
-        ['L', 'treasures/cache-bookmark'],
-        ['l', 'treasures/cache-bookmark'],
-        ['action', 'clear-all'],
-        ['client', 'treasures']
-      ],
-    });
+    // Find all bookmark events with 'save' action
+    const saveBookmarkEvents = bookmarkEvents?.filter(event => {
+      const actionTag = event.tags.find(tag => tag[0] === 'action' && tag[1] === 'save');
+      const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
+      return actionTag && aTag;
+    }) || [];
+
+    if (saveBookmarkEvents.length > 0) {
+      // Publish a deletion event for all bookmark events
+      await publishEvent({
+        kind: 5, // Event deletion request
+        content: 'Cleared all saved caches',
+        tags: [
+          ...saveBookmarkEvents.map(event => ['e', event.id]), // Reference all bookmark events to delete
+          ['client', 'treasures']
+        ],
+      });
+    }
     
     // Force immediate cache invalidation
     queryClient.invalidateQueries({ queryKey: ['cache-bookmarks', user.pubkey] });
@@ -368,7 +379,7 @@ export function useNostrSavedCaches() {
     
     // Also refetch the bookmarks
     await refetchBookmarks();
-  }, [user, publishEvent, refetchBookmarks, queryClient]);
+  }, [user, bookmarkEvents, publishEvent, refetchBookmarks, queryClient]);
 
   // Unsave cache by ID (for compatibility with existing components)
   const unsaveCacheById = useCallback(async (cacheId: string) => {
