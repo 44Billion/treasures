@@ -25,7 +25,16 @@ export function getSizeLevel(size: string): number {
     large: 4,
     other: 0, // 'Other' shows no blocks filled (unknown size)
   };
-  return sizeMap[size.toLowerCase()] || 2;
+  
+  const normalizedSize = size?.toLowerCase()?.trim() || '';
+  const level = sizeMap[normalizedSize];
+  
+  // Debug logging to help troubleshoot
+  if (normalizedSize === 'other' && level !== 0) {
+    console.warn('Size level mismatch for "other":', { size, normalizedSize, level });
+  }
+  
+  return level !== undefined ? level : 0;
 }
 
 export function getTypeIcon(type: string): string {
