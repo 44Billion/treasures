@@ -89,7 +89,7 @@ export default function Install() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-8">

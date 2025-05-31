@@ -35,7 +35,7 @@ export function App() {
       <NostrProvider relays={defaultRelays}>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <div className="pb-safe-bottom">
+            <div className="min-h-screen flex flex-col">
               <AppRouter />
             </div>
             <PWAUpdatePrompt />

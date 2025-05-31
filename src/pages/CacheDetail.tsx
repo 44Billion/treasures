@@ -252,7 +252,7 @@ export default function CacheDetail() {
     <div className="min-h-screen bg-gray-50">
       <DesktopHeader />
 
-      <div className="container mx-auto px-2 sm:px-4 py-8 pb-20 md:pb-8 max-w-full overflow-hidden">
+      <div className="container mx-auto px-2 sm:px-4 py-8 max-w-full overflow-hidden">
         <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 lg:space-y-6 min-w-0">

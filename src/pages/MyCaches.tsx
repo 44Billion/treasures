@@ -170,7 +170,7 @@ export default function MyCaches() {
           </div>
         )}
 
-        <div className="mt-8 text-center pb-8 sm:pb-4">
+        <div className="mt-8 text-center">
           <Link to="/map">
             <Button variant="outline">
               <MapPin className="h-4 w-4 mr-2" />

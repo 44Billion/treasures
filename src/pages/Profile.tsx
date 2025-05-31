@@ -296,7 +296,7 @@ export default function Profile() {
           </TabsContent>
         </Tabs>
 
-        <div className="mt-8 text-center pb-24 sm:pb-8">
+        <div className="mt-8 text-center">
           <Link to="/map">
             <Button variant="outline">
               <MapPin className="h-4 w-4 mr-2" />

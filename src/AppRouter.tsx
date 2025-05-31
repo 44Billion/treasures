@@ -10,27 +10,34 @@ import Settings from "./pages/Settings";
 import Install from "./pages/Install";
 
 import NotFound from "./pages/NotFound";
-import { MobileNav } from "@/components/MobileNav";
+import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 
 export function AppRouter() {
   return (
     <BrowserRouter>
-      {/* Show MobileNav on all pages */}
-      <MobileNav />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/map" element={<Map />} />
-        <Route path="/create" element={<CreateCache />} />
-        <Route path="/cache/:dtag" element={<CacheDetail />} />
-        <Route path="/saved" element={<MyCaches />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/:pubkey" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/install" element={<Install />} />
+      {/* Mobile Header */}
+      <MobileHeader />
+      
+      {/* Main Content Area - with bottom padding for mobile nav + safe area */}
+      <main className="flex-1 pb-nav-safe md:pb-0">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/create" element={<CreateCache />} />
+          <Route path="/cache/:dtag" element={<CacheDetail />} />
+          <Route path="/saved" element={<MyCaches />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:pubkey" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/install" element={<Install />} />
 
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      
+      {/* Mobile Bottom Navigation - Fixed positioned */}
+      <MobileBottomNav />
     </BrowserRouter>
   );
 }

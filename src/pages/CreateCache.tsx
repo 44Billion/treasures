@@ -155,7 +155,7 @@ export default function CreateCache() {
       <div className="min-h-screen bg-gray-50">
         <DesktopHeader />
         
-        <div className="container mx-auto px-4 py-16 pb-20 md:pb-16">
+        <div className="container mx-auto px-4 py-16">
           <LoginRequiredCard
             icon={MapPin}
             description="You need to be logged in to create a geocache."
@@ -170,7 +170,7 @@ export default function CreateCache() {
     <div className="min-h-screen bg-gray-50">
       <DesktopHeader />
 
-      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Hide a New Treasure</CardTitle>

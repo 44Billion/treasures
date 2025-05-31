@@ -45,7 +45,7 @@ export default function Home() {
       <DesktopHeader />
 
       {/* Hero Section */}
-      <section className="relative py-12 px-4 md:py-20 overflow-hidden">
+      <section className="relative pt-6 pb-12 px-4 md:py-20 overflow-hidden">
         {/* Animated background elements - constrained to max-width container */}
         <div className="absolute inset-0 -z-10 flex justify-center">
           <div className="relative w-full max-w-screen-2xl h-full">
@@ -200,7 +200,7 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="py-12 md:py-16 px-4 pb-20 md:pb-16">
+      <section className="py-12 md:py-16 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <h3 className="text-2xl md:text-3xl font-bold">Recent Geocaches</h3>

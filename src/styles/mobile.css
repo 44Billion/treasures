@@ -15,6 +15,15 @@
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+/* Mobile navigation spacing */
+.pb-nav-safe {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pt-header-safe {
+  padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+}
+
 /* Prevent overscroll on mobile */
 @media (max-width: 768px) {
   body {
