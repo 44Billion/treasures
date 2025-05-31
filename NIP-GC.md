@@ -30,6 +30,8 @@ Geocache listing events are addressable events of kind `37515` with the followin
 
 Listing events require all information about the cache and information relevant to finding the cache. These include the `name`, location (`g`), `difficulty` and `terrain` scores, `size`, and type of cache (`cache-type`).
 
+Cache types are currently limited to `traditional`, `multi`, and `mystery` as these types all use the location as either a starting point or destination.
+
 These requirements are well-known and follow existing standards, such as those outlined on [geocaching.com](https://www.geocaching.com/help/index.php?pg=kb.chapter&id=97).
 
 These events are assumed to be owned by the submitter of the cache, and core details should be maintained by that submitter. However, community logs should also provide context on the current state and validity of the cache.
@@ -51,13 +53,13 @@ The content field contains the cache description and any additional information 
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
 
-## Log Event (Kind 37516)
+## Log Event (Kind 7516)
 
-Log events are regular events of kind `37516` that record visits to geocaches:
+Log events are regular events of kind `7516` that record visits to geocaches:
 
 ```json
 {
-  "kind": 37516,
+  "kind": 7516,
   "content": "<log message>",
   "tags": [
     ["a", "37515:<pubkey>:<d-tag>"],
@@ -82,7 +84,6 @@ Caches can be flagged as 'in maintenance' or requiring maintenance via the same 
 
 For the best Geocaching experience, clients implementing geocaching support should:
 
-- Hide coordinates for `mystery` cache types until the puzzle is solved.
 - Support hint encoding, such as ROT13, to prevent spoilers.
 - Determine cache status from recent log patterns. Multiple DNF entries and/or maintenance notes would indicate an issue with the cache.
 - Publish logs to relays specified in the cache's `r` tags when available.
@@ -113,7 +114,7 @@ For the best Geocaching experience, clients implementing geocaching support shou
 
 ```json
 {
-  "kind": 37516,
+  "kind": 7516,
   "content": "Found it! Great hiding spot.",
   "tags": [
     ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
