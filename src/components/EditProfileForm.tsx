@@ -1,23 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Upload } from 'lucide-react';
+import { Form } from '@/components/ui/form';
+import { LoadingButton } from '@/components/ui/button-extensions';
+import { 
+  TextField, 
+  TextAreaField, 
+  SwitchField, 
+  ImageUploadField 
+} from '@/components/ui/form-fields';
 import { NSchema as n, type NostrMetadata } from '@nostrify/nostrify';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUploadFile } from '@/hooks/useUploadFile';
@@ -127,223 +121,81 @@ export const EditProfileForm: React.FC = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
+        <TextField
           control={form.control}
           name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your name" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your display name that will be displayed to others.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Name"
+          placeholder="Your name"
+          description="This is your display name that will be displayed to others."
         />
 
-        <FormField
+        <TextAreaField
           control={form.control}
           name="about"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Tell others about yourself" 
-                  className="resize-none" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormDescription>
-                A short description about yourself.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Bio"
+          placeholder="Tell others about yourself"
+          description="A short description about yourself."
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
+          <ImageUploadField
             control={form.control}
             name="picture"
-            render={({ field }) => (
-              <ImageUploadField
-                field={field}
-                label="Profile Picture"
-                placeholder="https://example.com/profile.jpg"
-                description="URL to your profile picture. You can upload an image or provide a URL."
-                previewType="square"
-                onUpload={(file) => uploadPicture(file, 'picture')}
-              />
-            )}
+            label="Profile Picture"
+            placeholder="https://example.com/profile.jpg"
+            description="URL to your profile picture. You can upload an image or provide a URL."
+            previewType="square"
+            onUpload={(file) => uploadPicture(file, 'picture')}
           />
 
-          <FormField
+          <ImageUploadField
             control={form.control}
             name="banner"
-            render={({ field }) => (
-              <ImageUploadField
-                field={field}
-                label="Banner Image"
-                placeholder="https://example.com/banner.jpg"
-                description="URL to a wide banner image for your profile. You can upload an image or provide a URL."
-                previewType="wide"
-                onUpload={(file) => uploadPicture(file, 'banner')}
-              />
-            )}
+            label="Banner Image"
+            placeholder="https://example.com/banner.jpg"
+            description="URL to a wide banner image for your profile. You can upload an image or provide a URL."
+            previewType="wide"
+            onUpload={(file) => uploadPicture(file, 'banner')}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
+          <TextField
             control={form.control}
             name="website"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Website</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://yourwebsite.com" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Your personal website or social media link.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Website"
+            placeholder="https://yourwebsite.com"
+            description="Your personal website or social media link."
+            type="url"
           />
 
-          <FormField
+          <TextField
             control={form.control}
             name="nip05"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>NIP-05 Identifier</FormLabel>
-                <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Your verified Nostr identifier.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="NIP-05 Identifier"
+            placeholder="you@example.com"
+            description="Your verified Nostr identifier."
+            type="email"
           />
         </div>
 
-        <FormField
+        <SwitchField
           control={form.control}
           name="bot"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Bot Account</FormLabel>
-                <FormDescription>
-                  Mark this account as automated or a bot.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
+          label="Bot Account"
+          description="Mark this account as automated or a bot."
         />
 
-        <Button 
+        <LoadingButton
           type="submit" 
           className="w-full md:w-auto" 
-          disabled={isPending || isUploading}
+          isLoading={isPending || isUploading}
+          loadingText="Saving..."
         >
-          {(isPending || isUploading) && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
           Save Profile
-        </Button>
+        </LoadingButton>
       </form>
     </Form>
   );
 };
 
-// Reusable component for image upload fields
-interface ImageUploadFieldProps {
-  field: {
-    value: string | undefined;
-    onChange: (value: string) => void;
-    name: string;
-    onBlur: () => void;
-  };
-  label: string;
-  placeholder: string;
-  description: string;
-  previewType: 'square' | 'wide';
-  onUpload: (file: File) => void;
-}
-
-const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
-  field,
-  label,
-  placeholder,
-  description,
-  previewType,
-  onUpload,
-}) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <FormItem>
-      <FormLabel>{label}</FormLabel>
-      <div className="flex flex-col gap-2">
-        <FormControl>
-          <Input
-            placeholder={placeholder}
-            name={field.name}
-            value={field.value ?? ''}
-            onChange={e => field.onChange(e.target.value)}
-            onBlur={field.onBlur}
-          />
-        </FormControl>
-        <div className="flex items-center gap-2">
-          <input 
-            type="file" 
-            ref={fileInputRef}
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                onUpload(file);
-              }
-            }}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Image
-          </Button>
-          {field.value && (
-            <div className={`h-10 ${previewType === 'square' ? 'w-10' : 'w-24'} rounded overflow-hidden`}>
-              <img 
-                src={field.value} 
-                alt={`${label} preview`} 
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      <FormDescription>
-        {description}
-      </FormDescription>
-      <FormMessage />
-    </FormItem>
-  );
-};

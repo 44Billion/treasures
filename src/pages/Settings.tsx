@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, X, Globe } from "lucide-react";
+import { MapPin, Plus, X, Globe, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/useToast";
+import { EditProfileForm } from "@/components/EditProfileForm";
 
 const DEFAULT_GEOCACHING_RELAYS = [
   'wss://ditto.pub/relay',
@@ -200,9 +201,24 @@ export default function Settings() {
             <CardHeader>
               <CardTitle>Settings</CardTitle>
               <CardDescription>
-                Configure your geocaching preferences
+                Configure your profile and geocaching preferences
               </CardDescription>
             </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Profile Settings
+              </CardTitle>
+              <CardDescription>
+                Update your profile information and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EditProfileForm />
+            </CardContent>
           </Card>
 
           <Card>

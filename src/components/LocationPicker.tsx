@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
-import L from "leaflet";
 import { MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,60 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { autocorrectCoordinates } from "@/lib/coordinates";
+import { mapIcons } from "@/lib/mapIcons";
 
 import "leaflet/dist/leaflet.css";
-
-// Custom marker icon for dropped pin
-const droppedPinIcon = L.divIcon({
-  html: `
-    <div style="position: relative;">
-      <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M16 0C9.373 0 4 5.373 4 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12z" fill="#ef4444"/>
-        <circle cx="16" cy="12" r="4" fill="white"/>
-      </svg>
-    </div>
-  `,
-  className: "location-picker-icon",
-  iconSize: [32, 40],
-  iconAnchor: [16, 40],
-});
-
-// Blue beacon icon for current/searched location
-const blueBeaconIcon = L.divIcon({
-  html: `
-    <div style="position: relative; width: 24px; height: 24px;">
-      <div style="
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        background: rgba(59, 130, 246, 0.3);
-        border-radius: 50%;
-        animation: pulse 2s ease-out infinite;
-      "></div>
-      <div style="
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 20px;
-        height: 20px;
-        background: #3b82f6;
-        border: 2px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      "></div>
-    </div>
-    <style>
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.5); opacity: 0.5; }
-        100% { transform: scale(2); opacity: 0; }
-      }
-    </style>
-  `,
-  className: "blue-beacon-icon",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-});
 
 interface LocationPickerProps {
   value: { lat: number; lng: number } | null;
@@ -105,14 +53,14 @@ function LocationSelector({
       {beaconLocation && (
         <Marker 
           position={[beaconLocation.lat, beaconLocation.lng]} 
-          icon={blueBeaconIcon}
+          icon={mapIcons.blueBeacon}
           interactive={false}
         />
       )}
       
       {/* Red pin for selected cache location */}
       {value && (
-        <Marker position={[value.lat, value.lng]} icon={droppedPinIcon} />
+        <Marker position={[value.lat, value.lng]} icon={mapIcons.droppedPin} />
       )}
     </>
   );

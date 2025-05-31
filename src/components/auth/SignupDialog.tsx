@@ -4,13 +4,7 @@
 import React, { useState } from 'react';
 import { Download, Key, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { BaseDialog } from '@/components/ui/base-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/useToast.ts';
 import { useLoginActions } from '@/hooks/useLoginActions';
@@ -98,23 +92,28 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
     });
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-md p-0 overflow-hidden rounded-2xl'>
-        <DialogHeader className='px-6 pt-6 pb-0 relative'>
-          <DialogTitle className='text-xl font-semibold text-center'>
-            {step === 'generate' && 'Create Your Account'}
-            {step === 'download' && 'Download Your Key'}
-            {step === 'done' && 'Setting Up Your Account'}
-          </DialogTitle>
-          <DialogDescription className='text-center text-muted-foreground mt-2'>
-            {step === 'generate' && 'Generate a secure key for your account'}
-            {step === 'download' && "Keep your key safe - you'll need it to log in"}
-            {step === 'done' && 'Finalizing your account setup'}
-          </DialogDescription>
-        </DialogHeader>
+  const getTitle = () => {
+    if (step === 'generate') return 'Create Your Account';
+    if (step === 'download') return 'Download Your Key';
+    return 'Setting Up Your Account';
+  };
 
-        <div className='px-6 py-8 space-y-6'>
+  const getDescription = () => {
+    if (step === 'generate') return 'Generate a secure key for your account';
+    if (step === 'download') return "Keep your key safe - you'll need it to log in";
+    return 'Finalizing your account setup';
+  };
+
+  return (
+    <BaseDialog 
+      isOpen={isOpen} 
+      onOpenChange={onClose}
+      size="auth"
+      title={<span className='font-semibold text-center'>{getTitle()}</span>}
+      description={<span className='text-center text-muted-foreground mt-2'>{getDescription()}</span>}
+      headerClassName='px-6 pt-6 pb-0 relative'
+    >
+      <div className='px-6 py-8 space-y-6'>
           {step === 'generate' && (
             <div className='text-center space-y-6'>
               <div className='p-4 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center'>
@@ -182,9 +181,8 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+      </BaseDialog>
+    );
+  };
 
 export default SignupDialog;

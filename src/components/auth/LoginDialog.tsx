@@ -5,13 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Shield, Upload, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { BaseDialog } from '@/components/ui/base-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLoginActions } from '@/hooks/useLoginActions';
@@ -201,16 +195,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-md p-0 overflow-hidden rounded-2xl'>
-        <DialogHeader className='px-6 pt-6 pb-0 relative'>
-          <DialogTitle className='text-xl font-semibold text-center'>Log in</DialogTitle>
-          <DialogDescription className='text-center text-muted-foreground mt-2'>
-            Access your account securely with your preferred method
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className='px-6 py-8 space-y-6'>
+    <BaseDialog 
+      isOpen={isOpen} 
+      onOpenChange={onClose}
+      size="auth"
+      title={<span className='font-semibold text-center'>Log in</span>}
+      description={<span className='text-center text-muted-foreground mt-2'>Access your account securely with your preferred method</span>}
+      headerClassName='px-6 pt-6 pb-0 relative'
+    >
+      <div className='px-6 py-8 space-y-6'>
           <Tabs defaultValue={'nostr' in window ? 'extension' : 'key'} className='w-full'>
             <TabsList className='grid grid-cols-3 mb-6'>
               <TabsTrigger value='extension'>Extension</TabsTrigger>
@@ -351,9 +344,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
             </p>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+      </BaseDialog>
+    );
+  };
 
 export default LoginDialog;

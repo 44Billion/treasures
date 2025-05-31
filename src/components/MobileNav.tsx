@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MapPin, Home, Map, Plus, Menu, X, Settings, Bookmark, LogOut, User } from 'lucide-react';
+import { MapPin, Home, Map, Plus, Menu, X, Settings, Bookmark, LogOut, User, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -58,18 +58,32 @@ export function MobileNav() {
                   );
                 })}
                 {user && (
-                  <Link
-                    to="/settings"
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
-                      location.pathname === '/settings'
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    <Settings className="h-4 w-4" />
-                    Settings
-                  </Link>
+                  <>
+                    <Link
+                      to="/settings"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
+                        location.pathname === '/settings'
+                          ? 'bg-accent text-accent-foreground'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
+                        location.pathname === '/settings'
+                          ? 'bg-accent text-accent-foreground'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      <Settings className="h-4 w-4" />
+                      App Settings
+                    </Link>
+                  </>
                 )}
               </nav>
               <div className="mt-auto p-6">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MapPin, Navigation, Calendar, User, MessageSquare, Trophy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BaseDialog } from "@/components/ui/base-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -105,10 +105,14 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{geocache.name}</DialogTitle>
+    <>
+      <BaseDialog 
+        isOpen={isOpen} 
+        onOpenChange={onOpenChange}
+        size="xl"
+        className="max-h-[90vh] overflow-y-auto"
+        title={geocache.name}
+        description={
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span className="flex items-center gap-1">
               <User className="h-4 w-4" />
@@ -126,7 +130,8 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
               {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
             </span>
           </div>
-        </DialogHeader>
+        }
+      >
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -359,7 +364,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
             </div>
           </div>
         </div>
-      </DialogContent>
+      </BaseDialog>
       
       {/* Image Gallery */}
       {geocache.images && (
@@ -370,6 +375,6 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
           initialIndex={galleryIndex}
         />
       )}
-    </Dialog>
+    </>
   );
 }
