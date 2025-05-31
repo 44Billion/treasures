@@ -433,18 +433,30 @@ export function Post(/* ...props */) {
 - Development build: `npm run build:dev`
 - Development server: `npm run dev`
 
-### Deployment to Surge.sh
-This project is configured for deployment to surge.sh:
+### Deployment to Production Server
+This project is configured for fast deployment to a production server using Caddy file serving:
 
-- **Quick deploy**: `npm run deploy` - Builds and deploys automatically
-- **Manual deploy**: `cd dist && npx -y surge@latest . treasures.surge.sh`
-- **Live URL**: https://treasures.surge.sh
+- **Quick deploy**: `npm run deploy` - Builds locally and syncs files to server (~15 seconds)
+- **Debug mode**: `npm run deploy:debug` - Verbose logging for troubleshooting
+- **Live URL**: https://treasures.to
 
-#### Deployment Configuration
-- Uses `404.html` copy of `index.html` for SPA routing support
-- Includes `.surgeignore` to exclude unnecessary files
-- CNAME file specifies the custom domain
-- Build output goes to `dist/` directory
+#### Deployment Process
+The deployment is optimized for speed and simplicity:
+1. Builds locally with `npm run build` (catches errors early)
+2. Syncs built files directly to server using rsync
+3. Configures Caddy for static file serving with automatic SSL
+4. Atomic file switching for zero-downtime updates
+5. Automatic backup creation for easy rollback
+
+#### Server Configuration
+- Uses Caddy container for static file serving and automatic SSL
+- Files served from `/opt/treasures/current/` on the server
+- Automatic gzip compression and security headers
+- Health endpoint at `/health` for monitoring
+
+### Alternative Deployments
+- **Surge.sh**: `npm run deploy:surge` - For testing deployments
+- **Legacy Docker**: `npm run deploy:docker` - Slower Docker-based deployment
 
 ### Deployment Troubleshooting
 - **410 Gone errors**: Usually caused by missing CNAME file or incorrect base path

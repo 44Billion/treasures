@@ -1,22 +1,4 @@
-# Multi-stage build for optimized container
-FROM node:22-alpine AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production --silent
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Production stage - serve with simple static server
+# Simple production stage - serve pre-built files
 FROM node:22-alpine
 
 # Install simple http server and wget for healthcheck
@@ -25,8 +7,8 @@ RUN npm install -g serve && apk add --no-cache wget
 # Install security updates
 RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist/ /app/
+# Copy pre-built files (built locally)
+COPY dist/ /app/
 
 # Set working directory
 WORKDIR /app

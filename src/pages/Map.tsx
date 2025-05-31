@@ -260,6 +260,7 @@ export default function Map() {
                       key={cache.id}
                       cache={cache}
                       distance={cache.distance}
+                      onClick={() => handleMarkerClick(cache)}
                     />
                   ))}
                 </div>
@@ -415,6 +416,7 @@ export default function Map() {
                         key={cache.id}
                         cache={cache}
                         distance={cache.distance}
+                        onClick={() => handleMarkerClick(cache)}
                       />
                     ))}
                   </div>

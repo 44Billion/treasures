@@ -205,10 +205,17 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     >
       <div className='px-6 py-8 space-y-6'>
           <Tabs defaultValue={'nostr' in window ? 'extension' : 'key'} className='w-full'>
-            <TabsList className='grid grid-cols-3 mb-6'>
-              <TabsTrigger value='extension'>Extension</TabsTrigger>
-              <TabsTrigger value='key'>Nsec</TabsTrigger>
-              <TabsTrigger value='bunker'>Bunker</TabsTrigger>
+            <TabsList className='grid w-full grid-cols-3 h-auto mb-6'>
+              <TabsTrigger value='extension' className='flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]'>
+                <Shield className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Extension</span>
+              </TabsTrigger>
+              <TabsTrigger value='key' className='flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]'>
+                <span className="text-xs sm:text-sm">Nsec</span>
+              </TabsTrigger>
+              <TabsTrigger value='bunker' className='flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]'>
+                <span className="text-xs sm:text-sm">Bunker</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value='extension' className='space-y-4'>

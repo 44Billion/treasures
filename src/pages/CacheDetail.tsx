@@ -585,21 +585,16 @@ export default function CacheDetail() {
             </Card>
 
             <Tabs defaultValue="logs">
-              <TabsList>
-                <TabsTrigger value="logs">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Logs ({logs?.length || 0})
+              <TabsList className="grid w-full grid-cols-2 h-auto">
+                <TabsTrigger value="logs" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
+                  <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Logs</span>
+                  <span className="text-xs sm:text-sm">({logs?.length || 0})</span>
                 </TabsTrigger>
-                <TabsTrigger value="map">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Map
+                <TabsTrigger value="map" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Map</span>
                 </TabsTrigger>
-                {/* Temporarily hidden - experimental feature
-                <TabsTrigger value="compass">
-                  <CompassIcon className="h-4 w-4 mr-2" />
-                  Treasure Compass
-                </TabsTrigger>
-                */}
               </TabsList>
               
               <TabsContent value="logs" className="space-y-4">
@@ -609,60 +604,67 @@ export default function CacheDetail() {
                       <CardTitle>Post a Log</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
                           variant={logType === "found" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setLogType("found")}
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                         >
-                          <Trophy className="h-4 w-4 mr-1" />
-                          Found It
+                          <Trophy className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm">Found It</span>
                         </Button>
                         <Button
                           variant={logType === "dnf" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setLogType("dnf")}
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                         >
-                          Didn't Find It
+                          <span className="text-xs sm:text-sm">Didn't Find</span>
                         </Button>
                         <Button
                           variant={logType === "note" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setLogType("note")}
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                         >
-                          Write Note
+                          <span className="text-xs sm:text-sm">Write Note</span>
                         </Button>
                       </div>
                       
                       {isOwner && (
-                        <div className="flex flex-wrap gap-2 pt-2 border-t">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t">
                           <Button
                             variant={logType === "maintenance" ? "default" : "outline"}
                             size="sm"
                             onClick={() => setLogType("maintenance")}
+                            className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                           >
-                            Maintenance
+                            <span className="text-xs sm:text-sm">Maintenance</span>
                           </Button>
                           <Button
                             variant={logType === "disabled" ? "default" : "outline"}
                             size="sm"
                             onClick={() => setLogType("disabled")}
+                            className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                           >
-                            Disable
+                            <span className="text-xs sm:text-sm">Disable</span>
                           </Button>
                           <Button
                             variant={logType === "enabled" ? "default" : "outline"}
                             size="sm"
                             onClick={() => setLogType("enabled")}
+                            className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                           >
-                            Enable
+                            <span className="text-xs sm:text-sm">Enable</span>
                           </Button>
                           <Button
                             variant={logType === "archived" ? "default" : "outline"}
                             size="sm"
                             onClick={() => setLogType("archived")}
+                            className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                           >
-                            Archive
+                            <span className="text-xs sm:text-sm">Archive</span>
                           </Button>
                         </div>
                       )}

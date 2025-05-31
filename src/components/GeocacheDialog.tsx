@@ -158,14 +158,15 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
 
             {/* Tabs */}
             <Tabs defaultValue="logs" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="logs">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Logs ({logs?.length || 0})
+              <TabsList className="grid w-full grid-cols-2 h-auto">
+                <TabsTrigger value="logs" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
+                  <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Logs</span>
+                  <span className="text-xs sm:text-sm">({logs?.length || 0})</span>
                 </TabsTrigger>
-                <TabsTrigger value="map">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Map
+                <TabsTrigger value="map" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Map</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -173,28 +174,31 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 {user && (
                   <Card>
                     <CardContent className="p-4 space-y-3">
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="grid grid-cols-3 gap-1">
                         <Button
                           variant={logType === "found" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setLogType("found")}
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                         >
-                          <Trophy className="h-3 w-3 mr-1" />
-                          Found
+                          <Trophy className="h-3 w-3 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm">Found</span>
                         </Button>
                         <Button
                           variant={logType === "dnf" ? "default" : "outline"}
                           size="sm" 
                           onClick={() => setLogType("dnf")}
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                         >
-                          DNF
+                          <span className="text-xs sm:text-sm">DNF</span>
                         </Button>
                         <Button
                           variant={logType === "note" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setLogType("note")}
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm px-2 py-2"
                         >
-                          Note
+                          <span className="text-xs sm:text-sm">Note</span>
                         </Button>
                       </div>
                       
