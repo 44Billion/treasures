@@ -18,6 +18,8 @@ import { GeocacheDialog } from "@/components/GeocacheDialog";
 import { LocationSearch } from "@/components/LocationSearch";
 import type { Geocache } from "@/types/geocache";
 
+type GeocacheWithDistance = Geocache & { distance?: number };
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sortByDistance, formatDistance, filterByRadius } from "@/lib/geo";
 import { Badge } from "@/components/ui/badge";
@@ -80,18 +82,20 @@ export default function Map() {
   // Remove automatic location request - only get location when user clicks "Near Me"
 
   // Filter and sort geocaches based on location
-  const filteredGeocaches = (() => {
+  const filteredGeocaches: GeocacheWithDistance[] = (() => {
     let caches = geocaches || [];
     
     // Filter by search location if set
     if (searchLocation) {
       caches = filterByRadius(caches, searchLocation.lat, searchLocation.lng, searchRadius);
-      caches = sortByDistance(caches, searchLocation.lat, searchLocation.lng);
+      const sorted = sortByDistance(caches, searchLocation.lat, searchLocation.lng);
+      return sorted;
     }
     // Or filter by user location if "Near Me" is active
     else if (showNearMe && userLocation) {
       caches = filterByRadius(caches, userLocation.lat, userLocation.lng, searchRadius);
-      caches = sortByDistance(caches, userLocation.lat, userLocation.lng);
+      const sorted = sortByDistance(caches, userLocation.lat, userLocation.lng);
+      return sorted;
     }
     
     return caches;
@@ -198,7 +202,7 @@ export default function Map() {
                   
                   {(showNearMe || searchLocation) && (
                     <>
-                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(parseInt(v))}>
+                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
                         <SelectTrigger className="w-24 h-8" >
                           <SelectValue />
                         </SelectTrigger>
@@ -249,7 +253,7 @@ export default function Map() {
                     <CompactGeocacheCard
                       key={cache.id}
                       cache={cache}
-                      distance={('distance' in cache) ? cache.distance : undefined}
+                      distance={cache.distance}
                     />
                   ))}
                 </div>
@@ -345,7 +349,7 @@ export default function Map() {
                   
                   {(showNearMe || searchLocation) && (
                     <>
-                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(parseInt(v))}>
+                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
                         <SelectTrigger className="w-20 h-9">
                           <SelectValue />
                         </SelectTrigger>
@@ -403,7 +407,7 @@ export default function Map() {
                       <CompactGeocacheCard
                         key={cache.id}
                         cache={cache}
-                        distance={('distance' in cache) ? cache.distance : undefined}
+                        distance={cache.distance}
                       />
                     ))}
                   </div>

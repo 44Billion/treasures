@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { LoginArea } from "@/components/auth/LoginArea";
+import { DesktopHeader } from "@/components/DesktopHeader";
+import { LoadingState, ErrorState } from "@/components/ui/loading-states";
 import { SaveButton } from "@/components/SaveButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGeocacheByDTag } from "@/hooks/useGeocacheByDTag";
@@ -29,6 +30,8 @@ import { EventSourceInfo } from "@/components/EventSourceInfo";
 import { LocationWarnings } from "@/components/LocationWarnings";
 import { verifyLocation, type LocationVerification } from "@/lib/osmVerification";
 import { Compass } from "@/components/Compass";
+import { getDifficultyLabel, getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
+import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 
 import { ImageGallery } from "@/components/ImageGallery";
 
@@ -217,25 +220,6 @@ export default function CacheDetail() {
     }
   };
 
-  const getDifficultyLabel = (difficulty: number) => {
-    const labels = ["", "Easy", "Moderate", "Hard", "Very Hard", "Expert"];
-    return labels[difficulty] || "";
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      traditional: "Traditional",
-      multi: "Multi-cache",
-      mystery: "Mystery/Puzzle",
-      earth: "EarthCache",
-    };
-    return labels[type] || type;
-  };
-
-  const getSizeLabel = (size: string) => {
-    return size.charAt(0).toUpperCase() + size.slice(1);
-  };
-
   const handleImageClick = (index: number) => {
     setGalleryIndex(index);
     setGalleryOpen(true);
@@ -243,13 +227,12 @@ export default function CacheDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Loading geocache...</p>
-          <p className="text-sm text-gray-500 mt-2">Checking multiple relays for the best connection...</p>
-        </div>
-      </div>
+      <LoadingState 
+        fullPage 
+        title="Loading geocache..."
+        description="Checking multiple relays for the best connection..."
+        showSpinner
+      />
     );
   }
 
@@ -257,42 +240,24 @@ export default function CacheDetail() {
   if (isError && !geocache) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="hidden md:block border-b bg-white">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2">
-                <MapPin className="h-8 w-8 text-green-600" />
-                <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-              </Link>
-              <LoginArea />
-            </div>
-          </div>
-        </header>
-        
+        <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="pt-6 text-center">
-              <MapPin className="h-12 w-12 text-red-400 mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">Connection Issue</p>
-              <p className="text-gray-600 mb-4">
-                Unable to load geocache. This might be a temporary network issue.
-              </p>
-              <div className="space-y-2">
-                <Button onClick={() => refetch()} className="w-full">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Try Again
-                </Button>
-                <Link to="/" className="block">
-                  <Button variant="outline" className="w-full">Back to Home</Button>
-                </Link>
-              </div>
-              {error && (
-                <p className="text-xs text-gray-500 mt-4">
-                  Error: {error instanceof Error ? error.message : 'Unknown error'}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <ErrorState
+            title="Connection Issue"
+            description="Unable to load geocache. This might be a temporary network issue."
+            error={error}
+            primaryAction={
+              <Button onClick={() => refetch()} className="w-full">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            }
+            secondaryAction={
+              <Link to="/" className="block">
+                <Button variant="outline" className="w-full">Back to Home</Button>
+              </Link>
+            }
+          />
         </div>
       </div>
     );
@@ -301,35 +266,23 @@ export default function CacheDetail() {
   if (!isLoading && !isError && !geocache) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="hidden md:block border-b bg-white">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2">
-                <MapPin className="h-8 w-8 text-green-600" />
-                <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-              </Link>
-              <LoginArea />
-            </div>
-          </div>
-        </header>
-        
+        <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="pt-6 text-center">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">Geocache Not Found</p>
-              <p className="text-gray-600 mb-4">This geocache may have been removed or doesn't exist.</p>
-              <div className="space-y-2">
-                <Button onClick={() => refetch()} variant="outline" className="w-full">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Check Again
-                </Button>
-                <Link to="/" className="block">
-                  <Button className="w-full">Back to Home</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          <ErrorState
+            title="Geocache Not Found"
+            description="This geocache may have been removed or doesn't exist."
+            primaryAction={
+              <Link to="/" className="block">
+                <Button className="w-full">Back to Home</Button>
+              </Link>
+            }
+            secondaryAction={
+              <Button onClick={() => refetch()} variant="outline" className="w-full">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Check Again
+              </Button>
+            }
+          />
         </div>
       </div>
     );
@@ -346,17 +299,7 @@ export default function CacheDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="hidden md:block border-b bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-            </Link>
-            <LoginArea />
-          </div>
-        </div>
-      </header>
+      <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -771,39 +714,10 @@ export default function CacheDetail() {
                 <CardTitle>Cache Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Difficulty</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className={`h-4 w-4 rounded ${
-                            i <= geocache.difficulty ? "bg-green-600" : "bg-gray-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm">{getDifficultyLabel(geocache.difficulty)}</span>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Terrain</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className={`h-4 w-4 rounded ${
-                            i <= geocache.terrain ? "bg-blue-600" : "bg-gray-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm">{getDifficultyLabel(geocache.terrain)}</span>
-                  </div>
-                </div>
+                <DifficultyTerrainRating 
+                  difficulty={geocache.difficulty}
+                  terrain={geocache.terrain}
+                />
                 
                 <div>
                   <p className="text-sm font-medium text-gray-600">Coordinates</p>

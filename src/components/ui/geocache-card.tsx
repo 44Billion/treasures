@@ -101,16 +101,6 @@ export function GeocacheCard({
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
   const profilePicture = author.data?.metadata?.picture;
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on a button or interactive element
-    const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="button"]') || target.closest('a')) {
-      return;
-    }
-    if (onClick) {
-      onClick();
-    }
-  };
 
   const authorInfo = showAuthor && (
     <span className="flex items-center gap-1">
@@ -157,7 +147,7 @@ export function GeocacheCard({
   // Compact variant - minimal layout for sidebars with consistent styling
   if (variant === 'compact') {
     return (
-      <InteractiveCard onClick={handleCardClick} compact={true}>
+      <InteractiveCard onClick={onClick} compact={true}>
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
             <div className="text-xl">{getTypeIcon(cache.type)}</div>
@@ -265,7 +255,7 @@ export function GeocacheCard({
 
   // Default variant - standard card layout for general use
   return (
-    <InteractiveCard onClick={handleCardClick}>
+    <InteractiveCard onClick={onClick}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="text-3xl">{getTypeIcon(cache.type)}</div>

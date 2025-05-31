@@ -15,6 +15,8 @@ import { useAuthor } from "@/hooks/useAuthor";
 import { LogList } from "@/components/LogList";
 import { formatDistanceToNow } from "@/lib/date";
 import { useNavigate } from "react-router-dom";
+import { getDifficultyLabel, getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
+import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import type { Geocache } from "@/types/geocache";
 
 interface GeocacheDialogProps {
@@ -76,24 +78,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
     });
   };
 
-  const getDifficultyLabel = (difficulty: number) => {
-    const labels = ["", "Easy", "Moderate", "Hard", "Very Hard", "Expert"];
-    return labels[difficulty] || "";
-  };
 
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      traditional: "Traditional",
-      multi: "Multi-cache", 
-      mystery: "Mystery/Puzzle",
-      earth: "EarthCache",
-    };
-    return labels[type] || type;
-  };
-
-  const getSizeLabel = (size: string) => {
-    return size.charAt(0).toUpperCase() + size.slice(1);
-  };
 
   const handleViewFullDetails = () => {
     onOpenChange(false);
@@ -113,26 +98,25 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         size="xl"
         className="max-h-[90vh] overflow-y-auto"
         title={geocache.name}
-        description={
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span className="flex items-center gap-1">
-              <User className="h-4 w-4" />
-              Hidden by {authorName}
-              {profilePicture && (
-                <img 
-                  src={profilePicture} 
-                  alt={authorName}
-                  className="h-4 w-4 rounded-full object-cover"
-                />
-              )}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
-            </span>
-          </div>
-        }
       >
+        {/* Author and date info below title */}
+        <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 -mt-2">
+          <span className="flex items-center gap-1">
+            <User className="h-4 w-4" />
+            Hidden by {authorName}
+            {profilePicture && (
+              <img 
+                src={profilePicture} 
+                alt={authorName}
+                className="h-4 w-4 rounded-full object-cover"
+              />
+            )}
+          </span>
+          <span className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
+          </span>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -265,39 +249,11 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
           <div className="space-y-4">
             {/* Cache Details Card */}
             <DetailsCard title="Cache Details">
-              <div>
-                <p className="text-xs font-medium text-gray-600">Difficulty</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-3 w-3 rounded ${
-                          i <= geocache.difficulty ? "bg-green-600" : "bg-gray-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs">{getDifficultyLabel(geocache.difficulty)}</span>
-                </div>
-              </div>
-              
-              <div>
-                <p className="text-xs font-medium text-gray-600">Terrain</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-3 w-3 rounded ${
-                          i <= geocache.terrain ? "bg-blue-600" : "bg-gray-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs">{getDifficultyLabel(geocache.terrain)}</span>
-                </div>
-              </div>
+              <DifficultyTerrainRating 
+                difficulty={geocache.difficulty}
+                terrain={geocache.terrain}
+                size="small"
+              />
               
               <div>
                 <p className="text-xs font-medium text-gray-600">Coordinates</p>

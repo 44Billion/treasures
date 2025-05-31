@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getVerificationSummary, type LocationVerification } from './osmVerification';
+import { getVerificationSummary, type LocationVerification } from '../src/lib/osmVerification';
 
 describe('osmVerification', () => {
   describe('getVerificationSummary', () => {

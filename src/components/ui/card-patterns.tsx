@@ -71,7 +71,7 @@ export function InfoCard({
 
 // Details Card - Used for displaying details in sidebar/info sections
 interface DetailsCardProps {
-  title: string;
+  title: string | ReactNode;
   children: ReactNode;
   className?: string;
 }
