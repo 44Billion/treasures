@@ -21,7 +21,7 @@ import { LogsSection } from "@/components/LogsSection";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";
-import { EventSourceInfo } from "@/components/EventSourceInfo";
+
 import { LocationWarnings } from "@/components/LocationWarnings";
 import { verifyLocation, type LocationVerification } from "@/lib/osmVerification";
 import { Compass } from "@/components/Compass";
@@ -289,11 +289,7 @@ export default function CacheDetail() {
                         </span>
                       </div>
                     </div>
-                    <EventSourceInfo 
-                      relayUrl={geocache.relays?.[0]} 
-                      client={geocache.client}
-                      className="mt-1"
-                    />
+
                   </div>
                   <div className="flex gap-1 sm:gap-2 flex-shrink-0 ml-2">
                     {!isOwner && <SaveButton geocache={geocache} />}

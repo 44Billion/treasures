@@ -24,7 +24,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeleteLog } from "@/hooks/useDeleteLog";
 import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";
-import { EventSourceInfo } from "@/components/EventSourceInfo";
+
 import type { GeocacheLog } from "@/types/geocache";
 
 interface LogListProps {
@@ -193,13 +193,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
                   <Calendar className={compact ? "h-3 w-3" : "h-3 w-3"} />
                   {formatDistanceToNow(new Date(log.created_at * 1000), { addSuffix: true })}
                 </div>
-                {(log.client || log.sourceRelay || log.relays?.[0]) && (
-                  <EventSourceInfo 
-                    client={log.client} 
-                    relayUrl={log.relays?.[0] || log.sourceRelay}
-                    className="mt-1" 
-                  />
-                )}
+
               </div>
               
               <AlertDialog>
