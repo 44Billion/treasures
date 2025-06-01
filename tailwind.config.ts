@@ -22,6 +22,20 @@ export default {
 			spacing: {
 				'nav-safe': '4rem',
 				'nav-safe-inset': 'calc(4rem + env(safe-area-inset-bottom, 0px))',
+				'header-safe': 'calc(4rem + env(safe-area-inset-top, 0px))',
+				'mobile-header': 'calc(4rem + env(safe-area-inset-top, 0px))',
+			},
+			height: {
+				'mobile-map': 'calc(100dvh - 8rem)',
+				'mobile-content': 'calc(100dvh - 8rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+				'mobile-page': 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+				'mobile-scroll': 'calc(100dvh - 8rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+				'mobile-fit': 'calc(100dvh - 8rem)',
+				'dvh': '100dvh',
+			},
+			maxHeight: {
+				'mobile-fit': 'calc(100dvh - 8rem)',
+				'mobile-content': 'calc(100dvh - 8rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
 			},
 			colors: {
 				border: 'hsl(var(--border))',

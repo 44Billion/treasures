@@ -43,20 +43,22 @@ export default function MyCaches() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
+      <div className="h-mobile-page md:min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 flex flex-col">
         <DesktopHeader />
-        <div className="container mx-auto px-4 py-8">
-          <LoginRequiredCard
-            icon={Bookmark}
-            description="Please log in with your Nostr account to view your caches."
-          />
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="container mx-auto px-4 py-8">
+            <LoginRequiredCard
+              icon={Bookmark}
+              description="Please log in with your Nostr account to view your caches."
+            />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
+    <div className={`min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 ${savedCaches.length === 0 ? 'max-md:h-mobile-fit max-md:overflow-hidden' : ''}`}>
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -118,12 +120,13 @@ export default function MyCaches() {
         </div>
 
         {isLoadingSaved ? (
-          <InfoCard
-            icon={Loader2}
-            title="Loading saved caches..."
-            description="Fetching your bookmarks from Nostr relays"
-            className="text-center py-12"
-          />
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm font-medium">Loading saved caches...</p>
+              <p className="text-xs text-muted-foreground">Fetching your bookmarks from Nostr relays</p>
+            </div>
+          </div>
         ) : savedCaches.length === 0 ? (
           <EmptyStateCard
             icon={Bookmark}

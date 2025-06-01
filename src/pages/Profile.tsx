@@ -113,9 +113,9 @@ export default function Profile() {
 
   if (!targetPubkey) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
+      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 max-md:h-mobile-fit max-md:overflow-hidden">
         <DesktopHeader />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
           <LoginRequiredCard
             icon={User}
             description="Please log in with your Nostr account to view your profile."
@@ -127,15 +127,14 @@ export default function Profile() {
 
   if (isLoadingAuthor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
+      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 max-md:h-mobile-fit max-md:overflow-hidden">
         <DesktopHeader />
-        <div className="container mx-auto px-4 py-8">
-          <InfoCard
-            icon={Loader2}
-            title="Loading profile..."
-            description="Fetching user information from Nostr relays"
-            className="text-center py-12"
-          />
+        <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
+          <div className="flex flex-col items-center justify-center text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Loading profile...</h2>
+            <p className="text-sm text-muted-foreground">Fetching user information from Nostr relays</p>
+          </div>
         </div>
       </div>
     );
@@ -206,12 +205,13 @@ export default function Profile() {
             </div>
 
             {isLoadingUserCaches ? (
-              <InfoCard
-                icon={Loader2}
-                title="Loading caches..."
-                description="Fetching created caches"
-                className="text-center py-12"
-              />
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">Loading caches...</p>
+                  <p className="text-xs text-muted-foreground">Fetching created caches</p>
+                </div>
+              </div>
             ) : !userCaches || userCaches.length === 0 ? (
               <EmptyStateCard
                 icon={Trophy}
@@ -257,12 +257,13 @@ export default function Profile() {
             </div>
 
             {isLoadingFoundCaches ? (
-              <InfoCard
-                icon={Loader2}
-                title="Loading found caches..."
-                description="Fetching geocaching achievements"
-                className="text-center py-12"
-              />
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">Loading found caches...</p>
+                  <p className="text-xs text-muted-foreground">Fetching geocaching achievements</p>
+                </div>
+              </div>
             ) : !foundCaches || foundCaches.length === 0 ? (
               <EmptyStateCard
                 icon={CheckCircle}

@@ -183,10 +183,10 @@ export default function Map() {
   };
 
   return (
-    <div className="bg-background h-screen overflow-hidden">
+    <div className="bg-background md:h-mobile-map md:h-screen flex flex-col">
       <DesktopHeader variant="map" />
 
-      <div className="hidden lg:flex h-[calc(100vh-70px)]">
+      <div className="hidden lg:flex flex-1">
         {/* Adventure Sidebar */}
         <div className="w-96 border-r bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col">
           {/* Adventure Search and Filters */}
@@ -317,7 +317,7 @@ export default function Map() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden h-mobile-content flex flex-col overflow-hidden">
+      <div className="block lg:hidden flex-1 flex flex-col overflow-hidden">
         {/* Adventure Mobile Filters Header */}
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0">
           <div className="p-3">
