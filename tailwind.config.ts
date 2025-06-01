@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			spacing: {
+				'nav-safe': '4rem',
+				'nav-safe-inset': 'calc(4rem + env(safe-area-inset-bottom, 0px))',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

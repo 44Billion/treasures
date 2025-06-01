@@ -15,9 +15,23 @@
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* Mobile navigation spacing */
+/* Mobile navigation spacing - just nav height */
 .pb-nav-safe {
+  padding-bottom: 4rem;
+}
+
+/* Mobile navigation spacing with safe area insets for special cases */
+.pb-nav-safe-inset {
   padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Mobile margin bottom variant */
+.mb-nav-safe {
+  margin-bottom: 4rem;
+}
+
+.mb-nav-safe-inset {
+  margin-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* Mobile header + safe area height */
