@@ -55,10 +55,10 @@ export function InfoCard({
   return (
     <Card className={cn("text-center", className)}>
       <CardContent className="pt-6">
-        {Icon && <Icon className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
+        {Icon && <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />}
         <p className="text-lg font-medium mb-2">{title}</p>
         {description && (
-          <p className="text-gray-600 mb-4">{description}</p>
+          <p className="text-muted-foreground mb-4">{description}</p>
         )}
         {children}
         {action && (
@@ -104,7 +104,7 @@ export function StatsCard({ title, stats, className }: StatsCardProps) {
       <div className="space-y-1">
         {stats.map(({ label, value, className: statClassName }, index) => (
           <div key={index} className="flex justify-between">
-            <span className="text-xs text-gray-600">{label}</span>
+            <span className="text-xs text-muted-foreground">{label}</span>
             <span className={cn("text-xs font-medium", statClassName)}>
               {value}
             </span>
@@ -163,9 +163,9 @@ export function EmptyStateCard({
   return (
     <Card className={className}>
       <CardContent className="text-center py-12">
-        {Icon && <Icon className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
+        {Icon && <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />}
         <p className="text-lg font-medium mb-2">{title}</p>
-        {description && <p className="text-gray-600 mb-4">{description}</p>}
+        {description && <p className="text-muted-foreground mb-4">{description}</p>}
         {action && (
           <div className="flex justify-center">{action}</div>
         )}

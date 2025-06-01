@@ -152,7 +152,7 @@ export default function CreateCache() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-4 md:pb-0">
+      <div className="min-h-screen bg-muted/30 pb-4 md:pb-0">
         <DesktopHeader />
         
         <div className="container mx-auto px-4 py-16">
@@ -167,7 +167,7 @@ export default function CreateCache() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-4 md:pb-0">
+    <div className="min-h-screen bg-muted/30 pb-4 md:pb-0">
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -262,8 +262,8 @@ export default function CreateCache() {
                           />
                         </MapContainer>
                       </div>
-                      <div className="bg-gray-50 p-2 rounded text-center">
-                        <div className="font-mono text-xs text-gray-700">
+                      <div className="bg-muted/50 p-2 rounded text-center">
+                        <div className="font-mono text-xs text-foreground">
                           {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
                         </div>
                       </div>
@@ -272,8 +272,8 @@ export default function CreateCache() {
                     {/* Confirmation */}
                     <div className="flex items-center">
                       <div className="text-sm">
-                        <div className="font-medium mb-2 text-gray-700">By submitting, you confirm:</div>
-                        <div className="space-y-1 text-xs text-gray-600">
+                        <div className="font-medium mb-2 text-foreground">By submitting, you confirm:</div>
+                        <div className="space-y-1 text-xs text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-green-600" />
                             <span>You have permission to place this cache</span>

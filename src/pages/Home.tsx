@@ -41,7 +41,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 pb-4 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 pb-4 md:pb-0">
       <DesktopHeader />
 
       {/* Hero Section */}
@@ -121,7 +121,7 @@ export default function Home() {
         
         <div className="container mx-auto text-center relative">
           <div className="mb-6 animate-fade-in">
-            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-200 transition-colors">
+            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-200 dark:hover:bg-green-800 transition-colors">
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4" />
                 <span>Join the Quest</span>
@@ -130,7 +130,7 @@ export default function Home() {
             </Link>
           </div>
           
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-6 animate-slide-up">
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 animate-slide-up">
             Discover Hidden 
             <span className="relative inline-block mx-2">
               <span className="text-green-600">Treasures</span>
@@ -138,7 +138,7 @@ export default function Home() {
             </span>
           </h2>
           
-          <p className="text-lg md:text-xl text-gray-600 mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
+          <p className="text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
             Join the decentralized geocaching adventure powered by Nostr. 
             Hide caches, find treasures, and connect with explorers worldwide.
           </p>
@@ -152,7 +152,7 @@ export default function Home() {
             </Link>
             {user ? (
               <Link to="/create" className="flex-1 sm:flex-initial group">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 hover:border-green-300 hover:bg-green-50 transform transition-all duration-200 hover:scale-105 animate-fade-in">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50 dark:hover:bg-green-950 transform transition-all duration-200 hover:scale-105 animate-fade-in">
                   <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
                   Hide a Treasure
                 </Button>
@@ -161,7 +161,7 @@ export default function Home() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="w-full sm:w-auto border-green-200 hover:border-green-300 hover:bg-green-50 transform transition-all duration-200 hover:scale-105 group"
+                className="w-full sm:w-auto border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50 dark:hover:bg-green-950 transform transition-all duration-200 hover:scale-105 group"
                 onClick={handleLoginClick}
               >
                 <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12" />
@@ -173,9 +173,9 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-12 md:py-16 px-4 bg-white">
+      <section className="py-12 md:py-16 px-4 bg-background border-t">
         <div className="container mx-auto">
-          <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why Treasures?</h3>
+          <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-foreground">Why Treasures?</h3>
           <div className="grid gap-6 md:grid-cols-3 md:gap-8">
             <FeatureCard
               icon={MapPin}
@@ -203,7 +203,7 @@ export default function Home() {
       <section className="py-12 md:py-16 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <h3 className="text-2xl md:text-3xl font-bold">Recent Geocaches</h3>
+            <h3 className="text-2xl md:text-3xl font-bold text-foreground">Recent Geocaches</h3>
             <Link to="/map" className="hidden sm:block">
               <Button variant="outline">View All</Button>
             </Link>

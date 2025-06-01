@@ -183,14 +183,14 @@ export default function Map() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-emerald-50 to-blue-50 h-screen overflow-hidden">
+    <div className="bg-background h-screen overflow-hidden">
       <DesktopHeader variant="map" />
 
       <div className="hidden lg:flex h-[calc(100vh-70px)]">
         {/* Adventure Sidebar */}
-        <div className="w-96 border-r bg-white/95 backdrop-blur-sm overflow-hidden flex flex-col">
+        <div className="w-96 border-r bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col">
           {/* Adventure Search and Filters */}
-          <div className="p-4 border-b bg-gray-50">
+          <div className="p-4 border-b bg-muted/50">
             <div className="space-y-4">
               <div>
                 <Label htmlFor="search">Search Caches</Label>
@@ -267,12 +267,12 @@ export default function Map() {
           {/* Results */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-muted-foreground">
                 Loading geocaches...
               </div>
             ) : filteredGeocaches.length > 0 ? (
               <div className="p-4">
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                   {(searchLocation || (showNearMe && userLocation)) && ` • ${searchRadius}km radius`}
                 </p>
@@ -288,8 +288,8 @@ export default function Map() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 text-center text-gray-500">
-                <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <div className="p-4 text-center text-muted-foreground">
+                <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p>No geocaches found</p>
                 <p className="text-sm mt-2">
                   {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
@@ -299,8 +299,8 @@ export default function Map() {
           </div>
         </div>
 
-        {/* Adventure Map */}
-        <div className="flex-1 relative bg-gradient-to-br from-emerald-50 to-blue-50">
+        {/* Map */}
+        <div className="flex-1 relative bg-background">
           <GeocacheMap 
             key={mapUpdateKey}
             geocaches={filteredGeocaches} 
@@ -319,7 +319,7 @@ export default function Map() {
       {/* Mobile View */}
       <div className="block lg:hidden h-mobile-content flex flex-col overflow-hidden">
         {/* Adventure Mobile Filters Header */}
-        <div className="bg-white/95 backdrop-blur-sm border-b flex-shrink-0">
+        <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0">
           <div className="p-3">
             <div className="space-y-3">
               <div>
@@ -391,17 +391,17 @@ export default function Map() {
         {/* Mobile Content Area */}
         <div className="flex-1 overflow-hidden">
           <MapViewTabs className="h-full flex flex-col">
-            <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+            <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col bg-background">
               {isLoading ? (
                 <div className="flex items-center justify-center flex-1">
-                  <div className="text-center text-gray-500">
-                    <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-2 animate-pulse" />
+                  <div className="text-center text-muted-foreground">
+                    <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2 animate-pulse" />
                     <p>Loading geocaches...</p>
                   </div>
                 </div>
               ) : filteredGeocaches.length > 0 ? (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                     {(searchLocation || (showNearMe && userLocation)) && ` • ${searchRadius}km radius`}
                   </p>
@@ -418,8 +418,8 @@ export default function Map() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center flex-1">
-                  <div className="text-center text-gray-500">
-                    <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <div className="text-center text-muted-foreground">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p>No geocaches found</p>
                     <p className="text-sm mt-2">
                       {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
@@ -429,7 +429,7 @@ export default function Map() {
               )}
             </TabsContent>
             <TabsContent value="map" className="flex-1 m-0 p-0 data-[state=active]:block">
-              <div className="h-full bg-gradient-to-br from-emerald-50 to-blue-50">
+              <div className="h-full bg-background">
                 <GeocacheMap 
                   key={mapUpdateKey}
                   geocaches={filteredGeocaches} 

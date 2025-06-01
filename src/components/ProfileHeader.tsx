@@ -75,7 +75,7 @@ export function ProfileHeader({
       {/* Banner */}
       {metadata?.banner ? (
         <div 
-          className={`${bannerHeight} rounded-lg bg-cover bg-center bg-gray-200 mb-8`}
+          className={`${bannerHeight} rounded-lg bg-cover bg-center bg-muted mb-8`}
           style={{ backgroundImage: `url(${metadata.banner})` }}
         />
       ) : isPageVariant ? (
@@ -93,8 +93,8 @@ export function ProfileHeader({
             className={`${avatarSize} rounded-full object-cover border-4 border-white shadow-sm`}
           />
         ) : (
-          <div className={`${avatarSize} rounded-full bg-gray-200 border-4 border-white shadow-sm flex items-center justify-center`}>
-            <User className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500" />
+          <div className={`${avatarSize} rounded-full bg-muted border-4 border-background shadow-sm flex items-center justify-center`}>
+            <User className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
           </div>
         )}
       </div>
@@ -104,15 +104,15 @@ export function ProfileHeader({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div>
-              <h2 className={`${titleSize} font-semibold text-gray-900 truncate leading-none`}>{displayName}</h2>
+              <h2 className={`${titleSize} font-semibold text-foreground truncate leading-none`}>{displayName}</h2>
               {nip05 && (
                 <button
                   onClick={() => handleCopy(pubkey, 'npub')}
-                  className="flex items-center gap-1 text-xs text-gray-700 hover:text-gray-900 transition-colors group -mt-1"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group -mt-1"
                   title="Click to copy npub"
                 >
                 {isLoadingNip05 ? (
-                  <Loader2 className="h-3 w-3 animate-spin text-gray-400" />
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                 ) : isVerified ? (
                   <ShieldCheck className="h-3 w-3 text-green-600" />
                 ) : null}
@@ -133,7 +133,7 @@ export function ProfileHeader({
           )}
         </div>
         
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
           {createdAt && (
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -155,7 +155,7 @@ export function ProfileHeader({
           <div className="mt-4 space-y-2">
             {/* Bio */}
             {metadata?.about && (
-              <p className="text-sm text-gray-700 line-clamp-2">
+              <p className="text-sm text-foreground line-clamp-2">
                 {metadata.about}
               </p>
             )}

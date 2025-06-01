@@ -10,6 +10,7 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import { PWAProvider } from '@/components/PWAProvider';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import './styles/leaflet-overrides.css';
 
 // Default relay configuration - using ditto.pub as primary relay
@@ -32,22 +33,29 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
-    <PWAProvider>
-      <NostrLoginProvider storageKey='nostr:login'>
-        <NostrProvider relays={defaultRelays}>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <div className="min-h-screen flex flex-col">
-                <AppRouter />
-              </div>
-              <PWAUpdatePrompt />
-              <Toaster />
-              <Sonner />
-            </TooltipProvider>
-          </QueryClientProvider>
-        </NostrProvider>
-      </NostrLoginProvider>
-    </PWAProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <PWAProvider>
+        <NostrLoginProvider storageKey='nostr:login'>
+          <NostrProvider relays={defaultRelays}>
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider>
+                <div className="min-h-screen flex flex-col">
+                  <AppRouter />
+                </div>
+                <PWAUpdatePrompt />
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </QueryClientProvider>
+          </NostrProvider>
+        </NostrLoginProvider>
+      </PWAProvider>
+    </ThemeProvider>
   );
 }
 

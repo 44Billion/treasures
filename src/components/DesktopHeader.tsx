@@ -13,8 +13,8 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
 
   // Map page has different styling needs due to layout constraints
   const headerClasses = variant === 'map' 
-    ? "hidden lg:block border-b bg-white sticky top-0 z-50"
-    : "border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 hidden md:block";
+    ? "hidden lg:block border-b bg-background sticky top-0 z-50"
+    : "border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50 hidden md:block";
 
   return (
     <header className={headerClasses}>
@@ -22,7 +22,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src="/icon.png" alt="Treasures" className="h-12 w-12" />
-            <h1 className="text-2xl font-bold text-gray-900 m-0 leading-none">Treasures</h1>
+            <h1 className="text-2xl font-bold text-foreground m-0 leading-none">Treasures</h1>
           </Link>
           
           <nav className="flex items-center gap-4">

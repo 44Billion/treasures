@@ -190,7 +190,7 @@ export default function CacheDetail() {
   // Show error with retry option if there was an error and no cached data
   if (isError && !geocache) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/30">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -216,7 +216,7 @@ export default function CacheDetail() {
 
   if (!isLoading && !isError && !geocache) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/30">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -249,7 +249,7 @@ export default function CacheDetail() {
   const profilePicture = author.data?.metadata?.picture;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/30">
       <DesktopHeader />
 
       <div className="container mx-auto px-2 sm:px-4 py-8 max-w-full overflow-hidden">
@@ -375,14 +375,14 @@ export default function CacheDetail() {
                               </div>
                               <button
                                 onClick={() => setIsHintVisible(!isHintVisible)}
-                                className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-gray-100 transition-colors"
+                                className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-muted transition-colors"
                                 title={isHintVisible ? "Hide hint" : "Reveal hint"}
                                 type="button"
                               >
                                 {isHintVisible ? (
-                                  <EyeOff className="h-3.5 w-3.5 text-gray-600" />
+                                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
                                 ) : (
-                                  <Eye className="h-3.5 w-3.5 text-gray-600" />
+                                  <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                                 )}
                               </button>
                             </div>
@@ -445,7 +445,7 @@ export default function CacheDetail() {
                 />
                 
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Coordinates</p>
+                  <p className="text-sm font-medium text-muted-foreground">Coordinates</p>
                   <p className="text-xs md:text-sm font-mono mt-1 break-all">
                     {geocache.location.lat.toFixed(6)}, {geocache.location.lng.toFixed(6)}
                   </p>
@@ -490,19 +490,19 @@ export default function CacheDetail() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Finds</span>
+                    <span className="text-sm text-muted-foreground">Total Finds</span>
                     <span className="font-medium">
                       {logs?.filter(log => log.type === "found").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">DNFs</span>
+                    <span className="text-sm text-muted-foreground">DNFs</span>
                     <span className="font-medium">
                       {logs?.filter(log => log.type === "dnf").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Logs</span>
+                    <span className="text-sm text-muted-foreground">Total Logs</span>
                     <span className="font-medium">{logs?.length || 0}</span>
                   </div>
                 </div>

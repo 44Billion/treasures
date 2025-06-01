@@ -110,11 +110,11 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
     <div className={className}>
       <div className="space-y-2">
         {/* Key Location Features */}
-        <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
+        <div className="p-3 rounded-md border bg-muted/50">
           <div className="flex items-start gap-3">
-            <Info className="h-4 w-4 mt-0.5 text-gray-600 flex-shrink-0" />
+            <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
             <div className="flex-1">
-              <div className="font-medium text-sm text-gray-800">Location Features</div>
+              <div className="font-medium text-sm text-foreground">Location Features</div>
               {visibleFeatures.length > 0 ? (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {visibleFeatures.map((feature, idx) => (
@@ -122,23 +122,23 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
                       key={idx} 
                       variant="outline"
                       className={`text-xs h-5 ${
-                        feature.type === 'positive' ? 'bg-green-50 text-green-700 border-green-200' :
-                        feature.type === 'headsup' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                        feature.type === 'hindrance' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                        'bg-gray-50 text-gray-700 border-gray-200' // neutral
+                        feature.type === 'positive' ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' :
+                        feature.type === 'headsup' ? 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' :
+                        feature.type === 'hindrance' ? 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' :
+                        'bg-muted text-foreground border' // neutral
                       }`}
                     >
                       {feature.label}
                     </Badge>
                   ))}
                   {overflowFeatures.length > 0 && (
-                    <Badge variant="outline" className="text-xs h-5 bg-gray-50 text-gray-600 border-gray-200">
+                    <Badge variant="outline" className="text-xs h-5 bg-muted text-muted-foreground border">
                       +{overflowFeatures.length} more below
                     </Badge>
                   )}
                 </div>
               ) : (
-                <div className="mt-2 text-xs text-gray-600">No specific features detected</div>
+                <div className="mt-2 text-xs text-muted-foreground">No specific features detected</div>
               )}
             </div>
           </div>
@@ -148,18 +148,18 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
         {!hideCreatorWarnings && (summary.status === 'warning' || summary.status === 'restricted') && (
           <div className={`p-3 rounded-md border-2 ${
             summary.status === 'warning' 
-              ? 'bg-yellow-50 border-yellow-300' 
-              : 'bg-red-50 border-red-300'
+              ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-300 dark:border-yellow-800' 
+              : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800'
           }`}>
             <div className="flex items-start gap-3">
               <StatusIcon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${statusColor}`} />
               <div className="flex-1">
-                <div className="font-medium text-sm text-gray-800 mb-1">
+                <div className="font-medium text-sm text-foreground mb-1">
                   {summary.status === 'restricted' ? 'Location Warning' : 'Location Notice'}
                 </div>
-                <div className="text-sm text-gray-700">{summary.message}</div>
+                <div className="text-sm text-foreground">{summary.message}</div>
                 {summary.status === 'restricted' && (
-                  <div className="text-xs text-gray-600 mt-2 italic">
+                  <div className="text-xs text-muted-foreground mt-2 italic">
                     You confirm that you have permission to place a cache at this location and that it complies with all local laws and regulations.
                   </div>
                 )}
@@ -170,14 +170,14 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
 
         {/* Critical Issues */}
         {categorizedWarnings.critical.length > 0 && (
-          <div className="p-3 rounded-md border border-gray-200 bg-red-50">
+          <div className="p-3 rounded-md border bg-red-50 dark:bg-red-950/20">
             <div className="flex items-start gap-3">
               <XCircle className="h-4 w-4 mt-0.5 text-red-600 flex-shrink-0" />
               <div className="flex-1">
-                <div className="font-medium text-sm text-gray-800 mb-1">Critical Issues</div>
+                <div className="font-medium text-sm text-foreground mb-1">Critical Issues</div>
                 <div className="space-y-1">
                   {categorizedWarnings.critical.map((warning, idx) => (
-                    <div key={idx} className="text-xs text-gray-700">
+                    <div key={idx} className="text-xs text-foreground">
                       {warning.replace(/⚠️\s*/, '')}
                     </div>
                   ))}
@@ -191,29 +191,29 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
         {hasOtherWarnings && (
           <div className="border rounded-md overflow-hidden">
             <button
-              className="w-full p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+              className="w-full p-3 bg-muted/50 hover:bg-muted transition-colors text-left"
               onClick={() => setShowDetails(!showDetails)}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-gray-700">
+                <div className="flex items-center gap-3 text-foreground">
                   <Info className="h-4 w-4 flex-shrink-0" />
                   <span className="font-medium text-sm">
                     All location details ({categorizedWarnings.other.length})
                   </span>
                 </div>
                 {showDetails ? (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-gray-500" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
             </button>
             {showDetails && (
-              <div className="p-3 bg-white border-t">
+              <div className="p-3 bg-background border-t">
                 <div className="space-y-1">
                   {categorizedWarnings.other.map((warning, idx) => (
-                    <div key={idx} className="text-xs text-gray-600 flex items-start gap-2">
-                      <span className="text-gray-400 mt-0.5">•</span>
+                    <div key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                      <span className="text-muted-foreground mt-0.5">•</span>
                       <span>{warning.replace(/⚠️\s*/, '').replace(/Area has restricted hours: /, 'Hours: ')}</span>
                     </div>
                   ))}

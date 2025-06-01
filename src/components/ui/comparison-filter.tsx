@@ -50,7 +50,7 @@ export function ComparisonFilter({
   return (
     <div className={cn("space-y-1", className)}>
       {!compact && (
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-foreground">
           {label}
         </label>
       )}

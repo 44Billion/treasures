@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Download, MapPin, Smartphone, Wifi, Zap, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Download, MapPin, Smartphone, Wifi, Zap, CheckCircle } from 'lucide-react';
+import { DesktopHeader } from '@/components/DesktopHeader';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 
@@ -16,35 +17,20 @@ export default function Install() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
       {/* Header */}
-      <header className="hidden md:block border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
-            </Link>
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-8">
             
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Install Treasures App
             </h2>
             
-            <p className="text-lg text-gray-600 mb-6">
+            <p className="text-lg text-muted-foreground mb-6">
               Get the full geocaching experience with our Progressive Web App. 
               Works offline, loads faster, and feels like a native app.
             </p>
@@ -52,9 +38,9 @@ export default function Install() {
 
           {/* Installation Status */}
           {installed && (
-            <Alert className="mb-6 border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
+            <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription className="text-green-800 dark:text-green-200">
                 <strong>App already installed!</strong> You can access Treasures from your home screen or app drawer.
               </AlertDescription>
             </Alert>
@@ -62,12 +48,12 @@ export default function Install() {
 
           {/* Install Button - Only show if browser supports installation */}
           {installable && !installed && (
-            <Card className="mb-6 border-green-200">
+            <Card className="mb-6 border-green-200 dark:border-green-800">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <Download className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                  <Download className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Ready to Install</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     Your browser supports app installation. Click below to add Treasures to your device.
                   </p>
                   
@@ -75,7 +61,7 @@ export default function Install() {
                     size="lg" 
                     onClick={handleInstall}
                     disabled={installing}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500"
                   >
                     <Download className="h-5 w-5 mr-2" />
                     {installing ? 'Installing...' : 'Install Treasures App'}
@@ -87,7 +73,7 @@ export default function Install() {
 
           {/* Manual Installation Instructions */}
           {!installed && (
-            <Card className={`mb-6 ${!installable ? 'border-blue-200 bg-blue-50/50' : ''}`}>
+            <Card className="mb-6 border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
@@ -111,8 +97,8 @@ export default function Install() {
                     <AccordionContent className="space-y-4">
                       <div className="space-y-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Chrome & Brave:</p>
-                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                          <p className="text-sm font-medium text-foreground mb-2">Chrome & Brave:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
                             <li>Tap the menu button (three dots)</li>
                             <li>Tap "Add to Home screen"</li>
                             <li>Tap "Add" to confirm</li>
@@ -120,8 +106,8 @@ export default function Install() {
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Firefox:</p>
-                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                          <p className="text-sm font-medium text-foreground mb-2">Firefox:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
                             <li>Tap the menu button (three dots)</li>
                             <li>Tap "Install"</li>
                             <li>Tap "Add" to confirm</li>
@@ -129,8 +115,8 @@ export default function Install() {
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Edge:</p>
-                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                          <p className="text-sm font-medium text-foreground mb-2">Edge:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
                             <li>Tap the menu button (three dots)</li>
                             <li>Tap "Add to phone"</li>
                             <li>Tap "Add" to confirm</li>
@@ -147,8 +133,8 @@ export default function Install() {
                     <AccordionContent className="space-y-4">
                       <div className="space-y-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Safari:</p>
-                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                          <p className="text-sm font-medium text-foreground mb-2">Safari:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
                             <li>Tap the Share button (square with arrow up)</li>
                             <li>Scroll down and tap "Add to Home Screen"</li>
                             <li>Tap "Add" to confirm</li>
@@ -156,8 +142,8 @@ export default function Install() {
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Chrome & Brave:</p>
-                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                          <p className="text-sm font-medium text-foreground mb-2">Chrome & Brave:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
                             <li>Tap the Share button</li>
                             <li>Tap "Add to Home Screen"</li>
                             <li>Tap "Add" to confirm</li>

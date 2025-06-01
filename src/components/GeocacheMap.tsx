@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-le
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
+import { useTheme } from "next-themes";
 import { MapPin, Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -427,9 +428,21 @@ export function GeocacheMap({
   showStyleSelector = true
 }: GeocacheMapProps) {
   const navigate = useNavigate();
+  const { theme, systemTheme } = useTheme();
   
-  // Detect system theme preference and set default map style accordingly
+  // Determine if we should use dark mode for the map
   const getDefaultMapStyle = () => {
+    // First check app theme setting
+    if (theme === "dark") {
+      return "dark";
+    } else if (theme === "light") {
+      return "original";
+    } else if (theme === "system") {
+      // Use system preference if theme is set to system
+      return systemTheme === "dark" ? "dark" : "original";
+    }
+    
+    // Fallback to system preference if theme is undefined (during mounting)
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return "dark";
     }
@@ -437,25 +450,62 @@ export function GeocacheMap({
   };
   
   const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
+  const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
   const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
   const { isCacheSaved, toggleSaveCache, isNostrEnabled } = useSavedCaches();
   const { toast } = useToast();
 
-  // Listen for system theme changes and update map style accordingly
+  // Handle manual style changes
+  const handleStyleChange = (style: string) => {
+    setCurrentMapStyle(style);
+    setHasManuallySelectedStyle(true);
+  };
+
+  // Listen for app theme changes and system theme changes
+  useEffect(() => {
+    // Only auto-update if user hasn't manually selected a style
+    if (hasManuallySelectedStyle) {
+      return;
+    }
+
+    const newDefaultStyle = () => {
+      if (theme === "dark") {
+        return "dark";
+      } else if (theme === "light") {
+        return "original";
+      } else if (theme === "system") {
+        return systemTheme === "dark" ? "dark" : "original";
+      }
+      
+      // Fallback to system preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return "dark";
+      }
+      return "original";
+    };
+
+    const newStyle = newDefaultStyle();
+    if (currentMapStyle !== newStyle) {
+      setCurrentMapStyle(newStyle);
+    }
+  }, [theme, systemTheme, currentMapStyle, hasManuallySelectedStyle]);
+
+  // Also listen for system theme changes as backup
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleThemeChange = (e: MediaQueryListEvent) => {
-      const newDefaultStyle = e.matches ? "dark" : "original";
-      // Only auto-update if user hasn't manually selected a specific style
-      // Check if current style matches a system default (original for light, dark for dark)
-      if (currentMapStyle === "original" || currentMapStyle === "dark") {
-        setCurrentMapStyle(newDefaultStyle);
+      // Only respond to system changes if app theme is set to system or undefined AND user hasn't manually selected a style
+      if ((theme === "system" || !theme) && !hasManuallySelectedStyle) {
+        const newDefaultStyle = e.matches ? "dark" : "original";
+        if (currentMapStyle !== newDefaultStyle) {
+          setCurrentMapStyle(newDefaultStyle);
+        }
       }
     };
 
     mediaQuery.addEventListener('change', handleThemeChange);
     return () => mediaQuery.removeEventListener('change', handleThemeChange);
-  }, [currentMapStyle]);
+  }, [theme, currentMapStyle, hasManuallySelectedStyle]);
 
   // Calculate center if not provided
   const mapCenter: LatLngExpression = center 
@@ -555,7 +605,7 @@ export function GeocacheMap({
       {showStyleSelector && (
         <MapStyleControl
           currentStyle={currentMapStyle}
-          onStyleChange={setCurrentMapStyle}
+          onStyleChange={handleStyleChange}
         />
       )}
       
@@ -624,11 +674,11 @@ export function GeocacheMap({
                 </Badge>
               </div>
               
-              <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
                 {geocache.description}
               </p>
               
-              <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                 <span className="flex items-center gap-1">
                   <Trophy className="h-3 w-3" />
                   {geocache.foundCount || 0}

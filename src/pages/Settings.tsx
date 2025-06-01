@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, X, Globe, User } from "lucide-react";
+import { MapPin, Plus, X, Globe, User, Palette, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InfoCard, DetailsCard } from "@/components/ui/card-patterns";
@@ -20,6 +21,13 @@ const DEFAULT_GEOCACHING_RELAYS = [
 export default function Settings() {
   const { user } = useCurrentUser();
   const { toast } = useToast();
+  const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  // Prevent hydration mismatch for theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Load saved relays from localStorage
   const [geocachingRelays, setGeocachingRelays] = useState<string[]>(() => {
@@ -154,7 +162,7 @@ export default function Settings() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/30">
         <DesktopHeader />
         
         <div className="container mx-auto px-4 py-16">
@@ -169,7 +177,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/30">
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -181,6 +189,83 @@ export default function Settings() {
                 Configure your profile and geocaching preferences
               </CardDescription>
             </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Appearance
+              </CardTitle>
+              <CardDescription>
+                Choose the theme and appearance of the app
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="theme">Theme</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Select the app theme. System follows your device's theme settings.
+                  </p>
+                  {mounted ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      <Button
+                        variant={theme === "light" ? "default" : "outline"}
+                        onClick={() => setTheme("light")}
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <Sun className="h-4 w-4" />
+                        <span className="text-sm">Light</span>
+                      </Button>
+                      <Button
+                        variant={theme === "dark" ? "default" : "outline"}
+                        onClick={() => setTheme("dark")}
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <Moon className="h-4 w-4" />
+                        <span className="text-sm">Dark</span>
+                      </Button>
+                      <Button
+                        variant={theme === "system" ? "default" : "outline"}
+                        onClick={() => setTheme("system")}
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <Monitor className="h-4 w-4" />
+                        <span className="text-sm">System</span>
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-3">
+                      <Button
+                        variant="outline"
+                        disabled
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <Sun className="h-4 w-4" />
+                        <span className="text-sm">Light</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <Moon className="h-4 w-4" />
+                        <span className="text-sm">Dark</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <Monitor className="h-4 w-4" />
+                        <span className="text-sm">System</span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
           <Card>
@@ -276,7 +361,7 @@ export default function Settings() {
                     {isValidating ? "Validating..." : "Add"}
                   </Button>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Enter a WebSocket relay URL (must start with wss:// or ws://)
                 </p>
               </div>

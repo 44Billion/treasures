@@ -113,7 +113,7 @@ export default function Profile() {
 
   if (!targetPubkey) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
+      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-8">
           <LoginRequiredCard
@@ -127,7 +127,7 @@ export default function Profile() {
 
   if (isLoadingAuthor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
+      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-8">
           <InfoCard
@@ -145,7 +145,7 @@ export default function Profile() {
   const shortPubkey = targetPubkey.slice(0, 8) + '...' + targetPubkey.slice(-8);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -200,7 +200,7 @@ export default function Profile() {
 
           <TabsContent value="created" className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {isOwnProfile ? 'Geocaches you\'ve hidden for others to find' : `Geocaches hidden by ${displayName}`}
               </p>
             </div>
@@ -251,7 +251,7 @@ export default function Profile() {
 
           <TabsContent value="found" className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {isOwnProfile ? 'Caches you\'ve successfully found and logged' : `Caches found by ${displayName}`}
               </p>
             </div>

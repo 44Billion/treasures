@@ -336,26 +336,29 @@
 
 /* Badge colors in pirate theme popups - better contrast for D/T pills */
 .leaflet-container.pirate-theme .leaflet-popup-content .badge,
-.leaflet-container.pirate-theme .leaflet-popup-content [class*="badge"] {
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="badge"],
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="rounded-full"][class*="border"] {
   background: #1f2937 !important;
   color: #ffffff !important;
-  border: 1px solid #cd853f !important;
+  border-color: #cd853f !important;
   font-weight: 600 !important;
 }
 
 /* Secondary badges - size/type badges */
-.leaflet-container.pirate-theme .leaflet-popup-content [class*="secondary"] {
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="secondary"],
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="bg-secondary"] {
   background: #374151 !important;
   color: #ffffff !important;
-  border: 1px solid #6b7280 !important;
+  border-color: #6b7280 !important;
   font-weight: 500 !important;
 }
 
-/* Outline badges - make them more visible */
-.leaflet-container.pirate-theme .leaflet-popup-content [class*="outline"] {
+/* Outline badges - make them more visible - D/T pills */
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="outline"],
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="text-foreground"] {
   background: transparent !important;
   color: #ffffff !important;
-  border: 1px solid #cd853f !important;
+  border-color: #cd853f !important;
   font-weight: 600 !important;
 }
 
@@ -553,14 +556,21 @@
 }
 
 .leaflet-container.dark-theme .leaflet-control-zoom a {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+  background: rgba(31, 41, 55, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
   border: 1px solid #374151 !important;
   color: #d1d5db !important;
+  font-weight: 500 !important;
+  font-size: 18px !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  transition: all 0.2s ease !important;
 }
 
 .leaflet-container.dark-theme .leaflet-control-zoom a:hover {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
-  color: #f9fafb !important;
+  background: rgba(55, 65, 81, 0.95) !important;
+  color: #34d399 !important;
 }
 
 /* Fix button colors in dark theme popups */
@@ -590,26 +600,29 @@
 
 /* Badge colors in dark theme popups - better contrast for D/T pills */
 .leaflet-container.dark-theme .leaflet-popup-content .badge,
-.leaflet-container.dark-theme .leaflet-popup-content [class*="badge"] {
+.leaflet-container.dark-theme .leaflet-popup-content [class*="badge"],
+.leaflet-container.dark-theme .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="rounded-full"][class*="border"] {
   background: #1f2937 !important;
   color: #ffffff !important;
-  border: 1px solid #6b7280 !important;
+  border-color: #6b7280 !important;
   font-weight: 600 !important;
 }
 
 /* Secondary badges - size/type badges */
-.leaflet-container.dark-theme .leaflet-popup-content [class*="secondary"] {
+.leaflet-container.dark-theme .leaflet-popup-content [class*="secondary"],
+.leaflet-container.dark-theme .leaflet-popup-content [class*="bg-secondary"] {
   background: #374151 !important;
   color: #ffffff !important;
-  border: 1px solid #6b7280 !important;
+  border-color: #6b7280 !important;
   font-weight: 500 !important;
 }
 
-/* Outline badges - make them more visible */
-.leaflet-container.dark-theme .leaflet-popup-content [class*="outline"] {
+/* Outline badges - make them more visible - D/T pills */
+.leaflet-container.dark-theme .leaflet-popup-content [class*="outline"],
+.leaflet-container.dark-theme .leaflet-popup-content [class*="text-foreground"] {
   background: transparent !important;
   color: #ffffff !important;
-  border: 1px solid #6b7280 !important;
+  border-color: #6b7280 !important;
   font-weight: 600 !important;
 }
 
@@ -778,6 +791,23 @@
   color: #059669 !important;
 }
 
+/* Dark theme touch controls */
+.leaflet-container.dark-theme .leaflet-touch .leaflet-bar a {
+  background: rgba(31, 41, 55, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid #374151 !important;
+  color: #d1d5db !important;
+  font-weight: 500 !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+}
+
+.leaflet-container.dark-theme .leaflet-touch .leaflet-bar a:hover {
+  background: rgba(55, 65, 81, 0.95) !important;
+  color: #34d399 !important;
+}
+
 /* Touch controls use same size as desktop */
 
 /* Adventure-themed attribution */
@@ -857,69 +887,292 @@
   background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
 }
 
-.leaflet-container.dark-theme .leaflet-control-zoom a {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
-  color: #f9fafb !important;
-}
-
-.leaflet-container.dark-theme .leaflet-control-zoom a:hover {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
-  color: #34d399 !important;
-}
-
 .leaflet-container.dark-theme .leaflet-control-attribution {
   background: rgba(31, 41, 55, 0.9) !important;
   color: #f9fafb !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Original theme should always use light popups regardless of system theme */
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content-wrapper {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-  color: #1f2937 !important;
+/* System dark mode support - when user hasn't selected a specific map theme */
+@media (prefers-color-scheme: dark) {
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content-wrapper {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+    border: 1px solid #374151 !important;
+    color: #f9fafb !important;
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-tip {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+    border: 1px solid #374151 !important;
+  }
+
+  /* Fix button colors in system dark mode popups */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button {
+    background: #059669 !important;
+    color: white !important;
+    border: 1px solid #047857 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button:hover {
+    background: #047857 !important;
+    color: white !important;
+  }
+
+  /* Outline buttons in system dark mode */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button[class*="outline"] {
+    background: transparent !important;
+    color: #d1d5db !important;
+    border: 1px solid #374151 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button[class*="outline"]:hover {
+    background: #374151 !important;
+    color: #f9fafb !important;
+  }
+
+  /* Badge colors in system dark mode popups - target specific shadcn/ui badge classes */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="rounded-full"][class*="border"] {
+    background: #374151 !important;
+    color: #ffffff !important;
+    border-color: #6b7280 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Outline badges specifically - D/T pills */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="outline"][class*="inline-flex"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="text-foreground"][class*="inline-flex"] {
+    background: transparent !important;
+    color: #ffffff !important;
+    border-color: #6b7280 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Secondary badges - size/type badges in system dark mode */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="bg-secondary"][class*="inline-flex"] {
+    background: #1f2937 !important;
+    color: #ffffff !important;
+    border-color: #6b7280 !important;
+    font-weight: 500 !important;
+  }
+
+  /* Text colors in system dark mode popups */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content {
+    color: #f9fafb !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content h3,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content h4,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content p {
+    color: #f9fafb !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-gray-600,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-gray-500,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-muted-foreground {
+    color: #9ca3af !important;
+  }
+
+  /* Zoom controls in system dark mode */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-control-zoom a,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-touch .leaflet-control-zoom a {
+    background: rgba(31, 41, 55, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid #374151 !important;
+    color: #d1d5db !important;
+    font-weight: 500 !important;
+    font-size: 18px !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-control-zoom a:hover,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-touch .leaflet-control-zoom a:hover {
+    background: rgba(55, 65, 81, 0.95) !important;
+    color: #34d399 !important;
+  }
+
+  /* Attribution in system dark mode */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-control-attribution {
+    background: rgba(31, 41, 55, 0.9) !important;
+    color: #f9fafb !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-tip {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+/* Enhanced badge support for all dark mode themes - comprehensive coverage */
+
+/* All badge variants in pirate theme popups */
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
+.leaflet-container.pirate-theme .leaflet-popup-content .badge {
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content {
-  color: #1f2937 !important;
+/* Pirate theme outline badges (D/T pills) */
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-color: #cd853f !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content h3,
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content h4,
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content p {
-  color: #1f2937 !important;
+/* Pirate theme secondary badges (size/type) */
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="bg-secondary"],
+.leaflet-container.pirate-theme .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
+  background: #374151 !important;
+  color: #ffffff !important;
+  border-color: #6b7280 !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-gray-600 {
-  color: #4b5563 !important;
+/* All badge variants in dark theme popups */
+.leaflet-container.dark-theme .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
+.leaflet-container.dark-theme .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
+.leaflet-container.dark-theme .leaflet-popup-content .badge {
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-gray-500 {
-  color: #6b7280 !important;
+/* Dark theme outline badges (D/T pills) */
+.leaflet-container.dark-theme .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-color: #6b7280 !important;
 }
 
-/* Original theme button styles */
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button {
-  background: #059669 !important;
-  color: white !important;
-  border: 1px solid #047857 !important;
+/* Dark theme secondary badges (size/type) */
+.leaflet-container.dark-theme .leaflet-popup-content [class*="bg-secondary"],
+.leaflet-container.dark-theme .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
+  background: #374151 !important;
+  color: #ffffff !important;
+  border-color: #6b7280 !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button:hover {
-  background: #047857 !important;
-  color: white !important;
+/* Light mode badge styling - for original theme without dark preference */
+.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
+.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
+.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .badge {
+  color: #374151 !important;
+  font-weight: 600 !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button[class*="outline"] {
+/* Light mode outline badges (D/T pills) */
+.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
   background: transparent !important;
   color: #374151 !important;
-  border: 1px solid #d1d5db !important;
+  border-color: #d1d5db !important;
 }
 
-.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button[class*="outline"]:hover {
-  background: #f9fafb !important;
-  color: #1f2937 !important;
+/* Light mode secondary badges (size/type) */
+.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="bg-secondary"],
+.leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+
+/* System dark mode badge support */
+@media (prefers-color-scheme: dark) {
+  /* All badge variants in system dark mode popups */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .badge {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+
+  /* System dark mode outline badges (D/T pills) */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
+    background: transparent !important;
+    color: #ffffff !important;
+    border-color: #6b7280 !important;
+  }
+
+  /* System dark mode secondary badges (size/type) */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="bg-secondary"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
+    background: #374151 !important;
+    color: #ffffff !important;
+    border-color: #6b7280 !important;
+  }
+}
+/* Override for light theme when explicitly in light mode */
+@media (prefers-color-scheme: light) {
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content-wrapper {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    color: #1f2937 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-tip {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content {
+    color: #1f2937 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content h3,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content h4,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content p {
+    color: #1f2937 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-gray-500,
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .text-muted-foreground {
+    color: #6b7280 !important;
+  }
+
+  /* Light mode badge styling - ensure D/T pills are visible */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content .badge {
+    color: #374151 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Light mode outline badges (D/T pills) */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
+    background: transparent !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+  }
+
+  /* Light mode secondary badges (size/type) */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="bg-secondary"],
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+  }
+
+  /* Original theme button styles */
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button {
+    background: #059669 !important;
+    color: white !important;
+    border: 1px solid #047857 !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button:hover {
+    background: #047857 !important;
+    color: white !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button[class*="outline"] {
+    background: transparent !important;
+    color: #374151 !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  .leaflet-container:not(.dark-theme):not(.pirate-theme) .leaflet-popup-content button[class*="outline"]:hover {
+    background: #f9fafb !important;
+    color: #1f2937 !important;
+  }
 }

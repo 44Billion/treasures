@@ -34,7 +34,7 @@ export function MobileHeader() {
           <SheetContent side="left">
             <div className="flex items-center gap-2 px-2 py-4">
               <img src="/icon.png" alt="Treasures" className="h-10 w-10" />
-              <span className="font-bold text-lg text-gray-900">Treasures</span>
+              <span className="font-bold text-lg text-foreground">Treasures</span>
             </div>
             <nav className="flex flex-col gap-2 px-2">
               {navigation.map((item) => {
@@ -123,10 +123,10 @@ export function MobileHeader() {
         
         <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
           <img src="/icon.png" alt="Treasures" className="h-8 w-8" />
-          <h1 className="text-xs font-bold text-gray-900 m-0 leading-none">Treasures</h1>
+          <h1 className="text-xs font-bold text-foreground m-0 leading-none">Treasures</h1>
         </Link>
         
-        <div className="-mr-2">
+        <div className="-mr-2 flex items-center gap-2">
           <LoginArea compact />
         </div>
       </div>

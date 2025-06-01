@@ -43,7 +43,7 @@ export default function MyCaches() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
+      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-8">
           <LoginRequiredCard
@@ -56,7 +56,7 @@ export default function MyCaches() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40">
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -75,7 +75,7 @@ export default function MyCaches() {
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Your saved caches are synced to your Nostr profile and available across all your devices.
           </p>
         </div>

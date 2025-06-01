@@ -58,7 +58,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
         <Button
           variant="outline"
           size="sm"
-          className={`h-10 w-10 sm:w-auto gap-0 sm:gap-2 bg-white/90 backdrop-blur-sm border-gray-200 hover:bg-white/95 ${className}`}
+          className={`h-10 w-10 sm:w-auto gap-0 sm:gap-2 bg-background/90 backdrop-blur-sm border hover:bg-background/95 ${className}`}
         >
           {currentStyleData.icon}
           <span className="hidden sm:inline">{currentStyleData.name}</span>
@@ -91,16 +91,16 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                 className={`
                   flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left w-full
                   ${currentStyle === style.key 
-                    ? 'border-emerald-500 bg-emerald-50 shadow-sm' 
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-sm' 
+                    : 'border hover:border-muted-foreground hover:bg-muted/50'
                   }
                 `}
               >
                 <div className={`
                   flex items-center justify-center w-8 h-8 rounded-full
                   ${currentStyle === style.key 
-                    ? 'bg-emerald-100 text-emerald-600' 
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300' 
+                    : 'bg-muted text-muted-foreground'
                   }
                 `}>
                   {style.icon}
@@ -115,14 +115,14 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 mt-0.5">{style.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{style.description}</p>
                 </div>
               </button>
             ))}
           </div>
           
           <div className="pt-2 border-t">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Choose between classic, artistic, or night-friendly map styles for your geocaching adventures.
             </p>
           </div>

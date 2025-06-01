@@ -51,7 +51,7 @@ export function SlimComparisonFilter({
   return (
     <div className={cn("space-y-1.5", className)}>
       {!compact && (
-        <label className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {label}
         </label>
       )}
@@ -131,7 +131,7 @@ export function SlimComparisonFilter({
       
       {/* Subtle helper text */}
       {!compact && (
-        <div className="text-xs text-gray-400 dark:text-gray-500">
+        <div className="text-xs text-muted-foreground">
           {isAllSelected ? 
             "No filtering applied" : 
             `Filtering by ${label.toLowerCase()}`

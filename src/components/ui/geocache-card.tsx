@@ -118,7 +118,7 @@ export function GeocacheCard({
   );
 
   const statsInfo = showStats && 'foundCount' in cache && (
-    <div className="flex items-center gap-3 text-sm text-gray-600">
+    <div className="flex items-center gap-3 text-sm text-muted-foreground">
       <span className="flex items-center gap-1">
         <Trophy className="h-4 w-4" />
         {cache.foundCount || 0}
@@ -138,7 +138,7 @@ export function GeocacheCard({
       <InteractiveCard onClick={onClick} compact={true}>
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted shrink-0">
               {getCacheIcon(cache.type, 'sm')}
             </div>
             <div className="flex-1 min-w-0">
@@ -146,7 +146,7 @@ export function GeocacheCard({
               
               {/* Author info */}
               {showAuthor && (
-                <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <span className="flex items-center gap-1">
                     by {authorName}
                     {profilePicture && (
@@ -199,26 +199,26 @@ export function GeocacheCard({
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Link to={`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays)}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 shrink-0">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted shrink-0">
                 {getCacheIcon(cache.type, 'md')}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
                 
                 {/* Metadata line */}
-                <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                   {showAuthor && authorInfo}
                   {metadata}
                 </p>
 
                 {/* Description for created caches */}
                 {'description' in cache && cache.description && (
-                  <p className="text-sm text-gray-700 mb-2 line-clamp-2">{cache.description}</p>
+                  <p className="text-sm text-foreground mb-2 line-clamp-2">{cache.description}</p>
                 )}
 
                 {/* Log text for found caches */}
                 {'logText' in cache && cache.logText && (
-                  <p className="text-sm text-gray-700 mb-2 line-clamp-2 italic">"{cache.logText}"</p>
+                  <p className="text-sm text-foreground mb-2 line-clamp-2 italic">"{cache.logText}"</p>
                 )}
 
                 {/* Badges */}
@@ -250,7 +250,7 @@ export function GeocacheCard({
     <InteractiveCard onClick={onClick}>
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 shrink-0">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted shrink-0">
             {getCacheIcon(cache.type, 'lg')}
           </div>
           <div className="flex items-center gap-2">
@@ -279,7 +279,7 @@ export function GeocacheCard({
       </CardHeader>
       <CardContent>
         {'description' in cache && cache.description && (
-          <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
             {cache.description}
           </p>
         )}

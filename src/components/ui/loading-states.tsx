@@ -23,20 +23,20 @@ export function LoadingState({
   const content = (
     <div className={`text-center ${className}`}>
       {showSpinner ? (
-        <Loader2 className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-spin" />
+        <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
       ) : (
-        <Icon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
       )}
-      <p className="text-gray-600 font-medium">{title}</p>
+      <p className="text-foreground font-medium">{title}</p>
       {description && (
-        <p className="text-sm text-gray-500 mt-2">{description}</p>
+        <p className="text-sm text-muted-foreground mt-2">{description}</p>
       )}
     </div>
   );
 
   if (fullPage) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         {content}
       </div>
     );
@@ -71,7 +71,7 @@ export function ErrorState({
       <CardContent className="pt-6 text-center">
         <Icon className="h-12 w-12 text-red-400 mx-auto mb-4" />
         <p className="text-lg font-medium mb-2">{title}</p>
-        {description && <p className="text-gray-600 mb-4">{description}</p>}
+        {description && <p className="text-muted-foreground mb-4">{description}</p>}
         
         <div className="space-y-2">
           {primaryAction}
@@ -84,7 +84,7 @@ export function ErrorState({
         </div>
         
         {error && (
-          <p className="text-xs text-gray-500 mt-4">
+          <p className="text-xs text-muted-foreground mt-4">
             Error: {error instanceof Error ? error.message : error}
           </p>
         )}
@@ -94,7 +94,7 @@ export function ErrorState({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/30">
         <div className="container mx-auto px-4 py-16">
           {content}
         </div>
