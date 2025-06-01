@@ -42,7 +42,7 @@ export function LoadingState({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+      <div className="h-mobile-fit md:h-screen w-full bg-muted/30 flex items-center justify-center overflow-hidden">
         {content}
       </div>
     );
@@ -100,8 +100,8 @@ export function ErrorState({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen bg-muted/30">
-        <div className="container mx-auto px-4 py-16">
+      <div className="h-mobile-fit md:h-screen w-full bg-muted/30 overflow-hidden">
+        <div className="container mx-auto px-4 py-16 h-full flex items-center justify-center">
           {content}
         </div>
       </div>

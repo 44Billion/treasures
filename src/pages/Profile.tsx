@@ -11,7 +11,8 @@ import {
   Calendar,
   Edit,
   Copy,
-  Check
+  Check,
+  Compass
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoCard, EmptyStateCard } from '@/components/ui/card-patterns';
@@ -199,10 +200,13 @@ export default function Profile() {
             </div>
 
             {isLoadingUserCaches ? (
-              <CompassLoading
-                title="Loading caches..."
-                description="Fetching created caches"
-              />
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <Compass className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">Loading caches...</p>
+                  <p className="text-xs text-muted-foreground">Fetching created caches</p>
+                </div>
+              </div>
             ) : !userCaches || userCaches.length === 0 ? (
               <EmptyStateCard
                 icon={MapPin}
@@ -248,10 +252,13 @@ export default function Profile() {
             </div>
 
             {isLoadingFoundCaches ? (
-              <CompassLoading
-                title="Loading found caches..."
-                description="Fetching geocaching achievements"
-              />
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <Compass className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">Loading found caches...</p>
+                  <p className="text-xs text-muted-foreground">Fetching geocaching achievements</p>
+                </div>
+              </div>
             ) : !foundCaches || foundCaches.length === 0 ? (
               <EmptyStateCard
                 icon={CheckCircle}

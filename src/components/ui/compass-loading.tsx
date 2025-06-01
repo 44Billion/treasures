@@ -26,7 +26,7 @@ export function CompassLoading({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+      <div className="h-mobile-fit md:h-screen w-full bg-muted/30 flex items-center justify-center overflow-hidden">
         {content}
       </div>
     );

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Navigation, Filter, X, Locate } from "lucide-react";
+import { MapPin, Navigation, Filter, X, Locate, Compass, RefreshCw } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,7 +49,7 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
-  const { data: geocaches, isLoading, error } = useAdvancedGeocaches({
+  const { data: geocaches, isLoading, error, refetch } = useAdvancedGeocaches({
     search: searchQuery,
     difficulty,
     difficultyOperator,
@@ -267,8 +267,30 @@ export default function Map() {
           {/* Results */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center text-muted-foreground">
-                Loading geocaches...
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <Compass className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">Loading geocaches...</p>
+                  <p className="text-xs text-muted-foreground">Searching the network</p>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <RefreshCw className="h-6 w-6 text-red-400 mx-auto mb-2" />
+                  <p className="text-sm font-medium">Failed to load caches</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {error instanceof Error ? error.message : 'Network connection issue'}
+                  </p>
+                  <Button 
+                    size="sm" 
+                    onClick={() => refetch()} 
+                    className="h-8 px-3"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Try Again
+                  </Button>
+                </div>
               </div>
             ) : filteredGeocaches.length > 0 ? (
               <div className="p-4">
@@ -394,9 +416,28 @@ export default function Map() {
             <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col bg-background">
               {isLoading ? (
                 <div className="flex items-center justify-center flex-1">
-                  <div className="text-center text-muted-foreground">
-                    <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2 animate-pulse" />
-                    <p>Loading geocaches...</p>
+                  <div className="text-center">
+                    <Compass className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm font-medium">Loading geocaches...</p>
+                    <p className="text-xs text-muted-foreground">Searching the network</p>
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center flex-1">
+                  <div className="text-center">
+                    <RefreshCw className="h-6 w-6 text-red-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium">Failed to load caches</p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {error instanceof Error ? error.message : 'Network connection issue'}
+                    </p>
+                    <Button 
+                      size="sm" 
+                      onClick={() => refetch()} 
+                      className="h-8 px-3"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Try Again
+                    </Button>
                   </div>
                 </div>
               ) : filteredGeocaches.length > 0 ? (
