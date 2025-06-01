@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { GeocacheCard } from "@/components/ui/geocache-card";
+import { geocacheToNaddr } from "@/lib/naddr-utils";
 import type { Geocache } from "@/types/geocache";
 
 interface GeocacheWithDistance extends Geocache {
@@ -15,7 +16,7 @@ export function GeocacheList({ geocaches, compact = false }: GeocacheListProps) 
   const navigate = useNavigate();
 
   const handleCacheClick = (cache: Geocache | GeocacheWithDistance) => {
-    navigate(`/cache/${cache.dTag}`);
+    navigate(`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays)}`);
   };
 
   return (

@@ -13,6 +13,7 @@ import type { Geocache } from "@/types/geocache";
 import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 import { isIOS, logIOSInfo, getIOSCompatibleMapOptions } from "@/lib/ios";
 import { findClosestGeocache } from "@/lib/geo";
+import { geocacheToNaddr } from "@/lib/naddr-utils";
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -267,7 +268,7 @@ export function GeocacheMap({
       onMarkerClick(geocache);
     } else {
       // Fallback to navigation if no callback provided
-      navigate(`/cache/${geocache.dTag}`);
+      navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays)}`);
     }
   };
 

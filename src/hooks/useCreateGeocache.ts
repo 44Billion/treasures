@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { getGeocachingRelays } from '@/lib/relays';
+import { geocacheToNaddr } from '@/lib/naddr-utils';
 import type { CreateGeocacheData } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
@@ -109,15 +110,19 @@ export function useCreateGeocache() {
       // Also update the geocaches list
       queryClient.invalidateQueries({ queryKey: ['geocaches'] });
       
-      // Navigate to the new geocache using d-tag (stable URL)
+      // Navigate to the new geocache using naddr (stable URL)
       const dTag = event.tags.find(t => t[0] === 'd')?.[1];
       if (dTag) {
-        navigate(`/cache/${dTag}`);
+        const relays = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+        const naddr = geocacheToNaddr(event.pubkey, dTag, relays);
+        navigate(`/${naddr}`);
       }
       
       // Background refresh after navigation to ensure data consistency
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['geocache-by-dtag', dTag] });
+        const relays = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+        const naddr = geocacheToNaddr(event.pubkey, dTag, relays);
+        queryClient.invalidateQueries({ queryKey: ['geocache-by-naddr', naddr] });
         queryClient.invalidateQueries({ queryKey: ['geocache', event.id] });
       }, 2000);
     },

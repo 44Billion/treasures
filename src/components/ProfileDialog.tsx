@@ -14,6 +14,7 @@ import { ProfileHeader } from "@/components/ProfileHeader";
 import { MobileTabs } from "@/components/ui/mobile-button-patterns";
 import { formatDistanceToNow } from "@/lib/date";
 import { useNavigate } from "react-router-dom";
+import { geocacheToNaddr } from "@/lib/naddr-utils";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 
 interface ProfileDialogProps {
@@ -115,7 +116,7 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
                         variant="compact"
                         onClick={() => {
                           onOpenChange(false);
-                          navigate(`/cache/${geocache.dTag}`);
+                          navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays)}`);
                         }}
                       />
                     );

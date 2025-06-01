@@ -12,7 +12,7 @@ import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoadingState, ErrorState } from "@/components/ui/loading-states";
 import { SaveButton } from "@/components/SaveButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useGeocacheByDTag } from "@/hooks/useGeocacheByDTag";
+import { useGeocacheByNaddr } from "@/hooks/useGeocacheByNaddr";
 import { useGeocacheLogs } from "@/hooks/useGeocacheLogs";
 import { useDeleteGeocache } from "@/hooks/useDeleteGeocache";
 import { useEditGeocache } from "@/hooks/useEditGeocache";
@@ -34,10 +34,10 @@ import { ImageGallery } from "@/components/ImageGallery";
 import { ProfileDialog } from "@/components/ProfileDialog";
 
 export default function CacheDetail() {
-  const { dtag } = useParams<{ dtag: string }>();
+  const { naddr } = useParams<{ naddr: string }>();
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { data: geocache, isLoading, error, isError, refetch } = useGeocacheByDTag(dtag!);
+  const { data: geocache, isLoading, error, isError, refetch } = useGeocacheByNaddr(naddr!);
   const { data: logs = [], refetch: refetchLogs } = useGeocacheLogs(
     geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
     geocache?.dTag, 

@@ -15,6 +15,7 @@ import { useAuthor } from "@/hooks/useAuthor";
 import { LogsSection } from "@/components/LogsSection";
 import { formatDistanceToNow } from "@/lib/date";
 import { useNavigate } from "react-router-dom";
+import { geocacheToNaddr } from "@/lib/naddr-utils";
 import { getDifficultyLabel, getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import type { Geocache } from "@/types/geocache";
@@ -55,7 +56,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
 
   const handleViewFullDetails = () => {
     onOpenChange(false);
-    navigate(`/cache/${geocache.dTag}`);
+    navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays)}`);
   };
 
   const handleImageClick = (index: number) => {

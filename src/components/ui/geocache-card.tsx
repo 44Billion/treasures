@@ -9,6 +9,7 @@ import { SaveButton } from '@/components/SaveButton';
 import { useAuthor } from '@/hooks/useAuthor';
 import { formatDistanceToNow } from '@/lib/date';
 import { formatDistance } from '@/lib/geo';
+import { geocacheToNaddr } from '@/lib/naddr-utils';
 import type { Geocache } from '@/types/geocache';
 
 function getTypeIcon(type: string): string {
@@ -36,6 +37,7 @@ interface BaseGeocacheCardProps {
     terrain: number;
     size: string;
     type: string;
+    relays?: string[];
   };
   distance?: number;
   variant?: 'compact' | 'default' | 'detailed';
@@ -203,7 +205,7 @@ export function GeocacheCard({
       <InteractiveCard>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <Link to={`/cache/${cache.dTag}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
+            <Link to={`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays)}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
               <div className="text-2xl">{getTypeIcon(cache.type)}</div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>

@@ -24,14 +24,14 @@ export function AppRouter() {
           <Route path="/" element={<Home />} />
           <Route path="/map" element={<Map />} />
           <Route path="/create" element={<CreateCache />} />
-          <Route path="/cache/:dtag" element={<CacheDetail />} />
           <Route path="/saved" element={<MyCaches />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:pubkey" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/install" element={<Install />} />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
+          <Route path="/:naddr" element={<CacheDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
