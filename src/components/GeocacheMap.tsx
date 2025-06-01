@@ -1,11 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
-import { MapPin, Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck } from "lucide-react";
+import { createRoot } from "react-dom/client";
+import { MapPin, Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck, Package, Compass, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SaveButton } from "@/components/SaveButton";
+import { MapStyleSelector, MAP_STYLES } from "@/components/MapStyleSelector";
 import { useSavedCaches } from "@/hooks/useSavedCaches";
 import { useToast } from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
@@ -15,14 +17,15 @@ import { isIOS, logIOSInfo, getIOSCompatibleMapOptions } from "@/lib/ios";
 import { findClosestGeocache } from "@/lib/geo";
 import { geocacheToNaddr } from "@/lib/naddr-utils";
 
-// Import Leaflet CSS
+// Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
+import "@/styles/map.css";
 
-// Create custom icons using divIcon for better compatibility
+// Create enhanced cache icons using Lucide icons for consistency
 const createCacheIcon = (type: string) => {
-  const emoji = getCacheEmoji(type);
+  const iconSvg = getCacheIconSvg(type);
   
-  // Different colors for different cache types (NIP-GC supported only)
+  // Original colors from before changes
   const colors = {
     traditional: '#10b981', // Emerald
     multi: '#f59e0b',      // Amber
@@ -42,11 +45,12 @@ const createCacheIcon = (type: string) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 22px;
         box-shadow: 0 3px 6px rgba(0,0,0,0.3);
         position: relative;
+        transition: all 0.2s ease;
+        cursor: pointer;
       ">
-        ${emoji}
+        ${iconSvg}
       </div>
       <div style="
         position: absolute;
@@ -60,6 +64,12 @@ const createCacheIcon = (type: string) => {
         border-top: 8px solid ${color};
         filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
       "></div>
+      <style>
+        .custom-cache-icon:hover > div:first-child {
+          transform: scale(1.1);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+      </style>
     `,
     className: "custom-cache-icon",
     iconSize: [40, 48],
@@ -70,51 +80,117 @@ const createCacheIcon = (type: string) => {
 
 const userLocationIcon = L.divIcon({
   html: `
-    <div style="position: relative; width: 24px; height: 24px;">
+    <div style="position: relative; width: 32px; height: 32px;">
+      <!-- Outer pulse ring -->
       <div style="
         position: absolute;
+        width: 32px;
+        height: 32px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.1) 70%, transparent 100%);
+        border-radius: 50%;
+        animation: adventurePulse 2.5s ease-out infinite;
+      "></div>
+      <!-- Middle ring -->
+      <div style="
+        position: absolute;
+        top: 4px;
+        left: 4px;
         width: 24px;
         height: 24px;
-        background: rgba(59, 130, 246, 0.3);
+        background: rgba(59, 130, 246, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.9);
         border-radius: 50%;
-        animation: pulse 2s ease-out infinite;
+        animation: adventurePulse 2.5s ease-out infinite 0.3s;
       "></div>
+      <!-- Core beacon -->
       <div style="
         position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 20px;
-        height: 20px;
-        background: #3b82f6;
-        border: 2px solid white;
+        top: 8px;
+        left: 8px;
+        width: 16px;
+        height: 16px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border: 3px solid white;
         border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        box-shadow: 
+          0 3px 8px rgba(0,0,0,0.3),
+          inset 0 1px 0 rgba(255,255,255,0.4);
+      "></div>
+      <!-- Adventure compass needle -->
+      <div style="
+        position: absolute;
+        top: 6px;
+        left: 15px;
+        width: 2px;
+        height: 8px;
+        background: linear-gradient(to bottom, #ef4444 0%, #dc2626 100%);
+        border-radius: 1px;
+        transform-origin: center bottom;
+        animation: compassSpin 4s linear infinite;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
       "></div>
     </div>
     <style>
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.5); opacity: 0.5; }
-        100% { transform: scale(2); opacity: 0; }
+      @keyframes adventurePulse {
+        0% { 
+          transform: scale(1); 
+          opacity: 0.8; 
+        }
+        50% { 
+          transform: scale(1.4); 
+          opacity: 0.4; 
+        }
+        100% { 
+          transform: scale(2); 
+          opacity: 0; 
+        }
+      }
+      @keyframes compassSpin {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(90deg); }
+        50% { transform: rotate(180deg); }
+        75% { transform: rotate(270deg); }
+        100% { transform: rotate(360deg); }
       }
     </style>
   `,
   className: "user-location-icon",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
 });
 
-function getCacheEmoji(type: string) {
-  // Only NIP-GC supported cache types
+function getCacheIconSvg(type: string) {
+  // Adventure-themed Lucide icons for NIP-GC supported cache types
   switch (type) {
     case "traditional":
-      return "📦";
+      // Package icon for traditional caches (treasure box)
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m7.5 4.27 9 5.15"/>
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+        <path d="m3.3 7 8.7 5 8.7-5"/>
+        <path d="M12 22V12"/>
+      </svg>`;
     case "multi":
-      return "🔗";
+      // Compass icon for multi-stage adventures
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
+      </svg>`;
     case "mystery":
-      return "❓";
+      // Help Circle icon for mystery caches (question mark)
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+        <path d="M12 17h.01"/>
+      </svg>`;
     default:
-      return "📦";
+      // Default to package icon for traditional
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m7.5 4.27 9 5.15"/>
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+        <path d="m3.3 7 8.7 5 8.7-5"/>
+        <path d="M12 22V12"/>
+      </svg>`;
   }
 }
 
@@ -127,6 +203,7 @@ interface GeocacheMapProps {
   searchRadius?: number; // in km
   onMarkerClick?: (geocache: Geocache) => void;
   highlightedGeocache?: string; // dTag of geocache to highlight/open popup
+  showStyleSelector?: boolean; // Whether to show the map style selector
 }
 
 // Component to handle map centering
@@ -205,29 +282,55 @@ function PopupController({
   return null;
 }
 
-// Map style options
-const MAP_STYLES = {
-  light: {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  },
-  voyager: {
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  },
-  positron: {
-    url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  },
-  watercolor: {
-    url: "https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg",
-    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com">Stamen Design</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  },
-  toner: {
-    url: "https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com">Stamen Design</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }
-};
+// Custom Leaflet control for map style selector
+function MapStyleControl({ 
+  currentStyle, 
+  onStyleChange 
+}: { 
+  currentStyle: string; 
+  onStyleChange: (style: string) => void; 
+}) {
+  const map = useMap();
+  
+  useEffect(() => {
+    // Create a custom control
+    const StyleControl = L.Control.extend({
+      onAdd: function() {
+        const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar map-style-control');
+        div.style.background = 'transparent';
+        div.style.border = 'none';
+        div.style.margin = '0';
+        
+        // Prevent map interaction when clicking on the control
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+        
+        // Create React root and render the MapStyleSelector
+        const root = createRoot(div);
+        root.render(
+          <MapStyleSelector
+            currentStyle={currentStyle}
+            onStyleChange={onStyleChange}
+          />
+        );
+        
+        return div;
+      }
+    });
+    
+    const styleControl = new StyleControl({ position: 'topright' });
+    map.addControl(styleControl);
+    
+    // Cleanup
+    return () => {
+      map.removeControl(styleControl);
+    };
+  }, [map, currentStyle, onStyleChange]);
+  
+  return null;
+}
+
+// Map styles are now imported from MapStyleSelector component
 
 export function GeocacheMap({ 
   geocaches, 
@@ -237,10 +340,12 @@ export function GeocacheMap({
   searchLocation,
   searchRadius,
   onMarkerClick,
-  highlightedGeocache
+  highlightedGeocache,
+  showStyleSelector = true
 }: GeocacheMapProps) {
   const navigate = useNavigate();
-  const mapStyle = MAP_STYLES.voyager; // Using voyager for vibrant, adventure-ready look
+  const [currentMapStyle, setCurrentMapStyle] = useState("original");
+  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
   const { isCacheSaved, toggleSaveCache, isNostrEnabled } = useSavedCaches();
   const { toast } = useToast();
 
@@ -303,17 +408,18 @@ export function GeocacheMap({
   }, [geocaches, onMarkerClick]);
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={zoom}
-      style={{ height: "100%", width: "100%" }}
-      className="rounded-lg z-0"
-      zoomControl={true}
-      doubleClickZoom={true}
-      touchZoom={true}
-      attributionControl={false}
-      {...mapOptions}
-    >
+    <div className="relative h-full w-full overflow-hidden rounded-lg">
+      <MapContainer
+        center={mapCenter}
+        zoom={zoom}
+        style={{ height: "100%", width: "100%" }}
+        className="z-0"
+        zoomControl={true}
+        doubleClickZoom={true}
+        touchZoom={true}
+        attributionControl={false}
+        {...mapOptions}
+      >
       <TileLayer
         attribution={mapStyle.attribution}
         url={mapStyle.url}
@@ -333,17 +439,28 @@ export function GeocacheMap({
         onMarkerClick={onMarkerClick}
       />
       
-      {/* Search radius circle */}
+      {/* Map Style Control - properly integrated with Leaflet */}
+      {showStyleSelector && (
+        <MapStyleControl
+          currentStyle={currentMapStyle}
+          onStyleChange={setCurrentMapStyle}
+        />
+      )}
+      
+      {/* Adventure-themed search radius circle */}
       {searchLocation && searchRadius && (
         <Circle
           center={[searchLocation.lat, searchLocation.lng]}
           radius={searchRadius * 1000} // Convert km to meters
           pathOptions={{
-            color: '#10b981', // Emerald green
-            fillColor: '#10b981',
-            fillOpacity: 0.15,
-            weight: 3,
-            dashArray: '10, 5'
+            color: '#059669', // Emerald-600 for better contrast
+            fillColor: '#10b981', // Emerald-500
+            fillOpacity: 0.12,
+            weight: 4,
+            dashArray: '15, 8',
+            opacity: 0.8,
+            // Add a subtle glow effect
+            className: 'search-radius-circle'
           }}
         />
       )}
@@ -476,5 +593,8 @@ export function GeocacheMap({
         </Marker>
       ))}
     </MapContainer>
+    
+
+  </div>
   );
 }

@@ -19,7 +19,7 @@ export function AppRouter() {
       <MobileHeader />
       
       {/* Main Content Area - with bottom padding for mobile nav + safe area */}
-      <main className="flex-1 pb-nav-safe md:pb-0">
+      <main className="flex-1 md:pb-0 max-md:pb-nav-safe">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/map" element={<Map />} />

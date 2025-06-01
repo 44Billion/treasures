@@ -183,14 +183,14 @@ export default function Map() {
   };
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gradient-to-br from-slate-50 via-emerald-50 to-blue-50 h-screen overflow-hidden">
       <DesktopHeader variant="map" />
 
-      <div className="hidden lg:flex h-[calc(100vh-73px)]">
-        {/* Sidebar */}
-        <div className="w-96 border-r bg-white overflow-hidden flex flex-col">
-          {/* Search and Filters */}
-          <div className="p-4 border-b">
+      <div className="hidden lg:flex h-[calc(100vh-70px)]">
+        {/* Adventure Sidebar */}
+        <div className="w-96 border-r bg-white/95 backdrop-blur-sm overflow-hidden flex flex-col">
+          {/* Adventure Search and Filters */}
+          <div className="p-4 border-b bg-gray-50">
             <div className="space-y-4">
               <div>
                 <Label htmlFor="search">Search Caches</Label>
@@ -299,8 +299,8 @@ export default function Map() {
           </div>
         </div>
 
-        {/* Map */}
-        <div className="flex-1 relative">
+        {/* Adventure Map */}
+        <div className="flex-1 relative bg-gradient-to-br from-emerald-50 to-blue-50">
           <GeocacheMap 
             key={mapUpdateKey}
             geocaches={filteredGeocaches} 
@@ -311,14 +311,15 @@ export default function Map() {
             zoom={mapZoom}
             onMarkerClick={handleMarkerClick}
             highlightedGeocache={highlightedGeocache || undefined}
+            showStyleSelector={true}
           />
         </div>
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden h-screen flex flex-col">
-        {/* Mobile Filters Header */}
-        <div className="bg-white border-b shadow-sm flex-shrink-0">
+      <div className="block lg:hidden h-[calc(100vh-65px)] flex flex-col overflow-hidden">
+        {/* Adventure Mobile Filters Header */}
+        <div className="bg-white/95 backdrop-blur-sm border-b flex-shrink-0">
           <div className="p-3">
             <div className="space-y-3">
               <div>
@@ -428,7 +429,7 @@ export default function Map() {
               )}
             </TabsContent>
             <TabsContent value="map" className="flex-1 m-0 p-0 data-[state=active]:block">
-              <div className="h-full">
+              <div className="h-full bg-gradient-to-br from-emerald-50 to-blue-50">
                 <GeocacheMap 
                   key={mapUpdateKey}
                   geocaches={filteredGeocaches} 
@@ -439,6 +440,7 @@ export default function Map() {
                   zoom={mapZoom}
                   onMarkerClick={handleMarkerClick}
                   highlightedGeocache={highlightedGeocache || undefined}
+                  showStyleSelector={true}
                 />
               </div>
             </TabsContent>
