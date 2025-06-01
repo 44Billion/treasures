@@ -22,7 +22,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src="/icon.png" alt="Treasures" className="h-12 w-12" />
-            <h1 className="text-2xl font-bold text-gray-900">Treasures</h1>
+            <h1 className="text-2xl font-bold text-gray-900 m-0 leading-none">Treasures</h1>
           </Link>
           
           <nav className="flex items-center gap-4">

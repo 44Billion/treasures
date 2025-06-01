@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
+import { PWAProvider } from '@/components/PWAProvider';
 import './styles/leaflet-overrides.css';
 
 // Default relay configuration - using ditto.pub as primary relay
@@ -31,20 +32,22 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
-    <NostrLoginProvider storageKey='nostr:login'>
-      <NostrProvider relays={defaultRelays}>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <div className="min-h-screen flex flex-col">
-              <AppRouter />
-            </div>
-            <PWAUpdatePrompt />
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
-        </QueryClientProvider>
-      </NostrProvider>
-    </NostrLoginProvider>
+    <PWAProvider>
+      <NostrLoginProvider storageKey='nostr:login'>
+        <NostrProvider relays={defaultRelays}>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <div className="min-h-screen flex flex-col">
+                <AppRouter />
+              </div>
+              <PWAUpdatePrompt />
+              <Toaster />
+              <Sonner />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </NostrProvider>
+      </NostrLoginProvider>
+    </PWAProvider>
   );
 }
 

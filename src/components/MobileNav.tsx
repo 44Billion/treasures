@@ -23,20 +23,20 @@ export function MobileHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden pt-safe-top">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-16 items-center justify-between">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="mr-2">
+            <Button variant="ghost" size="sm" className="-ml-2">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="pr-0">
-            <div className="flex items-center gap-2 px-6 py-4">
+          <SheetContent side="left">
+            <div className="flex items-center gap-2 px-2 py-4">
               <img src="/icon.png" alt="Treasures" className="h-10 w-10" />
-              <span className="font-bold">Treasures</span>
+              <span className="font-bold text-lg text-gray-900">Treasures</span>
             </div>
-            <nav className="flex flex-col gap-2 px-6">
+            <nav className="flex flex-col gap-2 px-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -84,7 +84,7 @@ export function MobileHeader() {
                 </>
               )}
             </nav>
-            <div className="mt-auto p-6">
+            <div className="mt-auto p-2">
               {currentUser ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
@@ -121,12 +121,12 @@ export function MobileHeader() {
           </SheetContent>
         </Sheet>
         
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/icon.png" alt="Treasures" className="h-10 w-10" />
-          <span className="font-bold">Treasures</span>
+        <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
+          <img src="/icon.png" alt="Treasures" className="h-8 w-8" />
+          <h1 className="text-xs font-bold text-gray-900 m-0 leading-none">Treasures</h1>
         </Link>
         
-        <div className="ml-auto">
+        <div className="-mr-2">
           <LoginArea compact />
         </div>
       </div>

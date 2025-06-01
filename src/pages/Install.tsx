@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,70 +5,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Download, MapPin, Smartphone, Wifi, Zap, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
-
-// Extend Window interface to include deferredPrompt
-declare global {
-  interface Window {
-    deferredPrompt?: {
-      prompt: () => Promise<void>;
-      userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-    };
-  }
-}
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 export default function Install() {
-  const [installing, setInstalling] = useState(false);
-  const [installable, setInstallable] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const { installable, installing, installed, install } = usePWAInstall();
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    // Check if already installed
-    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
-      setInstalled(true);
-      return;
-    }
-
-    // Listen for PWA install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      window.deferredPrompt = e as unknown as Window['deferredPrompt'];
-      setInstallable(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
-
   const handleInstall = async () => {
-    const deferredPrompt = window.deferredPrompt;
-    
-    if (deferredPrompt) {
-      // Use the deferred prompt if available
-      setInstalling(true);
-      try {
-        await deferredPrompt.prompt();
-        const result = await deferredPrompt.userChoice;
-        
-        if (result.outcome === 'accepted') {
-          console.log('PWA installed');
-          setInstalled(true);
-        }
-        
-        window.deferredPrompt = undefined;
-        setInstallable(false);
-      } catch (error) {
-        console.error('Install prompt failed:', error);
-      } finally {
-        setInstalling(false);
-      }
-    } else {
-      // If no deferred prompt is available, do nothing
-      // If no deferred prompt is available, do nothing - user can follow manual instructions below
-    }
+    await install();
   };
 
   return (
@@ -117,20 +60,15 @@ export default function Install() {
             </Alert>
           )}
 
-          {/* Install Button - Show on mobile regardless of installable status */}
-          {isMobile && !installed && (
+          {/* Install Button - Only show if browser supports installation */}
+          {installable && !installed && (
             <Card className="mb-6 border-green-200">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <Download className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    {installable ? 'Ready to Install' : 'Install App'}
-                  </h3>
+                  <h3 className="text-lg font-semibold mb-2">Ready to Install</h3>
                   <p className="text-gray-600 mb-4">
-                    {installable 
-                      ? 'Your browser supports app installation. Click below to add Treasures to your device.'
-                      : 'Add Treasures to your home screen for the best experience.'
-                    }
+                    Your browser supports app installation. Click below to add Treasures to your device.
                   </p>
                   
                   <Button 
@@ -142,15 +80,6 @@ export default function Install() {
                     <Download className="h-5 w-5 mr-2" />
                     {installing ? 'Installing...' : 'Install Treasures App'}
                   </Button>
-                  
-                  {/* Show hint when not installable - below the button */}
-                  {!installable && (
-                    <div className="mt-3 text-center">
-                      <p className="text-gray-400 text-sm">
-                        <strong>Tip:</strong> If the install button doesn't work, use the manual installation instructions below.
-                      </p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -158,17 +87,17 @@ export default function Install() {
 
           {/* Manual Installation Instructions */}
           {!installed && (
-            <Card className="mb-6">
+            <Card className={`mb-6 ${!installable ? 'border-blue-200 bg-blue-50/50' : ''}`}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
-                  Manual Installation
+                  {!installable ? 'Add to Home Screen' : 'Manual Installation'}
                 </CardTitle>
                 <CardDescription>
-                  {isMobile && installable 
+                  {!installable 
+                    ? "Add Treasures to your home screen for the best app experience. Follow the instructions below for your device."
+                    : installable
                     ? "If the install button above doesn't work, you can manually add Treasures to your home screen."
-                    : isMobile && !installable
-                    ? "Your browser doesn't support automatic installation, but you can manually add Treasures to your home screen."
                     : "You can manually add Treasures to your home screen for the best experience."
                   }
                 </CardDescription>
