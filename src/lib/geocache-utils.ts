@@ -37,8 +37,10 @@ export function getSizeLevel(size: string): number {
   return level !== undefined ? level : 0;
 }
 
+// Note: This function is deprecated. Use getCacheIcon from @/lib/cacheIcons instead
+// for React components, which provides consistent Lucide icons.
 export function getTypeIcon(type: string): string {
-  // Only NIP-GC supported cache types
+  // Only NIP-GC supported cache types - keeping for backward compatibility
   const icons: Record<string, string> = {
     traditional: '📦',
     multi: '🔗',

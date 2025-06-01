@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-le
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
-import { MapPin, Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck, Package, Compass, Sparkles } from "lucide-react";
+import { MapPin, Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SaveButton } from "@/components/SaveButton";
@@ -16,23 +16,16 @@ import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 import { isIOS, logIOSInfo, getIOSCompatibleMapOptions } from "@/lib/ios";
 import { findClosestGeocache } from "@/lib/geo";
 import { geocacheToNaddr } from "@/lib/naddr-utils";
+import { getCacheIconSvg, getCacheColor } from "@/lib/cacheIcons";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
 import "@/styles/map.css";
 
-// Create enhanced cache icons using Lucide icons for consistency
+// Create enhanced cache icons using shared icon system for consistency
 const createCacheIcon = (type: string) => {
   const iconSvg = getCacheIconSvg(type);
-  
-  // Original colors from before changes
-  const colors = {
-    traditional: '#10b981', // Emerald
-    multi: '#f59e0b',      // Amber
-    mystery: '#8b5cf6',    // Purple
-  };
-  
-  const color = colors[type as keyof typeof colors] || '#10b981';
+  const color = getCacheColor(type);
   
   return L.divIcon({
     html: `
@@ -159,40 +152,7 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [16, 16],
 });
 
-function getCacheIconSvg(type: string) {
-  // Adventure-themed Lucide icons for NIP-GC supported cache types
-  switch (type) {
-    case "traditional":
-      // Package icon for traditional caches (treasure box)
-      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m7.5 4.27 9 5.15"/>
-        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-        <path d="m3.3 7 8.7 5 8.7-5"/>
-        <path d="M12 22V12"/>
-      </svg>`;
-    case "multi":
-      // Compass icon for multi-stage adventures
-      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
-      </svg>`;
-    case "mystery":
-      // Help Circle icon for mystery caches (question mark)
-      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-        <path d="M12 17h.01"/>
-      </svg>`;
-    default:
-      // Default to package icon for traditional
-      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m7.5 4.27 9 5.15"/>
-        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-        <path d="m3.3 7 8.7 5 8.7-5"/>
-        <path d="M12 22V12"/>
-      </svg>`;
-  }
-}
+
 
 interface GeocacheMapProps {
   geocaches: Geocache[];

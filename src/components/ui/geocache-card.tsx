@@ -10,17 +10,8 @@ import { useAuthor } from '@/hooks/useAuthor';
 import { formatDistanceToNow } from '@/lib/date';
 import { formatDistance } from '@/lib/geo';
 import { geocacheToNaddr } from '@/lib/naddr-utils';
+import { getCacheIcon } from '@/lib/cacheIcons';
 import type { Geocache } from '@/types/geocache';
-
-function getTypeIcon(type: string): string {
-  // Only NIP-GC supported cache types
-  const icons: Record<string, string> = {
-    traditional: '📦',
-    multi: '🔗',
-    mystery: '❓',
-  };
-  return icons[type.toLowerCase()] || '📦';
-}
 
 // Base interface for all geocache cards
 interface BaseGeocacheCardProps {
@@ -147,7 +138,9 @@ export function GeocacheCard({
       <InteractiveCard onClick={onClick} compact={true}>
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
-            <div className="text-xl">{getTypeIcon(cache.type)}</div>
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 shrink-0">
+              {getCacheIcon(cache.type, 'sm')}
+            </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm truncate hover:text-green-600 transition-colors">{cache.name}</h3>
               
@@ -206,7 +199,9 @@ export function GeocacheCard({
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Link to={`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays)}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
-              <div className="text-2xl">{getTypeIcon(cache.type)}</div>
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 shrink-0">
+                {getCacheIcon(cache.type, 'md')}
+              </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold truncate hover:text-green-600 transition-colors">{cache.name}</h3>
                 
@@ -255,7 +250,9 @@ export function GeocacheCard({
     <InteractiveCard onClick={onClick}>
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="text-3xl">{getTypeIcon(cache.type)}</div>
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 shrink-0">
+            {getCacheIcon(cache.type, 'lg')}
+          </div>
           <div className="flex items-center gap-2">
             {actions || (
               <SaveButton geocache={cache as any} size="icon" showText={false} />
