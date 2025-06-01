@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Download, MapPin, Smartphone, Wifi, Zap, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
@@ -172,24 +173,71 @@ export default function Install() {
                   }
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <h4 className="font-medium">On iOS (Safari):</h4>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
-                    <li>Tap the Share button (square with arrow up)</li>
-                    <li>Scroll down and tap "Add to Home Screen"</li>
-                    <li>Tap "Add" to confirm</li>
-                  </ol>
-                </div>
-                
-                <div className="space-y-3">
-                  <h4 className="font-medium">On Android (Chrome):</h4>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
-                    <li>Tap the menu button (three dots)</li>
-                    <li>Tap "Add to Home screen"</li>
-                    <li>Tap "Add" to confirm</li>
-                  </ol>
-                </div>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="browser-menu">
+                    <AccordionTrigger className="text-left">
+                      Using Browser Menu (Android)
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Chrome & Brave:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                            <li>Tap the menu button (three dots)</li>
+                            <li>Tap "Add to Home screen"</li>
+                            <li>Tap "Add" to confirm</li>
+                          </ol>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Firefox:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                            <li>Tap the menu button (three dots)</li>
+                            <li>Tap "Install"</li>
+                            <li>Tap "Add" to confirm</li>
+                          </ol>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Edge:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                            <li>Tap the menu button (three dots)</li>
+                            <li>Tap "Add to phone"</li>
+                            <li>Tap "Add" to confirm</li>
+                          </ol>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="share-button">
+                    <AccordionTrigger className="text-left">
+                      Using Share Button (iOS)
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Safari:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                            <li>Tap the Share button (square with arrow up)</li>
+                            <li>Scroll down and tap "Add to Home Screen"</li>
+                            <li>Tap "Add" to confirm</li>
+                          </ol>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Chrome & Brave:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
+                            <li>Tap the Share button</li>
+                            <li>Tap "Add to Home Screen"</li>
+                            <li>Tap "Add" to confirm</li>
+                          </ol>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </CardContent>
             </Card>
           )}

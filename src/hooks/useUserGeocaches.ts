@@ -51,7 +51,7 @@ export function useUserGeocaches(targetPubkey?: string) {
             foundCount: 0, // Will be calculated below
             logCount: 0, // Will be calculated below
           };
-        }).filter((geocache): geocache is Geocache => geocache !== null);
+        }).filter((geocache): geocache is NonNullable<typeof geocache> => geocache !== null);
         
         // Now fetch log counts for each geocache
         console.log('Fetching log counts for user geocaches...');
@@ -80,11 +80,13 @@ export function useUserGeocaches(targetPubkey?: string) {
               logCounts.set(ref, { total: 0, found: 0 });
             }
             
-            const counts = logCounts.get(ref)!;
-            counts.total++;
-            
-            if (logType === 'found') {
-              counts.found++;
+            const counts = logCounts.get(ref);
+            if (counts) {
+              counts.total++;
+              
+              if (logType === 'found') {
+                counts.found++;
+              }
             }
           }
         }
@@ -104,7 +106,7 @@ export function useUserGeocaches(targetPubkey?: string) {
         });
         
         // Sort by creation date (newest first)
-        geocachesWithCounts.sort((a, b) => b.created_at - a.created_at);
+        geocachesWithCounts.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
         
         console.log('✅ [USER GEOCACHES] Final result:', geocachesWithCounts.length, 'geocaches with counts');
         

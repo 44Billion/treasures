@@ -63,7 +63,7 @@ export default function Profile() {
   // Calculate distances if location is available
   const userCachesWithDistance = (userCaches || []).map(cache => {
     let distance: number | undefined;
-    if (coords) {
+    if (coords && cache.location) {
       const R = 6371; // Earth's radius in kilometers
       const dLat = (cache.location.lat - coords.latitude) * Math.PI / 180;
       const dLon = (cache.location.lng - coords.longitude) * Math.PI / 180;
@@ -79,7 +79,7 @@ export default function Profile() {
 
   const foundCachesWithDistance = (foundCaches || []).map(cache => {
     let distance: number | undefined;
-    if (coords) {
+    if (coords && cache.location) {
       const R = 6371; // Earth's radius in kilometers
       const dLat = (cache.location.lat - coords.latitude) * Math.PI / 180;
       const dLon = (cache.location.lng - coords.longitude) * Math.PI / 180;
@@ -230,19 +230,21 @@ export default function Profile() {
               />
             ) : (
               <div className="space-y-4">
-                {userCachesWithDistance.map((cache) => (
-                  <DetailedGeocacheCard
-                    key={cache.id}
-                    cache={cache}
-                    distance={cache.distance}
-                    metadata={
-                      <>
-                        Created {formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}
-                      </>
-                    }
-                    showAuthor={!isOwnProfile}
-                  />
-                ))}
+                {userCachesWithDistance
+                  .filter(cache => cache.id && cache.dTag && cache.pubkey && cache.name && cache.location)
+                  .map((cache) => (
+                    <DetailedGeocacheCard
+                      key={cache.id}
+                      cache={cache}
+                      distance={cache.distance}
+                      metadata={
+                        <>
+                          Created {formatDistanceToNow(new Date((cache.created_at || 0) * 1000), { addSuffix: true })}
+                        </>
+                      }
+                      showAuthor={!isOwnProfile}
+                    />
+                  ))}
               </div>
             )}
           </TabsContent>
