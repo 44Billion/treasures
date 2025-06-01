@@ -470,7 +470,7 @@ export default function Map() {
               )}
             </TabsContent>
             <TabsContent value="map" className="flex-1 m-0 p-0 data-[state=active]:block">
-              <div className="h-full bg-background">
+              <div className="h-full w-full bg-background min-h-[400px]" style={{ height: 'calc(100vh - 12rem)' }}>
                 <GeocacheMap 
                   key={mapUpdateKey}
                   geocaches={filteredGeocaches} 

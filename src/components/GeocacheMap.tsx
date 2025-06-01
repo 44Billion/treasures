@@ -566,11 +566,11 @@ export function GeocacheMap({
   }, [geocaches, onMarkerClick]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-lg">
+    <div className="relative h-full w-full overflow-hidden rounded-lg min-h-[400px] md:min-h-0">
       <MapContainer
         center={mapCenter}
         zoom={zoom}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", minHeight: "400px" }}
         className="z-0"
         zoomControl={true}
         doubleClickZoom={true}
