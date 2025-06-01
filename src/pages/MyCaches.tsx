@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, MapPin, Trash2, Cloud, Loader2, MoreVertical } from 'lucide-react';
+import { Bookmark, MapPin, Trash2, Cloud, Compass, MoreVertical } from 'lucide-react';
 import { DetailedGeocacheCard } from '@/components/ui/geocache-card';
 import { InfoCard, EmptyStateCard } from '@/components/ui/card-patterns';
 import { DesktopHeader } from '@/components/DesktopHeader';
@@ -122,7 +122,7 @@ export default function MyCaches() {
         {isLoadingSaved ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
+              <Compass className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
               <p className="text-sm font-medium">Loading saved caches...</p>
               <p className="text-xs text-muted-foreground">Fetching your bookmarks from Nostr relays</p>
             </div>

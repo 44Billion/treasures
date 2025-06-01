@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon, MapPin, Loader2 } from 'lucide-react';
+import { LucideIcon, MapPin, Loader2, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -10,6 +10,7 @@ interface LoadingStateProps {
   showSpinner?: boolean;
   fullPage?: boolean;
   className?: string;
+  transition?: boolean; // New prop to indicate this is a page transition loading
 }
 
 export function LoadingState({
@@ -18,12 +19,17 @@ export function LoadingState({
   description,
   showSpinner = true,
   fullPage = false,
-  className = ""
+  className = "",
+  transition = false
 }: LoadingStateProps) {
   const content = (
     <div className={`text-center ${className}`}>
       {showSpinner ? (
-        <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+        transition ? (
+          <Compass className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+        ) : (
+          <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+        )
       ) : (
         <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
       )}

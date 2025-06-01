@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Trophy } from "lucide-react";
+import { MapPin, Plus, Search, Compass, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard, EmptyStateCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
@@ -123,7 +123,7 @@ export default function Home() {
           <div className="mb-6 animate-fade-in">
             <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-200 dark:hover:bg-green-800 transition-colors">
               <div className="flex items-center gap-2">
-                <Trophy className="w-4 h-4" />
+                <Compass className="w-4 h-4" />
                 <span>Join the Quest</span>
               </div>
               <span className="text-[10px] opacity-75 leading-none">Install the PWA</span>

@@ -271,7 +271,7 @@ export function MyCachesTabs({
     { 
       value: 'created', 
       label: 'Created',
-      icon: Trophy,
+      icon: MapPin,
       count: createdCount
     },
   ];

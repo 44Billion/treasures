@@ -3,14 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import { 
   User, 
   MapPin, 
-  Trophy, 
   CheckCircle, 
   Globe, 
   ShieldCheck, 
   ShieldX, 
   ExternalLink, 
   Calendar,
-  Loader2,
   Edit,
   Copy,
   Check
@@ -23,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { CompassLoading } from '@/components/ui/compass-loading';
 
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
 import { DetailedGeocacheCard } from '@/components/ui/geocache-card';
@@ -127,16 +126,11 @@ export default function Profile() {
 
   if (isLoadingAuthor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 max-md:h-mobile-fit max-md:overflow-hidden">
-        <DesktopHeader />
-        <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
-          <div className="flex flex-col items-center justify-center text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-            <h2 className="text-lg font-semibold mb-2">Loading profile...</h2>
-            <p className="text-sm text-muted-foreground">Fetching user information from Nostr relays</p>
-          </div>
-        </div>
-      </div>
+      <CompassLoading
+        fullPage
+        title="Loading profile..."
+        description="Fetching user information from Nostr relays"
+      />
     );
   }
 
@@ -186,7 +180,7 @@ export default function Profile() {
         <Tabs defaultValue="created" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-auto">
             <TabsTrigger value="created" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
-              <Trophy className="h-4 w-4 flex-shrink-0" />
+              <MapPin className="h-4 w-4 flex-shrink-0" />
               <span className="text-xs sm:text-sm">Created</span>
               <span className="text-xs sm:text-sm">({userCaches?.length || 0})</span>
             </TabsTrigger>
@@ -205,23 +199,20 @@ export default function Profile() {
             </div>
 
             {isLoadingUserCaches ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm font-medium">Loading caches...</p>
-                  <p className="text-xs text-muted-foreground">Fetching created caches</p>
-                </div>
-              </div>
+              <CompassLoading
+                title="Loading caches..."
+                description="Fetching created caches"
+              />
             ) : !userCaches || userCaches.length === 0 ? (
               <EmptyStateCard
-                icon={Trophy}
+                icon={MapPin}
                 title={isOwnProfile ? "No caches created yet" : "No caches found"}
                 description={isOwnProfile ? "Start your geocaching journey by hiding your first treasure!" : `${displayName} hasn't created any caches yet.`}
                 action={
                   isOwnProfile ? (
                     <Link to="/create">
                       <Button>
-                        <Trophy className="h-4 w-4 mr-2" />
+                        <MapPin className="h-4 w-4 mr-2" />
                         Hide Your First Cache
                       </Button>
                     </Link>
@@ -257,13 +248,10 @@ export default function Profile() {
             </div>
 
             {isLoadingFoundCaches ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm font-medium">Loading found caches...</p>
-                  <p className="text-xs text-muted-foreground">Fetching geocaching achievements</p>
-                </div>
-              </div>
+              <CompassLoading
+                title="Loading found caches..."
+                description="Fetching geocaching achievements"
+              />
             ) : !foundCaches || foundCaches.length === 0 ? (
               <EmptyStateCard
                 icon={CheckCircle}
