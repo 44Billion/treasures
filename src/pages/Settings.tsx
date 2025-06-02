@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, X, Globe, User, Palette, Sun, Moon, Monitor } from "lucide-react";
+import { MapPin, Plus, X, Globe, User, Palette, Sun, Moon, Monitor, Download, RefreshCw, Smartphone } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/useToast";
 import { EditProfileForm } from "@/components/EditProfileForm";
+import { usePWAUpdate } from "@/hooks/usePWAUpdate";
 
 const DEFAULT_GEOCACHING_RELAYS = [
   'wss://ditto.pub/relay',
@@ -23,6 +24,15 @@ export default function Settings() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const {
+    isUpdateAvailable,
+    isInstallable,
+    isInstalling,
+    isChecking,
+    checkForUpdate,
+    installUpdate,
+    installPWA,
+  } = usePWAUpdate();
   
   // Prevent hydration mismatch for theme
   useEffect(() => {
@@ -189,6 +199,77 @@ export default function Settings() {
                 Configure your profile and geocaching preferences
               </CardDescription>
             </CardHeader>
+          </Card>
+
+          {/* PWA Update Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-5 w-5" />
+                App Updates & Installation
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3 flex-wrap">
+                <Button
+                  onClick={checkForUpdate}
+                  disabled={isChecking}
+                  variant="outline"
+                >
+                  {isChecking ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Check for Updates
+                    </>
+                  )}
+                </Button>
+
+                {isUpdateAvailable && (
+                  <Button
+                    onClick={installUpdate}
+                    disabled={isInstalling}
+                    variant="default"
+                  >
+                    {isInstalling ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Installing...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Install Update
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {isInstallable && (
+                  <Button
+                    onClick={installPWA}
+                    disabled={isInstalling}
+                    variant="secondary"
+                  >
+                    {isInstalling ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Installing...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Install App
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
           </Card>
 
           <Card>

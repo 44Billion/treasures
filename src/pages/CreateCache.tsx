@@ -33,17 +33,32 @@ import { VerificationQRDialog } from "@/components/VerificationQRDialog";
 import { geocacheToNaddr } from "@/lib/naddr-utils";
 import type { VerificationKeyPair } from "@/lib/verification";
 
+// CSS override for confirmation map
+const confirmMapStyles = `
+  .confirm-map-container.leaflet-container {
+    min-height: 128px !important;
+    height: 128px !important;
+    max-height: 128px !important;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = confirmMapStyles;
+  document.head.appendChild(style);
+}
+
 // Component to ensure map recognizes its actual size
-function MapResizer() {
+function MapResizer({ location }: { location: { lat: number; lng: number } }) {
   const map = useMap();
   
   useEffect(() => {
     // Force map to recognize its actual container size immediately
     map.invalidateSize(true);
-    // Re-center after size calculation
-    const center = map.getCenter();
-    map.setView(center, map.getZoom(), { animate: false });
-  }, [map]);
+    // Set view again with exact coordinates to force proper centering
+    map.setView([location.lat, location.lng], 16, { animate: false });
+  }, [map, location]);
   
   return null;
 }
@@ -253,26 +268,29 @@ export default function CreateCache() {
                     {/* Map Preview & Coordinates */}
                     <div className="space-y-2">
                       <div className="h-32 w-full rounded-md overflow-hidden border">
-                        <MapContainer
-                          center={[location.lat, location.lng]}
-                          zoom={16}
-                          style={{ height: "128px", width: "100%", minHeight: "128px" }}
-                          scrollWheelZoom={false}
-                          dragging={false}
-                          zoomControl={false}
-                          doubleClickZoom={false}
-                          attributionControl={false}
-                          touchZoom={false}
-                        >
+                        <div className="h-32 w-full" style={{ minHeight: '128px' }}>
+                          <MapContainer
+                            center={[location.lat, location.lng]}
+                            zoom={16}
+                            style={{ height: "128px", width: "100%", minHeight: "128px" }}
+                            className="confirm-map-container"
+                            scrollWheelZoom={false}
+                            dragging={false}
+                            zoomControl={false}
+                            doubleClickZoom={false}
+                            attributionControl={false}
+                            touchZoom={false}
+                          >
                           <TileLayer
                             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                           />
-                          <MapResizer />
+                          <MapResizer location={location} />
                           <Marker 
                             position={[location.lat, location.lng]} 
                             icon={mapIcons.droppedPin}
                           />
                         </MapContainer>
+                        </div>
                       </div>
                       <div className="bg-muted/50 p-2 rounded text-center">
                         <div className="font-mono text-xs">
