@@ -8,6 +8,7 @@ import MyCaches from "./pages/MyCaches";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
+import Claim from "./pages/Claim";
 
 import NotFound from "./pages/NotFound";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
@@ -29,6 +30,7 @@ export function AppRouter() {
           <Route path="/profile/:pubkey" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/install" element={<Install />} />
+          <Route path="/claim" element={<Claim />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
           <Route path="/:naddr" element={<CacheDetail />} />

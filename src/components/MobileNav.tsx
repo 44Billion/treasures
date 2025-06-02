@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Menu, X, Settings, Bookmark, LogOut, User, Edit } from 'lucide-react';
+import { Home, Map, Plus, Menu, X, Settings, Bookmark, LogOut, User, Edit, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Map', href: '/map', icon: Map },
-  { name: 'My Caches', href: '/saved', icon: Bookmark },
+  { name: 'Claim', href: '/claim', icon: QrCode },
   { name: 'New', href: '/create', icon: Plus },
 ];
 
@@ -55,6 +55,18 @@ export function MobileHeader() {
                   </Link>
                 );
               })}
+              <Link
+                to="/saved"
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
+                  location.pathname === '/saved'
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Bookmark className="h-4 w-4" />
+                My Caches
+              </Link>
               {user && (
                 <>
                   <Link

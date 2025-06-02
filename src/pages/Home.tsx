@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, Trophy } from "lucide-react";
+import { MapPin, Plus, Search, Compass, Trophy, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard, EmptyStateCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
@@ -148,6 +148,12 @@ export default function Home() {
               <Button size="lg" className="bg-green-600 hover:bg-green-700 w-full sm:w-auto transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
                 <Search className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
                 Start Exploring
+              </Button>
+            </Link>
+            <Link to="/claim" className="flex-1 sm:flex-initial group">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50 dark:hover:bg-green-950 transform transition-all duration-200 hover:scale-105">
+                <QrCode className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+                Claim Treasure
               </Button>
             </Link>
             {user ? (
