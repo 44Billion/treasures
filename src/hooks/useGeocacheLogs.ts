@@ -4,7 +4,7 @@ import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
 import { useNostrQueryRelays } from './useNostrQueryRelays';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
-import { hasVerificationReference, verifyVerificationEvent } from '@/lib/verification';
+import { hasEmbeddedVerification, verifyEmbeddedVerification, getEmbeddedVerification } from '@/lib/verification';
 
 export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[], verificationPubkey?: string) {
   const { nostr } = useNostr();
@@ -106,19 +106,25 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
             parsed.sourceRelay = (event as NostrEvent & { sourceRelay?: string }).sourceRelay;
           }
           
-          // Check if this log has a verification reference
+          // Check if this log has embedded verification
           if (parsed && verificationPubkey) {
-            const verificationEventId = hasVerificationReference(event);
-            if (verificationEventId) {
-              // For now, mark as verified if it has a verification reference
-              // In a full implementation, we would fetch and verify the verification event
-              console.log('Found verification reference:', {
+            const embeddedVerification = getEmbeddedVerification(event);
+            if (embeddedVerification) {
+              console.log('Found embedded verification:', {
                 logId: event.id.slice(0, 8),
-                verificationEventId: verificationEventId.slice(0, 8),
-                logPubkey: event.pubkey
+                embeddedVerificationId: embeddedVerification.id.slice(0, 8),
+                logPubkey: event.pubkey,
+                verificationPubkey: embeddedVerification.pubkey
               });
-              parsed.isVerified = true;
-              parsed.verificationEventId = verificationEventId;
+              
+              // Verify the embedded verification event
+              const isValid = verifyEmbeddedVerification(event, verificationPubkey);
+              parsed.isVerified = isValid;
+              if (isValid) {
+                console.log('✅ Embedded verification is valid for log:', event.id.slice(0, 8));
+              } else {
+                console.log('❌ Embedded verification is invalid for log:', event.id.slice(0, 8));
+              }
             }
           }
           

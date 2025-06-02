@@ -134,50 +134,78 @@ export function createVerificationEvent(
 }
 
 /**
- * Sign a log event with the user's key, referencing a verification event
+ * Check if a log has embedded verification
  */
-export function signVerifiedLog(
-  userSigner: any,
-  eventTemplate: {
-    kind: number;
-    content: string;
-    tags: string[][];
-    created_at?: number;
-  },
-  verificationEventId: string
-): Promise<any> {
+export function hasEmbeddedVerification(event: any): boolean {
   try {
-    const event = {
-      ...eventTemplate,
-      created_at: eventTemplate.created_at || Math.floor(Date.now() / 1000),
-      tags: [
-        ...eventTemplate.tags,
-        ['e', verificationEventId, '', 'verification']
-      ]
-    };
-    
-    return userSigner.signEvent(event);
+    const embeddedVerification = getEmbeddedVerification(event);
+    return embeddedVerification !== null;
   } catch (error) {
-    console.error('Failed to sign verified log:', error);
-    throw new Error('Failed to sign log with user key');
+    console.log('Error checking embedded verification:', error);
+    return false;
   }
 }
 
 /**
- * Check if a log has a verification event reference
- * This doesn't verify the verification event itself - that should be done separately
+ * Check if a log has embedded verification event
+ */
+export function getEmbeddedVerification(event: any): any | null {
+  try {
+    // Look for embedded verification event
+    const verificationTag = event.tags.find((tag: string[]) => 
+      tag[0] === 'verification'
+    );
+    
+    if (!verificationTag || !verificationTag[1]) {
+      return null;
+    }
+    
+    // Parse the embedded verification event
+    return JSON.parse(verificationTag[1]);
+  } catch (error) {
+    console.log('Error parsing embedded verification:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if a log has embedded verification and return its ID
  */
 export function hasVerificationReference(event: any): string | null {
   try {
-    // Look for verification event reference
-    const verificationTag = event.tags.find((tag: string[]) => 
-      tag[0] === 'e' && tag[3] === 'verification'
-    );
-    
-    return verificationTag ? verificationTag[1] : null;
+    const embeddedVerification = getEmbeddedVerification(event);
+    return embeddedVerification ? embeddedVerification.id : null;
   } catch (error) {
     console.log('Error checking verification reference:', error);
     return null;
+  }
+}
+
+/**
+ * Verify that an embedded verification event is valid for a specific log
+ */
+export function verifyEmbeddedVerification(
+  logEvent: any, 
+  expectedVerificationPubkey: string
+): boolean {
+  try {
+    const embeddedVerification = getEmbeddedVerification(logEvent);
+    if (!embeddedVerification) {
+      console.log('No embedded verification found');
+      return false;
+    }
+    
+    console.log('verifyEmbeddedVerification called:', {
+      embeddedVerificationPubkey: embeddedVerification.pubkey,
+      logEventPubkey: logEvent.pubkey,
+      expectedVerificationPubkey,
+      embeddedVerificationKind: embeddedVerification.kind
+    });
+    
+    return verifyVerificationEvent(embeddedVerification, logEvent, expectedVerificationPubkey);
+  } catch (error) {
+    console.log('Embedded verification error:', error);
+    return false;
   }
 }
 

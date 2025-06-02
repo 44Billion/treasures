@@ -10,7 +10,7 @@ import {
   validateLogType,
   type ValidLogType
 } from '@/lib/nip-gc';
-import { createVerificationEvent, signVerifiedLog } from '@/lib/verification';
+import { createVerificationEvent } from '@/lib/verification';
 
 interface CreateVerifiedLogData extends CreateLogData {
   verificationKey: string; // nsec for signing
@@ -48,7 +48,7 @@ export function useCreateVerifiedLog() {
         throw new Error(`Invalid log type: ${data.type}`);
       }
       
-      console.log('Step 1: Creating verification event signed by cache verification key');
+      console.log('Step 1: Creating verification event for embedding in log');
       
       // Step 1: Create verification event signed by the cache's verification key
       const verificationEvent = createVerificationEvent(
@@ -58,59 +58,13 @@ export function useCreateVerifiedLog() {
         data.geocacheDTag!
       );
       
-      console.log('Created verification event:', {
+      console.log('Created verification event (will be embedded, not published):', {
         id: verificationEvent.id,
         pubkey: verificationEvent.pubkey,
         finderPubkey: user.pubkey
       });
       
-      // Publish the verification event first
-      let verificationPublished = false;
-      
-      // Try to publish verification event to preferred relays
-      if (data.preferredRelays && data.preferredRelays.length > 0) {
-        console.log('Publishing verification event to preferred relays:', data.preferredRelays);
-        
-        try {
-          const relayPromises = data.preferredRelays.map(async (url) => {
-            try {
-              const relay = new NRelay1(url);
-              await relay.event(verificationEvent, { signal: AbortSignal.timeout(5000) });
-              console.log(`Successfully published verification event to ${url}`);
-              return true;
-            } catch (error) {
-              console.error(`Failed to publish verification event to ${url}:`, error);
-              return false;
-            }
-          });
-
-          const results = await Promise.allSettled(relayPromises);
-          const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-          console.log(`Published verification event to ${successCount}/${data.preferredRelays.length} preferred relays`);
-          
-          if (successCount > 0) {
-            verificationPublished = true;
-          }
-        } catch (error) {
-          console.error('Error publishing verification event to preferred relays:', error);
-        }
-      }
-      
-      // Also try to publish verification event to default relays
-      try {
-        console.log('Publishing verification event to default relays...');
-        await nostr.event(verificationEvent, { signal: AbortSignal.timeout(10000) });
-        console.log('Successfully published verification event to default relays');
-        verificationPublished = true;
-      } catch (error) {
-        console.error('Failed to publish verification event to default relays:', error);
-      }
-      
-      if (!verificationPublished) {
-        throw new Error('Failed to publish verification event to any relays. Please check your connection and try again.');
-      }
-      
-      console.log('Step 2: Creating log event signed by user, referencing verification event');
+      console.log('Step 2: Creating log event with embedded verification');
       
       // Step 2: Build tags for the log event
       const tags = buildLogTags({
@@ -120,23 +74,29 @@ export function useCreateVerifiedLog() {
         images: data.images,
       });
       
-      // Create log event template
+      // Create log event template with embedded verification event
       const logEventTemplate = {
         kind: NIP_GC_KINDS.LOG,
         content: data.text.trim(),
-        tags,
+        tags: [
+          ...tags,
+          ['verification', JSON.stringify(verificationEvent)]
+        ],
       };
 
-      // Sign the log event with the user's key, referencing the verification event
-      const signedLogEvent = await signVerifiedLog(user.signer, logEventTemplate, verificationEvent.id);
-      
-      console.log('Signed log event:', {
-        id: signedLogEvent.id,
-        pubkey: signedLogEvent.pubkey,
-        verificationEventId: verificationEvent.id
+      // Sign the log event with the user's key
+      const signedLogEvent = await user.signer.signEvent({
+        ...logEventTemplate,
+        created_at: Math.floor(Date.now() / 1000)
       });
       
-      // Step 3: Publish the log event
+      console.log('Signed log event with embedded verification:', {
+        id: signedLogEvent.id,
+        pubkey: signedLogEvent.pubkey,
+        hasEmbeddedVerification: signedLogEvent.tags.some((t: string[]) => t[0] === 'verification')
+      });
+      
+      // Step 3: Publish the log event (with embedded verification)
       let logPublished = false;
       
       // First try to publish to preferred relays if provided
@@ -197,9 +157,9 @@ export function useCreateVerifiedLog() {
         console.warn('Could not verify log event on relays immediately, but this is normal:', error);
       }
       
-      console.log('Verified log process completed:', {
-        verificationEventId: verificationEvent.id,
-        logEventId: signedLogEvent.id
+      console.log('Verified log process completed (embedded verification):', {
+        logEventId: signedLogEvent.id,
+        verificationEmbedded: true
       });
       
       return { 
@@ -232,8 +192,7 @@ export function useCreateVerifiedLog() {
           images: variables.images || [],
           client: clientTag, // Include the client info
           relays: relayTags, // Include relay tags
-          isVerified: true, // Mark as verified
-          verificationEventId: verificationEvent.id, // Reference to verification event
+          isVerified: true, // Mark as verified (has embedded verification)
         };
         
         // Handle the case where oldData might be undefined or an empty array

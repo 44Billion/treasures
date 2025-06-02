@@ -52,6 +52,7 @@ The content field contains the cache description and any additional information 
 - `hint` (optional) - plaintext hint to help find the cache
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
+- `verification` (optional) - hex-encoded public key for verifying finds at this cache
 
 ## Log Event (Kind 7516)
 
@@ -79,6 +80,22 @@ Caches can be flagged as 'in maintenance' or requiring maintenance via the same 
 - `a` (required) - reference to the geocache being logged
 - `log-type` (required) - one of: `found`, `dnf`, `note`, `maintenance`, `archived`  
 - `image` (optional) - photos from the visit
+- `verification` (optional) - JSON-stringified verification event for verified found geocaches
+
+## Verified Finds
+
+The log event can include an embedded verification event to verify that the cache was actually found. This verification event is signed by the cache's verification key and embedded as JSON in a `verification` tag.
+
+The verification event follows this structure:
+- Kind: 1985 (NIP-32 label event)
+- Content: "Verified find by <finder-pubkey>"
+- Tags:
+  - `["L", "geocache-verification"]`
+  - `["l", "verified-find", "geocache-verification"]`
+  - `["p", "<finder-pubkey>", "", "finder"]`
+  - `["a", "<cache-coordinate>", "", "geocache"]`
+
+This approach ensures the verification is permanently attached to the log and cannot be separated or lost.
 
 ## Clients
 
@@ -110,6 +127,26 @@ For the best Geocaching experience, clients implementing geocaching support shou
 }
 ```
 
+### Verified Cache
+
+```json
+{
+  "kind": 37515,
+  "content": "High-security treasure requiring physical verification!",
+  "tags": [
+    ["d", "verified-treasure-1748619568669"],
+    ["name", "Verified Treasure"], 
+    ["g", "u4xsu6"],
+    ["difficulty", "3"],
+    ["terrain", "2"],
+    ["size", "small"],
+    ["cache-type", "traditional"],
+    ["hint", "Look for the secret code"],
+    ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]
+  ]
+}
+```
+
 ### Found Log
 
 ```json
@@ -119,6 +156,20 @@ For the best Geocaching experience, clients implementing geocaching support shou
   "tags": [
     ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
     ["log-type", "found"]
+  ]
+}
+```
+
+### Verified Found Log
+
+```json
+{
+  "kind": 7516,
+  "content": "Found it! Great hiding spot.",
+  "tags": [
+    ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
+    ["log-type", "found"],
+    ["verification", "{\"kind\":1985,\"content\":\"Verified find by finder-pubkey\",\"tags\":[[\"L\",\"geocache-verification\"],[\"l\",\"verified-find\",\"geocache-verification\"],[\"p\",\"finder-pubkey\",\"\",\"finder\"],[\"a\",\"37515:cache-pubkey:cache-dtag\",\"\",\"geocache\"]],\"created_at\":1234567890,\"pubkey\":\"verification-pubkey\",\"id\":\"verification-event-id\",\"sig\":\"verification-signature\"}"]
   ]
 }
 ```

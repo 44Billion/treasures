@@ -59,8 +59,7 @@ export interface GeocacheLog {
   sourceRelay?: string; // The relay this event was fetched from
   client?: string; // The client that created this event
   relays?: string[]; // Relay tags from the event
-  isVerified?: boolean; // Whether this log has a valid verification event
-  verificationEventId?: string; // ID of the verification event that validates this log
+  isVerified?: boolean; // Whether this log has a valid embedded verification event
 }
 
 export interface CreateGeocacheData {
