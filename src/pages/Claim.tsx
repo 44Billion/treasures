@@ -19,6 +19,7 @@ export default function Claim() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   
   const codeReader = useRef<BrowserQRCodeReader | null>(null);
 
@@ -136,7 +137,7 @@ export default function Claim() {
       // Try to start scanning with default camera first
       try {
         await codeReader.current.decodeFromVideoDevice(
-          undefined, // Use default camera
+          null, // Use default camera
           videoRef.current!,
           (result, error) => {
             if (result) {
@@ -202,42 +203,159 @@ export default function Claim() {
     setIsScanning(false);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Reset file input to allow selecting the same file again
+    event.target.value = '';
+
+    console.log('File upload started:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    // Create preview
+    const previewUrl = URL.createObjectURL(file);
+    setSelectedImagePreview(previewUrl);
 
     setIsProcessing(true);
     setError(null);
 
-    if (!codeReader.current) {
-      codeReader.current = new BrowserQRCodeReader();
-    }
+    try {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Please select an image file (JPG, PNG, GIF, etc.)');
+      }
 
-    // Create an image element to decode from
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    
-    img.onload = () => {
-      codeReader.current!.decodeFromImageElement(img)
-        .then((result) => {
-          handleQRCodeDetected(result.getText());
-          URL.revokeObjectURL(objectUrl); // Clean up
-        })
-        .catch((err) => {
-          console.error('Failed to read QR code from image:', err);
-          setError('Could not read QR code from image. Please try a clearer image.');
-          setIsProcessing(false);
-          URL.revokeObjectURL(objectUrl); // Clean up
-        });
-    };
-    
-    img.onerror = () => {
-      setError('Failed to load image. Please try a different file.');
+      // Check file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        throw new Error('Image file is too large. Please use an image smaller than 10MB.');
+      }
+
+      // Initialize QR reader
+      if (!codeReader.current) {
+        codeReader.current = new BrowserQRCodeReader();
+      }
+
+      // Try multiple approaches for better compatibility
+      let qrResult: string | null = null;
+
+      // Approach 1: Direct file reading with FileReader (better for large files)
+      try {
+        qrResult = await readQRFromFileReader(file);
+        console.log('QR code read via FileReader approach');
+      } catch (fileReaderError) {
+        console.log('FileReader approach failed:', fileReaderError);
+      }
+
+      // Approach 2: Object URL approach (fallback)
+      if (!qrResult) {
+        try {
+          qrResult = await readQRFromObjectURL(file);
+          console.log('QR code read via Object URL approach');
+        } catch (objectUrlError) {
+          console.log('Object URL approach also failed:', objectUrlError);
+          throw new Error('Unable to read QR code from this image. Please try a different image with a clear, well-lit QR code.');
+        }
+      }
+
+      if (qrResult) {
+        console.log('QR code successfully detected from uploaded file:', qrResult);
+        handleQRCodeDetected(qrResult);
+      } else {
+        throw new Error('No QR code found in the image. Please try a different image.');
+      }
+
+    } catch (error) {
+      console.error('File upload error:', error);
+      const errorObj = error as { message?: string };
+      setError(errorObj.message || 'Failed to process image. Please try again.');
       setIsProcessing(false);
-      URL.revokeObjectURL(objectUrl); // Clean up
-    };
-    
-    img.src = objectUrl;
+    } finally {
+      // Clean up preview after processing
+      if (previewUrl) {
+        setTimeout(() => {
+          URL.revokeObjectURL(previewUrl);
+          setSelectedImagePreview(null);
+        }, 2000);
+      }
+    }
+  };
+
+  // Helper function to read QR code using FileReader approach
+  const readQRFromFileReader = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          const img = new Image();
+          
+          img.onload = () => {
+            codeReader.current!.decodeFromImageElement(img)
+              .then((qrResult) => {
+                resolve(qrResult.getText());
+              })
+              .catch(reject);
+          };
+          
+          img.onerror = () => {
+            reject(new Error('Failed to load image from FileReader data'));
+          };
+          
+          img.src = result;
+        } else {
+          reject(new Error('Invalid FileReader result'));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Helper function to read QR code using Object URL approach
+  const readQRFromObjectURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      
+      // Set up cleanup function
+      const cleanup = () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+      
+      img.onload = () => {
+        // Add small delay to ensure image is fully rendered
+        setTimeout(() => {
+          codeReader.current!.decodeFromImageElement(img)
+            .then((result) => {
+              cleanup();
+              resolve(result.getText());
+            })
+            .catch((error) => {
+              cleanup();
+              reject(error);
+            });
+        }, 100);
+      };
+      
+      img.onerror = () => {
+        cleanup();
+        reject(new Error('Failed to load image from object URL'));
+      };
+      
+      // Set crossOrigin to handle potential CORS issues
+      img.crossOrigin = 'anonymous';
+      img.src = objectUrl;
+    });
   };
 
   return (
@@ -346,7 +464,7 @@ export default function Claim() {
               Alternatively, upload a photo of the QR code
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <input
               ref={fileInputRef}
               type="file"
@@ -355,6 +473,25 @@ export default function Claim() {
               onChange={handleFileUpload}
               className="hidden"
             />
+            
+            {/* Image preview */}
+            {selectedImagePreview && (
+              <div className="relative">
+                <img
+                  src={selectedImagePreview}
+                  alt="Selected QR code image"
+                  className="w-full max-h-64 object-contain rounded-lg border bg-muted"
+                />
+                <div className="absolute top-2 right-2">
+                  {isProcessing && (
+                    <div className="bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                      Analyzing...
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <Button
               onClick={() => fileInputRef.current?.click()}
               variant="outline"
@@ -364,15 +501,26 @@ export default function Claim() {
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
+                  Processing image...
                 </>
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Choose Image
+                  {selectedImagePreview ? 'Choose Different Image' : 'Choose Image'}
                 </>
               )}
             </Button>
+            
+            {/* File upload tips */}
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p className="font-medium">Tips for best results:</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li>Ensure the QR code is clearly visible and well-lit</li>
+                <li>Hold your camera steady and close enough to read the code</li>
+                <li>Avoid shadows, glare, or blurry images</li>
+                <li>Supported formats: JPG, PNG, GIF (max 10MB)</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
 

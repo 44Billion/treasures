@@ -116,18 +116,18 @@ export function ProfileHeader({
                   title="Click to copy npub"
                 >
                 {isLoadingNip05 ? (
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" title="Verifying NIP-05..." />
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                 ) : isVerified ? (
-                  <ShieldCheck className="h-3 w-3 text-green-600" title="NIP-05 verified" />
+                  <ShieldCheck className="h-3 w-3 text-green-600" />
                 ) : nip05Error ? (
                   isTimeout ? (
-                    <Clock className="h-3 w-3 text-amber-500" title="NIP-05 verification timed out - server may be slow" />
+                    <Clock className="h-3 w-3 text-amber-500" />
                   ) : isNetworkError ? (
-                    <AlertCircle className="h-3 w-3 text-orange-500" title="Network error during NIP-05 verification" />
+                    <AlertCircle className="h-3 w-3 text-orange-500" />
                   ) : isInvalidFormat ? (
-                    <AlertCircle className="h-3 w-3 text-red-500" title="Invalid NIP-05 format" />
+                    <AlertCircle className="h-3 w-3 text-red-500" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 text-red-500" title={`NIP-05 verification failed: ${nip05Error}`} />
+                    <AlertCircle className="h-3 w-3 text-red-500" />
                   )
                 ) : null}
                 <span>{nip05}</span>

@@ -76,7 +76,7 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
         }
         
         // Parse geocaches
-        let geocaches: Geocache[] = events
+        const geocaches: Geocache[] = events
           .map(parseGeocacheEvent)
           .filter((g): g is Geocache => g !== null);
 
