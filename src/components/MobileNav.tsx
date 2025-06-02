@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Menu, X, Settings, Bookmark, LogOut, User, Edit, QrCode } from 'lucide-react';
+import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { OfflineStatusBadge } from '@/components/OfflineIndicator';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -114,6 +114,9 @@ export function MobileHeader() {
                       <p className="text-xs text-muted-foreground">Logged in</p>
                     </div>
                   </div>
+                  <div className="px-3 py-2">
+                    <OfflineIndicator showDetails={false} />
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -140,7 +143,6 @@ export function MobileHeader() {
         </Link>
         
         <div className="-mr-2 flex items-center gap-2">
-          <OfflineStatusBadge />
           <LoginArea compact />
         </div>
       </div>

@@ -175,6 +175,7 @@ export function useOfflineSettings() {
           'units',
           'notifications',
           'offlineMode',
+          'offlineOnly',
           'autoSync',
         ];
 

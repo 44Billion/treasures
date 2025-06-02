@@ -376,6 +376,20 @@ export function OfflineSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
+              <Label htmlFor="offline-only">Offline Only Mode</Label>
+              <div className="text-sm text-muted-foreground">
+                Force app to work offline and show offline status
+              </div>
+            </div>
+            <Switch
+              id="offline-only"
+              checked={settings.offlineOnly as boolean ?? false}
+              onCheckedChange={(checked) => setSetting({ key: 'offlineOnly', value: checked })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
               <Label htmlFor="cache-maps">Auto-cache Map Areas</Label>
               <div className="text-sm text-muted-foreground">
                 Automatically download map tiles for viewed areas

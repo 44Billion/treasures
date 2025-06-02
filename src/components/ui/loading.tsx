@@ -94,7 +94,7 @@ export function LoadingState({
 
   if (fullPage) {
     return (
-      <div className="h-mobile-fit md:h-screen w-full bg-muted/30 flex items-center justify-center overflow-hidden">
+      <div className="fixed inset-0 z-50 bg-muted/30 flex items-center justify-center overflow-hidden">
         {content}
       </div>
     );
