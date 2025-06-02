@@ -249,9 +249,6 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
     // Parse optional tags
     const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
     const client = event.tags.find(t => t[0] === 'client')?.[1];
-    
-    // Check for user attribution in verified logs
-    const authorPubkey = event.tags.find(t => t[0] === 'p' && t[3] === 'author')?.[1];
 
     return {
       id: event.id,
@@ -262,7 +259,6 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
       text: event.content, // Log text is in content field per NIP-GC
       images,
       client,
-      authorPubkey, // The actual user who submitted the log (for verified logs)
     };
   } catch (error) {
     console.error('Failed to parse log event:', error, event);

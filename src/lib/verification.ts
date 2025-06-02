@@ -2,7 +2,7 @@
  * Geocache verification utilities using Nostr key pairs
  */
 
-import { generateSecretKey, getPublicKey, finalizeEvent, verifyEvent } from 'nostr-tools';
+import { generateSecretKey, getPublicKey, finalizeEvent, verifyEvent, getEventHash } from 'nostr-tools';
 import { nip19 } from 'nostr-tools';
 import QRCode from 'qrcode';
 
@@ -96,15 +96,14 @@ export function verifyKeyPair(nsec: string, expectedPubkey: string): boolean {
 }
 
 /**
- * Create a verification event signed by the cache's verification key
- * This event attests that the specified user found the cache
+ * Create an attestation signature for a verified find
+ * Signs the string 'finderNpub:naddr' with the verification private key
  */
-export function createVerificationEvent(
+export function createAttestation(
   nsec: string,
-  finderPubkey: string,
-  geocachePubkey: string,
-  geocacheDTag: string
-): any {
+  finderNpub: string,
+  naddr: string
+): { signature: string; message: string } {
   try {
     const decoded = nip19.decode(nsec);
     if (decoded.type !== 'nsec') {
@@ -113,40 +112,124 @@ export function createVerificationEvent(
     
     const privateKey = decoded.data;
     
-    const event = {
-      kind: 1985, // NIP-32 label event kind
-      content: `Verified find by ${finderPubkey}`,
-      tags: [
-        ['L', 'geocache-verification'],
-        ['l', 'verified-find', 'geocache-verification'],
-        ['p', finderPubkey, '', 'finder'],
-        ['a', `30001:${geocachePubkey}:${geocacheDTag}`, '', 'geocache']
-      ],
-      created_at: Math.floor(Date.now() / 1000),
-      pubkey: getPublicKey(privateKey),
-    };
+    // Create the attestation message
+    const attestationMessage = `${finderNpub}:${naddr}`;
     
-    return finalizeEvent(event, privateKey);
+    // Create a minimal event to sign the attestation message
+    const event = finalizeEvent({
+      kind: 1,
+      content: attestationMessage,
+      tags: [],
+      created_at: 0, // Use 0 timestamp for deterministic signatures
+    }, privateKey);
+    
+    return {
+      signature: event.sig,
+      message: attestationMessage
+    };
   } catch (error) {
-    console.error('Failed to create verification event:', error);
-    throw new Error('Failed to create verification event');
+    console.error('Failed to create attestation:', error);
+    throw new Error('Failed to create attestation');
   }
 }
 
 /**
- * Check if a log has embedded verification
+ * Verify an attestation signature 
+ * Verifies that the signature was created by signing 'finderNpub:naddr' with the verification key
  */
-export function hasEmbeddedVerification(event: any): boolean {
+export function verifyAttestation(
+  signature: string,
+  finderNpub: string,  
+  naddr: string,
+  expectedVerificationPubkey: string
+): boolean {
   try {
-    const embeddedVerification = getEmbeddedVerification(event);
-    return embeddedVerification !== null;
+    // Recreate the attestation message
+    const attestationMessage = `${finderNpub}:${naddr}`;
+    
+    // Recreate the exact event structure that was signed
+    const event = {
+      kind: 1,
+      content: attestationMessage,
+      tags: [],
+      created_at: 0, // Same deterministic timestamp
+      pubkey: expectedVerificationPubkey,
+      id: '', // Will be set by getEventHash
+      sig: signature
+    };
+    
+    // Calculate the event hash and set it
+    event.id = getEventHash(event);
+    
+    // Verify the complete event
+    return verifyEvent(event);
   } catch (error) {
-    console.log('Error checking embedded verification:', error);
+    console.error('Failed to verify attestation:', error);
     return false;
   }
 }
 
 /**
+ * Get attestation signature from a log event
+ */
+export function getAttestationSignature(event: any): string | null {
+  try {
+    // Look for attestation tag with just the signature
+    const attestationTag = event.tags.find((tag: string[]) => 
+      tag[0] === 'attestation' && tag[1]
+    );
+    
+    return attestationTag?.[1] || null;
+  } catch (error) {
+    console.log('Error getting attestation signature:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if a log has an attestation signature
+ */
+export function hasAttestation(event: any): boolean {
+  return getAttestationSignature(event) !== null;
+}
+
+/**
+ * Verify that a log event has a valid attestation
+ */
+export function verifyLogAttestation(
+  logEvent: any,
+  naddr: string,
+  expectedVerificationPubkey: string
+): boolean {
+  try {
+    const signature = getAttestationSignature(logEvent);
+    if (!signature) {
+      console.log('No attestation signature found');
+      return false;
+    }
+    
+    // Convert finder pubkey to npub format
+    const finderNpub = nip19.npubEncode(logEvent.pubkey);
+    
+    // Verify the attestation
+    return verifyAttestation(
+      signature,
+      finderNpub,
+      naddr,
+      expectedVerificationPubkey
+    );
+  } catch (error) {
+    console.log('Log attestation verification error:', error);
+    return false;
+  }
+}
+
+// ===== DEPRECATED VERIFICATION FUNCTIONS =====
+// The following functions are kept for backward compatibility
+// New code should use the attestation-based functions above
+
+/**
+ * @deprecated Use hasAttestation instead
  * Check if a log has embedded verification event
  */
 export function getEmbeddedVerification(event: any): any | null {

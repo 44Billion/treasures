@@ -4,7 +4,8 @@ import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
 import { useNostrQueryRelays } from './useNostrQueryRelays';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
-import { hasEmbeddedVerification, verifyEmbeddedVerification, getEmbeddedVerification } from '@/lib/verification';
+import { hasAttestation, verifyLogAttestation, getAttestationSignature } from '@/lib/verification';
+import { geocacheToNaddr } from '@/lib/naddr-utils';
 
 export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[], verificationPubkey?: string) {
   const { nostr } = useNostr();
@@ -106,24 +107,26 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
             parsed.sourceRelay = (event as NostrEvent & { sourceRelay?: string }).sourceRelay;
           }
           
-          // Check if this log has embedded verification
-          if (parsed && verificationPubkey) {
-            const embeddedVerification = getEmbeddedVerification(event);
-            if (embeddedVerification) {
-              console.log('Found embedded verification:', {
+          // Check if this log has embedded attestation
+          if (parsed && verificationPubkey && geocachePubkey && geocacheDTag) {
+            const signature = getAttestationSignature(event);
+            if (signature) {
+              console.log('Found embedded attestation:', {
                 logId: event.id.slice(0, 8),
-                embeddedVerificationId: embeddedVerification.id.slice(0, 8),
-                logPubkey: event.pubkey,
-                verificationPubkey: embeddedVerification.pubkey
+                signaturePreview: signature.slice(0, 16) + '...',
+                logPubkey: event.pubkey
               });
               
-              // Verify the embedded verification event
-              const isValid = verifyEmbeddedVerification(event, verificationPubkey);
+              // Generate naddr for verification
+              const naddr = geocacheToNaddr(geocachePubkey, geocacheDTag, preferredRelays);
+              
+              // Verify the embedded attestation
+              const isValid = verifyLogAttestation(event, naddr, verificationPubkey);
               parsed.isVerified = isValid;
               if (isValid) {
-                console.log('✅ Embedded verification is valid for log:', event.id.slice(0, 8));
+                console.log('✅ Embedded attestation is valid for log:', event.id.slice(0, 8));
               } else {
-                console.log('❌ Embedded verification is invalid for log:', event.id.slice(0, 8));
+                console.log('❌ Embedded attestation is invalid for log:', event.id.slice(0, 8));
               }
             }
           }

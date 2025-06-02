@@ -456,7 +456,7 @@ export default function CacheDetail() {
                   geocache={geocache}
                   onProfileClick={handleProfileClick}
                   isOwner={isOwner}
-                  verificationKey={verificationKey}
+                  verificationKey={verificationKey || undefined}
                   isVerificationValid={isVerificationValid}
                 />
               </TabsContent>
