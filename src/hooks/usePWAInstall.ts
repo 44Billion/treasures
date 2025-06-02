@@ -25,7 +25,6 @@ export function usePWAInstall() {
     // Only set installable to true if we actually have a deferred prompt
     const checkInstallable = () => {
       if (window.deferredPrompt) {
-        console.log('PWA: deferredPrompt available, setting installable to true');
         setInstallable(true);
       } else {
         setInstallable(false);
@@ -37,7 +36,6 @@ export function usePWAInstall() {
 
     // Listen for custom PWA installable event (only fired when we actually capture the event)
     const handlePWAInstallable = () => {
-      console.log('PWA: installable event received');
       checkInstallable();
     };
 
@@ -50,7 +48,6 @@ export function usePWAInstall() {
 
     // Listen for beforeinstallprompt as backup
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('PWA: beforeinstallprompt event received in hook');
       e.preventDefault();
       window.deferredPrompt = e as unknown as Window['deferredPrompt'];
       setInstallable(true);
@@ -71,19 +68,15 @@ export function usePWAInstall() {
     const deferredPrompt = window.deferredPrompt;
     
     if (!deferredPrompt) {
-      console.log('PWA: No deferred prompt available for installation');
       return false;
     }
 
     setInstalling(true);
     try {
-      console.log('PWA: Attempting to show install prompt');
       await deferredPrompt.prompt();
       const result = await deferredPrompt.userChoice;
       
-      console.log('PWA: User choice:', result.outcome);
       if (result.outcome === 'accepted') {
-        console.log('PWA: Installation accepted');
         setInstalled(true);
         setInstallable(false);
         window.deferredPrompt = undefined;
@@ -92,7 +85,6 @@ export function usePWAInstall() {
       
       return false;
     } catch (error) {
-      console.error('PWA: Install prompt failed:', error);
       return false;
     } finally {
       setInstalling(false);

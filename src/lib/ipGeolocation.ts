@@ -72,15 +72,12 @@ export async function getIPLocation(): Promise<IPLocation | null> {
         location.lng >= -180 && 
         location.lng <= 180
       ) {
-        console.log(`IP geolocation successful via ${service.name}`);
         return location;
       }
     } catch (error) {
       // Only log non-CORS errors to reduce console noise
       if (error instanceof TypeError && error.message.includes('CORS')) {
-        console.debug(`CORS issue with ${service.name}, trying next service...`);
       } else {
-        console.error(`IP geolocation failed for ${service.name}:`, error);
       }
     }
     return null;
@@ -95,6 +92,5 @@ export async function getIPLocation(): Promise<IPLocation | null> {
     }
   }
   
-  console.warn('All IP geolocation services failed. User location will need to be set manually.');
   return null;
 }

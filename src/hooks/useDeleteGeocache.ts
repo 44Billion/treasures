@@ -31,7 +31,6 @@ export function useDeleteGeocache() {
       queryClient.invalidateQueries({ queryKey: ['geocaches'] });
     },
     onError: (error) => {
-      console.error('Failed to delete geocache:', error);
       toast({
         title: "Failed to delete geocache",
         description: "Please try again later.",

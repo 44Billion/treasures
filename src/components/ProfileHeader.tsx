@@ -64,7 +64,6 @@ export function ProfileHeader({
         setCopiedField(field);
         setTimeout(() => setCopiedField(null), 2000);
       } catch (error) {
-        console.error('Failed to copy:', error);
       }
     }
   };

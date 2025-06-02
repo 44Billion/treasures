@@ -328,7 +328,6 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
     });
     
     if (!response.ok) {
-      console.error('Overpass API error:', response.status);
       return {
         isRestricted: false,
         warnings: ['Unable to verify location restrictions. Please manually verify the location is appropriate.'],
@@ -712,7 +711,6 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
     };
     
   } catch (error) {
-    console.error('Error verifying location:', error);
     return {
       isRestricted: false,
       warnings: ['Unable to verify location restrictions. Please manually verify the location is appropriate.'],

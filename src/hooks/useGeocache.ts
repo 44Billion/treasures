@@ -16,7 +16,6 @@ export function useGeocache(id: string) {
   return useQuery({
     queryKey: ['geocache', id, isSafari()],
     queryFn: async (c) => {
-      console.log('🔍 [GEOCACHE] Starting query for ID:', id);
       
       try {
         // Create signal for non-Safari queries
@@ -32,7 +31,6 @@ export function useGeocache(id: string) {
         let events: NostrEvent[];
         
         if (isSafari()) {
-          console.log('🍎 [GEOCACHE] Using Safari client for individual cache');
           const safariClient = createSafariNostr([
             'wss://ditto.pub/relay'
           ]);
@@ -47,23 +45,18 @@ export function useGeocache(id: string) {
         } else {
           events = await nostr.query([filter], { signal });
         }
-        console.log('🎯 [GEOCACHE] Query returned:', events.length, 'events');
 
         if (events.length === 0) {
-          console.log('❌ [GEOCACHE] No geocache found with ID:', id);
           return null;
         }
 
         const geocache = parseGeocacheEvent(events[0]);
         if (!geocache) {
-          console.log('❌ [GEOCACHE] Failed to parse geocache event');
           return null;
         }
 
-        console.log('✅ [GEOCACHE] Successfully loaded geocache:', geocache.name);
 
         // Quick log count fetch
-        console.log('📊 [GEOCACHE] Fetching log counts...');
         
         // Get logs for this specific geocache
         const logFilter: NostrFilter = {
@@ -84,7 +77,6 @@ export function useGeocache(id: string) {
             safariClient.close();
           } catch (error) {
             safariClient.close();
-            console.warn('🍎 [GEOCACHE] Safari log query failed, continuing without counts');
             logEvents = [];
           }
         } else {
@@ -108,7 +100,6 @@ export function useGeocache(id: string) {
           logCount,
         };
 
-        console.log('✅ [GEOCACHE] Final result:', {
           id: result.id.slice(0, 8),
           name: result.name,
           logCount: result.logCount,
@@ -117,7 +108,6 @@ export function useGeocache(id: string) {
 
         return result;
       } catch (error) {
-        console.error('❌ [GEOCACHE] Query failed:', error);
         throw error;
       }
     },

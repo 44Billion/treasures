@@ -255,8 +255,6 @@ function MapController({
   
   useEffect(() => {
     if (center) {
-      console.log('Setting map view to:', center, 'zoom:', zoom);
-      
       // If we have a search location with radius, fit bounds to show the full circle
       if (searchLocation && searchRadius) {
         const bounds = L.latLng(searchLocation.lat, searchLocation.lng).toBounds(searchRadius * 1000);
@@ -553,11 +551,6 @@ export function GeocacheMap({
   if (iosDetected) {
     logIOSInfo();
   }
-  
-  console.log('GeocacheMap - iOS detected:', iosDetected);
-  console.log('GeocacheMap - geocaches count:', geocaches.length);
-  console.log('GeocacheMap - mapCenter:', mapCenter);
-  console.log('GeocacheMap - mapOptions:', mapOptions);
 
   // Set up event listener for popup view details button
   useEffect(() => {
@@ -738,7 +731,6 @@ export function GeocacheMap({
                           : `"${geocache.name}" has been saved to your Nostr profile.`,
                       });
                     } catch (error) {
-                      console.error('Failed to toggle save cache:', error);
                       const errorMessage = error instanceof Error ? error.message : 'Failed to save cache. Please try again.';
                       toast({
                         title: 'Error saving cache',

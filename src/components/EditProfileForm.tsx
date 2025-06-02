@@ -68,7 +68,6 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
         description: `${field === 'picture' ? 'Profile picture' : 'Banner'} uploaded successfully`,
       });
     } catch (error) {
-      console.error(`Failed to upload ${field}:`, error);
       toast({
         title: 'Error',
         description: `Failed to upload ${field === 'picture' ? 'profile picture' : 'banner'}. Please try again.`,
@@ -116,7 +115,6 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
       // Call onSuccess callback if provided (to close modal)
       onSuccess?.();
     } catch (error) {
-      console.error('Failed to update profile:', error);
       toast({
         title: 'Error',
         description: 'Failed to update your profile. Please try again.',

@@ -22,17 +22,7 @@ export const isOldIOS = (): boolean => {
 };
 
 export const logIOSInfo = (): void => {
-  console.log('=== iOS Detection ===');
-  console.log('iOS:', isIOS());
-  console.log('iOS Safari:', isIOSSafari());
-  console.log('iOS Version:', getIOSVersion());
-  console.log('Old iOS:', isOldIOS());
-  console.log('User Agent:', navigator.userAgent);
-  console.log('Viewport:', {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    devicePixelRatio: window.devicePixelRatio
-  });
+  // iOS info logging removed for production
 };
 
 export const getIOSCompatibleMapOptions = () => {

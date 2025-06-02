@@ -30,7 +30,6 @@ export default function Claim() {
       try {
         // Check if mediaDevices is supported
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          console.log('Camera API not supported');
           setHasCamera(false);
           return;
         }
@@ -44,7 +43,6 @@ export default function Claim() {
         setHasCamera(true);
         setCameraPermission('granted');
       } catch (err) {
-        console.log('Camera not available:', err);
         const errorObj = err as { name?: string };
         setHasCamera(false);
         
@@ -96,7 +94,6 @@ export default function Claim() {
   };
 
   const handleQRCodeDetected = (result: string) => {
-    console.log('QR Code detected:', result);
     setIsProcessing(true);
     
     const validation = validateTreasureUrl(result);
@@ -146,13 +143,11 @@ export default function Claim() {
               stopScanning();
             }
             if (error && !(error.name === 'NotFoundException')) {
-              console.error('QR scanning error:', error);
+              // Ignore NotFoundException errors as they're expected when no QR code is visible
             }
           }
         );
       } catch (defaultCameraError) {
-        console.warn('Default camera failed, trying to enumerate devices:', defaultCameraError);
-        
         // Fallback: try to get video input devices using navigator.mediaDevices
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();
@@ -174,17 +169,15 @@ export default function Claim() {
                 stopScanning();
               }
               if (error && !(error.name === 'NotFoundException')) {
-                console.error('QR scanning error:', error);
+                // Ignore NotFoundException errors as they're expected when no QR code is visible
               }
             }
           );
         } catch (deviceError) {
-          console.error('Device enumeration also failed:', deviceError);
           throw defaultCameraError; // Throw the original error
         }
       }
     } catch (err) {
-      console.error('Failed to start camera:', err);
       const errorObj = err as { message?: string; name?: string };
       
       if (errorObj.name === 'NotAllowedError') {
@@ -211,7 +204,6 @@ export default function Claim() {
     // Reset file input
     event.target.value = '';
 
-    console.log('📸 File selected:', file.name, file.type, file.size);
     setIsProcessing(true);
     setError(null);
 
@@ -234,17 +226,14 @@ export default function Claim() {
       });
       
       setSelectedImagePreview(previewDataUrl);
-      console.log('📸 Preview created');
 
       // Try to read QR code
       const qrData = await readQRFromFile(file);
-      console.log('📸 QR found:', qrData.substring(0, 50) + '...');
       
       // Process the QR code
       handleQRCodeDetected(qrData);
 
     } catch (error) {
-      console.error('📸 Upload failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Upload failed';
       setError(errorMessage);
       setIsProcessing(false);
@@ -254,8 +243,6 @@ export default function Claim() {
   // Use jsQR for static images (simple & reliable), ZXing for camera
   const readQRFromFile = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      console.log('📸 Using jsQR for static image (instant)...');
-      
       const reader = new FileReader();
       reader.onload = (event) => {
         const dataUrl = event.target?.result as string;
@@ -277,16 +264,13 @@ export default function Claim() {
           
           // Get image data for jsQR
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          console.log('📸 Scanning with jsQR...', canvas.width, 'x', canvas.height);
           
           // jsQR is synchronous and reliable for static images
           const code = jsQR(imageData.data, imageData.width, imageData.height);
           
           if (code) {
-            console.log('📸 jsQR SUCCESS:', code.data.substring(0, 50) + '...');
             resolve(code.data);
           } else {
-            console.log('📸 jsQR found no QR code');
             reject(new Error('No QR code found in image'));
           }
         };

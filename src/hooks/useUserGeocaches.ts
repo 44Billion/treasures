@@ -19,8 +19,6 @@ export function useUserGeocaches(targetPubkey?: string) {
     queryFn: async (c) => {
       if (!pubkey || !nostr) return [];
       
-      console.log('🔄 [USER GEOCACHES] Starting query for user:', pubkey.slice(0, 8));
-      
       try {
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(10000)]);
         
@@ -33,8 +31,6 @@ export function useUserGeocaches(targetPubkey?: string) {
           }],
           { signal }
         );
-        
-        console.log('Found', geocacheEvents.length, 'geocache events');
         
         if (geocacheEvents.length === 0) {
           return [];
@@ -54,8 +50,6 @@ export function useUserGeocaches(targetPubkey?: string) {
         }).filter((geocache): geocache is NonNullable<typeof geocache> => geocache !== null);
         
         // Now fetch log counts for each geocache
-        console.log('Fetching log counts for user geocaches...');
-        
         const logCountFilters: NostrFilter[] = geocaches.map(geocache => ({
           kinds: [NIP_GC_KINDS.LOG],
           '#a': [createGeocacheCoordinate(geocache.pubkey, geocache.dTag)],
@@ -63,7 +57,6 @@ export function useUserGeocaches(targetPubkey?: string) {
         }));
         
         const allLogEvents = await queryWithRelays(logCountFilters, { signal });
-        console.log('Found', allLogEvents.length, 'total log events for user geocaches');
         
         // Group logs by geocache and count them
         const logCounts = new Map<string, { total: number; found: number }>();
@@ -91,8 +84,6 @@ export function useUserGeocaches(targetPubkey?: string) {
           }
         }
         
-        console.log('User geocache log counts calculated:', Object.fromEntries(logCounts));
-        
         // Update geocaches with counts
         const geocachesWithCounts = geocaches.map(geocache => {
           const ref = `${geocache.pubkey}:${geocache.dTag}`;
@@ -108,12 +99,9 @@ export function useUserGeocaches(targetPubkey?: string) {
         // Sort by creation date (newest first)
         geocachesWithCounts.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
         
-        console.log('✅ [USER GEOCACHES] Final result:', geocachesWithCounts.length, 'geocaches with counts');
-        
         return geocachesWithCounts;
         
       } catch (error) {
-        console.error('❌ [USER GEOCACHES] Query failed:', error);
         throw error;
       }
     },

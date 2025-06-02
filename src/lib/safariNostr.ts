@@ -34,13 +34,11 @@ class SafariNostrClient {
 
       ws.onopen = () => {
         clearTimeout(timeout);
-        console.log(`Connected to ${url}`);
         resolve(ws);
       };
 
       ws.onerror = (error) => {
         clearTimeout(timeout);
-        console.error(`Connection error to ${url}:`, error);
         reject(new Error(`Failed to connect to ${url}`));
       };
 
@@ -68,14 +66,11 @@ class SafariNostrClient {
     for (const relayUrl of this.relays) {
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-          console.log(`Attempting query on ${relayUrl}, attempt ${attempt + 1}`);
           const events = await this.queryRelay(relayUrl, filters, timeout);
           if (events.length > 0) {
-            console.log(`Success: Got ${events.length} events from ${relayUrl}`);
             return events;
           }
         } catch (error) {
-          console.warn(`Query failed on ${relayUrl}, attempt ${attempt + 1}:`, error);
           // Clean up failed connection
           const ws = this.connections.get(relayUrl);
           if (ws) {
@@ -87,7 +82,6 @@ class SafariNostrClient {
     }
 
     // If all relays fail, return empty array instead of throwing
-    console.warn('All relays failed, returning empty results');
     return [];
   }
 
@@ -127,10 +121,8 @@ class SafariNostrClient {
               resolve(events);
             }
           } else if (message[0] === 'NOTICE') {
-            console.warn(`Notice from ${relayUrl}:`, message[1]);
           }
         } catch (parseError) {
-          console.warn('Failed to parse message:', parseError);
         }
       };
 
@@ -139,7 +131,6 @@ class SafariNostrClient {
       // Send REQ
       const reqMessage = JSON.stringify(['REQ', subId, ...filters]);
       ws.send(reqMessage);
-      console.log(`Sent REQ to ${relayUrl}:`, reqMessage);
 
       // Send CLOSE after a short delay to ensure we get EOSE
       setTimeout(() => {

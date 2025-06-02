@@ -32,21 +32,17 @@ export function useDeleteLog() {
           created_at: Math.floor(Date.now() / 1000),
         });
 
-        console.log('Deletion event signed:', event.id);
 
         // Send to relays with a shorter timeout and no verification
         // Deletion events don't need strict verification since they're fire-and-forget
         try {
           await nostr.event(event, { signal: AbortSignal.timeout(8000) });
-          console.log('Deletion event sent to relays');
         } catch (publishError) {
-          console.warn('Publishing to some relays failed, but deletion event was signed:', publishError);
           // Don't throw here - the event was signed and some relays might have received it
         }
 
         return event;
       } catch (error: unknown) {
-        console.error("Failed to create deletion event:", error);
         
         const errorObj = error as { message?: string };
         if (errorObj.message?.includes("User rejected")) {
@@ -80,7 +76,6 @@ export function useDeleteLog() {
       queryClient.invalidateQueries({ queryKey: ['geocaches'] });
     },
     onError: (error: unknown) => {
-      console.error('Failed to delete log:', error);
       const errorObj = error as { message?: string };
       
       let errorMessage = "Please try again later.";

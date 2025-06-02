@@ -35,7 +35,6 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         throw new Error("No geocache to edit");
       }
       
-      console.log('Editing geocache:', originalGeocache.id);
       
       // Validate data according to NIP-GC
       if (!data.name?.trim()) {
@@ -60,15 +59,9 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       }
 
       // Create the updated geocache event using tag-based format
-      console.log('Publishing geocache edit with data:', { 
-        name: data.name, 
-        originalId: originalGeocache.id,
-        originalDTag: originalGeocache.dTag,
-      });
 
       // FIXED: Use the original d-tag for proper replacement
       // This ensures any edits will replace the original properly
-      console.log('Using replacement strategy with original d-tag:', originalGeocache.dTag);
       
       // Build tags using consolidated utility
       const tags = buildGeocacheTags({
@@ -109,7 +102,6 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
           // Use consolidated parsing utility
           const parsed = parseGeocacheEvent(event);
           if (!parsed) {
-            console.warn('Failed to parse edited geocache event');
             return oldData;
           }
           
@@ -130,7 +122,6 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
           // Use consolidated parsing utility
           const parsed = parseGeocacheEvent(event);
           if (!parsed) {
-            console.warn('Failed to parse edited geocache event');
             return oldData;
           }
           
@@ -160,7 +151,6 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       }, 2000);
     },
     onError: (error: unknown) => {
-      console.error('Failed to edit geocache:', error);
       
       let errorMessage = "Please try again later.";
       

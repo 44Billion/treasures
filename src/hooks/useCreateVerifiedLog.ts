@@ -24,8 +24,6 @@ export function useCreateVerifiedLog() {
 
   return useMutation({
     mutationFn: async (data: CreateVerifiedLogData) => {
-      console.log('Creating verified log for geocache:', data.geocacheId);
-      
       // Validate data
       if (!data.geocacheId) {
         throw new Error('Geocache ID is required');
@@ -48,8 +46,6 @@ export function useCreateVerifiedLog() {
         throw new Error(`Invalid log type: ${data.type}`);
       }
       
-      console.log('Step 1: Creating verification event for embedding in log');
-      
       // Step 1: Create verification event signed by the cache's verification key
       const verificationEvent = createVerificationEvent(
         data.verificationKey,
@@ -57,14 +53,6 @@ export function useCreateVerifiedLog() {
         data.geocachePubkey!,
         data.geocacheDTag!
       );
-      
-      console.log('Created verification event (will be embedded, not published):', {
-        id: verificationEvent.id,
-        pubkey: verificationEvent.pubkey,
-        finderPubkey: user.pubkey
-      });
-      
-      console.log('Step 2: Creating log event with embedded verification');
       
       // Step 2: Build tags for the log event
       const tags = buildLogTags({
@@ -90,52 +78,39 @@ export function useCreateVerifiedLog() {
         created_at: Math.floor(Date.now() / 1000)
       });
       
-      console.log('Signed log event with embedded verification:', {
-        id: signedLogEvent.id,
-        pubkey: signedLogEvent.pubkey,
-        hasEmbeddedVerification: signedLogEvent.tags.some((t: string[]) => t[0] === 'verification')
-      });
-      
       // Step 3: Publish the log event (with embedded verification)
       let logPublished = false;
       
       // First try to publish to preferred relays if provided
       if (data.preferredRelays && data.preferredRelays.length > 0) {
-        console.log('Publishing log event to preferred relays:', data.preferredRelays);
-        
         try {
           const relayPromises = data.preferredRelays.map(async (url) => {
             try {
               const relay = new NRelay1(url);
               await relay.event(signedLogEvent, { signal: AbortSignal.timeout(5000) });
-              console.log(`Successfully published log event to ${url}`);
               return true;
             } catch (error) {
-              console.error(`Failed to publish log event to ${url}:`, error);
               return false;
             }
           });
 
           const results = await Promise.allSettled(relayPromises);
           const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-          console.log(`Published log event to ${successCount}/${data.preferredRelays.length} preferred relays`);
           
           if (successCount > 0) {
             logPublished = true;
           }
         } catch (error) {
-          console.error('Error publishing log event to preferred relays:', error);
+          // Continue to default relays
         }
       }
       
       // Also try to publish log event to default relays
       try {
-        console.log('Publishing log event to default relays...');
         await nostr.event(signedLogEvent, { signal: AbortSignal.timeout(10000) });
-        console.log('Successfully published log event to default relays');
         logPublished = true;
       } catch (error) {
-        console.error('Failed to publish log event to default relays:', error);
+        // Log published will remain false if this fails
       }
       
       if (!logPublished) {
@@ -144,23 +119,12 @@ export function useCreateVerifiedLog() {
       
       // Try to verify the log event was published (but don't fail if verification fails)
       try {
-        const verification = await nostr.query([{ ids: [signedLogEvent.id] }], { 
+        await nostr.query([{ ids: [signedLogEvent.id] }], { 
           signal: AbortSignal.timeout(3000) 
         });
-        
-        if (verification.length > 0) {
-          console.log('Log event confirmed on relays:', signedLogEvent.id);
-        } else {
-          console.warn('Log event not immediately found on relays, but this is normal');
-        }
       } catch (error) {
-        console.warn('Could not verify log event on relays immediately, but this is normal:', error);
+        // Verification failure is normal and expected
       }
-      
-      console.log('Verified log process completed (embedded verification):', {
-        logEventId: signedLogEvent.id,
-        verificationEmbedded: true
-      });
       
       return { 
         logEvent: signedLogEvent, 
@@ -201,17 +165,11 @@ export function useCreateVerifiedLog() {
         // Add to the beginning of the list (newest first) and remove duplicates
         const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== logEvent.id)];
         
-        console.log('Optimistically updated cache with new verified log:', newLog.id, 'Total logs:', updatedLogs.length);
         return updatedLogs;
       });
       
       // Wait longer for the event to propagate, then do a background refresh
       setTimeout(async () => {
-        console.log('Refreshing queries after verified log creation:', {
-          dTag: variables.geocacheDTag,
-          pubkey: variables.geocachePubkey
-        });
-        
         // Instead of invalidating, manually refetch and merge results
         const queryKey = ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey];
         const currentData = queryClient.getQueryData(queryKey) as GeocacheLog[] | undefined;
@@ -241,15 +199,9 @@ export function useCreateVerifiedLog() {
             
             // Update the cache with merged data
             queryClient.setQueryData(queryKey, mergedLogs);
-            
-            console.log('Merged logs after refresh:', {
-              currentCount: currentData.length,
-              newCount: newData.length,
-              mergedCount: mergedLogs.length
-            });
           }
         } catch (error) {
-          console.error('Error refreshing logs:', error);
+          // Error refreshing logs - continue silently
         }
         
         // Still invalidate the other queries
@@ -258,8 +210,6 @@ export function useCreateVerifiedLog() {
       }, 5000);
     },
     onError: (error: unknown) => {
-      console.error('Failed to create verified log:', error);
-      
       let errorMessage = "Please try again later.";
       const errorObj = error as { message?: string };
       

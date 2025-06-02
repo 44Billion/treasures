@@ -20,7 +20,6 @@ export function DifficultyTerrainRating({
   
   // Debug logging for size blocks
   if (cacheSize) {
-    console.log('Size display debug:', { cacheSize, sizeLevel, blocksToShow: [1, 2, 3, 4] });
   }
   
   return (

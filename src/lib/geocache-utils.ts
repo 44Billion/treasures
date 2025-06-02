@@ -31,7 +31,6 @@ export function getSizeLevel(size: string): number {
   
   // Debug logging to help troubleshoot
   if (normalizedSize === 'other' && level !== 0) {
-    console.warn('Size level mismatch for "other":', { size, normalizedSize, level });
   }
   
   return level !== undefined ? level : 0;

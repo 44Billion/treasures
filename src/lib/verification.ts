@@ -49,7 +49,6 @@ export async function generateVerificationQR(naddr: string, nsec: string): Promi
     
     return qrDataUrl;
   } catch (error) {
-    console.error('Failed to generate QR code:', error);
     throw new Error('Failed to generate QR code');
   }
 }
@@ -128,7 +127,6 @@ export function createVerificationEvent(
     
     return finalizeEvent(event, privateKey);
   } catch (error) {
-    console.error('Failed to create verification event:', error);
     throw new Error('Failed to create verification event');
   }
 }
@@ -141,7 +139,6 @@ export function hasEmbeddedVerification(event: any): boolean {
     const embeddedVerification = getEmbeddedVerification(event);
     return embeddedVerification !== null;
   } catch (error) {
-    console.log('Error checking embedded verification:', error);
     return false;
   }
 }
@@ -163,7 +160,6 @@ export function getEmbeddedVerification(event: any): any | null {
     // Parse the embedded verification event
     return JSON.parse(verificationTag[1]);
   } catch (error) {
-    console.log('Error parsing embedded verification:', error);
     return null;
   }
 }
@@ -176,7 +172,6 @@ export function hasVerificationReference(event: any): string | null {
     const embeddedVerification = getEmbeddedVerification(event);
     return embeddedVerification ? embeddedVerification.id : null;
   } catch (error) {
-    console.log('Error checking verification reference:', error);
     return null;
   }
 }
@@ -191,20 +186,11 @@ export function verifyEmbeddedVerification(
   try {
     const embeddedVerification = getEmbeddedVerification(logEvent);
     if (!embeddedVerification) {
-      console.log('No embedded verification found');
       return false;
     }
     
-    console.log('verifyEmbeddedVerification called:', {
-      embeddedVerificationPubkey: embeddedVerification.pubkey,
-      logEventPubkey: logEvent.pubkey,
-      expectedVerificationPubkey,
-      embeddedVerificationKind: embeddedVerification.kind
-    });
-    
     return verifyVerificationEvent(embeddedVerification, logEvent, expectedVerificationPubkey);
   } catch (error) {
-    console.log('Embedded verification error:', error);
     return false;
   }
 }
@@ -218,22 +204,13 @@ export function verifyVerificationEvent(
   expectedVerificationPubkey: string
 ): boolean {
   try {
-    console.log('verifyVerificationEvent called:', {
-      verificationEventPubkey: verificationEvent.pubkey,
-      logEventPubkey: logEvent.pubkey,
-      expectedVerificationPubkey,
-      verificationEventKind: verificationEvent.kind
-    });
-    
     // Check if the verification event was signed by the expected verification key
     if (verificationEvent.pubkey !== expectedVerificationPubkey) {
-      console.log('Verification event pubkey mismatch');
       return false;
     }
     
     // Check if it's the right kind of event (NIP-32 label)
     if (verificationEvent.kind !== 1985) {
-      console.log('Wrong verification event kind');
       return false;
     }
     
@@ -245,7 +222,6 @@ export function verifyVerificationEvent(
     );
     
     if (!hasCorrectLabel) {
-      console.log('Missing correct verification labels');
       return false;
     }
     
@@ -255,16 +231,13 @@ export function verifyVerificationEvent(
     );
     
     if (!finderTag || finderTag[1] !== logEvent.pubkey) {
-      console.log('Verification event does not reference the correct finder');
       return false;
     }
     
     // Verify the event signature
     const signatureValid = verifyEvent(verificationEvent);
-    console.log('Verification event signature valid:', signatureValid);
     return signatureValid;
   } catch (error) {
-    console.log('Verification error:', error);
     return false;
   }
 }

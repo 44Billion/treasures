@@ -151,21 +151,15 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
 
     // Validate required fields
     if (!name || !geohash || !difficulty || !terrain || !size || !cacheType) {
-      console.warn('Geocache event missing required tags:', { 
-        name: !!name, geohash: !!geohash, difficulty: !!difficulty, 
-        terrain: !!terrain, size: !!size, cacheType: !!cacheType 
-      });
       return null;
     }
 
     // Validate cache type and size
     if (!validateCacheType(cacheType)) {
-      console.warn(`Invalid cache type: ${cacheType}`);
       return null;
     }
 
     if (!validateCacheSize(size)) {
-      console.warn(`Invalid cache size: ${size}`);
       return null;
     }
 
@@ -174,13 +168,11 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     try {
       location = decodeGeohash(geohash);
     } catch (error) {
-      console.warn(`Invalid geohash: ${geohash}`, error);
       return null;
     }
 
     // Validate coordinates
     if (!validateCoordinates(location.lat, location.lng)) {
-      console.warn(`Invalid coordinates for cache "${name}":`, location);
       return null;
     }
 
@@ -210,7 +202,6 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       verificationPubkey,
     };
   } catch (error) {
-    console.error('Failed to parse geocache event:', error, event);
     return null;
   }
 }
@@ -227,20 +218,17 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
     const logType = event.tags.find(t => t[0] === 'log-type')?.[1];
 
     if (!aTag || !logType) {
-      console.warn('Log event missing required tags:', { aTag: !!aTag, logType: !!logType });
       return null;
     }
 
     // Validate log type
     if (!validateLogType(logType)) {
-      console.warn(`Invalid log type: ${logType}`);
       return null;
     }
 
     // Extract geocache reference from a-tag
     const [, pubkey, dTag] = aTag.split(':');
     if (!pubkey || !dTag) {
-      console.warn('Invalid a-tag format:', aTag);
       return null;
     }
 
@@ -261,7 +249,6 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
       client,
     };
   } catch (error) {
-    console.error('Failed to parse log event:', error, event);
     return null;
   }
 }
@@ -403,7 +390,6 @@ export function getGeohashNeighbors(geohash: string): string[] {
     
     return [...new Set(neighbors)]; // Remove duplicates
   } catch (error) {
-    console.warn('Failed to calculate neighbors for geohash:', geohash, error);
     return [geohash];
   }
 }

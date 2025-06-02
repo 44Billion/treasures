@@ -62,13 +62,6 @@ export function useCreateGeocache(onCacheCreated?: (result: { event: any; verifi
       // Generate verification key pair
       const verificationKeyPair = generateVerificationKeyPair();
 
-      console.log('Creating geocache with data:', { 
-        name: data.name, 
-        location: data.location,
-        dTag,
-        verificationPubkey: verificationKeyPair.publicKey
-      });
-
       // Build tags using consolidated utility
       const tags = buildGeocacheTags({
         dTag,
@@ -103,7 +96,6 @@ export function useCreateGeocache(onCacheCreated?: (result: { event: any; verifi
         // Use consolidated parsing utility
         const parsed = parseGeocacheEvent(event);
         if (!parsed) {
-          console.warn('Failed to parse created geocache event for cache update');
           return null;
         }
         
@@ -141,7 +133,6 @@ export function useCreateGeocache(onCacheCreated?: (result: { event: any; verifi
       }, 2000);
     },
     onError: (error: unknown) => {
-      console.error('Failed to create geocache:', error);
       
       let errorMessage = "Please try again later.";
       const errorObj = error as { message?: string };

@@ -107,7 +107,6 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
 
         return geocachesWithDistance;
       } catch (error) {
-        console.error('Error in proximity geocache query:', error);
         throw error;
       }
     },
@@ -295,7 +294,6 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
           safariClient.close();
         } catch (error) {
           safariClient.close();
-          console.warn('Safari log query failed:', error);
           return geocaches; // Return without log counts
         }
       } else {
@@ -334,7 +332,6 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
         };
       });
     } catch (error) {
-      console.warn('Error fetching log counts:', error);
       return geocaches; // Continue without log counts
     }
   }

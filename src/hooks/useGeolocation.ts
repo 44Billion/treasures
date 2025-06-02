@@ -59,7 +59,6 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     };
 
     const handleError = (error: GeolocationPositionError) => {
-      console.log('Geolocation failed:', error.code, error.message);
       
       // For permission denied, show a helpful message
       if (error.code === error.PERMISSION_DENIED) {
@@ -83,14 +82,12 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     navigator.geolocation.getCurrentPosition(
       handleSuccess,
       async (error) => {
-        console.log('Primary geolocation failed:', error.message);
         
         // If primary fails, try with less strict options
         if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
           navigator.geolocation.getCurrentPosition(
             handleSuccess,
             async (secondError) => {
-              console.log('Secondary geolocation failed:', secondError.message);
               
               // Fall back to IP geolocation
               try {

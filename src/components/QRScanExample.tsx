@@ -21,11 +21,9 @@ export function QRScanExample() {
       const verificationKey = parseVerificationFromHash(url.hash);
       if (verificationKey) {
         setVerificationKey(verificationKey);
-        console.log('Found verification key:', verificationKey);
       }
     } catch {
       // Not a valid URL, that's okay
-      console.log('Scanned text:', result.text);
     }
   };
 

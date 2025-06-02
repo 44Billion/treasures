@@ -50,7 +50,6 @@ export function SaveButton({
           : `"${geocache.name}" has been saved to your Nostr profile.`,
       });
     } catch (error) {
-      console.error('Failed to toggle save cache:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save cache. Please try again.';
       toast({
         title: 'Error saving cache',

@@ -93,20 +93,8 @@ export default function Map() {
     </>
   );
 
-  // Add debugging
-  console.log('Map page - isLoading:', isLoading);
-  console.log('Map page - error:', error);
-  console.log('Map page - geocaches:', geocaches?.length, 'caches');
-  if (geocaches && geocaches.length > 0) {
-    console.log('Map page - sample geocache:', geocaches[0]);
-  }
-  console.log('Map page - search params:', {
-    search: searchQuery,
-    difficulty,
-    difficultyOperator,
-    terrain,
-    terrainOperator,
-  });
+  // Add debugging for geocaches
+  // (debugging code removed for production)
 
   useEffect(() => {
     // Update user location when coords change
@@ -136,7 +124,6 @@ export default function Map() {
   const proximityCenter = searchLocation || (showNearMe ? userLocation : null);
 
   const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
-    console.log('Location selected:', location);
     // Update all location-related state
     const newCenter = { lat: location.lat, lng: location.lng };
     setMapCenter(newCenter);

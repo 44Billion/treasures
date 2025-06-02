@@ -36,7 +36,6 @@ export function parseNaddr(naddr: string): { pubkey: string; dTag: string; relay
       relays: data.relays
     };
   } catch (error) {
-    console.error('Failed to parse naddr:', error);
     return null;
   }
 }

@@ -41,8 +41,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
         return [];
       }
 
-      console.log('🔄 [USER FOUND CACHES] Starting query for user:', pubkey.slice(0, 8));
-      
       try {
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(5000)]);
         
@@ -53,10 +51,7 @@ export function useUserFoundCaches(targetPubkey?: string) {
           limit: 500,
         };
         
-        console.log('Querying user logs with filter:', logFilter);
-        
         const logEvents = await queryWithRelays([logFilter], { signal });
-        console.log('Found', logEvents.length, 'log events');
         
         // Parse and filter for "found" logs
         const foundLogs: (GeocacheLog & { geocachePubkey?: string; geocacheDTag?: string })[] = [];
@@ -77,8 +72,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
           }
         }
         
-        console.log('Found', foundLogs.length, 'found logs');
-        
         if (foundLogs.length === 0) {
           return [];
         }
@@ -87,8 +80,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
         const geocacheRefs = Array.from(new Set(
           foundLogs.map(log => `${log.geocachePubkey}:${log.geocacheDTag}`)
         ));
-        
-        console.log('Fetching', geocacheRefs.length, 'unique geocaches');
         
         // Fetch the actual geocache events
         const geocacheFilters: NostrFilter[] = geocacheRefs.map(ref => {
@@ -102,7 +93,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
         });
         
         const geocacheEvents = await queryWithRelays(geocacheFilters, { signal });
-        console.log('Found', geocacheEvents.length, 'geocache events');
         
         // Parse geocaches
         const geocaches = new Map<string, Geocache>();
@@ -115,8 +105,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
         }
         
         // Now fetch log counts for each geocache
-        console.log('Fetching log counts for geocaches...');
-        
         const logCountFilters: NostrFilter[] = geocacheRefs.map(ref => {
           const [pubkey, dTag] = ref.split(':');
           return {
@@ -127,7 +115,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
         });
         
         const allLogEvents = await queryWithRelays(logCountFilters, { signal });
-        console.log('Found', allLogEvents.length, 'total log events for all geocaches');
         
         // Group logs by geocache and count them
         const logCounts = new Map<string, { total: number; found: number }>();
@@ -152,8 +139,6 @@ export function useUserFoundCaches(targetPubkey?: string) {
             }
           }
         }
-        
-        console.log('Log counts calculated:', Object.fromEntries(logCounts));
         
         // Combine found logs with geocache data and counts
         const foundCaches: FoundCache[] = [];
@@ -186,12 +171,9 @@ export function useUserFoundCaches(targetPubkey?: string) {
         // Sort by found date (newest first)
         foundCaches.sort((a, b) => b.foundAt - a.foundAt);
         
-        console.log('✅ [USER FOUND CACHES] Final result:', foundCaches.length, 'found caches');
-        
         return foundCaches;
         
       } catch (error) {
-        console.error('❌ [USER FOUND CACHES] Query failed:', error);
         throw error;
       }
     },

@@ -34,7 +34,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
       setNsec(nip19.nsecEncode(sk));
       setStep('download');
     } catch (error) {
-      console.error('Failed to generate key:', error);
       toast({
         title: 'Error',
         description: 'Failed to generate key. Please try again.',
@@ -71,7 +70,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
         description: 'Your key has been downloaded securely. Keep it safe!',
       });
     } catch (error) {
-      console.error('Download failed:', error);
       toast({
         title: 'Download failed',
         description: 'Could not download the key file. Please copy it manually.',

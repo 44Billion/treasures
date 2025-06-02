@@ -46,7 +46,6 @@ export function QRCameraScanner({
         await videoRef.current.play();
       }
     } catch (err) {
-      console.error('Camera access error:', err);
       setHasPermission(false);
       const errorMessage = err instanceof Error ? err.message : 'Failed to access camera';
       onError?.(errorMessage);

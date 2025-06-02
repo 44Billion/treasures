@@ -32,7 +32,6 @@ export function VerificationQRDialog({
       generateVerificationQR(naddr, verificationKeyPair.nsec)
         .then(setQrDataUrl)
         .catch((error) => {
-          console.error('Failed to generate QR code:', error);
           toast({
             title: 'QR Generation Failed',
             description: 'Unable to generate QR code. Please try again.',

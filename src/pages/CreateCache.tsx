@@ -124,7 +124,6 @@ export default function CreateCache() {
       // The dialog will display appropriate warnings
       setShowConfirmDialog(true);
     } catch (error) {
-      console.error('Error verifying location:', error);
       // Still show dialog but with a warning
       setLocationVerification({
         isRestricted: false,

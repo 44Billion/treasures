@@ -21,7 +21,6 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
     staleTime: 60000, // 1 minute
     gcTime: 300000, // 5 minutes
     queryFn: async () => {
-      console.log('Starting geocache query...');
       
       try {
         // Build filter for geocache events
@@ -34,12 +33,10 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
           filter.authors = [options.authorPubkey];
         }
 
-        console.log('Filter:', filter);
         
         let events: NostrEvent[];
         
         if (isSafari()) {
-          console.log('Using Safari-specific Nostr client...');
           const safariClient = createSafariNostr([
             'wss://ditto.pub/relay'
           ]);
@@ -61,14 +58,12 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
           ]);
         }
         
-        console.log('Raw events from query:', events.length, 'events');
         
         // Parse and filter geocaches
         let geocaches: Geocache[] = events
           .map(parseGeocacheEvent)
           .filter((g): g is Geocache => g !== null);
         
-        console.log('Found', geocaches.length, 'geocaches after parsing');
 
         // Apply client-side filters
         if (options.search) {
@@ -113,7 +108,6 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
                 safariClient.close();
               } catch (error) {
                 safariClient.close();
-                console.warn('Safari log query failed:', error);
                 logEvents = []; // Continue without log counts
               }
             } else {
@@ -152,14 +146,12 @@ export function useGeocaches(options: UseGeocachesOptions = {}) {
               };
             });
           } catch (error) {
-            console.warn('Error fetching log counts:', error);
             // Continue without log counts if there's an error
           }
         }
 
         return geocaches;
       } catch (error) {
-        console.error('Error in geocache query:', error);
         throw error;
       }
     },

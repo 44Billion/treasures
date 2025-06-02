@@ -205,7 +205,6 @@ export function LocationSearch({
     } catch (error: unknown) {
       const errorObj = error as { name?: string };
       if (errorObj.name !== 'AbortError') {
-        console.error('Geocoding error:', error);
         setResults([]);
       }
       setIsSearching(false);

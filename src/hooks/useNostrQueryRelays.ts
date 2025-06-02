@@ -20,17 +20,14 @@ export function useNostrQueryRelays() {
 
     // Query the specified relays if provided
     if (options?.relays && options.relays.length > 0) {
-      console.log('Querying specific relays:', options.relays);
       
       const relayPromises = options.relays.map(async (url) => {
         try {
           const relay = new NRelay1(url);
           const events = await relay.query(filters, { signal: options.signal });
-          console.log(`Got ${events.length} events from ${url}`);
           // Add source relay to each event
           return events.map(event => ({ ...event, sourceRelay: url }));
         } catch (error) {
-          console.error(`Failed to query ${url}:`, error);
           return [];
         }
       });
@@ -51,7 +48,6 @@ export function useNostrQueryRelays() {
     // Also query the default relays
     try {
       const defaultEvents = await nostr.query(filters, { signal: options?.signal });
-      console.log(`Got ${defaultEvents.length} events from default relays`);
       
       for (const event of defaultEvents) {
         if (!eventIds.has(event.id)) {
@@ -61,10 +57,8 @@ export function useNostrQueryRelays() {
         }
       }
     } catch (error) {
-      console.error('Failed to query default relays:', error);
     }
 
-    console.log(`Total unique events: ${allEvents.length}`);
     return allEvents;
   };
 

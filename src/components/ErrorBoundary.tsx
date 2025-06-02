@@ -25,13 +25,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
     
     // Log iOS-specific information
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    console.error('iOS Safari:', isIOS);
-    console.error('User Agent:', navigator.userAgent);
-    console.error('Error stack:', error.stack);
     
     this.setState({
       hasError: true,

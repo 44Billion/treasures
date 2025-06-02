@@ -16,7 +16,6 @@ export function useGeocacheByNaddr(naddr: string) {
   return useQuery({
     queryKey: ['geocache-by-naddr', naddr, isSafari()],
     queryFn: async (c) => {
-      console.log('🔍 [GEOCACHE BY NADDR] Starting query for naddr:', naddr);
       
       try {
         // Parse the naddr to get pubkey and dTag
@@ -26,7 +25,6 @@ export function useGeocacheByNaddr(naddr: string) {
         }
         
         const { pubkey, dTag, relays } = parsed;
-        console.log('📍 [GEOCACHE BY NADDR] Parsed naddr:', { pubkey: pubkey.slice(0, 8), dTag, relays });
         
         // Create signal for non-Safari queries
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(8000)]);
@@ -42,7 +40,6 @@ export function useGeocacheByNaddr(naddr: string) {
         let events: NostrEvent[];
         
         if (isSafari()) {
-          console.log('🍎 [GEOCACHE BY NADDR] Using Safari client for individual cache');
           const safariClient = createSafariNostr(relays || [
             'wss://ditto.pub/relay'
           ]);
@@ -58,23 +55,18 @@ export function useGeocacheByNaddr(naddr: string) {
           events = await nostr.query([filter], { signal });
         }
         
-        console.log('🎯 [GEOCACHE BY NADDR] Query returned:', events.length, 'events');
 
         if (events.length === 0) {
-          console.log('❌ [GEOCACHE BY NADDR] No geocache found with naddr:', naddr);
           return null;
         }
 
         const geocache = parseGeocacheEvent(events[0]);
         if (!geocache) {
-          console.log('❌ [GEOCACHE BY NADDR] Failed to parse geocache event');
           return null;
         }
 
-        console.log('✅ [GEOCACHE BY NADDR] Successfully loaded geocache:', geocache.name);
 
         // Quick log count fetch
-        console.log('📊 [GEOCACHE BY NADDR] Fetching log counts...');
         
         // Get logs for this specific geocache
         const logFilter: NostrFilter = {
@@ -95,7 +87,6 @@ export function useGeocacheByNaddr(naddr: string) {
             safariClient.close();
           } catch (error) {
             safariClient.close();
-            console.warn('🍎 [GEOCACHE BY NADDR] Safari log query failed, continuing without counts');
             logEvents = [];
           }
         } else {
@@ -119,16 +110,8 @@ export function useGeocacheByNaddr(naddr: string) {
           logCount,
         };
 
-        console.log('✅ [GEOCACHE BY NADDR] Final result:', {
-          dTag: result.dTag,
-          name: result.name,
-          logCount: result.logCount,
-          foundCount: result.foundCount
-        });
-
         return result;
       } catch (error) {
-        console.error('❌ [GEOCACHE BY NADDR] Query failed:', error);
         throw error;
       }
     },

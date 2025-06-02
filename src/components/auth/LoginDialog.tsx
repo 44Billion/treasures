@@ -44,7 +44,6 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       onLogin();
       onClose();
     } catch (error) {
-      console.error('Extension login failed:', error);
       setErrors(prev => ({ 
         ...prev, 
         extension: error instanceof Error ? error.message : 'Extension login failed' 
@@ -75,7 +74,6 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       // Clear the key from memory
       setNsec('');
     } catch (error) {
-      console.error('Nsec login failed:', error);
       setErrors(prev => ({ 
         ...prev, 
         nsec: 'Failed to login with this key. Please check that it\'s correct.' 
@@ -106,7 +104,6 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       // Clear the URI from memory
       setBunkerUri('');
     } catch (error) {
-      console.error('Bunker login failed:', error);
       setErrors(prev => ({ 
         ...prev, 
         bunker: 'Failed to connect to bunker. Please check the URI.' 

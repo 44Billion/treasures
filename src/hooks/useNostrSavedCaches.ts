@@ -82,7 +82,6 @@ export function useNostrSavedCaches() {
         
         return relevantEvents.sort((a, b) => b.created_at - a.created_at);
       } catch (error) {
-        console.warn('Failed to fetch bookmark events:', error);
         return [];
       }
     },
@@ -161,14 +160,12 @@ export function useNostrSavedCaches() {
             ]);
             events.push(...batchEvents);
           } catch (error) {
-            console.warn(`Batch ${i / batchSize + 1} failed:`, error);
             // Continue with other batches
           }
         }
         
         return events;
       } catch (error) {
-        console.warn('Failed to fetch saved geocache events:', error);
         return [];
       }
     },
@@ -221,7 +218,6 @@ export function useNostrSavedCaches() {
         
         return logCounts;
       } catch (error) {
-        console.warn('Failed to fetch log counts:', error);
         return new Map();
       }
     },

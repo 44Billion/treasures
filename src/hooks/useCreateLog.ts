@@ -16,7 +16,6 @@ export function useCreateLog() {
 
   return useMutation({
     mutationFn: async (data: CreateLogData) => {
-      console.log('Creating log for geocache:', data.geocacheId);
       
       // Validate data
       if (!data.geocacheId) {
@@ -50,7 +49,6 @@ export function useCreateLog() {
         },
       });
 
-      console.log('Log event created:', event.id);
       return event;
     },
     onSuccess: (event, variables) => {
@@ -84,17 +82,11 @@ export function useCreateLog() {
         // Add to the beginning of the list (newest first) and remove duplicates
         const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== event.id)];
         
-        console.log('Optimistically updated cache with new log:', newLog.id, 'Total logs:', updatedLogs.length);
         return updatedLogs;
       });
       
       // Wait longer for the event to propagate, then do a background refresh
       setTimeout(async () => {
-        console.log('Refreshing queries after log creation:', {
-          dTag: variables.geocacheDTag,
-          pubkey: variables.geocachePubkey
-        });
-        
         // Instead of invalidating, manually refetch and merge results
         const queryKey = ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey];
         const currentData = queryClient.getQueryData(queryKey) as GeocacheLog[] | undefined;
@@ -124,15 +116,8 @@ export function useCreateLog() {
             
             // Update the cache with merged data
             queryClient.setQueryData(queryKey, mergedLogs);
-            
-            console.log('Merged logs after refresh:', {
-              currentCount: currentData.length,
-              newCount: newData.length,
-              mergedCount: mergedLogs.length
-            });
           }
         } catch (error) {
-          console.error('Error refreshing logs:', error);
         }
         
         // Still invalidate the other queries
@@ -141,7 +126,6 @@ export function useCreateLog() {
       }, 5000); // Increased from 2000ms to 5000ms
     },
     onError: (error: unknown) => {
-      console.error('Failed to create log:', error);
       
       let errorMessage = "Please try again later.";
       const errorObj = error as { message?: string };

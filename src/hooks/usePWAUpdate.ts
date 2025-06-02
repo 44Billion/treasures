@@ -146,7 +146,6 @@ export function usePWAUpdate(): PWAUpdateHook {
         });
       }
     } catch (error) {
-      console.error('Error checking for updates:', error);
       setIsChecking(false);
       toast({
         title: "Update check failed",
@@ -172,7 +171,6 @@ export function usePWAUpdate(): PWAUpdateHook {
       setIsUpdateAvailable(false);
       setWaitingWorker(null);
     } catch (error) {
-      console.error('Error installing update:', error);
       toast({
         title: "Installation failed",
         description: "Failed to install the update. Please refresh the page.",
@@ -213,7 +211,6 @@ export function usePWAUpdate(): PWAUpdateHook {
       setDeferredPrompt(null);
       setIsInstallable(false);
     } catch (error) {
-      console.error('Error installing PWA:', error);
       toast({
         title: "Installation failed",
         description: "Failed to install the app. Please try again.",
