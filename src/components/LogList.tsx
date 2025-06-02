@@ -1,4 +1,4 @@
-import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck } from "lucide-react";
+import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,26 +50,28 @@ interface LogCardProps {
 }
 
 function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
-  // For verified logs, use the authorPubkey (actual user), otherwise use the signing pubkey
-  const displayPubkey = log.isVerified && log.authorPubkey ? log.authorPubkey : log.pubkey;
-  const author = useAuthor(displayPubkey);
+  // The log is always signed by the actual user now
+  const author = useAuthor(log.pubkey);
   const { user } = useCurrentUser();
   const { mutate: deleteLog, isPending: isDeleting } = useDeleteLog();
   const { toast } = useToast();
-  const authorName = author.data?.metadata?.name || displayPubkey.slice(0, 8);
+  
+  // Graceful handling of author data loading
+  const isLoadingAuthor = author.isLoading;
+  const hasProfile = author.data?.hasProfile !== false; // undefined means still loading, false means no profile
+  const authorName = author.data?.metadata?.name || 
+                    author.data?.metadata?.display_name || 
+                    (isLoadingAuthor ? 'Loading...' : log.pubkey.slice(0, 8));
   const authorAvatar = author.data?.metadata?.picture;
   
   // Check if the current user is the author of this log
-  // For verified logs, check against authorPubkey; for regular logs, check against pubkey
-  const isOwnLog = log.isVerified && log.authorPubkey 
-    ? user?.pubkey === log.authorPubkey 
-    : user?.pubkey === log.pubkey;
+  const isOwnLog = user?.pubkey === log.pubkey;
   
   // Log card rendering
 
   const handleProfileClick = () => {
     if (onProfileClick) {
-      onProfileClick(displayPubkey);
+      onProfileClick(log.pubkey);
     }
   };
 

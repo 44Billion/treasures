@@ -37,7 +37,7 @@ export function useNip05Verification(nip05: string | undefined, pubkey: string |
         const url = `https://${domain}/.well-known/nostr.json?name=${encodeURIComponent(localPart)}`;
         
         const response = await fetch(url, {
-          signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
+          signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]), // Reduced from 10s to 5s for better UX
           headers: {
             'Accept': 'application/json',
           },
@@ -91,24 +91,38 @@ export function useNip05Verification(nip05: string | undefined, pubkey: string |
       // Don't retry on certain errors
       const errorObj = error as { message?: string };
       if (errorObj.message?.includes('Invalid') || 
-          errorObj.message?.includes('HTTP 4')) {
+          errorObj.message?.includes('HTTP 4') ||
+          errorObj.message?.includes('timeout') ||
+          errorObj.message?.includes('Network error')) {
         return false;
       }
-      return failureCount < 2;
+      return failureCount < 1; // Reduced retries from 2 to 1 for faster failure
     },
+    retryDelay: 1000, // 1 second delay between retries
   });
 }
 
 /**
- * Extract the verification status from the hook result
+ * Extract the verification status from the hook result with enhanced timeout handling
  */
 export function useNip05Status(nip05: string | undefined, pubkey: string | undefined) {
-  const { data, isLoading, error } = useNip05Verification(nip05, pubkey);
+  const { data, isLoading, error, isError } = useNip05Verification(nip05, pubkey);
+  
+  // Determine the error message with better categorization
+  let errorMessage = error || data?.error;
+  if (typeof errorMessage === 'object' && errorMessage !== null) {
+    errorMessage = (errorMessage as { message?: string }).message || 'Unknown error';
+  }
   
   return {
     isVerified: data?.isVerified || false,
     isLoading,
-    error: error || data?.error,
+    error: errorMessage,
+    isError,
     relays: data?.relays || [],
+    // Helper flags for UI states
+    isTimeout: errorMessage?.includes('timeout') || errorMessage?.includes('Request timeout'),
+    isNetworkError: errorMessage?.includes('Network error') || errorMessage?.includes('fetch'),
+    isInvalidFormat: errorMessage?.includes('Invalid'),
   };
 }

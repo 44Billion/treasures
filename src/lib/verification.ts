@@ -96,16 +96,14 @@ export function verifyKeyPair(nsec: string, expectedPubkey: string): boolean {
 }
 
 /**
- * Sign a log event with the verification key
+ * Create a verification event signed by the cache's verification key
+ * This event attests that the specified user found the cache
  */
-export function signVerifiedLog(
+export function createVerificationEvent(
   nsec: string,
-  eventTemplate: {
-    kind: number;
-    content: string;
-    tags: string[][];
-    created_at?: number;
-  }
+  finderPubkey: string,
+  geocachePubkey: string,
+  geocacheDTag: string
 ): any {
   try {
     const decoded = nip19.decode(nsec);
@@ -116,38 +114,126 @@ export function signVerifiedLog(
     const privateKey = decoded.data;
     
     const event = {
-      ...eventTemplate,
-      created_at: eventTemplate.created_at || Math.floor(Date.now() / 1000),
+      kind: 1985, // NIP-32 label event kind
+      content: `Verified find by ${finderPubkey}`,
+      tags: [
+        ['L', 'geocache-verification'],
+        ['l', 'verified-find', 'geocache-verification'],
+        ['p', finderPubkey, '', 'finder'],
+        ['a', `30001:${geocachePubkey}:${geocacheDTag}`, '', 'geocache']
+      ],
+      created_at: Math.floor(Date.now() / 1000),
       pubkey: getPublicKey(privateKey),
     };
     
     return finalizeEvent(event, privateKey);
   } catch (error) {
-    console.error('Failed to sign verified log:', error);
-    throw new Error('Failed to sign log with verification key');
+    console.error('Failed to create verification event:', error);
+    throw new Error('Failed to create verification event');
   }
 }
 
 /**
- * Verify that an event was signed by the expected verification key
+ * Sign a log event with the user's key, referencing a verification event
  */
-export function verifyLogSignature(event: any, expectedPubkey: string): boolean {
+export function signVerifiedLog(
+  userSigner: any,
+  eventTemplate: {
+    kind: number;
+    content: string;
+    tags: string[][];
+    created_at?: number;
+  },
+  verificationEventId: string
+): Promise<any> {
   try {
-    console.log('verifyLogSignature called:', {
-      eventPubkey: event.pubkey,
-      expectedPubkey,
-      match: event.pubkey === expectedPubkey
+    const event = {
+      ...eventTemplate,
+      created_at: eventTemplate.created_at || Math.floor(Date.now() / 1000),
+      tags: [
+        ...eventTemplate.tags,
+        ['e', verificationEventId, '', 'verification']
+      ]
+    };
+    
+    return userSigner.signEvent(event);
+  } catch (error) {
+    console.error('Failed to sign verified log:', error);
+    throw new Error('Failed to sign log with user key');
+  }
+}
+
+/**
+ * Check if a log has a verification event reference
+ * This doesn't verify the verification event itself - that should be done separately
+ */
+export function hasVerificationReference(event: any): string | null {
+  try {
+    // Look for verification event reference
+    const verificationTag = event.tags.find((tag: string[]) => 
+      tag[0] === 'e' && tag[3] === 'verification'
+    );
+    
+    return verificationTag ? verificationTag[1] : null;
+  } catch (error) {
+    console.log('Error checking verification reference:', error);
+    return null;
+  }
+}
+
+/**
+ * Verify that a verification event is valid for a specific log
+ */
+export function verifyVerificationEvent(
+  verificationEvent: any, 
+  logEvent: any, 
+  expectedVerificationPubkey: string
+): boolean {
+  try {
+    console.log('verifyVerificationEvent called:', {
+      verificationEventPubkey: verificationEvent.pubkey,
+      logEventPubkey: logEvent.pubkey,
+      expectedVerificationPubkey,
+      verificationEventKind: verificationEvent.kind
     });
     
-    // Check if the event was signed by the expected pubkey
-    if (event.pubkey !== expectedPubkey) {
-      console.log('Pubkey mismatch - not verified');
+    // Check if the verification event was signed by the expected verification key
+    if (verificationEvent.pubkey !== expectedVerificationPubkey) {
+      console.log('Verification event pubkey mismatch');
+      return false;
+    }
+    
+    // Check if it's the right kind of event (NIP-32 label)
+    if (verificationEvent.kind !== 1985) {
+      console.log('Wrong verification event kind');
+      return false;
+    }
+    
+    // Check if it has the right labels
+    const hasCorrectLabel = verificationEvent.tags.some((tag: string[]) =>
+      tag[0] === 'L' && tag[1] === 'geocache-verification'
+    ) && verificationEvent.tags.some((tag: string[]) =>
+      tag[0] === 'l' && tag[1] === 'verified-find'
+    );
+    
+    if (!hasCorrectLabel) {
+      console.log('Missing correct verification labels');
+      return false;
+    }
+    
+    // Check if it references the correct finder
+    const finderTag = verificationEvent.tags.find((tag: string[]) =>
+      tag[0] === 'p' && tag[3] === 'finder'
+    );
+    
+    if (!finderTag || finderTag[1] !== logEvent.pubkey) {
+      console.log('Verification event does not reference the correct finder');
       return false;
     }
     
     // Verify the event signature
-    const signatureValid = verifyEvent(event);
-    console.log('Signature verification result:', signatureValid);
+    const signatureValid = verifyEvent(verificationEvent);
+    console.log('Verification event signature valid:', signatureValid);
     return signatureValid;
   } catch (error) {
     console.log('Verification error:', error);

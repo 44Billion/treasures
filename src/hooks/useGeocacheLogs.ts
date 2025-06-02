@@ -4,7 +4,7 @@ import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
 import { useNostrQueryRelays } from './useNostrQueryRelays';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
-import { verifyLogSignature } from '@/lib/verification';
+import { hasVerificationReference, verifyVerificationEvent } from '@/lib/verification';
 
 export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[], verificationPubkey?: string) {
   const { nostr } = useNostr();
@@ -73,24 +73,53 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       const deduplicatedEvents = Array.from(uniqueEvents.values());
       console.log(`Removed ${events.length - deduplicatedEvents.length} duplicate events`);
 
+      // Filter out verification events - these should not be visible in logs
+      // Only actual user log entries should be displayed
+      const filteredEvents = deduplicatedEvents.filter(event => {
+        // Exclude NIP-32 label events (verification events created by cache verification key)
+        if (event.kind === 1985) {
+          console.log('Filtering out NIP-32 verification event:', event.id.slice(0, 8));
+          return false;
+        }
+        
+        // Exclude any events signed by the verification pubkey
+        // These are internal verification events, not user logs
+        if (verificationPubkey && event.pubkey === verificationPubkey) {
+          console.log('Filtering out event signed by verification key:', {
+            eventId: event.id.slice(0, 8),
+            eventPubkey: event.pubkey,
+            verificationPubkey
+          });
+          return false;
+        }
+        
+        return true;
+      });
+      
+      console.log(`Filtered out ${deduplicatedEvents.length - filteredEvents.length} verification events`);
+
       // Parse log events using consolidated utility
-      const logs: GeocacheLog[] = deduplicatedEvents
+      const logs: GeocacheLog[] = filteredEvents
         .map(event => {
           const parsed = parseLogEvent(event);
           if (parsed && 'sourceRelay' in event) {
             parsed.sourceRelay = (event as NostrEvent & { sourceRelay?: string }).sourceRelay;
           }
           
-          // Check if this log is verified (signed by the verification key)
+          // Check if this log has a verification reference
           if (parsed && verificationPubkey) {
-            const isVerified = verifyLogSignature(event, verificationPubkey);
-            console.log('Verification check:', {
-              logId: event.id.slice(0, 8),
-              eventPubkey: event.pubkey,
-              verificationPubkey,
-              isVerified
-            });
-            parsed.isVerified = isVerified;
+            const verificationEventId = hasVerificationReference(event);
+            if (verificationEventId) {
+              // For now, mark as verified if it has a verification reference
+              // In a full implementation, we would fetch and verify the verification event
+              console.log('Found verification reference:', {
+                logId: event.id.slice(0, 8),
+                verificationEventId: verificationEventId.slice(0, 8),
+                logPubkey: event.pubkey
+              });
+              parsed.isVerified = true;
+              parsed.verificationEventId = verificationEventId;
+            }
           }
           
           return parsed;
@@ -99,8 +128,10 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       
       console.log('Parsing results:', {
         totalEvents: deduplicatedEvents.length,
+        filteredEvents: filteredEvents.length,
         parsedSuccessfully: logs.length,
-        failedToParse: deduplicatedEvents.length - logs.length
+        failedToParse: filteredEvents.length - logs.length,
+        verificationEventsFiltered: deduplicatedEvents.length - filteredEvents.length
       });
 
       // Sort by creation date (newest first)

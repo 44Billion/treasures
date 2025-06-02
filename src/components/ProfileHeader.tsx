@@ -1,4 +1,4 @@
-import { Calendar, MapPin, User, CheckCircle, ShieldCheck, Loader2, Copy, Check, Globe, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, User, CheckCircle, ShieldCheck, Loader2, Copy, Check, Globe, ExternalLink, AlertCircle, Clock } from "lucide-react";
 import { formatDistanceToNow } from "@/lib/date";
 import { useNip05Status } from "@/hooks/useNip05Verification";
 import { useState } from "react";
@@ -47,7 +47,11 @@ export function ProfileHeader({
   
   const { 
     isVerified, 
-    isLoading: isLoadingNip05 
+    isLoading: isLoadingNip05,
+    error: nip05Error,
+    isTimeout,
+    isNetworkError,
+    isInvalidFormat
   } = useNip05Status(nip05, pubkey);
 
   const handleCopy = async (text: string, field: string) => {
@@ -112,9 +116,19 @@ export function ProfileHeader({
                   title="Click to copy npub"
                 >
                 {isLoadingNip05 ? (
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" title="Verifying NIP-05..." />
                 ) : isVerified ? (
-                  <ShieldCheck className="h-3 w-3 text-green-600" />
+                  <ShieldCheck className="h-3 w-3 text-green-600" title="NIP-05 verified" />
+                ) : nip05Error ? (
+                  isTimeout ? (
+                    <Clock className="h-3 w-3 text-amber-500" title="NIP-05 verification timed out - server may be slow" />
+                  ) : isNetworkError ? (
+                    <AlertCircle className="h-3 w-3 text-orange-500" title="Network error during NIP-05 verification" />
+                  ) : isInvalidFormat ? (
+                    <AlertCircle className="h-3 w-3 text-red-500" title="Invalid NIP-05 format" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3 text-red-500" title={`NIP-05 verification failed: ${nip05Error}`} />
+                  )
                 ) : null}
                 <span>{nip05}</span>
                 {copiedField === 'npub' ? (
