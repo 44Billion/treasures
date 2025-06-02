@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import sharp from 'sharp';
-import path from 'path';
 
 async function createOgImage() {
   try {
@@ -13,7 +12,6 @@ async function createOgImage() {
     
     // Define colors (using Treasures brand colors)
     const backgroundColor = '#059669'; // emerald-600 (green background)
-    const accentColor = '#ffffff'; // white text for contrast
     
     // Create the background
     const background = sharp({

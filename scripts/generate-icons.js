@@ -76,8 +76,8 @@ async function generateIcons() {
 
     // Generate dedicated maskable icons with proper padding and green circular background
     for (const { size, name } of maskableIconSizes) {
-      // For maskable icons, scale content to 60% and center it on a green circular background
-      const iconSize = Math.round(size * 0.6);
+      // For maskable icons, scale content to 70% and center it on a green circular background
+      const iconSize = Math.round(size * 0.7);
       const padding = Math.round((size - iconSize) / 2);
       
       // Create green circular background using app theme color
