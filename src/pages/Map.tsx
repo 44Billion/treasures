@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginArea } from "@/components/auth/LoginArea";
-import { useAdaptiveGeocaches, type GeocacheWithDistance } from "@/hooks/useProximityGeocaches";
+import { useOfflineAdaptiveGeocaches, type GeocacheWithDistance } from "@/hooks/useOfflineGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { DetailedGeocacheCard, CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -47,7 +47,7 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
-  const { data: geocaches, isLoading, error, refetch } = useAdaptiveGeocaches({
+  const { data: geocaches, isLoading, error, refetch } = useOfflineAdaptiveGeocaches({
     search: searchQuery,
     difficulty,
     difficultyOperator,

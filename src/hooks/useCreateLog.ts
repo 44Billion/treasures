@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostrPublishToRelays } from '@/hooks/useNostrPublishToRelays';
 import { useToast } from '@/hooks/useToast';
+import { useOfflineSync, useOfflineMode } from '@/hooks/useOfflineStorage';
 import type { CreateLogData, GeocacheLog } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
@@ -13,6 +14,8 @@ export function useCreateLog() {
   const queryClient = useQueryClient();
   const { mutateAsync: publishEvent } = useNostrPublishToRelays();
   const { toast } = useToast();
+  const { queueAction } = useOfflineSync();
+  const { isOnline } = useOfflineMode();
 
   return useMutation({
     mutationFn: async (data: CreateLogData) => {
@@ -38,18 +41,59 @@ export function useCreateLog() {
         images: data.images,
       });
       
-      const event = await publishEvent({
-        event: {
-          kind: NIP_GC_KINDS.LOG,
-          content: data.text.trim(), // Plain text log message in content
-          tags,
-        },
-        options: {
-          relays: data.preferredRelays, // Use the geocache's preferred relays if provided
-        },
-      });
+      if (isOnline) {
+        try {
+          const event = await publishEvent({
+            event: {
+              kind: NIP_GC_KINDS.LOG,
+              content: data.text.trim(), // Plain text log message in content
+              tags,
+            },
+            options: {
+              relays: data.preferredRelays, // Use the geocache's preferred relays if provided
+            },
+          });
 
-      return event;
+          return event;
+        } catch (error) {
+          // If online publishing fails, queue for offline sync
+          console.warn('Online log creation failed, queuing for later:', error);
+          await queueAction('create_log', {
+            geocacheId: data.geocacheId,
+            content: data.text.trim(),
+            type: data.type,
+            geocachePubkey: data.geocachePubkey,
+            geocacheDTag: data.geocacheDTag,
+            images: data.images,
+            preferredRelays: data.preferredRelays,
+          });
+          throw error;
+        }
+      } else {
+        // Offline mode - queue for later sync
+        await queueAction('create_log', {
+          geocacheId: data.geocacheId,
+          content: data.text.trim(),
+          type: data.type,
+          geocachePubkey: data.geocachePubkey,
+          geocacheDTag: data.geocacheDTag,
+          images: data.images,
+          preferredRelays: data.preferredRelays,
+        });
+        
+        // Return a mock event for optimistic updates
+        const mockEvent = {
+          id: `offline-${Date.now()}`,
+          pubkey: 'offline-user',
+          created_at: Math.floor(Date.now() / 1000),
+          kind: NIP_GC_KINDS.LOG,
+          content: data.text.trim(),
+          tags,
+          sig: 'offline-signature',
+        };
+        
+        return mockEvent;
+      }
     },
     onSuccess: (event, variables) => {
       toast({

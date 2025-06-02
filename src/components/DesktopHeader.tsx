@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface DesktopHeaderProps {
@@ -42,6 +43,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
               </Link>
             )}
             
+            <OfflineIndicator />
             <LoginArea />
           </nav>
         </div>

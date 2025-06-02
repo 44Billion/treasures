@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
 import Claim from "./pages/Claim";
+import OfflineTest from "./pages/OfflineTest";
 
 import NotFound from "./pages/NotFound";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
@@ -31,6 +32,7 @@ export function AppRouter() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/install" element={<Install />} />
           <Route path="/claim" element={<Claim />} />
+          <Route path="/offline-test" element={<OfflineTest />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
           <Route path="/:naddr" element={<CacheDetail />} />

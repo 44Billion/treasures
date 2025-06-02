@@ -196,15 +196,12 @@ export default function Claim() {
       }
 
       // Use ZXing's continuous decode from video element
-      await codeReader.current.decodeFromVideoElement(
+      (codeReader.current as any).decodeFromVideoElement(
         videoRef.current!,
-        (result, error) => {
+        (result: any) => {
           if (result) {
             handleQRCodeDetected(result.getText());
             stopScanning();
-          }
-          if (error && !(error.name === 'NotFoundException')) {
-            // Ignore NotFoundException errors as they're expected when no QR code is visible
           }
         }
       );

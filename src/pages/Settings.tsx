@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, X, Globe, User, Palette, Sun, Moon, Monitor, Download, RefreshCw, Smartphone } from "lucide-react";
+import { MapPin, Plus, X, Globe, User, Palette, Sun, Moon, Monitor, Download, RefreshCw, Smartphone, Wifi } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
+import { OfflineSettings } from "@/components/OfflineSettings";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/useToast";
 import { EditProfileForm } from "@/components/EditProfileForm";
@@ -346,6 +347,22 @@ export default function Settings() {
                   )}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Offline Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wifi className="h-5 w-5" />
+                Offline & Sync Settings
+              </CardTitle>
+              <CardDescription>
+                Manage offline functionality and data synchronization
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <OfflineSettings />
             </CardContent>
           </Card>
 

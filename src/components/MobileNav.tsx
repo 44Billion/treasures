@@ -4,6 +4,7 @@ import { Home, Map, Plus, Menu, X, Settings, Bookmark, LogOut, User, Edit, QrCod
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { OfflineStatusBadge } from '@/components/OfflineIndicator';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -139,6 +140,7 @@ export function MobileHeader() {
         </Link>
         
         <div className="-mr-2 flex items-center gap-2">
+          <OfflineStatusBadge />
           <LoginArea compact />
         </div>
       </div>

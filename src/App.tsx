@@ -10,7 +10,11 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import { PWAProvider } from '@/components/PWAProvider';
+import { ServiceWorkerProvider } from '@/components/ServiceWorkerProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { offlineStorage } from '@/lib/offlineStorage';
+import { connectivityChecker } from '@/lib/connectivityChecker';
+import { useEffect } from 'react';
 import './styles/leaflet-overrides.css';
 
 // Default relay configuration - using ditto.pub as primary relay
@@ -32,6 +36,28 @@ const queryClient = new QueryClient({
 });
 
 export function App() {
+  // Initialize offline storage and connectivity checking on app start
+  useEffect(() => {
+    offlineStorage.init().catch(console.error);
+    
+    // Initialize connectivity checker (it starts automatically)
+    connectivityChecker.forceCheck().catch(console.error);
+    
+    // Clean up old data periodically (30 days)
+    const cleanup = () => {
+      offlineStorage.clearOldData(30 * 24 * 60 * 60 * 1000).catch(console.error);
+    };
+    
+    // Run cleanup on app start and then every 24 hours
+    cleanup();
+    const cleanupInterval = setInterval(cleanup, 24 * 60 * 60 * 1000);
+    
+    return () => {
+      clearInterval(cleanupInterval);
+      connectivityChecker.destroy();
+    };
+  }, []);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -39,22 +65,24 @@ export function App() {
       enableSystem
       disableTransitionOnChange
     >
-      <PWAProvider>
-        <NostrLoginProvider storageKey='nostr:login'>
-          <NostrProvider relays={defaultRelays}>
-            <QueryClientProvider client={queryClient}>
-              <TooltipProvider>
-                <div className="min-h-screen flex flex-col">
-                  <AppRouter />
-                </div>
-                <PWAUpdatePrompt />
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
-            </QueryClientProvider>
-          </NostrProvider>
-        </NostrLoginProvider>
-      </PWAProvider>
+      <ServiceWorkerProvider>
+        <PWAProvider>
+          <NostrLoginProvider storageKey='nostr:login'>
+            <NostrProvider relays={defaultRelays}>
+              <QueryClientProvider client={queryClient}>
+                <TooltipProvider>
+                  <div className="min-h-screen flex flex-col">
+                    <AppRouter />
+                  </div>
+                  <PWAUpdatePrompt />
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </QueryClientProvider>
+            </NostrProvider>
+          </NostrLoginProvider>
+        </PWAProvider>
+      </ServiceWorkerProvider>
     </ThemeProvider>
   );
 }
