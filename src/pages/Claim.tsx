@@ -25,38 +25,16 @@ export default function Claim() {
   const codeReader = useRef<BrowserQRCodeReader | null>(null);
 
   useEffect(() => {
-    // Check if camera is available
-    const checkCamera = async () => {
-      try {
-        // Check if mediaDevices is supported
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setHasCamera(false);
-          return;
-        }
-
-        // Try to get camera access
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        
-        // Stop the stream immediately since we just wanted to check permissions
-        stream.getTracks().forEach(track => track.stop());
-        
+    // Check if camera API is available (but don't request permissions yet)
+    const checkCameraAPI = () => {
+      if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
         setHasCamera(true);
-        setCameraPermission('granted');
-      } catch (err) {
-        const errorObj = err as { name?: string };
+      } else {
         setHasCamera(false);
-        
-        if (errorObj.name === 'NotAllowedError') {
-          setCameraPermission('denied');
-        } else if (errorObj.name === 'NotFoundError') {
-          setCameraPermission('prompt');
-        } else {
-          setCameraPermission('prompt');
-        }
       }
     };
 
-    checkCamera();
+    checkCameraAPI();
 
     return () => {
       stopScanning();
@@ -128,61 +106,119 @@ export default function Claim() {
       setIsScanning(true);
       setError(null);
       
+      // First, try to get available video devices to find best camera
+      let preferredConstraints: MediaStreamConstraints = {
+        video: {
+          facingMode: { ideal: 'environment' },  // Start with back camera preference
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+
+      // Try to identify specific back camera device
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        console.log('Available cameras:', videoInputDevices.map(d => ({ id: d.deviceId, label: d.label })));
+        
+        if (videoInputDevices.length > 1) {
+          // Look for back camera by label
+          const backCamera = videoInputDevices.find(device => {
+            const label = device.label.toLowerCase();
+            return (
+              label.includes('back') ||
+              label.includes('rear') ||
+              label.includes('environment') ||
+              label.includes('facing back') ||
+              label.includes('world')
+            );
+          });
+          
+          if (backCamera) {
+            console.log('Found back camera:', backCamera.label);
+            preferredConstraints = {
+              video: {
+                deviceId: { exact: backCamera.deviceId },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              }
+            };
+          } else {
+            // Fallback: try the last camera (often back camera on mobile)
+            console.log('Using last camera as fallback:', videoInputDevices[videoInputDevices.length - 1].label);
+            preferredConstraints = {
+              video: {
+                deviceId: { exact: videoInputDevices[videoInputDevices.length - 1].deviceId },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              }
+            };
+          }
+        }
+      } catch (enumerateError) {
+        console.log('Could not enumerate devices, using facingMode:', enumerateError);
+        // Keep the default facingMode constraint
+      }
+
+      // Request camera stream with preferred constraints
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(preferredConstraints);
+        console.log('Successfully got stream with preferred camera');
+      } catch (preferredError) {
+        console.log('Preferred camera failed, trying fallback:', preferredError);
+        // Fallback to any back camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+          });
+        } catch (backCameraError) {
+          console.log('Back camera failed, trying any camera:', backCameraError);
+          // Last resort: any camera
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true
+          });
+        }
+      }
+
+      setCameraPermission('granted');
+      
+      // Set up video element
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+
+      // Initialize code reader for QR detection only
       if (!codeReader.current) {
         codeReader.current = new BrowserQRCodeReader();
       }
 
-      // Try to start scanning with default camera first
-      try {
-        await codeReader.current.decodeFromVideoDevice(
-          null, // Use default camera
-          videoRef.current!,
-          (result, error) => {
-            if (result) {
-              handleQRCodeDetected(result.getText());
-              stopScanning();
-            }
-            if (error && !(error.name === 'NotFoundException')) {
-              // Ignore NotFoundException errors as they're expected when no QR code is visible
-            }
+      // Use ZXing's continuous decode from video element
+      await codeReader.current.decodeFromVideoElement(
+        videoRef.current!,
+        (result, error) => {
+          if (result) {
+            handleQRCodeDetected(result.getText());
+            stopScanning();
           }
-        );
-      } catch (defaultCameraError) {
-        // Fallback: try to get video input devices using navigator.mediaDevices
-        try {
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
-          
-          if (videoInputDevices.length === 0) {
-            throw new Error('No camera devices found');
+          if (error && !(error.name === 'NotFoundException')) {
+            // Ignore NotFoundException errors as they're expected when no QR code is visible
           }
-
-          // Use the first available camera (usually back camera on mobile)
-          const selectedDeviceId = videoInputDevices[0].deviceId;
-
-          await codeReader.current.decodeFromVideoDevice(
-            selectedDeviceId,
-            videoRef.current!,
-            (result, error) => {
-              if (result) {
-                handleQRCodeDetected(result.getText());
-                stopScanning();
-              }
-              if (error && !(error.name === 'NotFoundException')) {
-                // Ignore NotFoundException errors as they're expected when no QR code is visible
-              }
-            }
-          );
-        } catch (deviceError) {
-          throw defaultCameraError; // Throw the original error
         }
-      }
+      );
+
     } catch (err) {
       const errorObj = err as { message?: string; name?: string };
+      
+      console.error('Camera error:', errorObj);
       
       if (errorObj.name === 'NotAllowedError') {
         setError('Camera permission denied. Please allow camera access and try again.');
         setCameraPermission('denied');
+      } else if (errorObj.name === 'NotFoundError') {
+        setError('No camera found on this device.');
       } else {
         setError(errorObj.message || 'Failed to start camera');
       }
@@ -194,6 +230,14 @@ export default function Claim() {
     if (codeReader.current) {
       codeReader.current.reset();
     }
+    
+    // Stop the video stream
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
     setIsScanning(false);
   };
 
@@ -326,15 +370,20 @@ export default function Claim() {
               )}
 
               {isScanning && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-4 border-2 border-white rounded-lg shadow-lg">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-500 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-500 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-500 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-500 rounded-br-lg"></div>
-                  </div>
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-75 text-white px-3 py-1 rounded text-sm">
-                    Position QR code within the frame
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  {/* QR Code frame overlay */}
+                  <div className="relative">
+                    {/* Frame border */}
+                    <div className="w-64 h-64 border-2 border-white rounded-lg shadow-lg relative">
+                      <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-500 rounded-tl-lg"></div>
+                      <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-500 rounded-tr-lg"></div>
+                      <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-500 rounded-bl-lg"></div>
+                      <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-500 rounded-br-lg"></div>
+                    </div>
+                    {/* Positioning message */}
+                    <div className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-75 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                      Position QR code within the frame
+                    </div>
                   </div>
                 </div>
               )}
@@ -345,7 +394,7 @@ export default function Claim() {
               {!isScanning ? (
                 <Button 
                   onClick={startScanning} 
-                  disabled={!hasCamera || cameraPermission === 'denied' || isProcessing}
+                  disabled={!hasCamera || isProcessing}
                   className="flex-1"
                 >
                   {isProcessing ? (
@@ -367,15 +416,26 @@ export default function Claim() {
               )}
             </div>
 
-            {/* Camera permission message */}
+            {/* Camera permission message - only show after attempting to start scanning */}
             {cameraPermission === 'denied' && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Camera access is required to scan QR codes. Please enable camera permissions in your browser settings and refresh the page.
+                  Camera access is required to scan QR codes. Please enable camera permissions in your browser settings and try again.
                 </AlertDescription>
               </Alert>
             )}
+
+            {/* Camera scanning tips */}
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p className="font-medium">Tips for best results:</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li>Ensure the QR code is clearly visible and well-lit</li>
+                <li>Hold your camera steady and close enough to read the code</li>
+                <li>Avoid shadows, glare, or blurry images</li>
+                <li>Try adjusting the distance if the code won't scan</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
 
@@ -422,7 +482,7 @@ export default function Claim() {
               onClick={() => fileInputRef.current?.click()}
               variant="outline"
               disabled={isProcessing}
-              className="w-full"
+              className="w-full mb-4"
             >
               {isProcessing ? (
                 <>
@@ -437,14 +497,13 @@ export default function Claim() {
               )}
             </Button>
             
-            {/* File upload tips */}
+            {/* File upload specific tips */}
             <div className="text-xs text-muted-foreground space-y-1">
-              <p className="font-medium">Tips for best results:</p>
+              <p className="font-medium">Image upload tips:</p>
               <ul className="list-disc pl-4 space-y-0.5">
-                <li>Ensure the QR code is clearly visible and well-lit</li>
-                <li>Hold your camera steady and close enough to read the code</li>
-                <li>Avoid shadows, glare, or blurry images</li>
                 <li>Supported formats: JPG, PNG, GIF (max 10MB)</li>
+                <li>Ensure the entire QR code is visible in the photo</li>
+                <li>Take the photo directly above the QR code for best results</li>
               </ul>
             </div>
           </CardContent>
