@@ -28,7 +28,7 @@ Geocache listing events are addressable events of kind `37515` with the followin
 }
 ```
 
-Listing events require all information about the cache and information relevant to finding the cache. These include the `name`, location (`g`), `difficulty` and `terrain` scores, `size`, and type of cache (`t`).
+Listing events require all information about the cache and information relevant to finding the cache. These include the `name`, location (`g`), `difficulty` and `terrain` scores, and `size`. The type of cache (`t`) is optional and defaults to `traditional` if not specified.
 
 Cache types are determined by individual clients, with common types including `traditional`, `multi`, and `mystery`. Clients should decide which cache types they support based on their implementation needs.
 
@@ -48,7 +48,7 @@ The content field contains the cache description and any additional information 
 - `difficulty` (required) - integer 1-5 indicating puzzle/finding difficulty
 - `terrain` (required) - integer 1-5 indicating physical difficulty  
 - `size` (required) - one of: `micro`, `small`, `regular`, `large`, `other`
-- `t` (required) - cache type, with common values including: `traditional`, `multi`, `mystery`
+- `t` (optional) - cache type, with common values including: `traditional`, `multi`, `mystery`. Defaults to `traditional` if not specified
 - `hint` (optional) - plaintext hint to help find the cache
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
