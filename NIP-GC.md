@@ -36,11 +36,11 @@ These requirements are well-known and follow existing standards, such as those o
 
 These events are assumed to be owned by the submitter of the cache, and core details should be maintained by that submitter. However, community logs should also provide context on the current state and validity of the cache.
 
-## Content
+### Content
 
 The content field contains the cache description and any additional information about the cache.
 
-## Tags
+### Tags
 
 - `d` (required) - unique identifier for the cache
 - `name` (required) - human-readable name for the cache  
@@ -53,6 +53,8 @@ The content field contains the cache description and any additional information 
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
 - `verification` (optional) - hex-encoded public key for verifying finds at this cache
+
+
 
 ## Found Log Event (Kind 7516)
 
@@ -67,6 +69,12 @@ Found log events are regular events of kind `7516` that record successful visits
   ]
 }
 ```
+
+### Tags
+
+- `a` (required) - reference to the geocache being logged
+- `image` (optional) - photos from the visit
+- `verification` (optional) - embedded verification event (see Verified Finds section)
 
 ## Comment Log Events (Kind 1111)
 
@@ -94,14 +102,8 @@ Comment log types include `dnf` (did not find), `note` (helpful or neutral conte
 
 Owners of the cache can officially retire caches using an `archived` tag, thus allowing the cache's history to be preserved without fully deleting it.
 
-## Tags
+### Tags
 
-### Found Log Events (Kind 7516)
-- `a` (required) - reference to the geocache being logged
-- `image` (optional) - photos from the visit
-- `verification` (optional) - embedded verification event (see Verified Finds section)
-
-### Comment Log Events (Kind 1111)
 - `A` (required) - root geocache reference (same as `a` for top-level comments)
 - `K` (required) - root kind number (`37515`)
 - `P` (required) - root author (cache owner pubkey)
@@ -110,6 +112,8 @@ Owners of the cache can officially retire caches using an `archived` tag, thus a
 - `p` (required) - parent author (cache owner pubkey)
 - `t` (optional) - log type: `dnf`, `note`, `maintenance`, `archived`. If omitted, assumed to be `note`
 - `image` (optional) - photos from the visit
+
+
 
 ## Geocache Verification Event (Kind 7517)
 
@@ -125,13 +129,11 @@ Verification events provide cryptographic proof that a someone physically locate
 }
 ```
 
-### Content
-
-The content field contains a human-readable description of the verification, typically including the finder's npub identifier.
-
 ### Tags
 
 - `a` (required) - composite identifier containing the finder's pubkey and the geocache naddr being verified
+
+
 
 ### Usage
 
