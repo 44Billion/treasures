@@ -8,13 +8,13 @@ import { LoginArea } from "@/components/auth/LoginArea";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useOfflineGeocaches } from "@/hooks/useOfflineGeocaches";
+import { useHomePageGeocaches } from "@/hooks/useFastGeocaches";
 import { GeocacheList } from "@/components/GeocacheList";
 import { ComponentLoading } from "@/components/ui/loading";
 
 export default function Home() {
   const { user } = useCurrentUser();
-  const { data: geocaches, isLoading } = useOfflineGeocaches({ limit: 3 });
+  const { data: geocaches, isLoading } = useHomePageGeocaches();
   
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);

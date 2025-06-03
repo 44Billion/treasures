@@ -7,11 +7,9 @@ import { nip19 } from 'nostr-tools';
 import * as QRCode from 'qrcode';
 import { geocacheToNaddr, parseNaddr } from './naddr-utils';
 import type { NostrEvent } from '@nostrify/nostrify';
+import { NIP_GC_KINDS, buildVerificationEventTags, buildVerificationEventContent } from './nip-gc';
 
 // Verification constants
-const VERIFICATION_KIND = 1985; // NIP-32 label event kind
-const VERIFICATION_LABEL_NAMESPACE = 'to.treasures';
-const VERIFICATION_LABEL_TYPE = 'found';
 const VERIFICATION_HASH_PREFIX = '#verify=';
 
 export interface VerificationKeyPair {
@@ -103,6 +101,7 @@ export function verifyKeyPair(nsec: string, expectedPubkey: string): boolean {
 /**
  * Create a verification event signed by the cache's verification key
  * This event attests that the specified user found the cache
+ * According to NIP-GC specification
  */
 export function createVerificationEvent(
   nsec: string,
@@ -121,15 +120,16 @@ export function createVerificationEvent(
     // Generate naddr for the geocache
     const geocacheNaddr = geocacheToNaddr(geocachePubkey, geocacheDTag);
     
+    // Convert finder pubkey to npub for content
+    const finderNpub = nip19.npubEncode(finderPubkey);
+    
     const event = {
-      kind: VERIFICATION_KIND,
-      content: `Verified find by ${finderPubkey}`,
-      tags: [
-        ['L', 'to.treasures'],
-        ['l', 'found', 'to.treasures'],
-        ['p', finderPubkey, '', 'finder'],
-        ['a', `${finderPubkey}:${geocacheNaddr}`, '', 'geocache']
-      ],
+      kind: NIP_GC_KINDS.VERIFICATION,
+      content: buildVerificationEventContent(finderNpub),
+      tags: buildVerificationEventTags({
+        finderPubkey,
+        geocacheNaddr,
+      }),
       created_at: Math.floor(Date.now() / 1000),
       pubkey: getPublicKey(privateKey),
     };
@@ -204,34 +204,11 @@ export function verifyEmbeddedVerification(
   }
 }
 
-/**
- * Parse geocache reference from verification event's 'a' tag
- * Expected format: ${finderPubkey}:${naddr}
- */
-export function parseGeocacheReference(aTagValue: string): { finderPubkey: string; naddr: string } | null {
-  try {
-    const parts = aTagValue.split(':');
-    if (parts.length < 2) {
-      return null;
-    }
-    
-    const finderPubkey = parts[0];
-    const naddr = parts.slice(1).join(':'); // Rejoin in case naddr contains colons
-    
-    // Validate that the naddr is properly formatted
-    const parsed = parseNaddr(naddr);
-    if (!parsed) {
-      return null;
-    }
-    
-    return { finderPubkey, naddr };
-  } catch (error) {
-    return null;
-  }
-}
+
 
 /**
  * Verify that a verification event is valid for a specific log
+ * According to NIP-GC specification
  */
 export function verifyVerificationEvent(
   verificationEvent: NostrEvent, 
@@ -244,47 +221,37 @@ export function verifyVerificationEvent(
       return false;
     }
     
-    // Check if it's the right kind of event (NIP-32 label)
-    if (verificationEvent.kind !== VERIFICATION_KIND) {
+    // Check if it's the right kind of event (NIP-GC verification)
+    if (verificationEvent.kind !== NIP_GC_KINDS.VERIFICATION) {
       return false;
     }
     
-    // Check if it has the right labels
-    const hasCorrectLabel = verificationEvent.tags.some((tag: string[]) =>
-      tag[0] === 'L' && tag[1] === 'to.treasures'
-    ) && verificationEvent.tags.some((tag: string[]) =>
-      tag[0] === 'l' && tag[1] === 'found' && tag[2] === 'to.treasures'
-    );
-    
-    if (!hasCorrectLabel) {
+    // Check content format: "Geocache verification for <finder-npub>"
+    const finderNpub = nip19.npubEncode(logEvent.pubkey);
+    const expectedContent = buildVerificationEventContent(finderNpub);
+    if (verificationEvent.content !== expectedContent) {
       return false;
     }
     
-    // Check if it references the correct finder
-    const finderTag = verificationEvent.tags.find((tag: string[]) =>
-      tag[0] === 'p' && tag[3] === 'finder'
-    );
-    
-    if (!finderTag || finderTag[1] !== logEvent.pubkey) {
+    // Check 'a' tag format: "<finder-pubkey-hex>:<geocache-naddr>"
+    const aTag = verificationEvent.tags.find((tag: string[]) => tag[0] === 'a');
+    if (!aTag || !aTag[1]) {
       return false;
     }
     
-    // Validate the geocache reference in 'a' tag and verify finder pubkey matches
-    const geocacheTag = verificationEvent.tags.find((tag: string[]) =>
-      tag[0] === 'a' && tag[3] === 'geocache'
-    );
-    
-    if (!geocacheTag) {
+    const [finderPubkeyHex, geocacheNaddr] = aTag[1].split(':', 2);
+    if (!finderPubkeyHex || !geocacheNaddr) {
       return false;
     }
     
-    const parsedReference = parseGeocacheReference(geocacheTag[1]);
-    if (!parsedReference) {
+    // Verify that the finder pubkey matches the log submitter
+    if (finderPubkeyHex !== logEvent.pubkey) {
       return false;
     }
     
-    // Verify that the finder pubkey in the 'a' tag matches the log submitter
-    if (parsedReference.finderPubkey !== logEvent.pubkey) {
+    // Verify the geocache naddr is valid
+    const parsedNaddr = parseNaddr(geocacheNaddr);
+    if (!parsedNaddr) {
       return false;
     }
     

@@ -7,7 +7,7 @@ import { TIMEOUTS, QUERY_LIMITS } from '@/lib/constants';
 import { isSafari } from '@/lib/safariNostr';
 import { useOfflineMode } from '@/hooks/useOfflineStorage';
 import { useCacheInvalidation } from '@/hooks/useCacheInvalidation';
-import { offlineStorage } from '@/lib/offlineStorage';
+import { offlineStorage, type CachedGeocache } from '@/lib/offlineStorage';
 import { 
   NIP_GC_KINDS, 
   parseGeocacheEvent, 
@@ -116,12 +116,12 @@ export function useGeocache(id: string) {
 
         // Cache the geocache offline for future use
         try {
-          const cachedGeocache = {
+          const cachedGeocache: CachedGeocache = {
             id: geocache.id,
             event: events[0],
             lastUpdated: Date.now(),
             lastValidated: Date.now(), // Mark as validated since we just fetched it
-            coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] : undefined,
+            coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] as [number, number] : undefined,
             difficulty: geocache.difficulty,
             terrain: geocache.terrain,
             type: geocache.type,
@@ -134,21 +134,38 @@ export function useGeocache(id: string) {
 
         // Quick log count fetch
         
-        // Get logs for this specific geocache
-        const logFilter: NostrFilter = {
-          kinds: [NIP_GC_KINDS.LOG],
-          '#a': [createGeocacheCoordinate(geocache.pubkey, geocache.dTag)],
-          limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS : QUERY_LIMITS.STANDARD_LOGS,
+        // Get logs for this specific geocache (both found and comment logs)
+        const geocacheCoordinate = createGeocacheCoordinate(geocache.pubkey, geocache.dTag);
+        
+        const foundLogFilter: NostrFilter = {
+          kinds: [NIP_GC_KINDS.FOUND_LOG],
+          '#a': [geocacheCoordinate],
+          limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS / 2 : QUERY_LIMITS.STANDARD_LOGS / 2,
+        };
+        
+        const commentLogFilter: NostrFilter = {
+          kinds: [NIP_GC_KINDS.COMMENT_LOG],
+          '#a': [geocacheCoordinate],
+          '#A': [geocacheCoordinate],
+          limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS / 2 : QUERY_LIMITS.STANDARD_LOGS / 2,
         };
 
         // Use unified query utility with error handling
-        let logEvents: NostrEvent[];
+        let logEvents: NostrEvent[] = [];
         try {
-          logEvents = await queryNostr(nostr, [logFilter], {
-            timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
-            maxRetries: 1,
-            signal: c.signal,
-          });
+          const [foundEvents, commentEvents] = await Promise.all([
+            queryNostr(nostr, [foundLogFilter], {
+              timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
+              maxRetries: 1,
+              signal: c.signal,
+            }),
+            queryNostr(nostr, [commentLogFilter], {
+              timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
+              maxRetries: 1,
+              signal: c.signal,
+            }),
+          ]);
+          logEvents = [...foundEvents, ...commentEvents];
         } catch (error) {
           logEvents = []; // Continue without log counts
         }
@@ -157,9 +174,8 @@ export function useGeocache(id: string) {
         const logCount = logEvents.length;
         
         logEvents.forEach(event => {
-          // Get type from tags
-          const logType = event.tags.find(t => t[0] === 'log-type')?.[1];
-          if (logType === 'found') {
+          const log = parseLogEvent(event);
+          if (log && log.type === 'found') {
             foundCount++;
           }
         });

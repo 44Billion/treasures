@@ -361,19 +361,36 @@ async function addLogCounts(geocaches: GeocacheWithDistance[], nostr: any, isOnl
 
   try {
     const limitedCaches = geocaches.slice(0, isSafari() ? 5 : 10);
-    const logFilter: NostrFilter = {
-      kinds: [NIP_GC_KINDS.LOG],
-      '#a': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
-      limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS : QUERY_LIMITS.STANDARD_LOGS,
+    const geocacheCoordinates = limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag));
+    
+    // Query both found logs and comment logs
+    const foundLogFilter: NostrFilter = {
+      kinds: [NIP_GC_KINDS.FOUND_LOG],
+      '#a': geocacheCoordinates,
+      limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS / 2 : QUERY_LIMITS.STANDARD_LOGS / 2,
+    };
+    
+    const commentLogFilter: NostrFilter = {
+      kinds: [NIP_GC_KINDS.COMMENT_LOG],
+      '#a': geocacheCoordinates,
+      '#A': geocacheCoordinates,
+      limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS / 2 : QUERY_LIMITS.STANDARD_LOGS / 2,
     };
 
     // Use unified query utility with error handling
-    let logEvents: NostrEvent[];
+    let logEvents: NostrEvent[] = [];
     try {
-      logEvents = await queryNostr(nostr, [logFilter], {
-        timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
-        maxRetries: 1,
-      });
+      const [foundEvents, commentEvents] = await Promise.all([
+        queryNostr(nostr, [foundLogFilter], {
+          timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
+          maxRetries: 1,
+        }),
+        queryNostr(nostr, [commentLogFilter], {
+          timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
+          maxRetries: 1,
+        }),
+      ]);
+      logEvents = [...foundEvents, ...commentEvents];
     } catch (error) {
       logEvents = [];
     }

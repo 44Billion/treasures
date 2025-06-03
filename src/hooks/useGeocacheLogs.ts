@@ -16,32 +16,60 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       try {
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]); // Fast 3 second timeout
       
-      // Query for logs using the correct event kind from NIP-GC
-      const filter: NostrFilter = {
-        kinds: [NIP_GC_KINDS.LOG],
-        limit: 200, // Reasonable limit
+      // Query for both found logs (7516) and comment logs (1111) according to NIP-GC
+      const foundLogFilter: NostrFilter = {
+        kinds: [NIP_GC_KINDS.FOUND_LOG],
+        limit: 100,
       };
       
-      // If we have the cache pubkey and d-tag, use the a-tag filter
+      const commentLogFilter: NostrFilter = {
+        kinds: [NIP_GC_KINDS.COMMENT_LOG],
+        limit: 100,
+      };
+      
+      // If we have the cache pubkey and d-tag, use the appropriate filters
       if (geocachePubkey && geocacheDTag) {
-        filter['#a'] = [createGeocacheCoordinate(geocachePubkey, geocacheDTag)];
+        const geocacheCoordinate = createGeocacheCoordinate(geocachePubkey, geocacheDTag);
+        
+        // Found logs use 'a' tag
+        foundLogFilter['#a'] = [geocacheCoordinate];
+        
+        // Comment logs use both 'a' and 'A' tags (NIP-22 structure)
+        commentLogFilter['#a'] = [geocacheCoordinate];
+        commentLogFilter['#A'] = [geocacheCoordinate];
       }
       
-      // Use the custom query function that queries both preferred and default relays
-      let events = await queryWithRelays([filter], { 
-        signal, 
-        relays: preferredRelays 
-      });
+      // Query both types of logs
+      const [foundEvents, commentEvents] = await Promise.all([
+        queryWithRelays([foundLogFilter], { signal, relays: preferredRelays }),
+        queryWithRelays([commentLogFilter], { signal, relays: preferredRelays }),
+      ]);
+      
+      // Combine all events
+      let events = [...foundEvents, ...commentEvents];
       
       // Additional filtering for edge cases
       if (!geocachePubkey || !geocacheDTag) {
         events = events.filter(event => {
-          const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
-          if (!aTag) return false;
-          
-          // Check if this log is for our geocache
-          const [, pubkey, dTag] = aTag.split(':');
-          return (dTag === geocacheDTag) || (geocacheId && aTag.includes(geocacheId));
+          if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
+            const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
+            if (!aTag) return false;
+            const [, pubkey, dTag] = aTag.split(':');
+            return (dTag === geocacheDTag) || (geocacheId && aTag.includes(geocacheId));
+          } else if (event.kind === NIP_GC_KINDS.COMMENT_LOG) {
+            const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
+            const ATag = event.tags.find(tag => tag[0] === 'A')?.[1];
+            if (!aTag && !ATag) return false;
+            
+            // Check both a and A tags for geocache reference
+            const checkTag = (tag: string) => {
+              const [, pubkey, dTag] = tag.split(':');
+              return (dTag === geocacheDTag) || (geocacheId && tag.includes(geocacheId));
+            };
+            
+            return (aTag && checkTag(aTag)) || (ATag && checkTag(ATag));
+          }
+          return false;
         });
       }
     
@@ -58,8 +86,8 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       // Filter out verification events - these should not be visible in logs
       // Only actual user log entries should be displayed
       const filteredEvents = deduplicatedEvents.filter(event => {
-        // Exclude NIP-32 label events (verification events created by cache verification key)
-        if (event.kind === 1985) {
+        // Exclude verification events (kind 7517)
+        if (event.kind === NIP_GC_KINDS.VERIFICATION) {
           return false;
         }
         

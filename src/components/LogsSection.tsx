@@ -69,7 +69,8 @@ export function LogsSection({
           setPostingStatus("");
         }, 2000);
       },
-      onError: () => {
+      onError: (error) => {
+        console.error('Log creation failed:', error);
         setPostingStatus("");
       }
     });

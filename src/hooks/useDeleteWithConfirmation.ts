@@ -1,0 +1,141 @@
+import { useState } from 'react';
+import { useDeleteGeocache } from './useDeleteGeocache';
+import { useBatchDeleteGeocaches } from './useBatchDeleteGeocaches';
+import type { NostrEvent } from '@nostrify/nostrify';
+
+interface GeocacheToDelete {
+  id: string;
+  name: string;
+  event?: NostrEvent;
+}
+
+export function useDeleteWithConfirmation() {
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [pendingDeletion, setPendingDeletion] = useState<{
+    type: 'single' | 'batch';
+    geocaches: GeocacheToDelete[];
+    reason?: string;
+    onSuccess?: () => void;
+  } | null>(null);
+
+  const { mutate: deleteSingle, isPending: isDeletingSingle } = useDeleteGeocache();
+  const { mutate: deleteBatch, isPending: isDeletingBatch } = useBatchDeleteGeocaches();
+
+  const isDeletingAny = isDeletingSingle || isDeletingBatch;
+
+  const confirmSingleDeletion = (
+    geocache: GeocacheToDelete,
+    reason?: string,
+    onSuccess?: () => void
+  ) => {
+    setPendingDeletion({
+      type: 'single',
+      geocaches: [geocache],
+      reason,
+      onSuccess,
+    });
+    setIsConfirmDialogOpen(true);
+  };
+
+  const confirmBatchDeletion = (
+    geocaches: GeocacheToDelete[],
+    reason?: string,
+    onSuccess?: () => void
+  ) => {
+    setPendingDeletion({
+      type: 'batch',
+      geocaches,
+      reason,
+      onSuccess,
+    });
+    setIsConfirmDialogOpen(true);
+  };
+
+  const executeDeletion = () => {
+    if (!pendingDeletion) return;
+
+    const { type, geocaches, reason, onSuccess } = pendingDeletion;
+
+    if (type === 'single' && geocaches.length === 1) {
+      const geocache = geocaches[0];
+      deleteSingle({
+        geocacheId: geocache.id,
+        geocacheEvent: geocache.event,
+        reason: reason || 'Deleted by cache owner'
+      }, {
+        onSuccess: () => {
+          onSuccess?.();
+          setIsConfirmDialogOpen(false);
+          setPendingDeletion(null);
+        },
+        onError: () => {
+          // Error handling is done in the hook itself
+          setIsConfirmDialogOpen(false);
+          setPendingDeletion(null);
+        }
+      });
+    } else if (type === 'batch') {
+      deleteBatch({
+        geocaches: geocaches.map(g => ({ id: g.id, event: g.event })),
+        reason: reason || 'Deleted by cache owner'
+      }, {
+        onSuccess: () => {
+          onSuccess?.();
+          setIsConfirmDialogOpen(false);
+          setPendingDeletion(null);
+        },
+        onError: () => {
+          // Error handling is done in the hook itself
+          setIsConfirmDialogOpen(false);
+          setPendingDeletion(null);
+        }
+      });
+    }
+  };
+
+  const cancelDeletion = () => {
+    setIsConfirmDialogOpen(false);
+    setPendingDeletion(null);
+  };
+
+  const getConfirmationMessage = () => {
+    if (!pendingDeletion) return '';
+
+    const { type, geocaches } = pendingDeletion;
+    
+    if (type === 'single') {
+      return `Are you sure you want to delete "${geocaches[0].name}"? This action cannot be undone.`;
+    } else {
+      return `Are you sure you want to delete ${geocaches.length} geocaches? This action cannot be undone and may take several minutes to complete.`;
+    }
+  };
+
+  const getConfirmationTitle = () => {
+    if (!pendingDeletion) return '';
+
+    const { type, geocaches } = pendingDeletion;
+    
+    if (type === 'single') {
+      return 'Delete Geocache?';
+    } else {
+      return `Delete ${geocaches.length} Geocaches?`;
+    }
+  };
+
+  return {
+    // State
+    isConfirmDialogOpen,
+    isDeletingAny,
+    pendingDeletion,
+    
+    // Actions
+    confirmSingleDeletion,
+    confirmBatchDeletion,
+    executeDeletion,
+    cancelDeletion,
+    
+    // UI helpers
+    getConfirmationMessage,
+    getConfirmationTitle,
+  };
+}

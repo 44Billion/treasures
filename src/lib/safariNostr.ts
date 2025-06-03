@@ -30,7 +30,7 @@ class SafariNostrClient {
       const timeout = setTimeout(() => {
         ws.close();
         reject(new Error(`Connection timeout to ${url}`));
-      }, 5000);
+      }, 3000);
 
       ws.onopen = () => {
         clearTimeout(timeout);
@@ -60,28 +60,47 @@ class SafariNostrClient {
   }
 
   async query(filters: NostrFilter[], options: SafariNostrOptions = {}): Promise<NostrEvent[]> {
-    const { timeout = 8000, maxRetries = 2 } = options;
+    const { timeout = 4000, maxRetries = 1 } = options;
     
-    // Try each relay individually with retries
-    for (const relayUrl of this.relays) {
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          const events = await this.queryRelay(relayUrl, filters, timeout);
-          if (events.length > 0) {
-            return events;
-          }
-        } catch (error) {
-          // Clean up failed connection
-          const ws = this.connections.get(relayUrl);
-          if (ws) {
-            ws.close();
-            this.connections.delete(relayUrl);
-          }
+    // Try relays in parallel for faster results
+    const relayPromises = this.relays.slice(0, 2).map(async (relayUrl) => {
+      try {
+        return await this.queryRelay(relayUrl, filters, timeout);
+      } catch (error) {
+        // Clean up failed connection
+        const ws = this.connections.get(relayUrl);
+        if (ws) {
+          ws.close();
+          this.connections.delete(relayUrl);
+        }
+        return [];
+      }
+    });
+
+    // Wait for first successful result or all to complete
+    const results = await Promise.allSettled(relayPromises);
+    
+    // Return first non-empty result
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value.length > 0) {
+        return result.value;
+      }
+    }
+
+    // If no results, try one more relay sequentially as fallback
+    if (this.relays.length > 2) {
+      try {
+        return await this.queryRelay(this.relays[2], filters, timeout);
+      } catch (error) {
+        // Clean up failed connection
+        const ws = this.connections.get(this.relays[2]);
+        if (ws) {
+          ws.close();
+          this.connections.delete(this.relays[2]);
         }
       }
     }
 
-    // If all relays fail, return empty array instead of throwing
     return [];
   }
 
@@ -138,6 +157,95 @@ class SafariNostrClient {
           ws.send(JSON.stringify(['CLOSE', subId]));
         }
       }, timeout - 1000); // Close 1 second before timeout
+    });
+  }
+
+  async publish(event: NostrEvent, options: SafariNostrOptions = {}): Promise<void> {
+    const { timeout = 5000, maxRetries = 2 } = options;
+    const errors: Error[] = [];
+    
+    // Try to publish to multiple relays in parallel for better success rate
+    const publishPromises = this.relays.slice(0, 3).map(async (relayUrl) => {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          await this.publishToRelay(relayUrl, event, timeout);
+          return; // Success
+        } catch (error) {
+          errors.push(error as Error);
+          // Clean up failed connection
+          const ws = this.connections.get(relayUrl);
+          if (ws) {
+            ws.close();
+            this.connections.delete(relayUrl);
+          }
+        }
+      }
+      throw new Error(`Failed to publish to ${relayUrl} after ${maxRetries} attempts`);
+    });
+    
+    // Wait for at least one successful publish
+    const results = await Promise.allSettled(publishPromises);
+    const successful = results.some(result => result.status === 'fulfilled');
+    
+    if (!successful) {
+      throw new Error(`Failed to publish to any relay: ${errors.map(e => e.message).join(', ')}`);
+    }
+  }
+
+  private async publishToRelay(relayUrl: string, event: NostrEvent, timeout: number): Promise<void> {
+    const ws = await this.getConnection(relayUrl);
+    
+    return new Promise((resolve, reject) => {
+      let isResolved = false;
+      
+      const timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          reject(new Error(`Publish timeout after ${timeout}ms`));
+        }
+      }, timeout);
+      
+      const handleMessage = (messageEvent: MessageEvent) => {
+        try {
+          const message = JSON.parse(messageEvent.data);
+          
+          if (message[0] === 'OK' && message[1] === event.id) {
+            if (!isResolved) {
+              isResolved = true;
+              clearTimeout(timeoutId);
+              ws.removeEventListener('message', handleMessage);
+              
+              if (message[2] === true) {
+                resolve();
+              } else {
+                reject(new Error(`Relay rejected event: ${message[3] || 'Unknown reason'}`));
+              }
+            }
+          } else if (message[0] === 'NOTICE') {
+            // Log notices but don't fail
+            console.warn(`Relay notice from ${relayUrl}:`, message[1]);
+          }
+        } catch (parseError) {
+          // Ignore parse errors for non-JSON messages
+        }
+      };
+      
+      ws.addEventListener('message', handleMessage);
+      
+      // Send EVENT message
+      const eventMessage = JSON.stringify(['EVENT', event]);
+      ws.send(eventMessage);
+      
+      // Set a shorter timeout for OK response
+      setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          clearTimeout(timeoutId);
+          ws.removeEventListener('message', handleMessage);
+          // Assume success if no explicit rejection after reasonable time
+          resolve();
+        }
+      }, Math.min(timeout, 3000));
     });
   }
 

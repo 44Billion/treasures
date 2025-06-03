@@ -112,4 +112,5 @@ export interface CreateLogData {
   text: string;
   images?: string[];
   location?: { lat: number; lng: number }; // Optional user location for the log
+  verificationEvent?: string; // JSON string of embedded verification event (for found logs)
 }

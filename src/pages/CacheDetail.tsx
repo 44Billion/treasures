@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CacheDetailTabs } from "@/components/ui/mobile-button-patterns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { FullPageLoading, ErrorState } from "@/components/ui/loading";
 import { SaveButton } from "@/components/SaveButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGeocacheByNaddr } from "@/hooks/useGeocacheByNaddr";
 import { useGeocacheLogs } from "@/hooks/useGeocacheLogs";
-import { useDeleteGeocache } from "@/hooks/useDeleteGeocache";
+import { useDeleteWithConfirmation } from "@/hooks/useDeleteWithConfirmation";
 import { useEditGeocache } from "@/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { LogsSection } from "@/components/LogsSection";
@@ -46,7 +46,15 @@ export default function CacheDetail() {
     geocache?.relays,
     geocache?.verificationPubkey
   );
-  const { mutate: deleteGeocache } = useDeleteGeocache();
+  const {
+    confirmSingleDeletion,
+    isConfirmDialogOpen,
+    isDeletingAny,
+    executeDeletion,
+    cancelDeletion,
+    getConfirmationTitle,
+    getConfirmationMessage,
+  } = useDeleteWithConfirmation();
   const { mutate: editGeocache, isPending: isEditingGeocache } = useEditGeocache(geocache || null);
   const { toast } = useToast();
   
@@ -146,11 +154,15 @@ export default function CacheDetail() {
 
   const handleDelete = () => {
     if (!geocache) return;
-    deleteGeocache(geocache.id, {
-      onSuccess: () => {
-        navigate("/");
-      }
-    });
+    confirmSingleDeletion(
+      {
+        id: geocache.id,
+        name: geocache.name,
+        event: geocache.event,
+      },
+      'Deleted by cache owner',
+      () => navigate("/")
+    );
   };
 
   const handleEdit = () => {
@@ -346,26 +358,18 @@ export default function CacheDetail() {
                             <Button variant="outline" size="sm" onClick={handleEdit} disabled={isEditingGeocache}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Geocache?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete your geocache
-                                    and all associated logs.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={handleDelete}
+                              disabled={isDeletingAny}
+                            >
+                              {isDeletingAny ? (
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
                           </>
                         )}
                       </>
@@ -567,6 +571,18 @@ export default function CacheDetail() {
         pubkey={selectedProfilePubkey}
         isOpen={profileDialogOpen}
         onOpenChange={setProfileDialogOpen}
+      />
+      
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={() => {}} // Controlled by the hook
+        title={getConfirmationTitle()}
+        description={getConfirmationMessage()}
+        isDeleting={isDeletingAny}
+        onConfirm={executeDeletion}
+        onCancel={cancelDeletion}
+        confirmText="Delete Geocache"
       />
     </div>
   );

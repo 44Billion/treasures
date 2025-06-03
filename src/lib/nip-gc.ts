@@ -10,16 +10,18 @@ import type { Geocache, GeocacheLog } from '@/types/geocache';
 
 export const NIP_GC_KINDS = {
   GEOCACHE: 37515,
-  LOG: 7516,
+  FOUND_LOG: 7516,
+  COMMENT_LOG: 1111,
+  VERIFICATION: 7517,
 } as const;
 
 export const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;
 export const VALID_CACHE_SIZES = ['micro', 'small', 'regular', 'large', 'other'] as const;
-export const VALID_LOG_TYPES = ['found', 'dnf', 'note', 'maintenance', 'archived'] as const;
+export const VALID_COMMENT_LOG_TYPES = ['dnf', 'note', 'maintenance', 'archived'] as const;
 
 export type ValidCacheType = typeof VALID_CACHE_TYPES[number];
 export type ValidCacheSize = typeof VALID_CACHE_SIZES[number];
-export type ValidLogType = typeof VALID_LOG_TYPES[number];
+export type ValidCommentLogType = typeof VALID_COMMENT_LOG_TYPES[number];
 
 // ===== GEOHASH UTILITIES =====
 
@@ -117,8 +119,8 @@ export function validateCacheSize(size: string): size is ValidCacheSize {
   return VALID_CACHE_SIZES.includes(size as ValidCacheSize);
 }
 
-export function validateLogType(type: string): type is ValidLogType {
-  return VALID_LOG_TYPES.includes(type as ValidLogType);
+export function validateCommentLogType(type: string): type is ValidCommentLogType {
+  return VALID_COMMENT_LOG_TYPES.includes(type as ValidCommentLogType);
 }
 
 export function validateCoordinates(lat: number, lng: number): boolean {
@@ -147,10 +149,12 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
     const terrain = event.tags.find(t => t[0] === 'terrain')?.[1];
     const size = event.tags.find(t => t[0] === 'size')?.[1];
-    const cacheType = event.tags.find(t => t[0] === 'cache-type')?.[1];
+    
+    // Type tag is 't' according to NIP-GC, defaults to 'traditional' if not specified
+    const cacheType = event.tags.find(t => t[0] === 't')?.[1] || 'traditional';
 
     // Validate required fields
-    if (!name || !geohash || !difficulty || !terrain || !size || !cacheType) {
+    if (!name || !geohash || !difficulty || !terrain || !size) {
       return null;
     }
 
@@ -208,49 +212,111 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
 
 export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
   try {
-    // Only process log events
-    if (event.kind !== NIP_GC_KINDS.LOG) {
-      return null;
+    // Handle Found Log Events (Kind 7516)
+    if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
+      return parseFoundLogEvent(event);
+    }
+    
+    // Handle Comment Log Events (Kind 1111)
+    if (event.kind === NIP_GC_KINDS.COMMENT_LOG) {
+      return parseCommentLogEvent(event);
     }
 
-    // Parse required tags
-    const aTag = event.tags.find(t => t[0] === 'a')?.[1];
-    const logType = event.tags.find(t => t[0] === 'log-type')?.[1];
-
-    if (!aTag || !logType) {
-      return null;
-    }
-
-    // Validate log type
-    if (!validateLogType(logType)) {
-      return null;
-    }
-
-    // Extract geocache reference from a-tag
-    const [, pubkey, dTag] = aTag.split(':');
-    if (!pubkey || !dTag) {
-      return null;
-    }
-
-    const geocacheId = `${pubkey}:${dTag}`;
-
-    // Parse optional tags
-    const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
-    const client = event.tags.find(t => t[0] === 'client')?.[1];
-
-    return {
-      id: event.id,
-      pubkey: event.pubkey,
-      created_at: event.created_at,
-      geocacheId,
-      type: logType,
-      text: event.content, // Log text is in content field per NIP-GC
-      images,
-      client,
-    };
+    return null;
   } catch (error) {
     return null;
   }
+}
+
+function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
+  // Parse required tags for found logs
+  const aTag = event.tags.find(t => t[0] === 'a')?.[1];
+  if (!aTag) {
+    return null;
+  }
+
+  // Extract geocache reference from a-tag
+  const [kind, pubkey, dTag] = aTag.split(':');
+  if (kind !== NIP_GC_KINDS.GEOCACHE.toString() || !pubkey || !dTag) {
+    return null;
+  }
+
+  const geocacheId = `${pubkey}:${dTag}`;
+
+  // Parse optional tags
+  const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+  const verificationTag = event.tags.find(t => t[0] === 'verification')?.[1];
+  
+  // Check if this is a verified find
+  let isVerified = false;
+  if (verificationTag) {
+    try {
+      // Parse embedded verification event
+      const verificationEvent = JSON.parse(verificationTag);
+      if (verificationEvent.kind === NIP_GC_KINDS.VERIFICATION) {
+        isVerified = true;
+      }
+    } catch {
+      // Invalid verification data
+    }
+  }
+
+  return {
+    id: event.id,
+    pubkey: event.pubkey,
+    created_at: event.created_at,
+    geocacheId,
+    type: 'found',
+    text: event.content,
+    images,
+    isVerified,
+  };
+}
+
+function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
+  // Parse required tags for comment logs (NIP-22 structure)
+  const aTag = event.tags.find(t => t[0] === 'a')?.[1]; // Parent reference
+  const ATag = event.tags.find(t => t[0] === 'A')?.[1]; // Root reference
+  const kTag = event.tags.find(t => t[0] === 'k')?.[1]; // Parent kind
+  const KTag = event.tags.find(t => t[0] === 'K')?.[1]; // Root kind
+  
+  if (!aTag || !ATag || !kTag || !KTag) {
+    return null;
+  }
+
+  // Verify this is a geocache comment
+  if (kTag !== NIP_GC_KINDS.GEOCACHE.toString() || KTag !== NIP_GC_KINDS.GEOCACHE.toString()) {
+    return null;
+  }
+
+  // Extract geocache reference from a-tag (should be same as A-tag for top-level comments)
+  const [kind, pubkey, dTag] = aTag.split(':');
+  if (kind !== NIP_GC_KINDS.GEOCACHE.toString() || !pubkey || !dTag) {
+    return null;
+  }
+
+  const geocacheId = `${pubkey}:${dTag}`;
+
+  // Parse log type from 't' tag, default to 'note' if not specified
+  const logType = event.tags.find(t => t[0] === 't')?.[1] || 'note';
+  
+  // Validate comment log type
+  if (!validateCommentLogType(logType) && logType !== 'note') {
+    return null;
+  }
+
+  // Parse optional tags
+  const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+
+  return {
+    id: event.id,
+    pubkey: event.pubkey,
+    created_at: event.created_at,
+    geocacheId,
+    type: logType as 'dnf' | 'note' | 'maintenance' | 'archived',
+    text: event.content,
+    images,
+  };
 }
 
 // ===== TAG BUILDING =====
@@ -279,7 +345,9 @@ export function buildGeocacheTags(data: {
     throw new Error(`Invalid coordinates: ${data.location.lat}, ${data.location.lng}`);
   }
 
-  const geohash = encodeGeohash(data.location.lat, data.location.lng);
+  // Ensure minimum geohash precision (8 characters for ±38m accuracy)
+  const precision = Math.max(8, data.size === 'micro' ? 9 : 8);
+  const geohash = encodeGeohash(data.location.lat, data.location.lng, precision);
 
   // Build required tags according to NIP-GC
   const tags: string[][] = [
@@ -289,8 +357,12 @@ export function buildGeocacheTags(data: {
     ['difficulty', data.difficulty.toString()],
     ['terrain', data.terrain.toString()],
     ['size', data.size],
-    ['cache-type', data.type],
   ];
+
+  // Add type tag only if not 'traditional' (defaults to traditional per NIP-GC)
+  if (data.type !== 'traditional') {
+    tags.push(['t', data.type]);
+  }
 
   // Add optional tags
   if (data.hint?.trim()) {
@@ -316,22 +388,59 @@ export function buildGeocacheTags(data: {
   return tags;
 }
 
-export function buildLogTags(data: {
+export function buildFoundLogTags(data: {
   geocachePubkey: string;
   geocacheDTag: string;
-  logType: ValidLogType;
   images?: string[];
+  verificationEvent?: string; // JSON string of embedded verification event
 }): string[][] {
-  // Validate log type
-  if (!validateLogType(data.logType)) {
-    throw new Error(`Invalid log type: ${data.logType}`);
-  }
-
-  // Build required tags according to NIP-GC
+  // Build required tags for found logs according to NIP-GC
   const tags: string[][] = [
     ['a', `${NIP_GC_KINDS.GEOCACHE}:${data.geocachePubkey}:${data.geocacheDTag}`],
-    ['log-type', data.logType],
   ];
+
+  // Add optional image tags
+  if (data.images && data.images.length > 0) {
+    data.images.forEach(image => {
+      tags.push(['image', image]);
+    });
+  }
+
+  // Add embedded verification event if provided
+  if (data.verificationEvent) {
+    tags.push(['verification', data.verificationEvent]);
+  }
+
+  return tags;
+}
+
+export function buildCommentLogTags(data: {
+  geocachePubkey: string;
+  geocacheDTag: string;
+  logType: ValidCommentLogType | 'note';
+  images?: string[];
+}): string[][] {
+  // Validate comment log type
+  if (data.logType !== 'note' && !validateCommentLogType(data.logType)) {
+    throw new Error(`Invalid comment log type: ${data.logType}`);
+  }
+
+  const geocacheCoordinate = `${NIP_GC_KINDS.GEOCACHE}:${data.geocachePubkey}:${data.geocacheDTag}`;
+
+  // Build required tags for comment logs according to NIP-GC (NIP-22 structure)
+  const tags: string[][] = [
+    ['A', geocacheCoordinate], // Root geocache reference
+    ['K', NIP_GC_KINDS.GEOCACHE.toString()], // Root kind number
+    ['P', data.geocachePubkey], // Root author (cache owner pubkey)
+    ['a', geocacheCoordinate], // Parent reference (same as root for top-level comments)
+    ['k', NIP_GC_KINDS.GEOCACHE.toString()], // Parent kind number
+    ['p', data.geocachePubkey], // Parent author (cache owner pubkey)
+  ];
+
+  // Add log type tag only if not 'note' (defaults to note per NIP-GC)
+  if (data.logType !== 'note') {
+    tags.push(['t', data.logType]);
+  }
 
   // Add optional image tags
   if (data.images && data.images.length > 0) {
@@ -555,6 +664,54 @@ export function isGeocacheEvent(event: NostrEvent): boolean {
   return event.kind === NIP_GC_KINDS.GEOCACHE;
 }
 
+export function isFoundLogEvent(event: NostrEvent): boolean {
+  return event.kind === NIP_GC_KINDS.FOUND_LOG;
+}
+
+export function isCommentLogEvent(event: NostrEvent): boolean {
+  return event.kind === NIP_GC_KINDS.COMMENT_LOG;
+}
+
+export function isVerificationEvent(event: NostrEvent): boolean {
+  return event.kind === NIP_GC_KINDS.VERIFICATION;
+}
+
 export function isLogEvent(event: NostrEvent): boolean {
-  return event.kind === NIP_GC_KINDS.LOG;
+  return isFoundLogEvent(event) || isCommentLogEvent(event);
+}
+
+// ===== VERIFICATION EVENT UTILITIES =====
+
+export function buildVerificationEventTags(data: {
+  finderPubkey: string;
+  geocacheNaddr: string;
+}): string[][] {
+  return [
+    ['a', `${data.finderPubkey}:${data.geocacheNaddr}`],
+  ];
+}
+
+export function buildVerificationEventContent(finderNpub: string): string {
+  return `Geocache verification for ${finderNpub}`;
+}
+
+export function parseVerificationEvent(event: NostrEvent): {
+  finderPubkey: string;
+  geocacheNaddr: string;
+} | null {
+  if (event.kind !== NIP_GC_KINDS.VERIFICATION) {
+    return null;
+  }
+
+  const aTag = event.tags.find(t => t[0] === 'a')?.[1];
+  if (!aTag) {
+    return null;
+  }
+
+  const [finderPubkey, geocacheNaddr] = aTag.split(':', 2);
+  if (!finderPubkey || !geocacheNaddr) {
+    return null;
+  }
+
+  return { finderPubkey, geocacheNaddr };
 }

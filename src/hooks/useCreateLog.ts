@@ -5,9 +5,10 @@ import { useOfflineSync, useOfflineMode } from '@/hooks/useOfflineStorage';
 import type { CreateLogData, GeocacheLog } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
-  buildLogTags, 
-  validateLogType,
-  type ValidLogType
+  buildFoundLogTags,
+  buildCommentLogTags, 
+  validateCommentLogType,
+  type ValidCommentLogType
 } from '@/lib/nip-gc';
 
 export function useCreateLog() {
@@ -28,24 +29,39 @@ export function useCreateLog() {
         throw new Error('Log text is required');
       }
       
-      // Validate log type according to NIP-GC
-      if (!validateLogType(data.type)) {
-        throw new Error(`Invalid log type: ${data.type}`);
-      }
+      // Determine event kind and build tags based on log type
+      let eventKind: number;
+      let tags: string[][];
       
-      // Build tags using consolidated utility
-      const tags = buildLogTags({
-        geocachePubkey: data.geocachePubkey!,
-        geocacheDTag: data.geocacheDTag!,
-        logType: data.type as ValidLogType,
-        images: data.images,
-      });
+      if (data.type === 'found') {
+        // Found logs use kind 7516
+        eventKind = NIP_GC_KINDS.FOUND_LOG;
+        tags = buildFoundLogTags({
+          geocachePubkey: data.geocachePubkey!,
+          geocacheDTag: data.geocacheDTag!,
+          images: data.images,
+          verificationEvent: data.verificationEvent,
+        });
+      } else {
+        // All other log types use kind 1111 (comment logs)
+        if (data.type !== 'note' && !validateCommentLogType(data.type)) {
+          throw new Error(`Invalid comment log type: ${data.type}`);
+        }
+        
+        eventKind = NIP_GC_KINDS.COMMENT_LOG;
+        tags = buildCommentLogTags({
+          geocachePubkey: data.geocachePubkey!,
+          geocacheDTag: data.geocacheDTag!,
+          logType: data.type as ValidCommentLogType | 'note',
+          images: data.images,
+        });
+      }
       
       if (isOnline) {
         try {
           const event = await publishEvent({
             event: {
-              kind: NIP_GC_KINDS.LOG,
+              kind: eventKind,
               content: data.text.trim(), // Plain text log message in content
               tags,
             },
@@ -86,7 +102,7 @@ export function useCreateLog() {
           id: `offline-${Date.now()}`,
           pubkey: 'offline-user',
           created_at: Math.floor(Date.now() / 1000),
-          kind: NIP_GC_KINDS.LOG,
+          kind: eventKind,
           content: data.text.trim(),
           tags,
           sig: 'offline-signature',
@@ -170,12 +186,19 @@ export function useCreateLog() {
       }, 5000); // Increased from 2000ms to 5000ms
     },
     onError: (error: unknown) => {
+      console.error('Create log error:', error);
       
       let errorMessage = "Please try again later.";
       const errorObj = error as { message?: string };
       
       if (errorObj.message?.includes('not found on relays')) {
         errorMessage = "Log was created but couldn't be verified. It may appear after a delay.";
+      } else if (errorObj.message?.includes('timeout')) {
+        errorMessage = "Connection timeout. Please check your internet connection and try again.";
+      } else if (errorObj.message?.includes('cancelled') || errorObj.message?.includes('rejected')) {
+        errorMessage = "Log posting was cancelled.";
+      } else if (errorObj.message?.includes('Failed to publish')) {
+        errorMessage = "Could not connect to Nostr relays. Please try again.";
       } else if (errorObj.message) {
         errorMessage = errorObj.message;
       }

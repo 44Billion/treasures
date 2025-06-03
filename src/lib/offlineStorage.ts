@@ -216,6 +216,31 @@ class OfflineStorage {
     });
   }
 
+  // Fast method to get recent geocaches with limit
+  async getRecentGeocaches(limit: number = 20): Promise<CachedGeocache[]> {
+    const db = await this.ensureDB();
+    const transaction = db.transaction([STORES.GEOCACHES], 'readonly');
+    const store = transaction.objectStore(STORES.GEOCACHES);
+    const index = store.index('lastUpdated');
+    
+    return new Promise((resolve, reject) => {
+      const results: CachedGeocache[] = [];
+      const request = index.openCursor(null, 'prev'); // Newest first
+      
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor && results.length < limit) {
+          results.push(cursor.value);
+          cursor.continue();
+        } else {
+          resolve(results);
+        }
+      };
+      
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async getGeocachesInBounds(
     minLat: number,
     maxLat: number,

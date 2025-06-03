@@ -6,9 +6,9 @@ import { NRelay1 } from '@nostrify/nostrify';
 import type { CreateLogData, GeocacheLog } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
-  buildLogTags, 
-  validateLogType,
-  type ValidLogType
+  buildFoundLogTags,
+  buildVerificationEventTags,
+  buildVerificationEventContent
 } from '@/lib/nip-gc';
 import { createVerificationEvent } from '@/lib/verification';
 
@@ -41,9 +41,9 @@ export function useCreateVerifiedLog() {
         throw new Error('User signer is required');
       }
       
-      // Validate log type according to NIP-GC
-      if (!validateLogType(data.type)) {
-        throw new Error(`Invalid log type: ${data.type}`);
+      // Only found logs can be verified according to NIP-GC
+      if (data.type !== 'found') {
+        throw new Error('Only found logs can be verified');
       }
       
       // Step 1: Create verification event signed by the cache's verification key
@@ -54,22 +54,19 @@ export function useCreateVerifiedLog() {
         data.geocacheDTag!
       );
       
-      // Step 2: Build tags for the log event
-      const tags = buildLogTags({
+      // Step 2: Build tags for the found log event
+      const tags = buildFoundLogTags({
         geocachePubkey: data.geocachePubkey!,
         geocacheDTag: data.geocacheDTag!,
-        logType: data.type as ValidLogType,
         images: data.images,
+        verificationEvent: JSON.stringify(verificationEvent),
       });
       
-      // Create log event template with embedded verification event
+      // Create found log event template with embedded verification event
       const logEventTemplate = {
-        kind: NIP_GC_KINDS.LOG,
+        kind: NIP_GC_KINDS.FOUND_LOG,
         content: data.text.trim(),
-        tags: [
-          ...tags,
-          ['verification', JSON.stringify(verificationEvent)]
-        ],
+        tags,
       };
 
       // Sign the log event with the user's key
