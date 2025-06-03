@@ -57,7 +57,7 @@ export function useDeleteLog() {
     onSuccess: (event, logId) => {
       toast({
         title: "Log deleted",
-        description: "Your log has been removed.",
+        description: "Your log has been removed. It may take a moment for all relays to process the deletion.",
       });
       
       // Optimistically remove the log from all relevant caches

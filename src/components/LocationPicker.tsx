@@ -23,12 +23,14 @@ function LocationSelector({
   value, 
   onChange,
   center,
-  beaconLocation
+  beaconLocation,
+  onPinDropped
 }: { 
   value: { lat: number; lng: number } | null;
   onChange: (location: { lat: number; lng: number }) => void;
   center?: LatLngExpression;
   beaconLocation?: { lat: number; lng: number } | null;
+  onPinDropped?: () => void;
 }) {
   const map = useMap();
   
@@ -38,12 +40,16 @@ function LocationSelector({
         lat: e.latlng.lat,
         lng: e.latlng.lng,
       });
+      // Notify parent that pin was dropped (so it doesn't update map center)
+      onPinDropped?.();
     },
   });
 
   useEffect(() => {
     if (center) {
-      map.setView(center, 15);
+      // Preserve current zoom level when updating center
+      const currentZoom = map.getZoom();
+      map.setView(center, currentZoom);
     }
   }, [center, map]);
 
@@ -73,6 +79,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   });
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([40.7128, -74.0060]); // Default to NYC
   const [beaconLocation, setBeaconLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [pinDropped, setPinDropped] = useState(false);
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   const lastCoordsRef = useRef<GeolocationCoordinates | null>(null);
 
@@ -82,9 +89,14 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         lat: value.lat.toFixed(6),
         lng: value.lng.toFixed(6),
       });
-      setMapCenter([value.lat, value.lng]);
+      // Only update map center if pin wasn't just dropped
+      if (!pinDropped) {
+        setMapCenter([value.lat, value.lng]);
+      }
+      // Reset the pin dropped flag
+      setPinDropped(false);
     }
-  }, [value]);
+  }, [value, pinDropped]);
 
   // Only update location when user explicitly gets location, not automatically
   useEffect(() => {
@@ -177,6 +189,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                   onChange={onChange} 
                   center={mapCenter} 
                   beaconLocation={beaconLocation}
+                  onPinDropped={() => setPinDropped(true)}
                 />
               </MapContainer>
             </div>

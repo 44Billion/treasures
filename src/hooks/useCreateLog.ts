@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNostrPublishToRelays } from '@/hooks/useNostrPublishToRelays';
+import { useNostrPublish } from '@/hooks/useUnifiedNostr';
 import { useToast } from '@/hooks/useToast';
 import { useOfflineSync, useOfflineMode } from '@/hooks/useOfflineStorage';
-import type { CreateLogData, GeocacheLog } from '@/types/geocache';
+import type { CreateLogData } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
   buildFoundLogTags,
@@ -13,14 +13,13 @@ import {
 
 export function useCreateLog() {
   const queryClient = useQueryClient();
-  const { mutateAsync: publishEvent } = useNostrPublishToRelays();
+  const { mutateAsync: publishEvent } = useNostrPublish();
   const { toast } = useToast();
   const { queueAction } = useOfflineSync();
   const { isOnline } = useOfflineMode();
 
   return useMutation({
     mutationFn: async (data: CreateLogData) => {
-      
       // Validate data
       if (!data.geocacheId) {
         throw new Error('Geocache ID is required');
@@ -59,7 +58,7 @@ export function useCreateLog() {
       
       if (isOnline) {
         try {
-          const event = await publishEvent({
+          const result = await publishEvent({
             event: {
               kind: eventKind,
               content: data.text.trim(), // Plain text log message in content
@@ -67,10 +66,46 @@ export function useCreateLog() {
             },
             options: {
               relays: data.preferredRelays, // Use the geocache's preferred relays if provided
+              requireMinSuccess: 1,
+              verifyPublication: false, // Skip verification for faster response
             },
+            invalidateQueries: [
+              ['geocache-logs', data.geocacheDTag, data.geocachePubkey],
+              ['geocache', data.geocacheId],
+              ['geocaches'],
+            ],
           });
 
-          return event;
+          // Handle success
+          toast({
+            title: "Log posted!",
+            description: "Your log has been added to the geocache.",
+          });
+
+          // Optimistically update the cache
+          queryClient.setQueryData(['geocache-logs', data.geocacheDTag, data.geocachePubkey], (oldData: unknown) => {
+            const clientTag = result.event.tags.find(t => t[0] === 'client')?.[1];
+            const relayTags = result.event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+            
+            const newLog = {
+              id: result.event.id,
+              pubkey: result.event.pubkey,
+              created_at: result.event.created_at,
+              geocacheId: data.geocacheId,
+              type: data.type,
+              text: data.text.trim(),
+              images: data.images || [],
+              client: clientTag,
+              relays: relayTags,
+            };
+            
+            const existingLogs = Array.isArray(oldData) ? oldData : [];
+            const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== result.event.id)];
+            
+            return updatedLogs;
+          });
+
+          return result.event;
         } catch (error) {
           // If online publishing fails, queue for offline sync
           console.warn('Online log creation failed, queuing for later:', error);
@@ -83,6 +118,29 @@ export function useCreateLog() {
             images: data.images,
             preferredRelays: data.preferredRelays,
           });
+
+          // Handle error
+          let errorMessage = "Please try again later.";
+          const errorObj = error as { message?: string };
+          
+          if (errorObj.message?.includes('not found on relays')) {
+            errorMessage = "Log was created but couldn't be verified. It may appear after a delay.";
+          } else if (errorObj.message?.includes('timeout')) {
+            errorMessage = "Connection timeout. Please check your internet connection and try again.";
+          } else if (errorObj.message?.includes('cancelled') || errorObj.message?.includes('rejected')) {
+            errorMessage = "Log posting was cancelled.";
+          } else if (errorObj.message?.includes('Failed to publish')) {
+            errorMessage = "Could not connect to Nostr relays. Please try again.";
+          } else if (errorObj.message) {
+            errorMessage = errorObj.message;
+          }
+          
+          toast({
+            title: "Failed to post log",
+            description: errorMessage,
+            variant: "destructive",
+          });
+
           throw error;
         }
       } else {
@@ -145,45 +203,12 @@ export function useCreateLog() {
         return updatedLogs;
       });
       
-      // Wait longer for the event to propagate, then do a background refresh
-      setTimeout(async () => {
-        // Instead of invalidating, manually refetch and merge results
-        const queryKey = ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey];
-        const currentData = queryClient.getQueryData(queryKey) as GeocacheLog[] | undefined;
-        
-        // Refetch the data
-        try {
-          await queryClient.refetchQueries({ 
-            queryKey,
-            type: 'active'
-          });
-          
-          // After refetch, merge the data to ensure we don't lose any logs
-          const newData = queryClient.getQueryData(queryKey) as GeocacheLog[] | undefined;
-          if (currentData && newData) {
-            // Create a map of all logs by ID to deduplicate
-            const logMap = new Map();
-            
-            // Add all current logs
-            currentData.forEach(log => logMap.set(log.id, log));
-            
-            // Add all new logs (will update if already exists)
-            newData.forEach(log => logMap.set(log.id, log));
-            
-            // Convert back to array and sort by created_at
-            const mergedLogs = Array.from(logMap.values())
-              .sort((a, b) => b.created_at - a.created_at);
-            
-            // Update the cache with merged data
-            queryClient.setQueryData(queryKey, mergedLogs);
-          }
-        } catch (error) {
-        }
-        
-        // Still invalidate the other queries
+      // Background refresh after delay
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey] });
         queryClient.invalidateQueries({ queryKey: ['geocache', variables.geocacheId] });
         queryClient.invalidateQueries({ queryKey: ['geocaches'] });
-      }, 5000); // Increased from 2000ms to 5000ms
+      }, 3000);
     },
     onError: (error: unknown) => {
       console.error('Create log error:', error);

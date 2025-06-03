@@ -1,56 +1,54 @@
-import { useNostr } from '@nostrify/react';
-import { useQuery } from '@tanstack/react-query';
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
-import { useNostrQueryRelays } from './useNostrQueryRelays';
+import { useNostrBatchQuery } from '@/hooks/useUnifiedNostr';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
 import { hasEmbeddedVerification, verifyEmbeddedVerification, getEmbeddedVerification } from '@/lib/verification';
 
 export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[], verificationPubkey?: string) {
-  const { nostr } = useNostr();
-  const { queryWithRelays } = useNostrQueryRelays();
+  // Create filter groups for batch query
+  const filterGroups: NostrFilter[][] = [];
+  
+  if (geocachePubkey && geocacheDTag) {
+    const geocacheCoordinate = createGeocacheCoordinate(geocachePubkey, geocacheDTag);
+    
+    // Found logs filter
+    filterGroups.push([{
+      kinds: [NIP_GC_KINDS.FOUND_LOG],
+      '#a': [geocacheCoordinate],
+      limit: 100,
+    }]);
+    
+    // Comment logs filter
+    filterGroups.push([{
+      kinds: [NIP_GC_KINDS.COMMENT_LOG],
+      '#a': [geocacheCoordinate],
+      '#A': [geocacheCoordinate],
+      limit: 100,
+    }]);
+  }
 
-  return useQuery({
-    queryKey: ['geocache-logs', geocacheDTag, geocachePubkey, preferredRelays, verificationPubkey],
-    queryFn: async (c) => {
-      try {
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]); // Fast 3 second timeout
-      
-      // Query for both found logs (7516) and comment logs (1111) according to NIP-GC
-      const foundLogFilter: NostrFilter = {
-        kinds: [NIP_GC_KINDS.FOUND_LOG],
-        limit: 100,
-      };
-      
-      const commentLogFilter: NostrFilter = {
-        kinds: [NIP_GC_KINDS.COMMENT_LOG],
-        limit: 100,
-      };
-      
-      // If we have the cache pubkey and d-tag, use the appropriate filters
-      if (geocachePubkey && geocacheDTag) {
-        const geocacheCoordinate = createGeocacheCoordinate(geocachePubkey, geocacheDTag);
-        
-        // Found logs use 'a' tag
-        foundLogFilter['#a'] = [geocacheCoordinate];
-        
-        // Comment logs use both 'a' and 'A' tags (NIP-22 structure)
-        commentLogFilter['#a'] = [geocacheCoordinate];
-        commentLogFilter['#A'] = [geocacheCoordinate];
-      }
-      
-      // Query both types of logs
-      const [foundEvents, commentEvents] = await Promise.all([
-        queryWithRelays([foundLogFilter], { signal, relays: preferredRelays }),
-        queryWithRelays([commentLogFilter], { signal, relays: preferredRelays }),
-      ]);
-      
-      // Combine all events
-      let events = [...foundEvents, ...commentEvents];
-      
+  const { data: events, ...queryResult } = useNostrBatchQuery(
+    ['geocache-logs', geocacheDTag, geocachePubkey, preferredRelays, verificationPubkey],
+    filterGroups,
+    {
+      enabled: !!(geocacheDTag && geocachePubkey),
+      timeout: 6000, // Automatically optimized per browser
+      relays: preferredRelays,
+      staleTime: 30000, // 30 seconds
+      gcTime: 600000, // 10 minutes
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  // Process the events
+  const processedLogs = (() => {
+    if (!events || events.length === 0) return [];
+
+    try {
       // Additional filtering for edge cases
+      let filteredEvents = events;
       if (!geocachePubkey || !geocacheDTag) {
-        events = events.filter(event => {
+        filteredEvents = events.filter(event => {
           if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
             const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
             if (!aTag) return false;
@@ -72,9 +70,9 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
           return false;
         });
       }
-    
+      
       // Remove duplicates by event ID (multiple relays may return the same event)
-      const uniqueEvents = events.reduce((acc, event) => {
+      const uniqueEvents = filteredEvents.reduce((acc, event) => {
         if (!acc.has(event.id)) {
           acc.set(event.id, event);
         }
@@ -85,7 +83,7 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
 
       // Filter out verification events - these should not be visible in logs
       // Only actual user log entries should be displayed
-      const filteredEvents = deduplicatedEvents.filter(event => {
+      const finalEvents = deduplicatedEvents.filter(event => {
         // Exclude verification events (kind 7517)
         if (event.kind === NIP_GC_KINDS.VERIFICATION) {
           return false;
@@ -101,7 +99,7 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
       });
 
       // Parse log events using consolidated utility
-      const logs: GeocacheLog[] = filteredEvents
+      const logs: GeocacheLog[] = finalEvents
         .map(event => {
           const parsed = parseLogEvent(event);
           if (parsed && 'sourceRelay' in event) {
@@ -127,17 +125,15 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
 
       return logs;
     } catch (error) {
-      throw error;
+      console.error('Error processing geocache logs:', error);
+      return [];
     }
-    },
-    enabled: !!(geocacheDTag && geocachePubkey),
-    retry: 1, // Quick retry
-    retryDelay: 500, // Fast retry 
-    staleTime: 30000, // 30 seconds - increased to reduce refetches
-    gcTime: 600000, // 10 minutes - increased to keep data longer
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-  });
+  })();
+
+  return {
+    ...queryResult,
+    data: processedLogs,
+  };
 }
 
 // parseLogEvent is now imported from @/lib/nip-gc

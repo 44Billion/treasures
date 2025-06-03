@@ -14,16 +14,9 @@ import { ServiceWorkerProvider } from '@/components/ServiceWorkerProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { connectivityChecker } from '@/lib/connectivityChecker';
-import { useEffect } from 'react';
+import { getUserRelays } from '@/lib/relayConfig';
+import { useEffect, useState } from 'react';
 import './styles/leaflet-overrides.css';
-
-// Default relay configuration - using ditto.pub as primary relay
-const defaultRelays = [
-  'wss://ditto.pub/relay',
-  // Additional relays can be configured by users in Settings
-  // DO NOT ADD ANY RELAY WITHOUT FIRST USING A TOOL TO VERIFY IT IS ONLINE AND FUNCTIONAL
-  // IF YOU CANNOT VERIFY A RELAY IS ONLINE AND FUNCTIONAL, DO NOT ADD IT HERE
-];
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +29,9 @@ const queryClient = new QueryClient({
 });
 
 export function App() {
+  // State for user's preferred relays
+  const [relays, setRelays] = useState<string[]>(getUserRelays);
+
   // Initialize offline storage and connectivity checking on app start
   useEffect(() => {
     offlineStorage.init().catch(console.error);
@@ -58,6 +54,30 @@ export function App() {
     };
   }, []);
 
+  // Listen for changes to relay preferences in localStorage
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'geocaching-relays') {
+        setRelays(getUserRelays());
+      }
+    };
+
+    // Listen for storage changes from other tabs/windows
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom events from the same tab (Settings page)
+    const handleRelayUpdate = () => {
+      setRelays(getUserRelays());
+    };
+
+    window.addEventListener('relays-updated', handleRelayUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('relays-updated', handleRelayUpdate);
+    };
+  }, []);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -68,7 +88,7 @@ export function App() {
       <ServiceWorkerProvider>
         <PWAProvider>
           <NostrLoginProvider storageKey='nostr:login'>
-            <NostrProvider relays={defaultRelays}>
+            <NostrProvider relays={relays}>
               <QueryClientProvider client={queryClient}>
                 <TooltipProvider>
                   <div className="min-h-screen flex flex-col">

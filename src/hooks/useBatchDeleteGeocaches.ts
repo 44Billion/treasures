@@ -3,6 +3,7 @@ import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { isSafari, createSafariNostr } from '@/lib/safariNostr';
+import { getUserRelays } from '@/lib/relayConfig';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { NIP_GC_KINDS, createGeocacheCoordinate } from '@/lib/nip-gc';
 import type { NostrEvent } from '@nostrify/nostrify';
@@ -95,11 +96,8 @@ export function useBatchDeleteGeocaches() {
             for (let attempt = 1; attempt <= maxRetries; attempt++) {
               try {
                 if (isSafari()) {
-                  const safariClient = createSafariNostr([
-                    'wss://relay.damus.io',
-                    'wss://nos.lol',
-                    'wss://relay.nostr.band'
-                  ]);
+                  const userRelays = getUserRelays();
+                  const safariClient = createSafariNostr(userRelays);
                   
                   try {
                     await safariClient.publish(signedEvent, { 
@@ -176,12 +174,12 @@ export function useBatchDeleteGeocaches() {
       if (successful.length === geocaches.length) {
         toast({
           title: "Geocaches deleted",
-          description: `Successfully deleted ${successful.length} geocache${successful.length === 1 ? '' : 's'}.`,
+          description: `Successfully deleted ${successful.length} geocache${successful.length === 1 ? '' : 's'}. It may take a moment for all relays to process the deletions.`,
         });
       } else if (successful.length > 0) {
         toast({
           title: "Partial success",
-          description: `Deleted ${successful.length} of ${geocaches.length} geocaches. ${failed.length} failed.`,
+          description: `Deleted ${successful.length} of ${geocaches.length} geocaches. ${failed.length} failed. It may take a moment for relays to process the deletions.`,
           variant: "destructive",
         });
       } else {

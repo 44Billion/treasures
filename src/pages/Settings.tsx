@@ -15,10 +15,14 @@ import { CacheStatus } from "@/components/CacheStatus";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/useToast";
 import { usePWAUpdate } from "@/hooks/usePWAUpdate";
-
-const DEFAULT_GEOCACHING_RELAYS = [
-  'wss://ditto.pub/relay',
-];
+import { 
+  getUserRelays, 
+  saveUserRelays, 
+  resetToDefaultRelays, 
+  validateRelayUrl, 
+  testRelayConnection,
+  DEFAULT_RELAYS 
+} from "@/lib/relayConfig";
 
 export default function Settings() {
   const { user } = useCurrentUser();
@@ -41,34 +45,15 @@ export default function Settings() {
   }, []);
   
   // Load saved relays from localStorage
-  const [geocachingRelays, setGeocachingRelays] = useState<string[]>(() => {
-    const saved = localStorage.getItem('geocaching-relays');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return DEFAULT_GEOCACHING_RELAYS;
-      }
-    }
-    return DEFAULT_GEOCACHING_RELAYS;
-  });
+  const [geocachingRelays, setGeocachingRelays] = useState<string[]>(() => getUserRelays());
   
   const [newRelay, setNewRelay] = useState("");
   const [isValidating, setIsValidating] = useState(false);
 
-  // Save relays to localStorage whenever they change
+  // Save relays whenever they change
   useEffect(() => {
-    localStorage.setItem('geocaching-relays', JSON.stringify(geocachingRelays));
+    saveUserRelays(geocachingRelays);
   }, [geocachingRelays]);
-
-  const validateRelayUrl = (url: string): boolean => {
-    try {
-      const parsed = new URL(url);
-      return parsed.protocol === 'wss:' || parsed.protocol === 'ws:';
-    } catch {
-      return false;
-    }
-  };
 
   const handleAddRelay = async () => {
     const trimmedUrl = newRelay.trim();
@@ -104,25 +89,11 @@ export default function Settings() {
     
     // Test the relay connection
     try {
-      const ws = new WebSocket(trimmedUrl);
+      const isReachable = await testRelayConnection(trimmedUrl);
       
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          ws.close();
-          reject(new Error('Connection timeout'));
-        }, 5000);
-
-        ws.onopen = () => {
-          clearTimeout(timeout);
-          ws.close();
-          resolve(true);
-        };
-
-        ws.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error('Connection failed'));
-        };
-      });
+      if (!isReachable) {
+        throw new Error('Connection failed');
+      }
 
       setGeocachingRelays([...geocachingRelays, trimmedUrl]);
       setNewRelay("");
@@ -164,7 +135,7 @@ export default function Settings() {
   };
 
   const handleResetToDefaults = () => {
-    setGeocachingRelays(DEFAULT_GEOCACHING_RELAYS);
+    setGeocachingRelays(DEFAULT_RELAYS);
     toast({
       title: "Reset to defaults",
       description: "Your relay preferences have been reset to defaults",

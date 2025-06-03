@@ -244,6 +244,23 @@ interface GeocacheMapProps {
   isNearMeActive?: boolean; // Whether "Near Me" mode is active
 }
 
+// Helper function to calculate appropriate zoom level based on search radius
+function getZoomForRadius(radius: number): number {
+  if (radius <= 1) {
+    return 15; // Very close for 1km
+  } else if (radius <= 5) {
+    return 13; // Close for 5km
+  } else if (radius <= 10) {
+    return 12; // Medium for 10km
+  } else if (radius <= 25) {
+    return 10; // Wider for 25km
+  } else if (radius <= 50) {
+    return 9;  // Wide for 50km
+  } else {
+    return 8;  // Very wide for 100km+
+  }
+}
+
 // Component to handle map centering
 function MapController({ 
   center, 
@@ -258,6 +275,7 @@ function MapController({
 }) {
   const map = useMap();
   const lastCenterRef = useRef<string | null>(null);
+  const lastRadiusRef = useRef<number | null>(null);
   
   useEffect(() => {
     if (center) {
@@ -268,14 +286,15 @@ function MapController({
       if (centerKey !== lastCenterRef.current) {
         lastCenterRef.current = centerKey;
         
-        // If we have a search location with radius, fit bounds to show the full circle
+        // If we have a search location with radius, use radius-based zoom
         if (searchLocation && searchRadius) {
-          const bounds = L.latLng(searchLocation.lat, searchLocation.lng).toBounds(searchRadius * 1000);
-          map.fitBounds(bounds, {
-            padding: [50, 50],
+          const targetZoom = getZoomForRadius(searchRadius);
+          
+          map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
             animate: true,
             duration: 0.5
           });
+          lastRadiusRef.current = searchRadius;
         } else {
           // Otherwise just set the view
           map.setView(center, zoom, {
@@ -286,6 +305,21 @@ function MapController({
       }
     }
   }, [map, center, zoom, searchLocation, searchRadius]);
+  
+  // Handle radius changes independently of center changes
+  useEffect(() => {
+    if (searchLocation && searchRadius && lastRadiusRef.current !== searchRadius) {
+      lastRadiusRef.current = searchRadius;
+      
+      // Calculate appropriate zoom level based on radius and update map
+      const targetZoom = getZoomForRadius(searchRadius);
+      
+      map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
+        animate: true,
+        duration: 0.5
+      });
+    }
+  }, [map, searchLocation, searchRadius]);
   
   return null;
 }

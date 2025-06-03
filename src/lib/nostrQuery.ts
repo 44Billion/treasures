@@ -1,109 +1,84 @@
 /**
- * Unified Nostr query utilities with Safari optimization
+ * Nostr Query Utilities
+ * 
+ * This module provides simplified query functions that wrap the UnifiedNostrClient
+ * for backward compatibility and ease of use.
  */
 
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
-import { isSafari, createSafariNostr } from '@/lib/safariNostr';
+import { getNostrClient, NostrQueryOptions } from './nostrClient';
 
-export interface NostrQueryOptions {
+/**
+ * Query options for the simplified query functions
+ */
+export interface QueryOptions {
   timeout?: number;
   maxRetries?: number;
   signal?: AbortSignal;
-}
-
-export interface NostrQueryResult {
-  events: NostrEvent[];
-  source: 'safari' | 'standard';
-  duration: number;
+  relays?: string[];
 }
 
 /**
- * Universal Nostr query that automatically handles Safari optimization
+ * Query Nostr events using the unified client
  */
 export async function queryNostr(
-  nostr: any,
+  nostr: any, // The nostr object from useNostr hook
   filters: NostrFilter[],
-  options: NostrQueryOptions = {}
+  options: QueryOptions = {}
 ): Promise<NostrEvent[]> {
-  const startTime = Date.now();
-  
-  if (isSafari()) {
-    return await querySafari(filters, options);
-  } else {
-    return await queryStandard(nostr, filters, options);
-  }
+  // Convert options to UnifiedNostrClient format
+  const clientOptions: NostrQueryOptions = {
+    timeout: options.timeout,
+    retryCount: options.maxRetries,
+    signal: options.signal,
+    relays: options.relays,
+  };
+
+  // Use the global client for consistency
+  const client = getNostrClient(options.relays);
+  const result = await client.query(filters, clientOptions);
+  return result.events;
 }
 
 /**
- * Safari-optimized query
- */
-async function querySafari(
-  filters: NostrFilter[],
-  options: NostrQueryOptions
-): Promise<NostrEvent[]> {
-  const { timeout = 5000, maxRetries = 2 } = options;
-  const relays = ['wss://ditto.pub/relay', 'wss://relay.damus.io', 'wss://nos.lol'];
-  
-  const safariClient = createSafariNostr(relays);
-  try {
-    const events = await safariClient.query(filters, { timeout, maxRetries });
-    safariClient.close();
-    return events;
-  } catch (error) {
-    safariClient.close();
-    throw error;
-  }
-}
-
-/**
- * Standard query with timeout
- */
-async function queryStandard(
-  nostr: any,
-  filters: NostrFilter[],
-  options: NostrQueryOptions
-): Promise<NostrEvent[]> {
-  const { timeout = 15000, signal } = options;
-  
-  const timeoutSignal = AbortSignal.timeout(timeout);
-  const combinedSignal = signal 
-    ? AbortSignal.any([signal, timeoutSignal])
-    : timeoutSignal;
-    
-  return await nostr.query(filters, { signal: combinedSignal });
-}
-
-/**
- * Batch query with automatic chunking for Safari
+ * Batch query multiple filter groups efficiently
  */
 export async function batchQueryNostr(
-  nostr: any,
+  nostr: any, // The nostr object from useNostr hook
   filterGroups: NostrFilter[][],
-  options: NostrQueryOptions = {}
+  options: QueryOptions = {}
 ): Promise<NostrEvent[]> {
-  const batchSize = isSafari() ? 3 : 5;
-  const allEvents: NostrEvent[] = [];
-  
-  for (let i = 0; i < filterGroups.length; i += batchSize) {
-    const batch = filterGroups.slice(i, i + batchSize);
-    const batchPromises = batch.map(filters => queryNostr(nostr, filters, options));
-    
-    try {
-      const batchResults = await Promise.allSettled(batchPromises);
-      batchResults.forEach(result => {
-        if (result.status === 'fulfilled') {
-          allEvents.push(...result.value);
-        }
-      });
-      
-      // Small delay between batches for Safari
-      if (isSafari() && i + batchSize < filterGroups.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    } catch (error) {
-      console.warn('Batch query failed:', error);
-    }
-  }
-  
-  return allEvents;
+  // Convert options to UnifiedNostrClient format
+  const clientOptions: NostrQueryOptions = {
+    timeout: options.timeout,
+    retryCount: options.maxRetries,
+    signal: options.signal,
+    relays: options.relays,
+  };
+
+  // Use the global client for consistency
+  const client = getNostrClient(options.relays);
+  return await client.batchQuery(filterGroups, clientOptions);
+}
+
+/**
+ * Legacy compatibility function - use queryNostr instead
+ * @deprecated Use queryNostr instead
+ */
+export async function query(
+  filters: NostrFilter[],
+  options: QueryOptions = {}
+): Promise<NostrEvent[]> {
+  return queryNostr(null, filters, options);
+}
+
+/**
+ * Legacy compatibility function - use batchQueryNostr instead
+ * @deprecated Use batchQueryNostr instead
+ */
+export async function batchQuery(
+  filterGroups: NostrFilter[][],
+  options: QueryOptions = {}
+): Promise<NostrEvent[]> {
+  return batchQueryNostr(null, filterGroups, options);
 }

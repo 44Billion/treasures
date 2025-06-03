@@ -47,7 +47,7 @@ export function SaveButton({
       toast({
         title: isSaved ? 'Cache removed from saved list' : 'Cache saved for later',
         description: isSaved 
-          ? `"${geocache.name}" has been removed from your saved caches.`
+          ? `"${geocache.name}" has been removed from your saved caches. It may take a moment for all relays to process the removal.`
           : `"${geocache.name}" has been saved to your Nostr profile.`,
       });
     } catch (error) {

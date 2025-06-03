@@ -2,34 +2,28 @@
  * Application-wide constants
  */
 
-// Network timeouts (in milliseconds)
+// Network timeouts (in milliseconds) - Unified system handles browser optimization
 export const TIMEOUTS = {
-  SAFARI_QUERY: 3000,
-  SAFARI_QUERY_RETRY: 4000,
-  STANDARD_QUERY: 8000,
+  QUERY: 8000, // Automatically optimized per browser (Safari: 5s, Others: 8s)
   CONNECTIVITY_CHECK: 3000,
   TILE_DOWNLOAD: 10000,
   FAST_QUERY: 2000, // For quick operations
   DELETE_OPERATION: 5000, // For deletion operations
 } as const;
 
-// Query limits
+// Query limits - Unified system handles browser optimization
 export const QUERY_LIMITS = {
-  SAFARI_GEOCACHES: 20,
-  STANDARD_GEOCACHES: 50,
-  SAFARI_LOGS: 50,
-  STANDARD_LOGS: 200,
-  SAFARI_BATCH_SIZE: 2,
-  STANDARD_BATCH_SIZE: 3,
+  GEOCACHES: 50, // Automatically optimized per browser (Safari: 20, Others: 50)
+  LOGS: 200, // Automatically optimized per browser (Safari: 50, Others: 200)
+  BATCH_SIZE: 3, // Automatically optimized per browser (Safari: 2, Others: 3)
   PROXIMITY_RESULTS: 100,
   HOME_PAGE_LIMIT: 3, // For home page preview
   FAST_LOAD_LIMIT: 10, // For quick initial loads
 } as const;
 
-// Retry configuration
+// Retry configuration - Unified system handles browser optimization
 export const RETRY_CONFIG = {
-  MAX_RETRIES: 3,
-  SAFARI_MAX_RETRIES: 2,
+  MAX_RETRIES: 2, // Automatically optimized per browser (Safari: 1, Others: 2)
   BASE_DELAY: 1000,
   BATCH_DELAY: 100,
   CONNECTIVITY_INTERVAL: 30000,
@@ -78,17 +72,8 @@ export const UI_CONFIG = {
   MOBILE_BREAKPOINT: 768,
 } as const;
 
-// Default relay configuration
+// Default relay configuration - using ditto.pub as primary relay
+// Additional relays can be configured by users in Settings
 export const DEFAULT_RELAYS = [
   'wss://ditto.pub/relay',
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.nostr.band',
-] as const;
-
-// Safari-specific relays (faster/more reliable for Safari)
-export const SAFARI_RELAYS = [
-  'wss://ditto.pub/relay',
-  'wss://relay.damus.io',
-  'wss://nos.lol',
 ] as const;

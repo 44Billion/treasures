@@ -1,11 +1,8 @@
 import { useMemo } from 'react';
-import { useNostr } from '@nostrify/react';
-import { useQuery } from '@tanstack/react-query';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
+import { NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
-import { queryNostr } from '@/lib/nostrQuery';
-import { TIMEOUTS, QUERY_LIMITS } from '@/lib/constants';
-import { isSafari } from '@/lib/safariNostr';
+import { useNostrQuery, useNostrBatchQuery } from '@/hooks/useUnifiedNostr';
+import { QUERY_LIMITS } from '@/lib/constants';
 import type { ComparisonOperator } from '@/components/ui/comparison-filter';
 import { 
   NIP_GC_KINDS, 
@@ -25,144 +22,128 @@ interface UseGeocachesOptions {
 }
 
 export function useAdvancedGeocaches(options: UseGeocachesOptions = {}) {
-  const { nostr } = useNostr();
-  
   const queryKey = useMemo(() => [
     'geocaches-advanced', 
-    options, 
-    isSafari()
+    options
   ], [options]);
 
-  return useQuery({
+  // Query for geocaches
+  const { data: result, ...queryState } = useNostrQuery(
     queryKey,
-    staleTime: 60000, // 1 minute
-    gcTime: 300000, // 5 minutes
-    queryFn: async () => {
+    [{
+      kinds: [NIP_GC_KINDS.GEOCACHE],
+      limit: options.limit || QUERY_LIMITS.GEOCACHES,
+      ...(options.authorPubkey && { authors: [options.authorPubkey] }),
+    }],
+    {
+      timeout: 8000,
+      staleTime: 60000, // 1 minute
+      gcTime: 300000, // 5 minutes
+    }
+  );
+
+  // Process geocaches and apply filters
+  const geocaches = useMemo(() => {
+    if (!result?.events) return [];
+
+    // Parse and filter geocaches
+    let geocaches: Geocache[] = result.events
+      .map(parseGeocacheEvent)
+      .filter((g): g is Geocache => g !== null);
+
+    // Apply client-side filters
+    if (options.search) {
+      const searchLower = options.search.toLowerCase();
+      geocaches = geocaches.filter(g => 
+        g.name.toLowerCase().includes(searchLower) ||
+        g.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply comparison filters for difficulty
+    if (options.difficulty !== undefined && options.difficultyOperator && options.difficultyOperator !== 'all') {
+      geocaches = geocaches.filter(g => 
+        applyComparison(g.difficulty, options.difficultyOperator!, options.difficulty!)
+      );
+    }
+
+    // Apply comparison filters for terrain
+    if (options.terrain !== undefined && options.terrainOperator && options.terrainOperator !== 'all') {
+      geocaches = geocaches.filter(g => 
+        applyComparison(g.terrain, options.terrainOperator!, options.terrain!)
+      );
+    }
+
+    // Sort by creation date (newest first)
+    geocaches.sort((a, b) => b.created_at - a.created_at);
+
+    return geocaches;
+  }, [result?.events, options]);
+
+  // Query for log counts for limited set of geocaches
+  const limitedCaches = geocaches.slice(0, 10);
+  const { data: logEvents } = useNostrBatchQuery(
+    ['geocaches-advanced-logs', limitedCaches.map(g => g.id).join(',')],
+    limitedCaches.length > 0 ? [
+      // Found logs
+      [{
+        kinds: [NIP_GC_KINDS.FOUND_LOG],
+        '#a': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
+        limit: QUERY_LIMITS.LOGS / 2,
+      }],
+      // Comment logs
+      [{
+        kinds: [NIP_GC_KINDS.COMMENT_LOG],
+        '#a': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
+        '#A': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
+        limit: QUERY_LIMITS.LOGS / 2,
+      }]
+    ] : [],
+    {
+      enabled: limitedCaches.length > 0,
+      timeout: 6000,
+      staleTime: 60000,
+    }
+  );
+
+  // Add log counts to geocaches
+  const geocachesWithCounts = useMemo(() => {
+    if (!logEvents || geocaches.length === 0) {
+      return geocaches.map(g => ({ ...g, logCount: 0, foundCount: 0 }));
+    }
+
+    // Count logs per geocache
+    const logCounts = new Map<string, { total: number; found: number }>();
+    
+    logEvents.forEach(event => {
+      const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
+      if (!aTag) return;
       
-      try {
-        // Build filter for geocache events
-        const filter: NostrFilter = {
-          kinds: [NIP_GC_KINDS.GEOCACHE],
-          limit: options.limit || (isSafari() ? QUERY_LIMITS.SAFARI_GEOCACHES : QUERY_LIMITS.STANDARD_GEOCACHES),
-        };
-
-        if (options.authorPubkey) {
-          filter.authors = [options.authorPubkey];
-        }
-
-        // Use unified query utility
-        const events = await queryNostr(nostr, [filter], {
-          timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY_RETRY : TIMEOUTS.STANDARD_QUERY,
-          maxRetries: isSafari() ? 2 : 3,
-        });
-        
-        
-        // Parse and filter geocaches using consolidated utility
-        let geocaches: Geocache[] = events
-          .map(parseGeocacheEvent)
-          .filter((g): g is Geocache => g !== null);
-        
-
-        // Apply client-side filters
-        if (options.search) {
-          const searchLower = options.search.toLowerCase();
-          geocaches = geocaches.filter(g => 
-            g.name.toLowerCase().includes(searchLower) ||
-            g.description.toLowerCase().includes(searchLower)
-          );
-        }
-
-        // Apply comparison filters for difficulty
-        if (options.difficulty !== undefined && options.difficultyOperator && options.difficultyOperator !== 'all') {
-          geocaches = geocaches.filter(g => 
-            applyComparison(g.difficulty, options.difficultyOperator!, options.difficulty!)
-          );
-        }
-
-        // Apply comparison filters for terrain
-        if (options.terrain !== undefined && options.terrainOperator && options.terrainOperator !== 'all') {
-          geocaches = geocaches.filter(g => 
-            applyComparison(g.terrain, options.terrainOperator!, options.terrain!)
-          );
-        }
-
-        // Sort by creation date (newest first)
-        geocaches.sort((a, b) => b.created_at - a.created_at);
-
-        // Log count fetching with Safari compatibility
-        if (geocaches.length > 0) {
-          try {
-            // Limit the number of caches we query logs for
-            const limitedCaches = geocaches.slice(0, isSafari() ? 5 : 10);
-            // Query both found logs and comment logs
-            const foundLogFilter: NostrFilter = {
-              kinds: [NIP_GC_KINDS.FOUND_LOG],
-              '#a': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
-              limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS / 2 : QUERY_LIMITS.STANDARD_LOGS / 2,
-            };
-            
-            const commentLogFilter: NostrFilter = {
-              kinds: [NIP_GC_KINDS.COMMENT_LOG],
-              '#a': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
-              '#A': limitedCaches.map(g => createGeocacheCoordinate(g.pubkey, g.dTag)),
-              limit: isSafari() ? QUERY_LIMITS.SAFARI_LOGS / 2 : QUERY_LIMITS.STANDARD_LOGS / 2,
-            };
-
-            // Use unified query utility with error handling
-            let logEvents: NostrEvent[] = [];
-            try {
-              const [foundEvents, commentEvents] = await Promise.all([
-                queryNostr(nostr, [foundLogFilter], {
-                  timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
-                  maxRetries: 1,
-                }),
-                queryNostr(nostr, [commentLogFilter], {
-                  timeout: isSafari() ? TIMEOUTS.SAFARI_QUERY : TIMEOUTS.STANDARD_QUERY,
-                  maxRetries: 1,
-                }),
-              ]);
-              logEvents = [...foundEvents, ...commentEvents];
-            } catch (error) {
-              logEvents = []; // Continue without log counts
-            }
-            
-            // Count logs per geocache
-            const logCounts = new Map<string, { total: number; found: number }>();
-            
-            logEvents.forEach(event => {
-              const aTag = event.tags.find(tag => tag[0] === 'a')?.[1];
-              if (!aTag) return;
-              
-              const log = parseLogEvent(event);
-              if (log) {
-                const current = logCounts.get(aTag) || { total: 0, found: 0 };
-                current.total++;
-                if (log.type === 'found') current.found++;
-                logCounts.set(aTag, current);
-              }
-            });
-
-            // Add counts to geocaches
-            geocaches = geocaches.map(g => {
-              const coord = createGeocacheCoordinate(g.pubkey, g.dTag);
-              const counts = logCounts.get(coord) || { total: 0, found: 0 };
-              return {
-                ...g,
-                logCount: counts.total,
-                foundCount: counts.found,
-              };
-            });
-          } catch (error) {
-            // Continue without log counts if there's an error
-          }
-        }
-
-        return geocaches;
-      } catch (error) {
-        throw error;
+      const log = parseLogEvent(event);
+      if (log) {
+        const current = logCounts.get(aTag) || { total: 0, found: 0 };
+        current.total++;
+        if (log.type === 'found') current.found++;
+        logCounts.set(aTag, current);
       }
-    },
-  });
+    });
+
+    // Add counts to geocaches
+    return geocaches.map(g => {
+      const coord = createGeocacheCoordinate(g.pubkey, g.dTag);
+      const counts = logCounts.get(coord) || { total: 0, found: 0 };
+      return {
+        ...g,
+        logCount: counts.total,
+        foundCount: counts.found,
+      };
+    });
+  }, [geocaches, logEvents]);
+
+  return {
+    ...queryState,
+    data: geocachesWithCounts,
+  };
 }
 
 function applyComparison(value: number, operator: ComparisonOperator, target: number): boolean {
