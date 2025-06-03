@@ -58,7 +58,7 @@ The content field contains the cache description and any additional information 
 
 ## Found Log Event (Kind 7516)
 
-Found log events are regular events of kind `7516` that record successful visits to geocaches:
+Found log events record successful visits to geocaches:
 
 ```json
 {
