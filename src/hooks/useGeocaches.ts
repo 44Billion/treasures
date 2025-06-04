@@ -14,7 +14,6 @@ export function useGeocaches() {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
       const events = await nostr.query([{
         kinds: [NIP_GC_KINDS.GEOCACHE], 
-        '#t': ['geocache'], 
         limit: 100 
       }], { signal });
 
@@ -49,7 +48,6 @@ export function useNearbyGeocaches(lat?: number, lon?: number, radiusKm = 50) {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
       const events = await nostr.query([{
         kinds: [NIP_GC_KINDS.GEOCACHE], 
-        '#t': ['geocache'],
         // Note: Nostr doesn't have built-in geo queries, so we fetch all and filter client-side
         // In a real implementation, you might use specialized relays or additional filters
         limit: 500 
