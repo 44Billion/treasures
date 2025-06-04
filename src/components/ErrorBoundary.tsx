@@ -25,9 +25,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    
-    // Log iOS-specific information
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    console.error('Error caught by boundary:', error, errorInfo);
     
     this.setState({
       hasError: true,
@@ -60,18 +58,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               An error occurred while loading this component. This might be a temporary issue.
             </p>
             
-            {/iPad|iPhone|iPod/.test(navigator.userAgent) && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                <p className="text-sm text-blue-800">
-                  <strong>iOS Safari detected:</strong> If you're experiencing issues, try:
-                </p>
-                <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                  <li>• Refreshing the page</li>
-                  <li>• Clearing Safari cache</li>
-                  <li>• Updating to the latest iOS version</li>
-                </ul>
-              </div>
-            )}
+
             
             <div className="flex gap-2">
               <Button onClick={this.retry} className="flex items-center gap-2">

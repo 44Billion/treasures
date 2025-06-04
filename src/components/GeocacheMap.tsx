@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import type { Geocache } from "@/types/geocache";
 import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
-import { isIOS, logIOSInfo, getIOSCompatibleMapOptions } from "@/lib/ios";
+
 import { findClosestGeocache } from "@/lib/geo";
 import { geocacheToNaddr } from "@/lib/naddr-utils";
 import { getCacheIconSvg, getCacheColor } from "@/lib/cacheIcons";
@@ -837,14 +837,14 @@ export function GeocacheMap({
     }
   };
 
-  // iOS-specific map options
-  const iosDetected = isIOS();
-  const mapOptions = getIOSCompatibleMapOptions();
-  
-  // Log iOS info for debugging
-  if (iosDetected) {
-    logIOSInfo();
-  }
+  // Standard map options for all devices
+  const mapOptions = {
+    scrollWheelZoom: true,
+    tap: false,
+    tapTolerance: 10,
+    bounceAtZoomLimits: true,
+    maxBoundsViscosity: 1.0
+  };
 
   // Set up event listener for popup view details button
   useEffect(() => {

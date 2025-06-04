@@ -66,7 +66,7 @@ export function Compass({ targetLat, targetLng, className }: CompassProps) {
         return;
       }
 
-      // For iOS 13+ devices, we need to request permission
+      // For devices that require permission, we need to request it
       const hasRequestPermission = typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function';
       
       if (hasRequestPermission) {
@@ -90,7 +90,7 @@ export function Compass({ targetLat, targetLng, className }: CompassProps) {
           let alpha = event.alpha;
           const webkitEvent = event as DeviceOrientationEvent & { webkitCompassHeading?: number };
           
-          // For iOS, prefer webkitCompassHeading if available
+          // Prefer webkitCompassHeading if available (more accurate on some devices)
           if (webkitEvent.webkitCompassHeading !== undefined) {
             alpha = webkitEvent.webkitCompassHeading;
           }
