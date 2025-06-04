@@ -35,7 +35,7 @@ export function VerifiedLogForm({
   const handleCreateLog = () => {
     if (!logText.trim() || !geocache) return;
     
-    setPostingStatus("Signing verified event...");
+    setPostingStatus("Creating verified log...");
     
     // Get the primary relay from the geocache's relay list
     const primaryRelay = geocache.relays?.[0] || '';
@@ -51,11 +51,11 @@ export function VerifiedLogForm({
       verificationKey,
     }, {
       onSuccess: () => {
-        setPostingStatus("Posted! Refreshing...");
+        setPostingStatus("Posted successfully!");
         setLogText("");
         setTimeout(() => {
           setPostingStatus("");
-        }, 2000);
+        }, 1500);
       },
       onError: () => {
         setPostingStatus("");

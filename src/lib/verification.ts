@@ -208,6 +208,16 @@ export function hasVerificationReference(event: NostrEvent): string | null {
   }
 }
 
+// Cache for verification results to avoid re-verifying the same events
+const verificationCache = new Map<string, boolean>();
+
+// Clean up cache periodically to prevent memory leaks
+setInterval(() => {
+  if (verificationCache.size > 1000) {
+    verificationCache.clear();
+  }
+}, 300000); // Clean every 5 minutes
+
 /**
  * Verify that an embedded verification event is valid for a specific log
  */
@@ -216,12 +226,26 @@ export async function verifyEmbeddedVerification(
   expectedVerificationPubkey: string
 ): Promise<boolean> {
   try {
+    // Create a cache key based on log event ID and verification pubkey
+    const cacheKey = `${logEvent.id}:${expectedVerificationPubkey}`;
+    
+    // Check cache first
+    if (verificationCache.has(cacheKey)) {
+      return verificationCache.get(cacheKey)!;
+    }
+    
     const embeddedVerification = getEmbeddedVerification(logEvent);
     if (!embeddedVerification) {
+      verificationCache.set(cacheKey, false);
       return false;
     }
     
-    return await verifyVerificationEvent(embeddedVerification, logEvent, expectedVerificationPubkey);
+    const result = await verifyVerificationEvent(embeddedVerification, logEvent, expectedVerificationPubkey);
+    
+    // Cache the result
+    verificationCache.set(cacheKey, result);
+    
+    return result;
   } catch (error) {
     return false;
   }

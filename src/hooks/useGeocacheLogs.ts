@@ -82,22 +82,39 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
         // Parse log events and perform verification validation
         const logs: GeocacheLog[] = [];
         
-        for (const event of finalEvents) {
+        // Batch verification for better performance
+        const verificationPromises = finalEvents.map(async (event) => {
           const parsed = parseLogEvent(event);
-          if (parsed) {
-            // Verify embedded verification events with proper signature validation
-            // This is the ONLY place where isVerified should be set to true
-            const embeddedVerification = getEmbeddedVerification(event);
-            
-            if (embeddedVerification && verificationPubkey) {
-              // Only verify if we have both embedded verification AND the geocache's verification pubkey
+          if (!parsed) return null;
+          
+          // Quick check for embedded verification
+          const embeddedVerification = getEmbeddedVerification(event);
+          
+          if (embeddedVerification && verificationPubkey) {
+            // Only verify if we have both embedded verification AND the geocache's verification pubkey
+            try {
               const isValid = await verifyEmbeddedVerification(event, verificationPubkey);
               parsed.isVerified = isValid;
-            } else {
-              // If there's no verification pubkey, we can't verify, so mark as unverified
+            } catch (error) {
+              // If verification fails, mark as unverified but don't fail the whole operation
+              console.warn('Verification check failed for event:', event.id, error);
               parsed.isVerified = false;
             }
-            logs.push(parsed);
+          } else {
+            // If there's no verification pubkey, we can't verify, so mark as unverified
+            parsed.isVerified = false;
+          }
+          
+          return parsed;
+        });
+        
+        // Wait for all verifications to complete
+        const verificationResults = await Promise.allSettled(verificationPromises);
+        
+        // Collect successful results
+        for (const result of verificationResults) {
+          if (result.status === 'fulfilled' && result.value) {
+            logs.push(result.value);
           }
         }
 

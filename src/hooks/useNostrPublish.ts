@@ -40,26 +40,21 @@ export function useNostrPublish() {
           created_at: t.created_at ?? Math.floor(Date.now() / 1000),
         });
 
-        // Send to relays with timeout
+        // Send to relays with timeout - set and forget approach
         try {
           await nostr.event(event, { signal: AbortSignal.timeout(TIMEOUTS.QUERY) });
         } catch (error) {
           const errorObj = error as { message?: string };
-          throw new Error(`Failed to publish event: ${errorObj.message || 'Unknown error'}`);
-        }
-
-        // Do a quick verification (but don't fail if it doesn't work)
-        try {
-          const verification = await nostr.query([{ ids: [event.id] }], { 
-            signal: AbortSignal.timeout(TIMEOUTS.FAST_QUERY) 
-          });
-          
-          if (verification.length === 0) {
-            console.warn('Event published but not immediately found on relays (this is normal)');
+          // Be more forgiving with timeout and relay errors
+          if (errorObj.message?.includes('timeout')) {
+            console.warn('Event publish timed out, but may have succeeded:', errorObj.message);
+            // Don't throw for timeouts - the event may have been published
+          } else if (errorObj.message?.includes('relay')) {
+            console.warn('Relay error during publish, but may have succeeded:', errorObj.message);
+            // Don't throw for relay errors - the event may have been published
+          } else {
+            throw new Error(`Failed to publish event: ${errorObj.message || 'Unknown error'}`);
           }
-        } catch (verifyError) {
-          // Don't fail the whole operation if verification fails
-          console.warn('Event verification failed (this is normal):', verifyError);
         }
         
         return event; // Return the signed event
@@ -68,14 +63,14 @@ export function useNostrPublish() {
         
         // Provide more specific error messages
         if (errorObj.message?.includes("timeout")) {
-          throw new Error("Connection timeout. Please check your internet connection and try again.");
+          throw new Error("Connection timeout. Your event may have been published successfully.");
         } else if (errorObj.message?.includes("User rejected") || errorObj.message?.includes("cancelled")) {
           throw new Error("Event signing was cancelled.");
         } else if (errorObj.message?.includes("Failed to publish")) {
           // Re-throw our custom publish error as-is
           throw error;
         } else if (errorObj.message?.includes("relay")) {
-          throw new Error("Failed to connect to Nostr relays. Please try again.");
+          throw new Error("Relay connection issue. Your event may have been published successfully.");
         }
         
         throw error;

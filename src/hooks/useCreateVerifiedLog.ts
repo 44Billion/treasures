@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/useToast';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { NRelay1 } from '@nostrify/nostrify';
 import type { CreateLogData, GeocacheLog } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
@@ -11,6 +10,7 @@ import {
   buildVerificationEventContent
 } from '@/lib/nip-gc';
 import { createVerificationEvent } from '@/lib/verification';
+import { TIMEOUTS } from '@/lib/constants';
 
 interface CreateVerifiedLogData extends CreateLogData {
   verificationKey: string; // nsec for signing
@@ -76,51 +76,17 @@ export function useCreateVerifiedLog() {
       });
       
       // Step 3: Publish the log event (with embedded verification)
-      let logPublished = false;
-      
-      // First try to publish to preferred relays if provided
-      if (data.preferredRelays && data.preferredRelays.length > 0) {
-        try {
-          const relayPromises = data.preferredRelays.map(async (url) => {
-            try {
-              const relay = new NRelay1(url);
-              await relay.event(signedLogEvent, { signal: AbortSignal.timeout(5000) });
-              return true;
-            } catch (error) {
-              return false;
-            }
-          });
-
-          const results = await Promise.allSettled(relayPromises);
-          const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-          
-          if (successCount > 0) {
-            logPublished = true;
-          }
-        } catch (error) {
-          // Continue to default relays
+      // Use the same streamlined approach as regular logs - set and forget
+      try {
+        await nostr.event(signedLogEvent, { signal: AbortSignal.timeout(TIMEOUTS.QUERY) });
+      } catch (error) {
+        const errorObj = error as { message?: string };
+        // Don't fail for timeout or relay issues - just log and continue
+        if (errorObj.message?.includes('timeout') || errorObj.message?.includes('relay')) {
+          console.warn('Verified log publish may have timed out, but this is normal:', errorObj.message);
+        } else {
+          throw new Error(`Failed to publish verified log: ${errorObj.message || 'Unknown error'}`);
         }
-      }
-      
-      // Also try to publish log event to default relays
-      try {
-        await nostr.event(signedLogEvent, { signal: AbortSignal.timeout(10000) });
-        logPublished = true;
-      } catch (error) {
-        // Log published will remain false if this fails
-      }
-      
-      if (!logPublished) {
-        throw new Error('Failed to publish log event to any relays. Please check your connection and try again.');
-      }
-      
-      // Try to verify the log event was published (but don't fail if verification fails)
-      try {
-        await nostr.query([{ ids: [signedLogEvent.id] }], { 
-          signal: AbortSignal.timeout(3000) 
-        });
-      } catch (error) {
-        // Verification failure is normal and expected
       }
       
       return { 
@@ -130,11 +96,6 @@ export function useCreateVerifiedLog() {
     },
     onSuccess: (result, variables) => {
       const { logEvent, verificationEvent } = result;
-      
-      toast({
-        title: "Verified log posted!",
-        description: "Your verified log has been added to the geocache.",
-      });
       
       // Optimistically update the cache immediately
       queryClient.setQueryData(['geocache-logs', variables.geocacheDTag, variables.geocachePubkey], (oldData: unknown) => {
@@ -165,46 +126,18 @@ export function useCreateVerifiedLog() {
         return updatedLogs;
       });
       
-      // Wait longer for the event to propagate, then do a background refresh
-      setTimeout(async () => {
-        // Instead of invalidating, manually refetch and merge results
-        const queryKey = ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey];
-        const currentData = queryClient.getQueryData(queryKey) as GeocacheLog[] | undefined;
-        
-        // Refetch the data
-        try {
-          await queryClient.refetchQueries({ 
-            queryKey,
-            type: 'active'
-          });
-          
-          // After refetch, merge the data to ensure we don't lose any logs
-          const newData = queryClient.getQueryData(queryKey) as GeocacheLog[] | undefined;
-          if (currentData && newData) {
-            // Create a map of all logs by ID to deduplicate
-            const logMap = new Map();
-            
-            // Add all current logs
-            currentData.forEach(log => logMap.set(log.id, log));
-            
-            // Add all new logs (will update if already exists)
-            newData.forEach(log => logMap.set(log.id, log));
-            
-            // Convert back to array and sort by created_at
-            const mergedLogs = Array.from(logMap.values())
-              .sort((a, b) => b.created_at - a.created_at);
-            
-            // Update the cache with merged data
-            queryClient.setQueryData(queryKey, mergedLogs);
-          }
-        } catch (error) {
-          // Error refreshing logs - continue silently
-        }
-        
-        // Still invalidate the other queries
+      // Background refresh after delay (same as regular logs)
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey] });
         queryClient.invalidateQueries({ queryKey: ['geocache', variables.geocacheId] });
         queryClient.invalidateQueries({ queryKey: ['geocaches'] });
-      }, 5000);
+      }, 3000);
+      
+      // Show success toast
+      toast({
+        title: "Verified log posted!",
+        description: "Your verified log has been added to the geocache.",
+      });
     },
     onError: (error: unknown) => {
       let errorMessage = "Please try again later.";
@@ -212,8 +145,14 @@ export function useCreateVerifiedLog() {
       
       if (errorObj.message?.includes('not found on relays')) {
         errorMessage = "Log was created but couldn't be verified. It may appear after a delay.";
+      } else if (errorObj.message?.includes('timeout')) {
+        errorMessage = "Connection timeout. Your log may have been posted successfully.";
+      } else if (errorObj.message?.includes('cancelled') || errorObj.message?.includes('rejected')) {
+        errorMessage = "Log posting was cancelled.";
       } else if (errorObj.message?.includes('Invalid private key')) {
         errorMessage = "Invalid verification key. Please check the QR code or verification link.";
+      } else if (errorObj.message?.includes('Failed to publish') && errorObj.message?.includes('relay')) {
+        errorMessage = "Could not connect to Nostr relays. Your log may have been posted successfully.";
       } else if (errorObj.message) {
         errorMessage = errorObj.message;
       }
