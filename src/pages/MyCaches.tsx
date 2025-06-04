@@ -140,7 +140,7 @@ export default function MyCaches() {
           )}
         </div>
 
-        {isLoadingSaved ? (
+        {isLoadingSaved && savedCaches.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <ComponentLoading 
               size="sm" 

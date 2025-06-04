@@ -29,7 +29,7 @@ export function CompassSpinner({
         xl: 'h-12 w-12'
       }[size];
 
-  // Color based on variant
+  // Use green for page loads (like the old compass-loading.tsx), grey for components
   const colorClass = variant === 'page' ? 'text-green-600' : 'text-muted-foreground';
 
   return (
@@ -117,7 +117,7 @@ interface LoadingCardProps {
 export function LoadingCard({ 
   title = 'Loading...', 
   description,
-  variant = 'component',
+  variant = 'page', // Use green compass for page loading cards
   className 
 }: LoadingCardProps) {
   return (
@@ -236,7 +236,7 @@ export const PageLoading = (props: Omit<LoadingStateProps, 'variant'>) => (
   <LoadingState {...props} variant="page" />
 );
 
-// Component loading (gray compass)  
+// Component loading (grey compass for inline states)
 export const ComponentLoading = (props: Omit<LoadingStateProps, 'variant'>) => (
   <LoadingState {...props} variant="component" />
 );
@@ -246,12 +246,12 @@ export const FullPageLoading = (props: Omit<LoadingStateProps, 'variant' | 'full
   <LoadingState {...props} variant="page" fullPage />
 );
 
-// Button loading (gray compass)
+// Button loading (grey compass for inline states)
 export const ButtonLoading = (props: Omit<InlineLoadingProps, 'variant'>) => (
   <InlineLoading {...props} variant="component" />
 );
 
-// Status loading (gray compass)
+// Status loading (grey compass for inline states)
 export const StatusLoading = (props: Omit<InlineLoadingProps, 'variant'>) => (
   <InlineLoading {...props} variant="component" />
 );

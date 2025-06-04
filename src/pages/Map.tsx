@@ -243,7 +243,7 @@ export default function Map() {
 
           {/* Results */}
           <div className="flex-1 overflow-y-auto">
-            {isLoading ? (
+            {isLoading && filteredGeocaches.length === 0 ? (
               <div className="flex items-center justify-center py-12">
                 <ComponentLoading 
                   size="sm" 
@@ -414,7 +414,7 @@ export default function Map() {
         <div className="flex-1 overflow-hidden">
           <MapViewTabs className="h-full flex flex-col">
             <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col bg-background">
-              {isLoading ? (
+              {isLoading && filteredGeocaches.length === 0 ? (
                 <div className="flex items-center justify-center flex-1">
                   <ComponentLoading 
                     size="sm" 

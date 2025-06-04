@@ -235,7 +235,7 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          {isLoading ? (
+          {isLoading && geocaches.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <ComponentLoading 
                 size="sm" 

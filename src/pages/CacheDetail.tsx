@@ -236,7 +236,8 @@ export default function CacheDetail() {
     setProfileDialogOpen(true);
   };
 
-  if (isLoading) {
+  // Only show loading spinner if we have no data at all (not just refreshing)
+  if (isLoading && !geocache) {
     return (
       <FullPageLoading 
         title="Loading geocache..."
