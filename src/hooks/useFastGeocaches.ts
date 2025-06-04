@@ -9,7 +9,7 @@ import { NostrEvent } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
 import { offlineStorage, CachedGeocache } from '@/lib/offlineStorage';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { QUERY_LIMITS, TIMEOUTS } from '@/lib/constants';
+import { QUERY_LIMITS, TIMEOUTS, POLLING_INTERVALS } from '@/lib/constants';
 import { NIP_GC_KINDS, parseGeocacheEvent } from '@/lib/nip-gc';
 
 interface FastGeocacheOptions {
@@ -52,6 +52,8 @@ export function useFastGeocaches(options: FastGeocacheOptions = {}) {
     gcTime: 300000, // 5 minutes
     retry: false, // No retries for speed
     refetchOnWindowFocus: false, // Don't refetch on focus for speed
+    refetchInterval: POLLING_INTERVALS.GEOCACHES, // Poll every minute
+    refetchIntervalInBackground: true, // Continue polling in background
   });
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, Trophy, QrCode } from "lucide-react";
+import { MapPin, Plus, Search, Compass, Trophy, QrCode, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard, EmptyStateCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
@@ -8,13 +8,22 @@ import { LoginArea } from "@/components/auth/LoginArea";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useHomePageGeocaches } from "@/hooks/useFastGeocaches";
+import { useDataManager } from "@/hooks/useDataManager";
 import { GeocacheList } from "@/components/GeocacheList";
 import { ComponentLoading } from "@/components/ui/loading";
 
 export default function Home() {
   const { user } = useCurrentUser();
-  const { data: geocaches, isLoading } = useHomePageGeocaches();
+  
+  // Use the unified data manager for coordinated polling and caching
+  const dataManager = useDataManager({
+    enablePolling: true,
+    enablePrefetching: true,
+  });
+  
+  // Get the first few geocaches for the home page
+  const geocaches = dataManager.geocaches.slice(0, 3);
+  const isLoading = dataManager.isLoading;
   
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
@@ -211,9 +220,20 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <h3 className="text-2xl md:text-3xl font-bold text-foreground">Recent Geocaches</h3>
-            <Link to="/map" className="hidden sm:block">
-              <Button variant="outline">View All</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => dataManager.refreshAll()}
+                className="hidden sm:flex"
+                title="Refresh geocaches"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Link to="/map" className="hidden sm:block">
+                <Button variant="outline">View All</Button>
+              </Link>
+            </div>
           </div>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">

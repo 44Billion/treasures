@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { useAdaptiveGeocaches, type GeocacheWithDistance } from "@/hooks/useProximityGeocaches";
+import { useDataManager } from "@/hooks/useDataManager";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { DetailedGeocacheCard, CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -48,6 +49,12 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
+  // Use the unified data manager for coordinated polling and caching
+  const dataManager = useDataManager({
+    enablePolling: true,
+    enablePrefetching: true,
+  });
+
   const { data: geocaches, isLoading, error, refetch } = useAdaptiveGeocaches({
     search: searchQuery,
     difficulty,
@@ -269,12 +276,26 @@ export default function Map() {
                     {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                     {isProximitySearchActive && ` • ${searchRadius}km radius`}
                   </p>
-                  {isProximitySearchActive && (
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                      <Sparkles className="h-3 w-3" />
-                      Smart Search
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        dataManager.refreshAll();
+                        refetch();
+                      }}
+                      className="h-6 w-6 p-0"
+                      title="Refresh geocaches"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </Button>
+                    {isProximitySearchActive && (
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Smart Search
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-3">
                   {filteredGeocaches.map((cache) => (
@@ -426,12 +447,26 @@ export default function Map() {
                       {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                       {isProximitySearchActive && ` • ${searchRadius}km radius`}
                     </p>
-                    {isProximitySearchActive && (
-                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
-                        Smart Search
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          dataManager.refreshAll();
+                          refetch();
+                        }}
+                        className="h-6 w-6 p-0"
+                        title="Refresh geocaches"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                      </Button>
+                      {isProximitySearchActive && (
+                        <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          Smart Search
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-3">
                     {filteredGeocaches.map((cache) => (

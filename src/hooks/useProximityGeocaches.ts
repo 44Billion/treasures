@@ -10,7 +10,7 @@ import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDeletionFilter } from '@/hooks/useDeletionFilter';
-import { TIMEOUTS, QUERY_LIMITS } from '@/lib/constants';
+import { TIMEOUTS, QUERY_LIMITS, POLLING_INTERVALS } from '@/lib/constants';
 import type { ComparisonOperator } from '@/components/ui/comparison-filter';
 import { 
   NIP_GC_KINDS, 
@@ -184,6 +184,9 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
     },
     staleTime: 60000, // 1 minute
     gcTime: 300000, // 5 minutes
+    refetchInterval: POLLING_INTERVALS.GEOCACHES, // Poll every minute
+    refetchIntervalInBackground: true, // Continue polling in background
+    refetchOnWindowFocus: false, // Don't refetch on focus to avoid excessive requests
   });
 
   // Process the events
