@@ -236,8 +236,8 @@ export function useDeleteGeocache() {
 
   return useCallback(async (geocacheEvent: NostrEvent, reason?: string) => {
     try {
-      // Create deletion event
-      const deletionEvent = {
+      // Create deletion event template
+      const deletionEventTemplate = {
         kind: 5,
         content: reason || 'Geocache deleted by author',
         tags: [
@@ -252,12 +252,12 @@ export function useDeleteGeocache() {
         const dTag = geocacheEvent.tags.find(t => t[0] === 'd')?.[1];
         if (dTag) {
           const coordinate = createGeocacheCoordinate(geocacheEvent.pubkey, dTag);
-          deletionEvent.tags.push(['a', coordinate]);
+          deletionEventTemplate.tags.push(['a', coordinate]);
         }
       }
 
-      // Publish deletion event
-      await nostr.event(deletionEvent);
+      // Publish deletion event (this will be signed by the nostr client)
+      await nostr.event(deletionEventTemplate);
 
       // Immediately invalidate local caches
       await offlineStorage.removeGeocache(geocacheEvent.id);

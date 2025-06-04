@@ -72,19 +72,23 @@ export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geoca
           return true;
         });
 
-        // Parse log events
+        // Parse log events and perform verification validation
         const logs: GeocacheLog[] = [];
         
         for (const event of finalEvents) {
           const parsed = parseLogEvent(event);
           if (parsed) {
-            // Check if this log has embedded verification
-            if (verificationPubkey) {
-              const embeddedVerification = getEmbeddedVerification(event);
-              if (embeddedVerification) {
-                const isValid = await verifyEmbeddedVerification(event, verificationPubkey);
-                parsed.isVerified = isValid;
-              }
+            // Verify embedded verification events with proper signature validation
+            // This is the ONLY place where isVerified should be set to true
+            const embeddedVerification = getEmbeddedVerification(event);
+            
+            if (embeddedVerification && verificationPubkey) {
+              // Only verify if we have both embedded verification AND the geocache's verification pubkey
+              const isValid = await verifyEmbeddedVerification(event, verificationPubkey);
+              parsed.isVerified = isValid;
+            } else {
+              // If there's no verification pubkey, we can't verify, so mark as unverified
+              parsed.isVerified = false;
             }
             logs.push(parsed);
           }

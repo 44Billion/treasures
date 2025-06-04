@@ -56,7 +56,7 @@ export async function clearCache(cacheName: CacheName): Promise<boolean> {
 export async function getAllCacheInfo(): Promise<Array<{ name: string; count: number; sampleUrls: string[] }>> {
   try {
     const cacheNames = await caches.keys();
-    const cacheInfo = [];
+    const cacheInfo: Array<{ name: string; count: number; sampleUrls: string[] }> = [];
     
     for (const cacheName of cacheNames) {
       const cache = await caches.open(cacheName);

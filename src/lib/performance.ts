@@ -130,5 +130,5 @@ export function usePerformanceTimer(componentName: string) {
   const endTimer = performanceMonitor.startTimer(`render:${componentName}`);
   
   // Call this in useEffect to measure render time
-  return () => endTimer(true);
+  return () => endTimer();
 }

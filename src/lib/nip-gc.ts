@@ -233,6 +233,16 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
   }
 }
 
+/**
+ * Parse found log events (kind 7516)
+ * 
+ * IMPORTANT: This function does NOT validate embedded verification events.
+ * It only parses the structure. Actual verification validation happens in
+ * useGeocacheLogs hook using the geocache's verification pubkey.
+ * 
+ * This prevents false positives where malicious logs could embed fake
+ * verification events and appear verified without proper signature validation.
+ */
 function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
   // Parse required tags for found logs
   const aTag = event.tags.find(t => t[0] === 'a')?.[1];
@@ -252,14 +262,15 @@ function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
   const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
   const verificationTag = event.tags.find(t => t[0] === 'verification')?.[1];
   
-  // Check if this is a verified find
-  let isVerified = false;
+  // Check if this log has embedded verification data (but don't mark as verified yet)
+  // The actual verification will be done in useGeocacheLogs with the geocache's verification pubkey
+  let hasEmbeddedVerification = false;
   if (verificationTag) {
     try {
       // Parse embedded verification event
       const verificationEvent = JSON.parse(verificationTag);
       if (verificationEvent.kind === NIP_GC_KINDS.VERIFICATION) {
-        isVerified = true;
+        hasEmbeddedVerification = true;
       }
     } catch {
       // Invalid verification data
@@ -274,7 +285,8 @@ function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
     type: 'found',
     text: event.content,
     images,
-    isVerified,
+    // Don't set isVerified here - it will be set properly in useGeocacheLogs after signature verification
+    isVerified: false,
   };
 }
 

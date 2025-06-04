@@ -47,7 +47,7 @@ export function useCreateVerifiedLog() {
       }
       
       // Step 1: Create verification event signed by the cache's verification key
-      const verificationEvent = createVerificationEvent(
+      const verificationEvent = await createVerificationEvent(
         data.verificationKey,
         user.pubkey,
         data.geocachePubkey!,

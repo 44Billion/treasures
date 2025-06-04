@@ -250,8 +250,17 @@ export async function verifyVerificationEvent(
     }
     
     // Check content format: "Geocache verification for <finder-npub>"
-    const finderNpub = nip19.npubEncode(logEvent.pubkey);
-    const expectedContent = buildVerificationEventContent(finderNpub);
+    let finderNpub: string;
+    let expectedContent: string;
+    
+    try {
+      finderNpub = nip19.npubEncode(logEvent.pubkey);
+      expectedContent = buildVerificationEventContent(finderNpub);
+    } catch (error) {
+      // Invalid pubkey format
+      return false;
+    }
+    
     if (verificationEvent.content !== expectedContent) {
       return false;
     }
@@ -262,7 +271,15 @@ export async function verifyVerificationEvent(
       return false;
     }
     
-    const [finderPubkeyHex, geocacheNaddr] = aTag[1].split(':', 2);
+    // Split at first colon only since geocache naddr contains colons
+    const colonIndex = aTag[1].indexOf(':');
+    if (colonIndex === -1) {
+      return false;
+    }
+    
+    const finderPubkeyHex = aTag[1].substring(0, colonIndex);
+    const geocacheNaddr = aTag[1].substring(colonIndex + 1);
+    
     if (!finderPubkeyHex || !geocacheNaddr) {
       return false;
     }

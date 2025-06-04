@@ -12,6 +12,8 @@ import { offlineSync, SyncStatus } from '@/lib/offlineSync';
 export function useOfflineSync() {
   const [status, setStatus] = useState<SyncStatus>({
     isOnline: navigator.onLine,
+    isConnected: false,
+    connectionQuality: 'offline',
     isSyncing: false,
     lastSyncTime: null,
     pendingActions: 0,

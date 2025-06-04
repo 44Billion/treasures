@@ -20,13 +20,17 @@ interface BatchDeleteResult {
   failed: Array<{ id: string; error: string }>;
 }
 
+interface MutationContext {
+  previousGeocaches: unknown;
+}
+
 export function useBatchDeleteGeocaches() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  return useMutation({
+  return useMutation<BatchDeleteResult, Error, BatchDeleteParams, MutationContext>({
     mutationFn: async ({ geocaches, reason }: BatchDeleteParams): Promise<BatchDeleteResult> => {
       if (!user?.signer) {
         throw new Error("You must be logged in to delete geocaches");
@@ -135,9 +139,9 @@ export function useBatchDeleteGeocaches() {
       const geocacheIds = new Set(geocaches.map(g => g.id));
       
       // Remove from geocaches list
-      queryClient.setQueryData(['geocaches'], (old: any) => {
+      queryClient.setQueryData(['geocaches'], (old: unknown) => {
         if (Array.isArray(old)) {
-          return old.filter((cache: any) => !geocacheIds.has(cache.id));
+          return old.filter((cache: { id: string }) => !geocacheIds.has(cache.id));
         }
         return old;
       });
