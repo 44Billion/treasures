@@ -151,7 +151,7 @@ export function GeocacheCard({
               <h3 className="font-semibold text-sm truncate hover:text-green-600 transition-colors flex items-center gap-1">
                 {cache.name}
                 {isHiddenByCreator && (
-                  <EyeOff className="h-3 w-3 text-orange-500 shrink-0" title="Hidden cache" />
+                  <EyeOff className="h-3 w-3 text-orange-500 shrink-0" />
                 )}
               </h3>
               
@@ -217,7 +217,7 @@ export function GeocacheCard({
                 <h3 className="font-semibold truncate hover:text-green-600 transition-colors flex items-center gap-1">
                   {cache.name}
                   {isHiddenByCreator && (
-                    <EyeOff className="h-4 w-4 text-orange-500 shrink-0" title="Hidden cache" />
+                    <EyeOff className="h-4 w-4 text-orange-500 shrink-0" />
                   )}
                 </h3>
                 
@@ -278,7 +278,7 @@ export function GeocacheCard({
         <CardTitle className="line-clamp-2 flex items-center gap-2">
           {cache.name}
           {isHiddenByCreator && (
-            <EyeOff className="h-5 w-5 text-orange-500 shrink-0" title="Hidden cache" />
+            <EyeOff className="h-5 w-5 text-orange-500 shrink-0" />
           )}
         </CardTitle>
         <CardDescription className="flex items-center justify-between">

@@ -135,9 +135,9 @@ export function useBatchDeleteGeocaches() {
       const geocacheIds = new Set(geocaches.map(g => g.id));
       
       // Remove from geocaches list
-      queryClient.setQueryData(['geocaches'], (old: unknown) => {
+      queryClient.setQueryData(['geocaches'], (old: any) => {
         if (Array.isArray(old)) {
-          return old.filter((cache: { id: string }) => !geocacheIds.has(cache.id));
+          return old.filter((cache: any) => !geocacheIds.has(cache.id));
         }
         return old;
       });

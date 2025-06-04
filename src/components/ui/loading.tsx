@@ -21,7 +21,7 @@ export function CompassSpinner({
 }: CompassSpinnerProps) {
   // Size mapping
   const sizeClasses = typeof size === 'number' 
-    ? { width: size, height: size }
+    ? { width: `${size}px`, height: `${size}px` }
     : {
         sm: 'h-4 w-4',
         md: 'h-6 w-6', 
@@ -35,7 +35,7 @@ export function CompassSpinner({
   return (
     <Compass 
       className={cn('animate-spin', colorClass, typeof size === 'string' ? sizeClasses : '', className)}
-      style={typeof size === 'number' ? sizeClasses : undefined}
+      style={typeof size === 'number' ? sizeClasses as React.CSSProperties : undefined}
     />
   );
 }

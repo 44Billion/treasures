@@ -126,30 +126,31 @@ export default function CacheDetail() {
     const nsec = parseVerificationFromHash(hash);
     
     if (nsec && geocache?.verificationPubkey) {
-      const isValid = verifyKeyPair(nsec, geocache.verificationPubkey);
-      setVerificationKey(nsec);
-      setIsVerificationValid(isValid);
-      
-      if (isValid) {
-        toast({
-          title: "Verification Key Detected",
-          description: "You can now submit verified logs for this cache! Scroll down to the logs section.",
-        });
+      verifyKeyPair(nsec, geocache.verificationPubkey).then(isValid => {
+        setVerificationKey(nsec);
+        setIsVerificationValid(isValid);
         
-        // Scroll to logs section after a short delay
-        setTimeout(() => {
-          const logsSection = document.querySelector('[data-logs-section]');
-          if (logsSection) {
-            logsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 1000);
-      } else {
-        toast({
-          title: "Invalid Verification Key",
-          description: "The verification key doesn't match this cache.",
-          variant: "destructive",
-        });
-      }
+        if (isValid) {
+          toast({
+            title: "Verification Key Detected",
+            description: "You can now submit verified logs for this cache! Scroll down to the logs section.",
+          });
+          
+          // Scroll to logs section after a short delay
+          setTimeout(() => {
+            const logsSection = document.querySelector('[data-logs-section]');
+            if (logsSection) {
+              logsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 1000);
+        } else {
+          toast({
+            title: "Invalid Verification Key",
+            description: "The verification key doesn't match this cache.",
+            variant: "destructive",
+          });
+        }
+      });
     }
   }, [geocache?.verificationPubkey, toast]);
 
@@ -160,7 +161,6 @@ export default function CacheDetail() {
       {
         id: geocache.id,
         name: geocache.name,
-        event: geocache.event,
       },
       'Deleted by cache owner',
       () => navigate("/")

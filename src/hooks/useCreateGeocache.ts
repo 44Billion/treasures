@@ -61,7 +61,7 @@ export function useCreateGeocache(onCacheCreated?: (result: { event: any; verifi
       const relayPreferences = getGeocachingRelays();
 
       // Generate verification key pair
-      const verificationKeyPair = generateVerificationKeyPair();
+      const verificationKeyPair = await generateVerificationKeyPair();
 
       // Build tags using consolidated utility
       const tags = buildGeocacheTags({

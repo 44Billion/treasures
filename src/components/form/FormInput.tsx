@@ -25,6 +25,7 @@ interface FormInputProps extends BaseFormFieldProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   disabled?: boolean;
+  name?: string;
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
@@ -63,6 +64,7 @@ interface FormTextareaProps extends BaseFormFieldProps {
   onBlur?: () => void;
   disabled?: boolean;
   rows?: number;
+  name?: string;
 }
 
 export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
@@ -155,6 +157,7 @@ interface FormNumberInputProps extends BaseFormFieldProps {
   min?: number;
   max?: number;
   step?: number;
+  name?: string;
 }
 
 export const FormNumberInput = forwardRef<HTMLInputElement, FormNumberInputProps>(

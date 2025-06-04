@@ -89,6 +89,7 @@ export function useGeocacheByNaddr(naddr: string) {
         };
 
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
+        const events = await nostr.query([filter], { signal });
 
         if (events.length === 0) {
           // If no online data but we have offline data, return that
