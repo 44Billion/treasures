@@ -11,9 +11,9 @@ interface FoundCache {
   dTag: string;
   pubkey: string;
   name: string;
-  foundAt: number;
-  logId: string;
-  logText: string;
+  foundAt: number; // Timestamp of the most recent find
+  logId: string; // ID of the most recent find log
+  logText: string; // Text from the most recent find log
   location: {
     lat: number;
     lng: number;
@@ -22,8 +22,8 @@ interface FoundCache {
   terrain: number;
   size: string;
   type: string;
-  foundCount?: number;
-  logCount?: number;
+  foundCount?: number; // Total number of finds for this cache (by all users)
+  logCount?: number; // Total number of logs for this cache (by all users)
 }
 
 export function useUserFoundCaches(targetPubkey?: string) {
@@ -125,8 +125,9 @@ export function useUserFoundCaches(targetPubkey?: string) {
         }
       }
 
-      // Combine found logs with geocache data and counts
-      const foundCaches: FoundCache[] = [];
+      // Combine found logs with geocache data and counts, deduplicating by geocache
+      // If a user found the same geocache multiple times, only show the most recent find
+      const foundCachesMap = new Map<string, FoundCache>();
       
       for (const log of foundLogs) {
         const ref = `${log.geocachePubkey}:${log.geocacheDTag}`;
@@ -134,7 +135,7 @@ export function useUserFoundCaches(targetPubkey?: string) {
         const counts = logCounts.get(ref) || { total: 0, found: 0 };
         
         if (geocache) {
-          foundCaches.push({
+          const foundCacheEntry = {
             id: geocache.id,
             dTag: geocache.dTag,
             pubkey: geocache.pubkey,
@@ -149,11 +150,18 @@ export function useUserFoundCaches(targetPubkey?: string) {
             type: geocache.type,
             foundCount: counts.found,
             logCount: counts.total,
-          });
+          };
+
+          // Only keep the most recent find for each unique geocache
+          const existingEntry = foundCachesMap.get(ref);
+          if (!existingEntry || log.created_at > existingEntry.foundAt) {
+            foundCachesMap.set(ref, foundCacheEntry);
+          }
         }
       }
       
-      // Sort by found date (newest first)
+      // Convert map to array and sort by found date (newest first)
+      const foundCaches = Array.from(foundCachesMap.values());
       foundCaches.sort((a, b) => b.foundAt - a.foundAt);
       
       return foundCaches;
