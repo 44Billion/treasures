@@ -92,31 +92,37 @@ export function useBatchDeleteGeocaches() {
             // Sign the event
             const signedEvent = await user.signer.signEvent(deletionEvent);
 
-            // Publish with retry logic
-            const maxRetries = RETRY_CONFIG.MAX_RETRIES;
-            
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-              try {
-                await nostr.event(signedEvent, { 
-                  signal: AbortSignal.timeout(TIMEOUTS.DELETE_OPERATION) 
-                });
-                break;
-              } catch (error) {
-                if (attempt === maxRetries) {
-                  throw error;
-                }
-                // Wait before retry
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-              }
+            // Fire-and-forget deletion: send to relays without strict verification
+            // Deletion events are optimistic - we assume they work
+            try {
+              await nostr.event(signedEvent, { 
+                signal: AbortSignal.timeout(TIMEOUTS.DELETE_OPERATION) 
+              });
+            } catch (publishError) {
+              // Don't throw here - the event was signed and some relays might have received it
+              // Log for debugging but continue with optimistic success
+              console.warn(`Deletion event publish warning for ${geocache.id} (continuing optimistically):`, publishError);
             }
 
             result.successful.push(geocache.id);
           } catch (error) {
             const errorObj = error as { message?: string };
-            result.failed.push({
-              id: geocache.id,
-              error: errorObj.message || 'Unknown error'
-            });
+            
+            // Only mark as failed for signing errors (user cancellation, no signer, etc.)
+            // Network/relay errors are treated as successful since the event was signed
+            if (errorObj.message?.includes('User rejected') || 
+                errorObj.message?.includes('cancelled') ||
+                errorObj.message?.includes('No signer') ||
+                errorObj.message?.includes('signEvent')) {
+              result.failed.push({
+                id: geocache.id,
+                error: errorObj.message || 'Signing failed'
+              });
+            } else {
+              // Network/relay errors - treat as successful since event was signed
+              result.successful.push(geocache.id);
+              console.warn(`Network error for ${geocache.id} but treating as successful:`, error);
+            }
           }
         });
 
@@ -159,18 +165,17 @@ export function useBatchDeleteGeocaches() {
       if (successful.length === geocaches.length) {
         toast({
           title: "Geocaches deleted",
-          description: `Successfully deleted ${successful.length} geocache${successful.length === 1 ? '' : 's'}. It may take a moment for all relays to process the deletions.`,
+          description: `Successfully sent deletion requests for ${successful.length} geocache${successful.length === 1 ? '' : 's'}.`,
         });
       } else if (successful.length > 0) {
         toast({
-          title: "Partial success",
-          description: `Deleted ${successful.length} of ${geocaches.length} geocaches. ${failed.length} failed. It may take a moment for relays to process the deletions.`,
-          variant: "destructive",
+          title: "Mostly successful",
+          description: `Sent deletion requests for ${successful.length} of ${geocaches.length} geocaches. ${failed.length} were cancelled or failed to sign.`,
         });
       } else {
         toast({
-          title: "Deletion failed",
-          description: `Failed to delete any geocaches. Please try again.`,
+          title: "Deletion cancelled",
+          description: `No geocaches were deleted. All deletion requests were cancelled or failed to sign.`,
           variant: "destructive",
         });
       }
@@ -183,18 +188,29 @@ export function useBatchDeleteGeocaches() {
       console.log(`Batch deletion complete: ${successful.length} successful, ${failed.length} failed`);
     },
     onError: (error, { geocaches }, context) => {
-      // Rollback optimistic updates
-      if (context?.previousGeocaches) {
-        queryClient.setQueryData(['geocaches'], context.previousGeocaches);
-      }
-      
       const errorObj = error as { message?: string };
+      const isSigningError = errorObj.message?.includes('User rejected') || 
+                            errorObj.message?.includes('cancelled') ||
+                            errorObj.message?.includes('No signer');
       
-      toast({
-        title: "Batch deletion failed",
-        description: errorObj.message || 'An unexpected error occurred during batch deletion',
-        variant: "destructive",
-      });
+      if (isSigningError) {
+        // Only rollback for user cancellation or signer issues
+        if (context?.previousGeocaches) {
+          queryClient.setQueryData(['geocaches'], context.previousGeocaches);
+        }
+        
+        toast({
+          title: "Batch deletion cancelled",
+          description: "The batch deletion was cancelled.",
+          variant: "destructive",
+        });
+      } else {
+        // For other errors, keep optimistic update but show softer message
+        toast({
+          title: "Deletion requests sent",
+          description: "Some deletion requests were sent but may take longer to propagate.",
+        });
+      }
       
       console.error('Batch delete error:', error);
     },

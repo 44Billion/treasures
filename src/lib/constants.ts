@@ -8,7 +8,7 @@ export const TIMEOUTS = {
   CONNECTIVITY_CHECK: 3000,
   TILE_DOWNLOAD: 10000,
   FAST_QUERY: 2000,
-  DELETE_OPERATION: 5000,
+  DELETE_OPERATION: 3000, // Shorter timeout for deletions - they're fire-and-forget
 } as const;
 
 // Query limits

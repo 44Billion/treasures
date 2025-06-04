@@ -68,10 +68,19 @@ export function useDeleteWithConfirmation() {
           setIsConfirmDialogOpen(false);
           setPendingDeletion(null);
         },
-        onError: () => {
-          // Error handling is done in the hook itself
-          setIsConfirmDialogOpen(false);
-          setPendingDeletion(null);
+        onError: (error) => {
+          // Only keep dialog open for signing errors
+          const errorObj = error as { message?: string };
+          const isSigningError = errorObj.message?.includes('User rejected') || 
+                                errorObj.message?.includes('cancelled') ||
+                                errorObj.message?.includes('No signer');
+          
+          if (!isSigningError) {
+            // For network errors, close dialog since deletion was optimistic
+            setIsConfirmDialogOpen(false);
+            setPendingDeletion(null);
+          }
+          // For signing errors, keep dialog open so user can try again
         }
       });
     } else if (type === 'batch') {
@@ -84,10 +93,19 @@ export function useDeleteWithConfirmation() {
           setIsConfirmDialogOpen(false);
           setPendingDeletion(null);
         },
-        onError: () => {
-          // Error handling is done in the hook itself
-          setIsConfirmDialogOpen(false);
-          setPendingDeletion(null);
+        onError: (error) => {
+          // Only keep dialog open for signing errors
+          const errorObj = error as { message?: string };
+          const isSigningError = errorObj.message?.includes('User rejected') || 
+                                errorObj.message?.includes('cancelled') ||
+                                errorObj.message?.includes('No signer');
+          
+          if (!isSigningError) {
+            // For network errors, close dialog since deletion was optimistic
+            setIsConfirmDialogOpen(false);
+            setPendingDeletion(null);
+          }
+          // For signing errors, keep dialog open so user can try again
         }
       });
     }
@@ -104,9 +122,9 @@ export function useDeleteWithConfirmation() {
     const { type, geocaches } = pendingDeletion;
     
     if (type === 'single') {
-      return `Are you sure you want to delete "${geocaches[0].name}"? This action cannot be undone.`;
+      return `Are you sure you want to delete "${geocaches[0].name}"? The deletion request will be sent to relays immediately.`;
     } else {
-      return `Are you sure you want to delete ${geocaches.length} geocaches? This action cannot be undone and may take several minutes to complete.`;
+      return `Are you sure you want to delete ${geocaches.length} geocaches? Deletion requests will be sent to relays for all selected geocaches.`;
     }
   };
 

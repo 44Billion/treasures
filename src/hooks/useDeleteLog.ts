@@ -33,12 +33,14 @@ export function useDeleteLog() {
         });
 
 
-        // Send to relays with a shorter timeout and no verification
-        // Deletion events don't need strict verification since they're fire-and-forget
+        // Fire-and-forget deletion: send to relays without strict verification
+        // Deletion events are optimistic - we assume they work and don't fail the operation
         try {
-          await nostr.event(event, { signal: AbortSignal.timeout(8000) });
+          await nostr.event(event, { signal: AbortSignal.timeout(5000) });
         } catch (publishError) {
           // Don't throw here - the event was signed and some relays might have received it
+          // Log for debugging but continue with optimistic success
+          console.warn('Deletion event publish warning (continuing optimistically):', publishError);
         }
 
         return event;
@@ -57,7 +59,7 @@ export function useDeleteLog() {
     onSuccess: (event, logId) => {
       toast({
         title: "Log deleted",
-        description: "Your log has been removed. It may take a moment for all relays to process the deletion.",
+        description: "Your log has been removed and the deletion request sent to relays.",
       });
       
       // Optimistically remove the log from all relevant caches
@@ -78,25 +80,26 @@ export function useDeleteLog() {
     onError: (error: unknown) => {
       const errorObj = error as { message?: string };
       
-      let errorMessage = "Please try again later.";
-      
-      if (errorObj.message?.includes('AggregateError') || errorObj.message?.includes('No Promise')) {
-        errorMessage = "Unable to connect to Nostr relays. Please check your internet connection and try again.";
-      } else if (errorObj.message?.includes('timeout')) {
-        errorMessage = "Connection timeout. Please try again.";
-      } else if (errorObj.message?.includes('User rejected')) {
-        errorMessage = "Deletion was cancelled.";
-      } else if (errorObj.message?.includes('not found on relays')) {
-        errorMessage = "Deletion request was created but couldn't be verified. The log may be deleted after a delay.";
-      } else if (errorObj.message) {
-        errorMessage = errorObj.message;
+      // Only show destructive errors for signing issues
+      if (errorObj.message?.includes('User rejected') || errorObj.message?.includes('cancelled')) {
+        toast({
+          title: "Deletion cancelled",
+          description: "The log deletion was cancelled.",
+          variant: "destructive",
+        });
+      } else if (errorObj.message?.includes('not logged in') || errorObj.message?.includes('No signer')) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to delete logs.",
+          variant: "destructive",
+        });
+      } else {
+        // For network/relay errors, show a softer message
+        toast({
+          title: "Deletion request sent",
+          description: "The deletion request was created but may take longer to propagate to all relays.",
+        });
       }
-      
-      toast({
-        title: "Failed to delete log",
-        description: errorMessage,
-        variant: "destructive",
-      });
     },
   });
 }

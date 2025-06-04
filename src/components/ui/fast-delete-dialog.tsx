@@ -42,10 +42,22 @@ export function FastDeleteDialog({
         reason: 'Deleted by author',
       });
       
+      // Always call success and close - the hook handles optimistic updates
       onSuccess?.();
       onClose();
     } catch (error) {
-      // Error is handled by the hook's onError callback
+      // Only keep dialog open for signing errors (user cancellation, etc.)
+      const errorObj = error as { message?: string };
+      const isSigningError = errorObj.message?.includes('User rejected') || 
+                            errorObj.message?.includes('cancelled') ||
+                            errorObj.message?.includes('No signer');
+      
+      if (!isSigningError) {
+        // For network errors, still close dialog since deletion was optimistic
+        onSuccess?.();
+        onClose();
+      }
+      // For signing errors, keep dialog open and let user try again
     } finally {
       setIsDeleting(false);
     }
