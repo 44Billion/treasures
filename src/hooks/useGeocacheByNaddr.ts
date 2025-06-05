@@ -18,12 +18,13 @@ export function useGeocacheByNaddr(naddr: string) {
   const { isOnline, isConnected, connectionQuality } = useOfflineMode();
 
   return useQuery({
-    queryKey: ['geocache-by-naddr', naddr, isOnline && isConnected && navigator.onLine],
+    queryKey: ['geocache-by-naddr', naddr],
     staleTime: (isOnline && isConnected && navigator.onLine) ? 30000 : Infinity, // 30 seconds online, never stale offline
     gcTime: 300000, // 5 minutes
     retry: false, // Disable retries to prevent cache invalidation
     refetchOnReconnect: true, // Refetch when connection is restored
     networkMode: 'always', // Always run queries regardless of network status
+    placeholderData: (previousData) => previousData, // Keep previous data while refetching
     queryFn: async (c) => {
       console.log('useGeocacheByNaddr query starting...', {
         naddr,

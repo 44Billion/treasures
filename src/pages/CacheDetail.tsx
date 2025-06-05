@@ -153,9 +153,10 @@ export default function CacheDetail() {
             }
           }, 1000);
         } else {
+          // Check if this is an outdated verification key
           toast({
-            title: "Invalid Verification Key",
-            description: "The verification key doesn't match this cache.",
+            title: "Outdated QR Code",
+            description: "This QR code has been replaced by the cache owner. Please look for a newer QR code at the cache location.",
             variant: "destructive",
           });
         }
@@ -240,8 +241,9 @@ export default function CacheDetail() {
     setProfileDialogOpen(true);
   };
 
-  // Only show loading spinner if we have no data at all (not just refreshing)
-  if (isLoading && !geocache) {
+  // Only show loading spinner for initial load when we have no data at all
+  // Don't show loading if we have cached/placeholder data, even if a background refetch is happening
+  if (isLoading && !geocache && !error) {
     return (
       <FullPageLoading 
         title="Loading geocache..."

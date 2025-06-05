@@ -121,7 +121,7 @@ export function RegenerateQRDialog({
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <strong>Warning:</strong> This action will create a new geocache event and invalidate all previous QR codes. 
-                All finders must use the new QR code.
+                Anyone who tries to use an old QR code will see an "Outdated QR Code" error and must find the new QR code.
               </AlertDescription>
             </Alert>
 
@@ -131,9 +131,10 @@ export function RegenerateQRDialog({
               </p>
               <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                 <li>• A new geocache event will be published to Nostr</li>
-                <li>• Old QR codes will stop working</li>
-                <li>• You must print and place the new QR code</li>
-                <li>• All finders must use the new QR code</li>
+                <li>• Old QR codes will immediately stop working</li>
+                <li>• You must print and place the new QR code at the cache location</li>
+                <li>• Finders with old QR codes will see an "Outdated QR Code" error</li>
+                <li>• Remove or cover any old QR codes to avoid confusion</li>
               </ul>
             </div>
 

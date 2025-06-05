@@ -88,12 +88,24 @@ export default function Claim() {
       // Redirect to the cache page with verification key
       navigate(`/${validation.naddr}#verify=${validation.nsec}`);
     } else {
-      setError(validation.error || 'Invalid QR code');
+      let errorMessage = validation.error || 'Invalid QR code';
+      let toastDescription = validation.error || 'This QR code is not a valid treasure verification code.';
+      
+      // Provide more specific guidance for common issues
+      if (validation.error?.includes('No verification key found')) {
+        errorMessage = 'QR code missing verification key';
+        toastDescription = 'This QR code appears to be damaged or incomplete. Please try scanning again or look for a replacement QR code at the cache location.';
+      } else if (validation.error?.includes('Invalid treasure URL format')) {
+        errorMessage = 'Outdated or invalid QR code';
+        toastDescription = 'This QR code may be outdated or from an older version. Please look for a newer QR code at the cache location.';
+      }
+      
+      setError(errorMessage);
       setIsProcessing(false);
       
       toast({
-        title: 'Invalid QR Code',
-        description: validation.error || 'This QR code is not a valid treasure verification code.',
+        title: 'QR Code Issue',
+        description: toastDescription,
         variant: 'destructive',
       });
     }

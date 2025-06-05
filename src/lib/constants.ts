@@ -4,12 +4,13 @@
 
 // Network timeouts (in milliseconds)
 export const TIMEOUTS = {
-  QUERY: 20000, // 20 seconds - much more forgiving for slow networks
+  QUERY: 15000, // 15 seconds - balanced for reliability and speed
   CONNECTIVITY_CHECK: 8000, // 8 seconds - enough for WebSocket handshake
   TILE_DOWNLOAD: 10000,
-  FAST_QUERY: 8000, // 8 seconds - still fast but realistic
+  FAST_QUERY: 5000, // 5 seconds - optimistic fast loading
   DELETE_OPERATION: 5000, // 5 seconds - a bit more time for deletions
   PUBLISH: 12000, // 12 seconds - reasonable timeout for publishing events
+  OPTIMISTIC_LOAD: 3000, // 3 seconds - very fast initial load
 } as const;
 
 // Query limits
@@ -19,7 +20,8 @@ export const QUERY_LIMITS = {
   BATCH_SIZE: 3,
   PROXIMITY_RESULTS: 100,
   HOME_PAGE_LIMIT: 3,
-  FAST_LOAD_LIMIT: 10,
+  FAST_LOAD_LIMIT: 8, // Load 8 geocaches quickly for immediate display
+  SKELETON_COUNT: 6, // Number of skeleton cards to show
 } as const;
 
 // Retry configuration

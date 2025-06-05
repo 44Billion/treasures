@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { useAdaptiveGeocaches, type GeocacheWithDistance } from "@/hooks/useProximityGeocaches";
-import { useDataManager } from "@/hooks/useDataManager";
+import { useMapPageGeocaches } from "@/hooks/useOptimisticGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { DetailedGeocacheCard, CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -25,7 +25,8 @@ import type { Geocache } from "@/types/geocache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistance } from "@/lib/geo";
 import { Badge } from "@/components/ui/badge";
-import { ComponentLoading } from "@/components/ui/loading";
+import { MapSidebarSkeleton, SmartLoadingState } from "@/components/ui/skeleton-patterns";
+import { QUERY_LIMITS } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 
 export default function Map() {
@@ -49,11 +50,8 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
-  // Use the unified data manager for coordinated polling and caching
-  const dataManager = useDataManager({
-    enablePolling: true,
-    enablePrefetching: true,
-  });
+  // Use optimistic loading for base geocaches
+  const optimisticGeocaches = useMapPageGeocaches();
 
   const { data: geocaches, isLoading, error, refetch } = useAdaptiveGeocaches({
     search: searchQuery,
@@ -243,33 +241,29 @@ export default function Map() {
 
           {/* Results */}
           <div className="flex-1 overflow-y-auto">
-            {isLoading && filteredGeocaches.length === 0 ? (
-              <div className="flex items-center justify-center py-12">
-                <ComponentLoading 
-                  size="sm" 
-                  title="Loading geocaches..." 
-                  description="Searching the network" 
-                />
-              </div>
-            ) : error ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <RefreshCw className="h-6 w-6 text-red-400 mx-auto mb-2" />
-                  <p className="text-sm font-medium">Failed to load caches</p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {error instanceof Error ? error.message : 'Network connection issue'}
+            <SmartLoadingState
+              isLoading={isLoading}
+              isError={!!error}
+              hasData={filteredGeocaches.length > 0}
+              data={filteredGeocaches}
+              error={error as Error}
+              onRetry={() => {
+                optimisticGeocaches.refresh();
+                refetch();
+              }}
+              skeletonCount={QUERY_LIMITS.SKELETON_COUNT}
+              skeletonVariant="compact"
+              compact={true}
+              emptyState={
+                <div className="p-4 text-center text-muted-foreground">
+                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p>No geocaches found</p>
+                  <p className="text-sm mt-2">
+                    {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
                   </p>
-                  <Button 
-                    size="sm" 
-                    onClick={() => refetch()} 
-                    className="h-8 px-3"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    Try Again
-                  </Button>
                 </div>
-              </div>
-            ) : filteredGeocaches.length > 0 ? (
+              }
+            >
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm text-muted-foreground">
@@ -281,18 +275,25 @@ export default function Map() {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        dataManager.refreshAll();
+                        optimisticGeocaches.refresh();
                         refetch();
                       }}
                       className="h-6 w-6 p-0"
                       title="Refresh geocaches"
+                      disabled={isLoading && filteredGeocaches.length === 0}
                     >
-                      <RefreshCw className="h-3 w-3" />
+                      <RefreshCw className={`h-3 w-3 ${isLoading && filteredGeocaches.length === 0 ? 'animate-spin' : ''}`} />
                     </Button>
                     {isProximitySearchActive && (
                       <Badge variant="secondary" className="text-xs flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
                         Smart Search
+                      </Badge>
+                    )}
+                    {optimisticGeocaches.isStale && (
+                      <Badge variant="outline" className="text-xs flex items-center gap-1">
+                        <RefreshCw className="h-2 w-2 animate-spin" />
+                        Updating
                       </Badge>
                     )}
                   </div>
@@ -308,15 +309,7 @@ export default function Map() {
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="p-4 text-center text-muted-foreground">
-                <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p>No geocaches found</p>
-                <p className="text-sm mt-2">
-                  {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
-                </p>
-              </div>
-            )}
+            </SmartLoadingState>
           </div>
         </div>
 
@@ -414,33 +407,32 @@ export default function Map() {
         <div className="flex-1 overflow-hidden">
           <MapViewTabs className="h-full flex flex-col">
             <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col bg-background">
-              {isLoading && filteredGeocaches.length === 0 ? (
-                <div className="flex items-center justify-center flex-1">
-                  <ComponentLoading 
-                    size="sm" 
-                    title="Loading geocaches..." 
-                    description="Searching the network" 
-                  />
-                </div>
-              ) : error ? (
-                <div className="flex items-center justify-center flex-1">
-                  <div className="text-center">
-                    <RefreshCw className="h-6 w-6 text-red-400 mx-auto mb-2" />
-                    <p className="text-sm font-medium">Failed to load caches</p>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      {error instanceof Error ? error.message : 'Network connection issue'}
-                    </p>
-                    <Button 
-                      size="sm" 
-                      onClick={() => refetch()} 
-                      className="h-8 px-3"
-                    >
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      Try Again
-                    </Button>
+              <SmartLoadingState
+                isLoading={isLoading}
+                isError={!!error}
+                hasData={filteredGeocaches.length > 0}
+                data={filteredGeocaches}
+                error={error as Error}
+                onRetry={() => {
+                  optimisticGeocaches.refresh();
+                  refetch();
+                }}
+                skeletonCount={QUERY_LIMITS.SKELETON_COUNT}
+                skeletonVariant="compact"
+                compact={true}
+                emptyState={
+                  <div className="flex items-center justify-center flex-1">
+                    <div className="text-center text-muted-foreground">
+                      <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p>No geocaches found</p>
+                      <p className="text-sm mt-2">
+                        {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : filteredGeocaches.length > 0 ? (
+                }
+                className="flex-1 flex flex-col"
+              >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
@@ -452,18 +444,25 @@ export default function Map() {
                         variant="ghost" 
                         size="sm"
                         onClick={() => {
-                          dataManager.refreshAll();
+                          optimisticGeocaches.refresh();
                           refetch();
                         }}
                         className="h-6 w-6 p-0"
                         title="Refresh geocaches"
+                        disabled={isLoading && filteredGeocaches.length === 0}
                       >
-                        <RefreshCw className="h-3 w-3" />
+                        <RefreshCw className={`h-3 w-3 ${isLoading && filteredGeocaches.length === 0 ? 'animate-spin' : ''}`} />
                       </Button>
                       {isProximitySearchActive && (
                         <Badge variant="secondary" className="text-xs flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
                           Smart Search
+                        </Badge>
+                      )}
+                      {optimisticGeocaches.isStale && (
+                        <Badge variant="outline" className="text-xs flex items-center gap-1">
+                          <RefreshCw className="h-2 w-2 animate-spin" />
+                          Updating
                         </Badge>
                       )}
                     </div>
@@ -479,17 +478,7 @@ export default function Map() {
                     ))}
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center justify-center flex-1">
-                  <div className="text-center text-muted-foreground">
-                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p>No geocaches found</p>
-                    <p className="text-sm mt-2">
-                      {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
-                    </p>
-                  </div>
-                </div>
-              )}
+              </SmartLoadingState>
             </TabsContent>
             <TabsContent value="map" className="flex-1 m-0 p-0 data-[state=active]:block">
               <div className="h-full w-full bg-background min-h-[400px]" style={{ height: 'calc(100vh - 12rem)' }}>

@@ -8,22 +8,24 @@ import { LoginArea } from "@/components/auth/LoginArea";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useDataManager } from "@/hooks/useDataManager";
+import { useHomePageGeocaches } from "@/hooks/useOptimisticGeocaches";
 import { GeocacheList } from "@/components/GeocacheList";
-import { ComponentLoading } from "@/components/ui/loading";
+import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
+import { QUERY_LIMITS } from "@/lib/constants";
 
 export default function Home() {
   const { user } = useCurrentUser();
   
-  // Use the unified data manager for coordinated polling and caching
-  const dataManager = useDataManager({
-    enablePolling: true,
-    enablePrefetching: true,
-  });
-  
-  // Get the first few geocaches for the home page, filtering out null values
-  const geocaches = dataManager.geocaches.filter(Boolean).slice(0, 3);
-  const isLoading = dataManager.isLoading;
+  // Use optimistic loading for better UX
+  const {
+    geocaches,
+    isLoading,
+    isError,
+    error,
+    isStale,
+    hasInitialData,
+    refresh
+  } = useHomePageGeocaches();
   
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
@@ -219,64 +221,59 @@ export default function Home() {
       <section className="py-12 md:py-16 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground">Recent Geocaches</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground">Recent Geocaches</h3>
+              {isStale && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <span>Updating...</span>
+                </div>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => dataManager.refreshAll()}
+                onClick={refresh}
                 className="hidden sm:flex"
                 title="Refresh geocaches"
+                disabled={isLoading && !hasInitialData}
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className={`h-4 w-4 ${isLoading && !hasInitialData ? 'animate-spin' : ''}`} />
               </Button>
               <Link to="/map" className="hidden sm:block">
                 <Button variant="outline">View All</Button>
               </Link>
             </div>
           </div>
-          {isLoading && geocaches.length === 0 ? (
-            <div className="flex items-center justify-center py-12">
-              <ComponentLoading 
-                size="sm" 
-                title="Loading geocaches..." 
-                description="Searching the network" 
+          
+          <SmartLoadingState
+            isLoading={isLoading}
+            isError={isError}
+            hasData={hasInitialData}
+            data={geocaches}
+            error={error}
+            onRetry={refresh}
+            skeletonCount={QUERY_LIMITS.HOME_PAGE_LIMIT}
+            skeletonVariant="default"
+            emptyState={
+              <EmptyStateCard
+                icon={MapPin}
+                title="No geocaches found yet."
+                description="Be the first to hide one!"
               />
-            </div>
-          ) : dataManager.isError ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <RefreshCw className="h-6 w-6 text-red-400 mx-auto mb-2" />
-                <p className="text-sm font-medium">Failed to load caches</p>
-                <p className="text-xs text-muted-foreground mb-3">
-                  {dataManager.error instanceof Error ? dataManager.error.message : 'Network connection issue'}
-                </p>
-                <Button 
-                  size="sm" 
-                  onClick={() => dataManager.refreshAll()} 
-                  className="h-8 px-3"
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  Try Again
-                </Button>
-              </div>
-            </div>
-          ) : geocaches && geocaches.length > 0 ? (
-            <>
-              <GeocacheList geocaches={geocaches} />
-              <div className="mt-6 text-center sm:hidden">
-                <Link to="/map">
-                  <Button variant="outline" className="w-full">View All Geocaches</Button>
-                </Link>
-              </div>
-            </>
-          ) : (
-            <EmptyStateCard
-              icon={MapPin}
-              title="No geocaches found yet."
-              description="Be the first to hide one!"
+            }
+          >
+            <GeocacheList 
+              geocaches={geocaches} 
+              isLoading={isStale}
             />
-          )}
+            <div className="mt-6 text-center sm:hidden">
+              <Link to="/map">
+                <Button variant="outline" className="w-full">View All Geocaches</Button>
+              </Link>
+            </div>
+          </SmartLoadingState>
         </div>
       </section>
 
