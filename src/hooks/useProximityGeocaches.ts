@@ -30,6 +30,7 @@ interface UseProximityGeocachesOptions {
   difficultyOperator?: ComparisonOperator;
   terrain?: number;
   terrainOperator?: ComparisonOperator;
+  cacheType?: string;
   authorPubkey?: string;
   // Proximity parameters
   centerLat?: number;
@@ -143,6 +144,11 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
       );
     }
 
+    // Cache type filter
+    if (options.cacheType && options.cacheType !== 'all') {
+      filtered = filtered.filter(g => g.type === options.cacheType);
+    }
+
     // Sort by distance if available, otherwise by creation date
     if (filtered.some(g => g.distance !== undefined)) {
       // Sort by distance (already calculated if using proximity)
@@ -153,7 +159,7 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
     }
 
     return filtered;
-  }, [options.search, options.difficulty, options.difficultyOperator, options.terrain, options.terrainOperator]);
+  }, [options.search, options.difficulty, options.difficultyOperator, options.terrain, options.terrainOperator, options.cacheType]);
 
   // Create filter groups based on strategy
   const filterGroups = useMemo(() => {

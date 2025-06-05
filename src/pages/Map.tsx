@@ -19,6 +19,7 @@ import { GeocacheDialog } from "@/components/GeocacheDialog";
 import { LocationSearch } from "@/components/LocationSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { ComparisonFilter, type ComparisonOperator } from "@/components/ui/comparison-filter";
+import { FilterButton } from "@/components/FilterButton";
 import { DIFFICULTY_TERRAIN_OPTIONS } from "@/lib/geocache-constants";
 import type { Geocache } from "@/types/geocache";
 
@@ -36,6 +37,7 @@ export default function Map() {
   const [difficultyOperator, setDifficultyOperator] = useState<ComparisonOperator>("all");
   const [terrain, setTerrain] = useState<number | undefined>(undefined);
   const [terrainOperator, setTerrainOperator] = useState<ComparisonOperator>("all");
+  const [cacheType, setCacheType] = useState<string | undefined>(undefined);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapZoom, setMapZoom] = useState(10);
@@ -59,45 +61,14 @@ export default function Map() {
     difficultyOperator,
     terrain,
     terrainOperator,
+    cacheType,
     userLocation,
     searchLocation,
     searchRadius,
     showNearMe,
   });
 
-  // Shared value change handler for consistent logic
-  const createValueChangeHandler = (setter: (value: number | undefined) => void) => 
-    (value: string) => setter(value === "all" ? undefined : parseInt(value));
 
-  // Shared value converter for consistent display
-  const getValueForDisplay = (value: number | undefined) => value?.toString() || "all";
-
-  // Reusable filter pair component
-  const FilterPair = ({ compact = false }: { compact?: boolean }) => (
-    <>
-      <ComparisonFilter
-        label="Difficulty"
-        value={getValueForDisplay(difficulty)}
-        onValueChange={createValueChangeHandler(setDifficulty)}
-        operator={difficultyOperator}
-        onOperatorChange={setDifficultyOperator}
-        options={DIFFICULTY_TERRAIN_OPTIONS}
-        className="flex-1"
-        compact={compact}
-      />
-      
-      <ComparisonFilter
-        label="Terrain"
-        value={getValueForDisplay(terrain)}
-        onValueChange={createValueChangeHandler(setTerrain)}
-        operator={terrainOperator}
-        onOperatorChange={setTerrainOperator}
-        options={DIFFICULTY_TERRAIN_OPTIONS}
-        className="flex-1"
-        compact={compact}
-      />
-    </>
-  );
 
   useEffect(() => {
     // Update user location when coords change
@@ -167,18 +138,30 @@ export default function Map() {
           {/* Adventure Search and Filters */}
           <div className="p-4 border-b bg-muted/50">
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="search">Search Caches</Label>
-                <Input
-                  id="search"
-                  placeholder="Search by name or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
               <div className="flex gap-2">
-                <FilterPair />
+                <div className="flex-1">
+                  <Label htmlFor="search">Search Caches</Label>
+                  <Input
+                    id="search"
+                    placeholder="Search by name or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <FilterButton
+                    difficulty={difficulty}
+                    difficultyOperator={difficultyOperator}
+                    onDifficultyChange={setDifficulty}
+                    onDifficultyOperatorChange={setDifficultyOperator}
+                    terrain={terrain}
+                    terrainOperator={terrainOperator}
+                    onTerrainChange={setTerrain}
+                    onTerrainOperatorChange={setTerrainOperator}
+                    cacheType={cacheType}
+                    onCacheTypeChange={setCacheType}
+                  />
+                </div>
               </div>
 
               {/* Location Controls */}
@@ -337,17 +320,26 @@ export default function Map() {
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0">
           <div className="p-3">
             <div className="space-y-3">
-              <div>
+              <div className="flex gap-2">
                 <Input
                   placeholder="Search caches..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
+                  className="flex-1"
                 />
-              </div>
-              
-              <div className="flex gap-2">
-                <FilterPair compact />
+                <FilterButton
+                  difficulty={difficulty}
+                  difficultyOperator={difficultyOperator}
+                  onDifficultyChange={setDifficulty}
+                  onDifficultyOperatorChange={setDifficultyOperator}
+                  terrain={terrain}
+                  terrainOperator={terrainOperator}
+                  onTerrainChange={setTerrain}
+                  onTerrainOperatorChange={setTerrainOperator}
+                  cacheType={cacheType}
+                  onCacheTypeChange={setCacheType}
+                  compact
+                />
               </div>
               
               <div className="space-y-2">
