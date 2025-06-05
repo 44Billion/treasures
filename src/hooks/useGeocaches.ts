@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { NIP_GC_KINDS, parseGeocacheEvent } from '@/lib/nip-gc';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/lib/constants';
+import { getAdaptiveTimeout } from '@/lib/networkUtils';
 import { useEffect } from 'react';
 
 export function useGeocaches() {
@@ -13,7 +14,10 @@ export function useGeocaches() {
   const query = useQuery({
     queryKey: ['geocaches'],
     queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
+      // Use adaptive timeout that considers network conditions
+      const baseTimeout = c.meta?.isBackground ? TIMEOUTS.QUERY * 1.5 : TIMEOUTS.QUERY;
+      const timeout = getAdaptiveTimeout(baseTimeout);
+      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(timeout)]);
       const events = await nostr.query([{
         kinds: [NIP_GC_KINDS.GEOCACHE], 
         limit: QUERY_LIMITS.GEOCACHES * 2 // Fetch more for better caching
@@ -31,8 +35,8 @@ export function useGeocaches() {
         };
       }).filter(Boolean);
     },
-    staleTime: 30000, // 30 seconds - more aggressive caching
-    gcTime: 600000, // 10 minutes - longer cache retention
+    staleTime: 120000, // 2 minutes - less aggressive to reduce requests
+    gcTime: 900000, // 15 minutes - even longer cache retention
     refetchOnWindowFocus: false,
     refetchInterval: POLLING_INTERVALS.GEOCACHES, // Poll every minute
     refetchIntervalInBackground: true, // Continue polling in background

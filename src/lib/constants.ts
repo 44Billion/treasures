@@ -4,11 +4,11 @@
 
 // Network timeouts (in milliseconds)
 export const TIMEOUTS = {
-  QUERY: 8000,
-  CONNECTIVITY_CHECK: 3000,
+  QUERY: 20000, // 20 seconds - much more forgiving for slow networks
+  CONNECTIVITY_CHECK: 8000, // 8 seconds - enough for WebSocket handshake
   TILE_DOWNLOAD: 10000,
-  FAST_QUERY: 2000,
-  DELETE_OPERATION: 3000, // Shorter timeout for deletions - they're fire-and-forget
+  FAST_QUERY: 8000, // 8 seconds - still fast but realistic
+  DELETE_OPERATION: 5000, // 5 seconds - a bit more time for deletions
 } as const;
 
 // Query limits
@@ -23,9 +23,9 @@ export const QUERY_LIMITS = {
 
 // Retry configuration
 export const RETRY_CONFIG = {
-  MAX_RETRIES: 2,
-  BASE_DELAY: 1000,
-  BATCH_DELAY: 100,
+  MAX_RETRIES: 3, // One more retry attempt
+  BASE_DELAY: 1500, // Slightly longer base delay
+  BATCH_DELAY: 200, // More breathing room between batch operations
   CONNECTIVITY_INTERVAL: 30000,
   SYNC_INTERVAL: 300000, // 5 minutes
 } as const;
@@ -82,8 +82,13 @@ export const UI_CONFIG = {
   MOBILE_BREAKPOINT: 768,
 } as const;
 
-// Single relay configuration - using ditto.pub as sole relay
-export const DEFAULT_RELAY = 'wss://ditto.pub/relay';
+// Multi-relay configuration for better stability
+export const DEFAULT_RELAYS = [
+  'wss://ditto.pub/relay',      // Primary relay
+  'wss://relay.damus.io',       // Popular, reliable relay
+  'wss://nos.lol',              // Fast relay
+  'wss://relay.snort.social',   // Well-maintained relay
+];
 
-// For compatibility with existing code that expects an array
-export const DEFAULT_RELAYS = [DEFAULT_RELAY];
+// Primary relay for backwards compatibility
+export const DEFAULT_RELAY = DEFAULT_RELAYS[0];

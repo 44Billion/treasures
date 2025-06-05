@@ -30,12 +30,16 @@ export function VerificationQRDialog({
   useEffect(() => {
     if (isOpen && naddr && verificationKeyPair.nsec) {
       setIsGenerating(true);
+      setQrDataUrl(''); // Clear previous QR code
+      
       generateVerificationQR(naddr, verificationKeyPair.nsec)
-        .then(setQrDataUrl)
+        .then((dataUrl) => {
+          setQrDataUrl(dataUrl);
+        })
         .catch((error) => {
           toast({
             title: 'QR Generation Failed',
-            description: 'Unable to generate QR code. Please try again.',
+            description: error instanceof Error ? error.message : 'Unable to generate QR code. Please try again.',
             variant: 'destructive',
           });
         })

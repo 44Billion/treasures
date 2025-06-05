@@ -27,7 +27,9 @@ export function RegenerateQRDialog({
 
   const handleRegenerate = () => {
     regenerateKey(undefined, {
-      onSuccess: (verificationKeyPair) => {
+      onSuccess: (result) => {
+        // Extract the verification key pair from the result
+        const verificationKeyPair = result.verificationKeyPair;
         setNewVerificationKeyPair(verificationKeyPair);
         setShowNewQR(true);
         onOpenChange(false);

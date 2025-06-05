@@ -4,7 +4,7 @@
 
 import { nip19 } from 'nostr-tools'; // Keep for NIP-19 encoding/decoding only
 import { NSecSigner } from '@nostrify/nostrify';
-import * as QRCode from 'qrcode';
+import QRCode from 'qrcode';
 import { geocacheToNaddr, parseNaddr } from './naddr-utils';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { NIP_GC_KINDS, buildVerificationEventTags, buildVerificationEventContent } from './nip-gc';
@@ -49,11 +49,14 @@ export async function generateVerificationKeyPair(): Promise<VerificationKeyPair
   const privateKey = await generateSecretKey();
   const publicKey = await getPublicKeyFromSecret(privateKey);
   
+  const nsec = nip19.nsecEncode(privateKey);
+  const npub = nip19.npubEncode(publicKey);
+  
   return {
     privateKey,
     publicKey,
-    nsec: nip19.nsecEncode(privateKey),
-    npub: nip19.npubEncode(publicKey),
+    nsec,
+    npub,
   };
 }
 
@@ -76,9 +79,11 @@ async function loadAndResizeImage(src: string, size: number): Promise<HTMLCanvas
       canvas.width = size;
       canvas.height = size;
       
-      // Enable high-quality image smoothing
+      // Enable high-quality image smoothing (with fallback)
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      if ('imageSmoothingQuality' in ctx) {
+        (ctx as any).imageSmoothingQuality = 'high';
+      }
       
       // Draw the image scaled to fit, preserving original colors
       ctx.drawImage(img, 0, 0, size, size);
@@ -91,10 +96,20 @@ async function loadAndResizeImage(src: string, size: number): Promise<HTMLCanvas
   });
 }
 
+
 /**
  * Generate QR code data URL for verification with centered icon and descriptive text
  */
 export async function generateVerificationQR(naddr: string, nsec: string): Promise<string> {
+  // Validate inputs
+  if (!naddr || !nsec) {
+    throw new Error('Missing required parameters: naddr and nsec are required');
+  }
+  
+  if (!nsec.startsWith('nsec1')) {
+    throw new Error('Invalid nsec format: must start with nsec1');
+  }
+  
   const verificationUrl = `https://treasures.to/${naddr}#verify=${nsec}`;
   
   try {
@@ -176,9 +191,11 @@ export async function generateVerificationQR(naddr: string, nsec: string): Promi
       ctx.lineWidth = 2;
       ctx.stroke();
       
-      // Enable image smoothing for better quality
+      // Enable image smoothing for better quality (with fallback)
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      if ('imageSmoothingQuality' in ctx) {
+        (ctx as any).imageSmoothingQuality = 'high';
+      }
       
       // Draw the colored icon
       ctx.drawImage(iconCanvas, centerX, centerY);
@@ -212,7 +229,20 @@ export async function generateVerificationQR(naddr: string, nsec: string): Promi
     
     return canvas.toDataURL('image/png');
   } catch (error) {
-    throw new Error('Failed to generate QR code');
+    console.error('QR generation error:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('Failed to load QR code')) {
+        throw new Error('Failed to generate base QR code. Please check your internet connection.');
+      } else if (error.message.includes('Could not get canvas context')) {
+        throw new Error('Canvas not supported in this browser. Please try a different browser.');
+      } else {
+        throw new Error(`QR generation failed: ${error.message}`);
+      }
+    }
+    
+    throw new Error('Failed to generate QR code due to an unknown error');
   }
 }
 

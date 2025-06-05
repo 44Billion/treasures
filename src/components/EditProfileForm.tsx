@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -15,6 +15,7 @@ import {
 import { NSchema as n, type NostrMetadata } from '@nostrify/nostrify';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUploadFile } from '@/hooks/useUploadFile';
+import { PublishTroubleshooter } from '@/components/PublishTroubleshooter';
 
 interface EditProfileFormProps {
   onSuccess?: () => void;
@@ -22,6 +23,7 @@ interface EditProfileFormProps {
 
 export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) => {
   const queryClient = useQueryClient();
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const { user, metadata } = useCurrentUser();
   const { mutateAsync: publishEvent, isPending } = useNostrPublish();
@@ -86,6 +88,9 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
       return;
     }
 
+    // Clear any previous errors
+    setPublishError(null);
+
     try {
       // Combine existing metadata with new values
       const data = { ...metadata, ...values };
@@ -115,12 +120,25 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
       // Call onSuccess callback if provided (to close modal)
       onSuccess?.();
     } catch (error) {
+      const errorObj = error as { message?: string };
+      const errorMessage = errorObj.message || 'Failed to update your profile. Please try again.';
+      
+      // Set the error for the troubleshooter
+      setPublishError(errorMessage);
+      
+      // Also show a toast for immediate feedback
       toast({
         title: 'Error',
-        description: 'Failed to update your profile. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
+  };
+
+  const handleRetry = () => {
+    // Clear the error and resubmit the form
+    setPublishError(null);
+    form.handleSubmit(onSubmit)();
   };
 
   return (
@@ -200,6 +218,16 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
           Save Profile
         </LoadingButton>
       </form>
+
+      {publishError && (
+        <div className="mt-6">
+          <PublishTroubleshooter 
+            error={publishError} 
+            onRetry={handleRetry}
+            isRetrying={isPending}
+          />
+        </div>
+      )}
     </Form>
   );
 };
