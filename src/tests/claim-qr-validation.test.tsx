@@ -27,16 +27,9 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock QR scanning libraries
+// Mock QR scanning library
 vi.mock('jsqr', () => ({
   default: vi.fn(),
-}));
-
-vi.mock('@zxing/library', () => ({
-  BrowserQRCodeReader: vi.fn().mockImplementation(() => ({
-    decodeFromVideoElement: vi.fn(),
-    reset: vi.fn(),
-  })),
 }));
 
 const createWrapper = () => {

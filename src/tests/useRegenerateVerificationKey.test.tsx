@@ -148,7 +148,7 @@ describe('useRegenerateVerificationKey', () => {
     expect(verificationKeyPair.publicKey).toBe('new-verification-pubkey');
     expect(verificationKeyPair.nsec).toBe('nsec1test');
   });
-});
+
   it('should invalidate all geocache listing queries on success', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {

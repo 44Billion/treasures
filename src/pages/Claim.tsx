@@ -9,14 +9,15 @@ import { useToast } from '@/hooks/useToast';
 import { useOfflineMode } from '@/hooks/useOfflineStorage';
 import { parseVerificationFromHash } from '@/lib/verification';
 import jsQR from 'jsqr';
-import { BrowserQRCodeReader } from '@zxing/library';
 
 export default function Claim() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isOfflineMode } = useOfflineMode();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scanIntervalRef = useRef<number | null>(null);
   
   const [isScanning, setIsScanning] = useState(false);
   const [hasCamera, setHasCamera] = useState(false);
@@ -24,8 +25,6 @@ export default function Claim() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
-  
-  const codeReader = useRef<BrowserQRCodeReader | null>(null);
 
   useEffect(() => {
     // Check if camera API is available (but don't request permissions yet)
@@ -121,80 +120,25 @@ export default function Claim() {
       setIsScanning(true);
       setError(null);
       
-      // First, try to get available video devices to find best camera
-      let preferredConstraints: MediaStreamConstraints = {
-        video: {
-          facingMode: { ideal: 'environment' },  // Start with back camera preference
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-
-      // Try to identify specific back camera device
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
-        
-        console.log('Available cameras:', videoInputDevices.map(d => ({ id: d.deviceId, label: d.label })));
-        
-        if (videoInputDevices.length > 1) {
-          // Look for back camera by label
-          const backCamera = videoInputDevices.find(device => {
-            const label = device.label.toLowerCase();
-            return (
-              label.includes('back') ||
-              label.includes('rear') ||
-              label.includes('environment') ||
-              label.includes('facing back') ||
-              label.includes('world')
-            );
-          });
-          
-          if (backCamera) {
-            console.log('Found back camera:', backCamera.label);
-            preferredConstraints = {
-              video: {
-                deviceId: { exact: backCamera.deviceId },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-              }
-            };
-          } else {
-            // Fallback: try the last camera (often back camera on mobile)
-            console.log('Using last camera as fallback:', videoInputDevices[videoInputDevices.length - 1].label);
-            preferredConstraints = {
-              video: {
-                deviceId: { exact: videoInputDevices[videoInputDevices.length - 1].deviceId },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-              }
-            };
-          }
-        }
-      } catch (enumerateError) {
-        console.log('Could not enumerate devices, using facingMode:', enumerateError);
-        // Keep the default facingMode constraint
-      }
-
-      // Request camera stream with preferred constraints
+      // Request camera stream with back camera preference
       let stream: MediaStream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia(preferredConstraints);
-        console.log('Successfully got stream with preferred camera');
-      } catch (preferredError) {
-        console.log('Preferred camera failed, trying fallback:', preferredError);
-        // Fallback to any back camera
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-          });
-        } catch (backCameraError) {
-          console.log('Back camera failed, trying any camera:', backCameraError);
-          // Last resort: any camera
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true
-          });
-        }
+        // Try back camera first
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+      } catch (backCameraError) {
+        // Fallback to any camera
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
       }
 
       setCameraPermission('granted');
@@ -202,24 +146,11 @@ export default function Claim() {
       // Set up video element
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        
+        // Start continuous scanning
+        startContinuousScanning();
       }
-
-      // Initialize code reader for QR detection only
-      if (!codeReader.current) {
-        codeReader.current = new BrowserQRCodeReader();
-      }
-
-      // Use ZXing's continuous decode from video element
-      (codeReader.current as any).decodeFromVideoElement(
-        videoRef.current!,
-        (result: any) => {
-          if (result) {
-            handleQRCodeDetected(result.getText());
-            stopScanning();
-          }
-        }
-      );
 
     } catch (err) {
       const errorObj = err as { message?: string; name?: string };
@@ -238,9 +169,51 @@ export default function Claim() {
     }
   };
 
+  const startContinuousScanning = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
+    
+    scanIntervalRef.current = window.setInterval(() => {
+      scanVideoFrame();
+    }, 500); // Scan every 500ms
+  };
+
+  const scanVideoFrame = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      return;
+    }
+    
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw current video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Get image data for jsQR
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Scan for QR code
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    
+    if (code) {
+      handleQRCodeDetected(code.data);
+      stopScanning();
+    }
+  };
+
   const stopScanning = () => {
-    if (codeReader.current) {
-      codeReader.current.reset();
+    // Stop scanning interval
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
     }
     
     // Stop the video stream
@@ -375,6 +348,9 @@ export default function Claim() {
       </div>
 
       <div className="space-y-6">
+        {/* Hidden canvas for video frame capture */}
+        <canvas ref={canvasRef} className="hidden" />
+        
         {/* Camera Scanner */}
         <Card>
           <CardHeader>
