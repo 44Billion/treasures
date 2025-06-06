@@ -19,6 +19,7 @@ import {
   createGeocacheCoordinate,
   getGeohashesInRadius,
   getGeohashPrefixes,
+  getComprehensiveGeohashPatterns,
   getOptimalPrecision
 } from '@/lib/nip-gc';
 import { calculateDistance, sortByDistance, filterByRadius } from '@/lib/geo';
@@ -64,10 +65,10 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
       return [];
     }
 
-    // Use more conservative precision to cast a wider net
+    // Use higher precision to find 8-9 character geohashes
     const precision = Math.min(
       getOptimalPrecision(options.radiusKm),
-      options.maxProximityPrecision || 5
+      options.maxProximityPrecision || 9 // Increased from 5 to 9
     );
     
     // Strategy 1: Direct geohash targeting with wider coverage
@@ -80,10 +81,28 @@ export function useProximityGeocaches(options: UseProximityGeocachesOptions = {}
 
     // Strategy 2: Add prefix-based expansion for even broader coverage
     const prefixes = getGeohashPrefixes(options.centerLat, options.centerLng, options.radiusKm);
-    const allHashes = [...new Set([...targetHashes, ...prefixes])];
+    
+    // Strategy 3: Add comprehensive patterns for 8-9 character geohashes
+    const comprehensivePatterns = getComprehensiveGeohashPatterns(options.centerLat, options.centerLng, options.radiusKm);
+    
+    const allHashes = [...new Set([...targetHashes, ...prefixes, ...comprehensivePatterns])];
+
+    // Debug logging in development
+    if (import.meta.env.DEV) {
+      console.log('Proximity search patterns:', {
+        radiusKm: options.radiusKm,
+        precision,
+        targetHashes: targetHashes.length,
+        prefixes: prefixes.length,
+        comprehensivePatterns: comprehensivePatterns.length,
+        totalHashes: allHashes.length,
+        sampleHashes: allHashes.slice(0, 10)
+      });
+    }
 
     // Create filter groups for batch processing
-    const batchSize = 12; // Automatically optimized by unified system
+    // Reduce batch size when using comprehensive patterns to avoid overwhelming the relay
+    const batchSize = allHashes.length > 100 ? 8 : 12;
     const filterGroups: NostrFilter[][] = [];
     
     for (let i = 0; i < allHashes.length; i += batchSize) {

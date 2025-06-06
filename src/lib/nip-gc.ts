@@ -483,16 +483,17 @@ export function buildCommentLogTags(data: {
  * @returns Optimal geohash precision level
  */
 export function getOptimalPrecision(distanceKm: number): number {
-  // More aggressive precision mapping for better coverage
+  // Enhanced precision mapping to handle 8-9 character geohashes
   if (distanceKm >= 100) return 2;
   if (distanceKm >= 50) return 3;
   if (distanceKm >= 25) return 3;
   if (distanceKm >= 10) return 4;
   if (distanceKm >= 5) return 4;
   if (distanceKm >= 2) return 5;
-  if (distanceKm >= 1) return 5;
-  if (distanceKm >= 0.5) return 6;
-  return 6; // Stay at 6 for smaller distances
+  if (distanceKm >= 1) return 6;
+  if (distanceKm >= 0.5) return 7;
+  if (distanceKm >= 0.1) return 8;
+  return 9; // Use 9 for very small distances to match geocache precision
 }
 
 /**
@@ -538,7 +539,7 @@ export function getGeohashesInRadius(
   centerLat: number, 
   centerLng: number, 
   radiusKm: number,
-  maxPrecision: number = 5
+  maxPrecision: number = 9 // Increased to handle 8-9 character geohashes
 ): string[] {
   const precision = Math.min(getOptimalPrecision(radiusKm), maxPrecision);
   const centerGeohash = encodeGeohash(centerLat, centerLng, precision);
@@ -559,6 +560,15 @@ export function getGeohashesInRadius(
   if (radiusKm > 5) {
     const level2Candidates = Array.from(expandedCandidates);
     level2Candidates.forEach(hash => {
+      const neighbors = getGeohashNeighbors(hash);
+      neighbors.forEach(n => expandedCandidates.add(n));
+    });
+  }
+  
+  // For very precise searches (8-9 character geohashes), add even more expansion
+  if (precision >= 8) {
+    const level3Candidates = Array.from(expandedCandidates);
+    level3Candidates.forEach(hash => {
       const neighbors = getGeohashNeighbors(hash);
       neighbors.forEach(n => expandedCandidates.add(n));
     });
@@ -588,12 +598,13 @@ export function getGeohashesInRadius(
  */
 export function getGeohashPrefixes(centerLat: number, centerLng: number, radiusKm: number): string[] {
   const basePrecision = getOptimalPrecision(radiusKm);
-  const centerGeohash = encodeGeohash(centerLat, centerLng, basePrecision);
+  const centerGeohash = encodeGeohash(centerLat, centerLng, Math.max(basePrecision, 9)); // Ensure we generate at least 9 characters
   
   const prefixes = new Set<string>();
   
   // Add prefixes at multiple precision levels for comprehensive coverage
-  for (let p = Math.max(1, basePrecision - 2); p <= Math.min(basePrecision + 1, 6); p++) {
+  // Extended range to handle 8-9 character geohashes
+  for (let p = Math.max(1, basePrecision - 2); p <= Math.min(basePrecision + 2, 9); p++) {
     const hash = centerGeohash.substring(0, p);
     prefixes.add(hash);
     
@@ -606,7 +617,89 @@ export function getGeohashPrefixes(centerLat: number, centerLng: number, radiusK
     }
   }
   
+  // Always include 8 and 9 character prefixes for comprehensive geocache coverage
+  if (basePrecision < 8) {
+    for (let p = 8; p <= 9; p++) {
+      const hash = centerGeohash.substring(0, p);
+      prefixes.add(hash);
+      
+      try {
+        const neighbors = getGeohashNeighbors(hash);
+        neighbors.forEach(n => prefixes.add(n));
+      } catch {
+        // Continue if neighbor calculation fails
+      }
+    }
+  }
+  
   return Array.from(prefixes).filter(p => p.length > 0).sort();
+}
+
+/**
+ * Generate comprehensive geohash prefixes for finding ALL 8-9 character geohashes
+ * This creates shorter prefixes that will match longer geohashes via prefix matching
+ * @param centerLat Center latitude
+ * @param centerLng Center longitude
+ * @param radiusKm Radius in kilometers
+ * @returns Array of geohash prefixes that will capture all 8-9 character geocaches
+ */
+export function getComprehensiveGeohashPatterns(centerLat: number, centerLng: number, radiusKm: number): string[] {
+  const patterns = new Set<string>();
+  
+  // Generate comprehensive coverage using multiple precision levels
+  // The key insight: shorter prefixes will match longer geohashes that start with them
+  
+  // Level 1: Very broad coverage (precision 4-6)
+  for (let precision = 4; precision <= 6; precision++) {
+    const centerGeohash = encodeGeohash(centerLat, centerLng, precision);
+    const neighbors = getGeohashNeighbors(centerGeohash);
+    
+    // Add multiple rings of neighbors for comprehensive coverage
+    const expandedNeighbors = new Set(neighbors);
+    
+    // Add neighbors of neighbors for wider coverage
+    neighbors.forEach(hash => {
+      const secondLevelNeighbors = getGeohashNeighbors(hash);
+      secondLevelNeighbors.forEach(n => expandedNeighbors.add(n));
+    });
+    
+    // Add third level for very comprehensive coverage
+    if (precision <= 5) {
+      const secondLevel = Array.from(expandedNeighbors);
+      secondLevel.forEach(hash => {
+        const thirdLevelNeighbors = getGeohashNeighbors(hash);
+        thirdLevelNeighbors.forEach(n => expandedNeighbors.add(n));
+      });
+    }
+    
+    expandedNeighbors.forEach(hash => patterns.add(hash));
+  }
+  
+  // Level 2: More precise coverage (precision 7)
+  // This will help catch 8-9 character geohashes more precisely
+  const precision7Hash = encodeGeohash(centerLat, centerLng, 7);
+  const precision7Neighbors = getGeohashNeighbors(precision7Hash);
+  
+  // Add extensive neighbor coverage at precision 7
+  const expandedP7 = new Set(precision7Neighbors);
+  precision7Neighbors.forEach(hash => {
+    const neighbors = getGeohashNeighbors(hash);
+    neighbors.forEach(n => expandedP7.add(n));
+  });
+  
+  expandedP7.forEach(hash => patterns.add(hash));
+  
+  // Filter by distance with a very generous buffer to ensure we don't miss anything
+  const searchBuffer = radiusKm * 3.0; // Very generous buffer
+  return Array.from(patterns).filter(hash => {
+    try {
+      const { lat, lng } = decodeGeohash(hash);
+      const distance = calculateHaversineDistance(centerLat, centerLng, lat, lng);
+      return distance <= searchBuffer;
+    } catch {
+      return false;
+    }
+  }).sort();
 }
 
 // Helper function to get a neighbor in a specific direction
