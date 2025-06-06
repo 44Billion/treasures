@@ -21,7 +21,15 @@ export function useGeocacheByNaddr(naddr: string) {
     queryKey: ['geocache-by-naddr', naddr],
     staleTime: (isOnline && isConnected && navigator.onLine) ? 30000 : Infinity, // 30 seconds online, never stale offline
     gcTime: 300000, // 5 minutes
-    retry: false, // Disable retries to prevent cache invalidation
+    retry: (failureCount, error) => {
+      // Don't retry if it's an invalid cache link
+      if (error instanceof Error && error.message === 'INVALID_CACHE_LINK') {
+        return false;
+      }
+      // Retry network errors up to 2 times when online
+      return failureCount < 2 && (isOnline && isConnected && navigator.onLine);
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
     refetchOnReconnect: true, // Refetch when connection is restored
     networkMode: 'always', // Always run queries regardless of network status
     placeholderData: (previousData) => previousData, // Keep previous data while refetching
@@ -31,7 +39,8 @@ export function useGeocacheByNaddr(naddr: string) {
         isOnline,
         isConnected,
         connectionQuality,
-        navigatorOnline: navigator.onLine
+        navigatorOnline: navigator.onLine,
+        timestamp: new Date().toISOString()
       });
 
       // Parse the naddr to get pubkey and dTag
@@ -60,25 +69,8 @@ export function useGeocacheByNaddr(naddr: string) {
         console.warn('Failed to get offline geocache:', error);
       }
 
-      // If we're truly offline or not connected, return offline data immediately
-      if (!navigator.onLine || !isOnline || !isConnected || connectionQuality === 'offline') {
-        console.log('Using offline data - not connected to internet', {
-          navigatorOnline: navigator.onLine,
-          isOnline,
-          isConnected,
-          connectionQuality
-        });
-        
-        if (offlineGeocache) {
-          return {
-            ...offlineGeocache,
-            foundCount: 0, // We don't have log counts offline for individual caches
-            logCount: 0,
-          };
-        } else {
-          throw new Error('Geocache not available offline');
-        }
-      }
+      // Always attempt network fetch first when accessing direct links
+      // This ensures QR codes and bookmarks work even with poor connectivity detection
 
       try {
         // Query by pubkey and d-tag
@@ -184,15 +176,23 @@ export function useGeocacheByNaddr(naddr: string) {
         console.log('Online geocache query successful:', result.name);
         return result;
       } catch (error) {
-        console.warn('Online geocache query failed, using offline data:', error);
-        // Return offline data instead of throwing error
+        console.warn('Online geocache query failed:', error);
+        // Return offline data if available, otherwise throw a more specific error
         if (offlineGeocache) {
+          console.log('Falling back to offline data');
           return {
             ...offlineGeocache,
             foundCount: 0,
             logCount: 0,
           };
         }
+        
+        // If we have no offline data and network failed, provide a helpful error
+        if (!navigator.onLine || !isOnline || !isConnected) {
+          throw new Error('Geocache not available offline');
+        }
+        
+        // For other network errors, throw the original error
         throw error;
       }
     },
