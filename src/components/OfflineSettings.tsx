@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { 
-  Download, 
   Trash2, 
   RefreshCw, 
   HardDrive, 
@@ -28,8 +27,6 @@ import { useOfflineMapData } from '@/components/OfflineMap';
 import { useOfflineStorageInfo } from '@/hooks/useOfflineStorageInfo';
 import { useToast } from '@/hooks/useToast';
 import { offlineStorage } from '@/lib/offlineStorage';
-import { cacheMapTile } from '@/lib/cacheUtils';
-import { CACHE_NAMES } from '@/lib/cacheConstants';
 
 export function OfflineSettings() {
   const { status, forceSync } = useOfflineSync();

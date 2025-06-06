@@ -4,11 +4,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { LatLngBounds, LatLng } from 'leaflet';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LatLngBounds } from 'leaflet';
 import { Badge } from '@/components/ui/badge';
-import { Download, MapPin, Wifi, WifiOff } from 'lucide-react';
+import { Download, WifiOff } from 'lucide-react';
 import { useOfflineMode, useOfflineGeocaches, useOfflineSettings } from '@/hooks/useOfflineStorage';
 import { useToast } from '@/hooks/useToast';
 import { CACHE_NAMES } from '@/lib/cacheConstants';

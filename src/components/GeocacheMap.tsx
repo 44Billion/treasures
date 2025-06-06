@@ -534,12 +534,14 @@ function AutoOfflineTileManager({
   userLocation, 
   searchLocation, 
   searchRadius,
-  isNearMeActive 
+  isNearMeActive,
+  mapStyle
 }: { 
   userLocation?: { lat: number; lng: number } | null;
   searchLocation?: { lat: number; lng: number } | null;
   searchRadius?: number;
   isNearMeActive?: boolean;
+  mapStyle: any;
 }) {
   const map = useMap();
   const { isOnline, isOfflineMode } = useOfflineMode();
@@ -597,7 +599,18 @@ function AutoOfflineTileManager({
         for (let x = minTileX; x <= maxTileX; x++) {
           for (let y = minTileY; y <= maxTileY; y++) {
             try {
-              const tileUrl = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+              // Use the current map style's URL template
+              let tileUrl = mapStyle.url
+                .replace('{z}', z.toString())
+                .replace('{x}', x.toString())
+                .replace('{y}', y.toString())
+                .replace('{r}', ''); // Remove retina suffix if present
+              
+              // Handle subdomain replacement for styles that use it
+              if (tileUrl.includes('{s}')) {
+                tileUrl = tileUrl.replace('{s}', 'a'); // Use 'a' subdomain
+              }
+              
               const success = await cacheMapTile(tileUrl);
               if (success) {
                 downloadedCount++;
@@ -703,8 +716,8 @@ function AutoOfflineTileManager({
     countCachedTiles();
   }, []);
 
-  // Show offline status when offline - center aligned
-  if (isOfflineMode || !isOnline || !navigator.onLine) {
+  // Only show offline status when actually offline (not just using cached tiles)
+  if (isOfflineMode || (!isOnline && !navigator.onLine)) {
     return (
       <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-[1000]">
         <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 shadow-sm">
@@ -935,6 +948,7 @@ export function GeocacheMap({
         searchLocation={searchLocation}
         searchRadius={searchRadius}
         isNearMeActive={isNearMeActive}
+        mapStyle={mapStyle}
       />
       
       <MapController 
@@ -1117,13 +1131,13 @@ export function GeocacheMap({
       ))}
     </MapContainer>
     
-    {/* Offline status overlay */}
-    {(isOfflineMode || !isOnline || !navigator.onLine) && (
+    {/* Offline status overlay - only show when actually offline */}
+    {(isOfflineMode || (!isOnline && !navigator.onLine)) && (
       <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-[1000]">
         <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 shadow-sm">
           <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
             <WifiOff className="h-3 w-3" />
-            <span>Cached map</span>
+            <span>Offline mode</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, Bookmark, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 // === MOBILE TABS ===

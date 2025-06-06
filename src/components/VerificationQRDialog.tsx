@@ -3,7 +3,6 @@ import { Download, Copy, Check, QrCode } from 'lucide-react';
 import { ComponentLoading } from '@/components/ui/loading';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/useToast';
 import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/lib/verification';
 

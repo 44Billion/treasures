@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Navigation, Trophy, MessageSquare, Trash2, Eye, EyeOff, CheckCircle, Edit } from 'lucide-react';
+import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle } from 'lucide-react';
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { SaveButton } from '@/components/SaveButton';
 import { CacheMenu } from '@/components/CacheMenu';
 import { useAuthor } from '@/hooks/useAuthor';
@@ -13,7 +12,6 @@ import { formatDistance } from '@/lib/geo';
 import { geocacheToNaddr } from '@/lib/naddr-utils';
 import { getCacheIcon } from '@/lib/cacheIcons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import type { Geocache } from '@/types/geocache';
 
 // Base interface for all geocache cards
 interface BaseGeocacheCardProps {
