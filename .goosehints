@@ -615,6 +615,7 @@ npm run test  # Full test suite including data management tests
 - ❌ Hardcoded test data in production components
 - ❌ Bypass of error handling for debugging
 
+
 **Example debugging setup:**
 ```tsx
 // ✅ Good: Use development-only logging
@@ -645,11 +646,6 @@ function DebugPage() {
 
 ## Build & Deployment
 
-### Local Development
-- Build for production: `npm run build`
-- Development build: `npm run build:dev`
-- Development server: `npm run dev`
-
 ### Deployment to Production Server
 This project is configured for fast deployment to a production server using Caddy file serving:
 
@@ -670,16 +666,6 @@ The deployment is optimized for speed and simplicity:
 - Files served from `/opt/treasures/current/` on the server
 - Automatic gzip compression and security headers
 - Health endpoint at `/health` for monitoring
-
-### Alternative Deployments
-- **Surge.sh**: `npm run deploy:surge` - For testing deployments
-- **Legacy Docker**: `npm run deploy:docker` - Slower Docker-based deployment
-
-### Deployment Troubleshooting
-- **410 Gone errors**: Usually caused by missing CNAME file or incorrect base path
-- **SPA routing issues**: Ensure `404.html` exists and matches `index.html`
-- **Asset loading failures**: Check that Vite build output includes proper asset paths
-- **Missing favicon**: Ensure favicon files are in `/public` directory and referenced in `index.html`
 
 #### Favicon Setup
 The project includes comprehensive favicon support:

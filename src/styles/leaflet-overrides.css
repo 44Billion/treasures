@@ -36,6 +36,7 @@
 .leaflet-popup-content {
   margin: 0;
   min-width: 200px;
+  max-width: 250px;
 }
 
 /* Make close button X bigger and properly centered */

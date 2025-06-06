@@ -139,64 +139,6 @@ export function GeocacheListSkeleton({
 }
 
 // ============================================================================
-// MAP SIDEBAR SKELETON
-// ============================================================================
-
-export function MapSidebarSkeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn('space-y-4', className)}>
-      {/* Search and filters skeleton */}
-      <div className="space-y-3">
-        <Skeleton className="h-10 w-full" />
-        <div className="flex gap-2">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 flex-1" />
-        </div>
-        <div className="flex gap-2">
-          <Skeleton className="h-8 flex-1" />
-          <Skeleton className="h-8 w-20" />
-        </div>
-      </div>
-      
-      {/* Results header skeleton */}
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-6 w-6" />
-      </div>
-      
-      {/* Compact geocache list skeleton */}
-      <GeocacheListSkeleton 
-        count={8} 
-        variant="compact" 
-        compact={true}
-      />
-    </div>
-  );
-}
-
-// ============================================================================
-// HOME PAGE SKELETON
-// ============================================================================
-
-export function HomePageGeocachesSkeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn('space-y-6', className)}>
-      {/* Section header skeleton */}
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-48" />
-        <div className="flex gap-2">
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-20" />
-        </div>
-      </div>
-      
-      {/* Geocache grid skeleton */}
-      <GeocacheListSkeleton count={3} />
-    </div>
-  );
-}
-
-// ============================================================================
 // PROGRESSIVE LOADING WRAPPER
 // ============================================================================
 

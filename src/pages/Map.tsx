@@ -26,7 +26,7 @@ import type { Geocache } from "@/types/geocache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistance } from "@/lib/geo";
 import { Badge } from "@/components/ui/badge";
-import { MapSidebarSkeleton, SmartLoadingState } from "@/components/ui/skeleton-patterns";
+import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { QUERY_LIMITS } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 
@@ -45,6 +45,8 @@ export default function Map() {
   const [showNearMe, setShowNearMe] = useState(false);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchRadius, setSearchRadius] = useState(25); // km
+  const [searchInView, setSearchInView] = useState(false);
+  const [viewBounds, setViewBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   const [mapUpdateKey, setMapUpdateKey] = useState(0);
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -140,7 +142,7 @@ export default function Map() {
   // Remove automatic location request - only get location when user clicks "Near Me"
 
   // Check if proximity search is active
-  const isProximitySearchActive = !!(searchLocation || (showNearMe && userLocation));
+  const isProximitySearchActive = !!(searchLocation || (showNearMe && userLocation) || searchInView);
   const proximityCenter = searchLocation || (showNearMe ? userLocation : null);
 
   // Use proximity search results when active, otherwise fall back to optimistic geocaches
@@ -205,6 +207,8 @@ export default function Map() {
     setMapCenter(newCenter);
     setMapZoom(12); // Slightly more zoomed in for city searches
     setShowNearMe(false);
+    setSearchInView(false); // Clear search in view
+    setViewBounds(null); // Clear view bounds
     setSearchLocation(newCenter);
     setHighlightedGeocache(null); // Clear any highlighted geocache
     setMapUpdateKey(prev => prev + 1); // Force map update
@@ -213,8 +217,51 @@ export default function Map() {
   const handleNearMe = () => {
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
+    setSearchInView(false); // Clear search in view
+    setViewBounds(null); // Clear view bounds
     setHighlightedGeocache(null); // Clear any highlighted geocache
     getLocation();
+  };
+
+  const handleSearchInView = () => {
+    // Get current map bounds from the map ref
+    if (mapRef.current) {
+      const bounds = mapRef.current.getBounds();
+      const center = bounds.getCenter();
+      
+      // Calculate approximate radius from bounds
+      const northEast = bounds.getNorthEast();
+      const southWest = bounds.getSouthWest();
+      const radiusKm = Math.max(
+        calculateDistance(center.lat, center.lng, northEast.lat, northEast.lng),
+        calculateDistance(center.lat, center.lng, southWest.lat, southWest.lng)
+      );
+      
+      setSearchInView(true);
+      setShowNearMe(false); // Clear near me
+      setSearchLocation({ lat: center.lat, lng: center.lng });
+      setSearchRadius(Math.ceil(radiusKm));
+      setViewBounds({
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest()
+      });
+      setHighlightedGeocache(null); // Clear any highlighted geocache
+    }
+  };
+
+  // Helper function to calculate distance between two points
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
   const handleMarkerClick = (geocache: Geocache) => {
@@ -287,7 +334,17 @@ export default function Map() {
                     {isGettingLocation ? "Finding..." : "Near Me"}
                   </Button>
                   
-                  {(showNearMe || searchLocation) && (
+                  <Button 
+                    variant={searchInView ? "default" : "outline"} 
+                    className="flex-1 h-8"
+                    onClick={handleSearchInView}
+                    disabled={isLoading}
+                  >
+                    <MapPin className="h-4 w-4 mr-1" />
+                    Search in View
+                  </Button>
+                  
+                  {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
                         <SelectTrigger className="w-24 h-8" >
@@ -310,6 +367,8 @@ export default function Map() {
                         onClick={() => {
                           setShowNearMe(false);
                           setSearchLocation(null);
+                          setSearchInView(false);
+                          setViewBounds(null);
                         }}
                         title="Clear location filter"
                       >
@@ -355,7 +414,6 @@ export default function Map() {
                     <p>
                       {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                       {isProximitySearchActive && ` • ${searchRadius}km radius`}
-                      {totalFound > filteredGeocaches.length && ` (${totalFound} total found)`}
                     </p>
                     {import.meta.env.DEV && debugInfo && (
                       <details className="mt-1">
@@ -380,16 +438,6 @@ export default function Map() {
                     >
                       <RefreshCw className={`h-3 w-3 ${(isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0 ? 'animate-spin' : ''}`} />
                     </Button>
-                    {isProximitySearchActive && (
-                      <Badge 
-                        variant={proximitySuccessful ? "secondary" : "outline"} 
-                        className="text-xs flex items-center gap-1"
-                        title={proximityAttempted ? (proximitySuccessful ? "Proximity search successful" : "Proximity search failed, using fallback") : "Using broad search"}
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        {proximitySuccessful ? "Smart Search" : searchStrategy === "fallback" ? "Fallback Search" : "Broad Search"}
-                      </Badge>
-                    )}
                     {optimisticGeocaches.isStale && (
                       <Badge variant="outline" className="text-xs flex items-center gap-1">
                         <RefreshCw className="h-2 w-2 animate-spin" />
@@ -427,6 +475,7 @@ export default function Map() {
             highlightedGeocache={highlightedGeocache || undefined}
             showStyleSelector={true}
             isNearMeActive={showNearMe}
+            mapRef={mapRef}
           />
         </div>
       </div>
@@ -477,19 +526,29 @@ export default function Map() {
                     {isGettingLocation ? "Finding..." : "Near Me"}
                   </Button>
                   
-                  {(showNearMe || searchLocation) && (
+                  <Button 
+                    variant={searchInView ? "default" : "outline"} 
+                    className="flex-1 h-9"
+                    onClick={handleSearchInView}
+                    disabled={isLoading}
+                  >
+                    <MapPin className="h-4 w-4 mr-1" />
+                    In View
+                  </Button>
+                  
+                  {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
                         <SelectTrigger className="w-20 h-9">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">1km</SelectItem>
-                          <SelectItem value="5">5km</SelectItem>
-                          <SelectItem value="10">10km</SelectItem>
-                          <SelectItem value="25">25km</SelectItem>
-                          <SelectItem value="50">50km</SelectItem>
-                          <SelectItem value="100">100km</SelectItem>
+                          <SelectItem value="1">1 km</SelectItem>
+                          <SelectItem value="5">5 km</SelectItem>
+                          <SelectItem value="10">10 km</SelectItem>
+                          <SelectItem value="25">25 km</SelectItem>
+                          <SelectItem value="50">50 km</SelectItem>
+                          <SelectItem value="100">100 km</SelectItem>
                         </SelectContent>
                       </Select>
                       
@@ -500,6 +559,8 @@ export default function Map() {
                         onClick={() => {
                           setShowNearMe(false);
                           setSearchLocation(null);
+                          setSearchInView(false);
+                          setViewBounds(null);
                         }}
                       >
                         <X className="h-4 w-4" />
@@ -552,7 +613,7 @@ export default function Map() {
                       <p>
                         {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
                         {isProximitySearchActive && ` • ${searchRadius}km radius`}
-                        {totalFound > filteredGeocaches.length && ` (${totalFound} total found)`}
+                        {searchInView && ' • in view'}
                       </p>
                       {import.meta.env.DEV && debugInfo && (
                         <details className="mt-1">
@@ -575,7 +636,7 @@ export default function Map() {
                         title="Refresh geocaches"
                         disabled={(isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0}
                       >
-                        <RefreshCw className={`h-3 w-3 ${(isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0 ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`h-2 w-2 ${(isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0 ? 'animate-spin' : ''}`} />
                       </Button>
                       {isProximitySearchActive && (
                         <Badge 
@@ -583,7 +644,7 @@ export default function Map() {
                           className="text-xs flex items-center gap-1"
                           title={proximityAttempted ? (proximitySuccessful ? "Proximity search successful" : "Proximity search failed, using fallback") : "Using broad search"}
                         >
-                          <Sparkles className="h-3 w-3" />
+                          <Sparkles className="h-2 w-2" />
                           {proximitySuccessful ? "Smart Search" : searchStrategy === "fallback" ? "Fallback Search" : "Broad Search"}
                         </Badge>
                       )}
@@ -622,6 +683,7 @@ export default function Map() {
                   highlightedGeocache={highlightedGeocache || undefined}
                   showStyleSelector={true}
                   isNearMeActive={showNearMe}
+                  mapRef={mapRef}
                 />
               </div>
             </TabsContent>

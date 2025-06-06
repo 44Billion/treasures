@@ -242,6 +242,7 @@ interface GeocacheMapProps {
   highlightedGeocache?: string; // dTag of geocache to highlight/open popup
   showStyleSelector?: boolean; // Whether to show the map style selector
   isNearMeActive?: boolean; // Whether "Near Me" mode is active
+  mapRef?: React.RefObject<L.Map>; // Reference to the map instance
 }
 
 // Helper function to calculate appropriate zoom level based on search radius
@@ -292,14 +293,14 @@ function MapController({
           
           map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
             animate: true,
-            duration: 0.5
+            duration: 0.25
           });
           lastRadiusRef.current = searchRadius;
         } else {
           // Otherwise just set the view
           map.setView(center, zoom, {
             animate: true,
-            duration: 0.5
+            duration: 0.25
           });
         }
       }
@@ -316,7 +317,7 @@ function MapController({
       
       map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
         animate: true,
-        duration: 0.5
+        duration: 0.25
       });
     }
   }, [map, searchLocation, searchRadius]);
@@ -424,6 +425,32 @@ function MapSizeController() {
       window.removeEventListener('resize', handleResize);
     };
   }, [map]);
+  
+  return null;
+}
+
+// Component to expose map reference and handle loading state
+function MapRefController({ 
+  mapRef, 
+  onMapReady 
+}: { 
+  mapRef?: React.RefObject<L.Map>;
+  onMapReady?: () => void;
+}) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (mapRef) {
+      mapRef.current = map;
+    }
+    
+    // Mark map as ready after a short delay to ensure tiles start loading
+    const timer = setTimeout(() => {
+      onMapReady?.();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [map, mapRef, onMapReady]);
   
   return null;
 }
@@ -604,8 +631,8 @@ function AutoOfflineTileManager({
     if (!isOnline || isOfflineMode || !autoCacheMaps) return;
 
     const cacheInitialView = async () => {
-      // Wait a bit for the map to settle
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Reduced wait time for faster initial loading
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const bounds = map.getBounds();
       const currentZoom = map.getZoom();
@@ -697,7 +724,7 @@ function AutoOfflineTileManager({
   return null;
 }
 
-// Custom tile layer that works offline
+// Custom tile layer that works offline with optimizations
 function OfflineTileLayer({ mapStyle }: { mapStyle: any }) {
   const { isOnline, isOfflineMode } = useOfflineMode();
 
@@ -706,6 +733,10 @@ function OfflineTileLayer({ mapStyle }: { mapStyle: any }) {
       attribution={mapStyle.attribution}
       url={mapStyle.url}
       maxZoom={19}
+      // Optimize tile loading
+      keepBuffer={2}
+      updateWhenIdle={false}
+      updateWhenZooming={true}
       // Add error handling for offline mode
       errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
     />
@@ -724,11 +755,13 @@ export function GeocacheMap({
   onMarkerClick,
   highlightedGeocache,
   showStyleSelector = true,
-  isNearMeActive = false
+  isNearMeActive = false,
+  mapRef
 }: GeocacheMapProps) {
   const navigate = useNavigate();
   const { theme, systemTheme } = useTheme();
   const { isOnline, isOfflineMode } = useOfflineMode();
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
   
   // Determine if we should use dark mode for the map
   const getDefaultMapStyle = () => {
@@ -869,6 +902,16 @@ export function GeocacheMap({
         backgroundColor: '#f8fafc'
       }}
     >
+      {/* Map Loading Skeleton */}
+      {!isMapLoaded && (
+        <div className="absolute inset-0 z-10 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Loading map...</p>
+          </div>
+        </div>
+      )}
+      
       <MapContainer
         center={mapCenter}
         zoom={zoom}
@@ -884,6 +927,8 @@ export function GeocacheMap({
       <OfflineTileLayer mapStyle={mapStyle} />
       
       <MapSizeController />
+      
+      <MapRefController mapRef={mapRef} onMapReady={() => setIsMapLoaded(true)} />
       
       <AutoOfflineTileManager 
         userLocation={userLocation}
