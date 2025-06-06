@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { BlurredImage } from '@/components/BlurredImage';
 import { useUploadFile } from '@/hooks/useUploadFile';
 import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
@@ -261,7 +262,16 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
       {/* Image List */}
       {images.map((url, index) => (
         <div key={index} className="flex items-center gap-2 p-2 border rounded">
-          <img src={url} alt={`Cache image ${index + 1}`} className="h-16 w-16 object-cover rounded" />
+          <div className="h-16 w-16 rounded overflow-hidden">
+            <BlurredImage
+              src={url}
+              alt={`Cache image ${index + 1}`}
+              className="h-full w-full"
+              blurIntensity="light"
+              defaultBlurred={true}
+              showToggle={true}
+            />
+          </div>
           <span className="flex-1 text-sm truncate">{url}</span>
           <Button
             type="button"

@@ -27,6 +27,7 @@ interface GeocacheDialogProps {
 }
 
 import { ImageGallery } from "@/components/ImageGallery";
+import { BlurredImage } from "@/components/BlurredImage";
 import { ProfileDialog } from "@/components/ProfileDialog";
 
 export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialogProps) {
@@ -128,12 +129,14 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
               {geocache.images && geocache.images.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   {geocache.images.slice(0, 4).map((url, index) => (
-                    <img
+                    <BlurredImage
                       key={index}
                       src={url}
                       alt={`Cache image ${index + 1}`}
-                      className="rounded w-full h-24 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      className="rounded w-full h-24"
                       onClick={() => handleImageClick(index)}
+                      blurIntensity="medium"
+                      defaultBlurred={true}
                     />
                   ))}
                 </div>

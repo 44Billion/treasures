@@ -34,6 +34,7 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { Label } from "@/components/ui/label";
 
 import { ImageGallery } from "@/components/ImageGallery";
+import { BlurredImage } from "@/components/BlurredImage";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { parseVerificationFromHash, verifyKeyPair } from "@/lib/verification";
@@ -546,12 +547,14 @@ export default function CacheDetail() {
                     {typedGeocache.images && typedGeocache.images.length > 0 && (
                       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {typedGeocache.images.map((url, index) => (
-                          <img
+                          <BlurredImage
                             key={index}
                             src={url}
                             alt={`Cache image ${index + 1}`}
-                            className="rounded-lg w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            className="rounded-lg w-full h-48"
                             onClick={() => handleImageClick(index)}
+                            blurIntensity="medium"
+                            defaultBlurred={true}
                           />
                         ))}
                       </div>

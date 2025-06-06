@@ -24,6 +24,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeleteLog } from "@/hooks/useDeleteLog";
 import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";
+import { BlurredImage } from "@/components/BlurredImage";
 
 import type { GeocacheLog } from "@/types/geocache";
 
@@ -268,12 +269,14 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
             {log.images && log.images.length > 0 && (
               <div className={`grid grid-cols-3 gap-2 mt-3`}>
                 {log.images.map((url, index) => (
-                  <img
+                  <BlurredImage
                     key={index}
                     src={url}
                     alt={`Log image ${index + 1}`}
-                    className={`rounded w-full object-cover cursor-pointer hover:opacity-90 ${compact ? "h-16" : "h-24"}`}
+                    className={`rounded w-full ${compact ? "h-16" : "h-24"}`}
                     onClick={() => window.open(url, "_blank")}
+                    blurIntensity="medium"
+                    defaultBlurred={true}
                   />
                 ))}
               </div>
