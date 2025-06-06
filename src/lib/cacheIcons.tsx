@@ -1,5 +1,32 @@
 import React from 'react';
-import { Package, Compass, HelpCircle } from 'lucide-react';
+import { Compass, HelpCircle } from 'lucide-react';
+import { chest as chestPaths } from '@lucide/lab';
+
+// Create a proper React component for the chest icon
+const Chest = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
+  ({ className, strokeWidth = 2, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      {chestPaths.map(([element, props], index) => 
+        React.createElement(element, { key: props.key || index, ...props })
+      )}
+    </svg>
+  )
+);
+
+Chest.displayName = "Chest";
 
 export type CacheType = 'traditional' | 'multi' | 'mystery';
 
@@ -36,13 +63,13 @@ export function getCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', clas
   
   switch (cacheType) {
     case 'traditional':
-      return <Package {...iconProps} />;
+      return <Chest {...iconProps} />;
     case 'multi':
       return <Compass {...iconProps} />;
     case 'mystery':
       return <HelpCircle {...iconProps} />;
     default:
-      return <Package {...iconProps} />;
+      return <Chest {...iconProps} />;
   }
 }
 
@@ -55,12 +82,11 @@ export function getCacheIconSvg(type: string): string {
   
   switch (cacheType) {
     case 'traditional':
-      // Package icon SVG
+      // Chest icon SVG
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m7.5 4.27 9 5.15"/>
-        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-        <path d="m3.3 7 8.7 5 8.7-5"/>
-        <path d="M12 22V12"/>
+        <path d="M8 19a2 2 0 0 0 2-2V9a4 4 0 0 0-8 0v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a4 4 0 0 0-4-4H6"/>
+        <path d="M2 11h20"/>
+        <path d="M16 11v3"/>
       </svg>`;
     case 'multi':
       // Compass icon SVG
@@ -76,12 +102,11 @@ export function getCacheIconSvg(type: string): string {
         <path d="M12 17h.01"/>
       </svg>`;
     default:
-      // Default to package icon
+      // Default to chest icon
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m7.5 4.27 9 5.15"/>
-        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-        <path d="m3.3 7 8.7 5 8.7-5"/>
-        <path d="M12 22V12"/>
+        <path d="M8 19a2 2 0 0 0 2-2V9a4 4 0 0 0-8 0v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a4 4 0 0 0-4-4H6"/>
+        <path d="M2 11h20"/>
+        <path d="M16 11v3"/>
       </svg>`;
   }
 }

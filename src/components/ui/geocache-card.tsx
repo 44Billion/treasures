@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { SaveButton } from '@/components/SaveButton';
 import { CacheMenu } from '@/components/CacheMenu';
 import { useAuthor } from '@/hooks/useAuthor';
+import { useGeocacheNavigation } from '@/hooks/useGeocacheNavigation';
 import { formatDistanceToNow } from '@/lib/date';
 import { formatDistance } from '@/lib/geo';
 import { geocacheToNaddr } from '@/lib/naddr-utils';
@@ -87,12 +88,22 @@ export function GeocacheCard({
   showStats = true
 }: GeocacheCardProps) {
   const { user } = useCurrentUser();
+  const { navigateToGeocache } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
   const profilePicture = author.data?.metadata?.picture;
 
   // Check if this cache is hidden and the current user is the creator
   const isHiddenByCreator = cache.hidden && cache.pubkey === user?.pubkey;
+
+  // Optimized navigation handler
+  const handleNavigate = (fromMap?: boolean) => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigateToGeocache(cache as Geocache, { fromMap });
+    }
+  };
 
 
   const authorInfo = showAuthor && (
@@ -140,7 +151,7 @@ export function GeocacheCard({
   // Compact variant - minimal layout for sidebars with consistent styling
   if (variant === 'compact') {
     return (
-      <InteractiveCard onClick={onClick} compact={true}>
+      <InteractiveCard onClick={() => handleNavigate()} compact={true}>
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted shrink-0">
@@ -211,7 +222,7 @@ export function GeocacheCard({
       <InteractiveCard>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <Link to={`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays)}`} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
+            <div onClick={() => handleNavigate()} className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer">
               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted shrink-0">
                 {getCacheIcon(cache.type, 'md')}
               </div>
@@ -253,7 +264,7 @@ export function GeocacheCard({
                 {/* Stats */}
                 {statsInfo}
               </div>
-            </Link>
+            </div>
             <div className="flex items-center gap-2 shrink-0">
               {actions}
               <CacheMenu geocache={cache as any} />
@@ -266,7 +277,7 @@ export function GeocacheCard({
 
   // Default variant - standard card layout for general use
   return (
-    <InteractiveCard onClick={onClick}>
+    <InteractiveCard onClick={() => handleNavigate()}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted shrink-0">

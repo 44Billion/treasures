@@ -13,6 +13,7 @@ import { MapStyleSelector, MAP_STYLES } from "@/components/MapStyleSelector";
 import { useSavedCaches } from "@/hooks/useSavedCaches";
 import { useToast } from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
+import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import type { Geocache } from "@/types/geocache";
 import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 
@@ -836,6 +837,7 @@ export function GeocacheMap({
   isMapCenterLocked = false
 }: GeocacheMapProps) {
   const navigate = useNavigate();
+  const { navigateToGeocache } = useGeocacheNavigation();
   const { theme, systemTheme } = useTheme();
   const { isOnline, isOfflineMode } = useOfflineMode();
   const [isMapReady, setIsMapReady] = useState(false);
@@ -932,8 +934,8 @@ export function GeocacheMap({
     if (onMarkerClick) {
       onMarkerClick(geocache);
     } else {
-      // Fallback to navigation if no callback provided
-      navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays)}`);
+      // Use optimized navigation that pre-populates cache
+      navigateToGeocache(geocache, { fromMap: true });
     }
   };
 

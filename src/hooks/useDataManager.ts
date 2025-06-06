@@ -10,6 +10,7 @@ import { usePrefetchManager } from '@/hooks/usePrefetchManager';
 import { useCacheInvalidation } from '@/hooks/useCacheInvalidation';
 import { useOnlineStatus } from '@/hooks/useConnectivity';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useGeocacheNavigation } from '@/hooks/useGeocacheNavigation';
 import { POLLING_INTERVALS } from '@/lib/constants';
 
 interface DataManagerOptions {
@@ -44,6 +45,7 @@ export function useDataManager(options: DataManagerOptions = {}) {
   const { user } = useCurrentUser();
   const { isOnline, isConnected } = useOnlineStatus();
   const queryClient = useQueryClient();
+  const { prePopulateGeocaches } = useGeocacheNavigation();
 
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [errorCount, setErrorCount] = useState(0);
@@ -61,15 +63,17 @@ export function useDataManager(options: DataManagerOptions = {}) {
   // Cache invalidation
   const cacheInvalidation = useCacheInvalidation();
 
-  // Track successful updates
+  // Track successful updates and pre-populate cache
   useEffect(() => {
     if (geocachesQuery.dataUpdatedAt) {
       setLastUpdate(new Date(geocachesQuery.dataUpdatedAt));
-      if (geocachesQuery.isSuccess) {
+      if (geocachesQuery.isSuccess && geocachesQuery.data) {
         setErrorCount(0);
+        // Pre-populate individual geocache caches for faster navigation
+        prePopulateGeocaches(geocachesQuery.data);
       }
     }
-  }, [geocachesQuery.dataUpdatedAt, geocachesQuery.isSuccess]);
+  }, [geocachesQuery.dataUpdatedAt, geocachesQuery.isSuccess, geocachesQuery.data, prePopulateGeocaches]);
 
   // Track errors
   useEffect(() => {

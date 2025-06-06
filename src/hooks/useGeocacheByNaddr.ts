@@ -1,5 +1,5 @@
 import { useNostr } from '@nostrify/react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
 import { parseNaddr } from '@/lib/naddr-utils';
@@ -16,6 +16,7 @@ import {
 export function useGeocacheByNaddr(naddr: string) {
   const { nostr } = useNostr();
   const { isOnline, isConnected, connectionQuality } = useOfflineMode();
+  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ['geocache-by-naddr', naddr],
@@ -32,7 +33,54 @@ export function useGeocacheByNaddr(naddr: string) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
     refetchOnReconnect: true, // Refetch when connection is restored
     networkMode: 'always', // Always run queries regardless of network status
-    placeholderData: (previousData) => previousData, // Keep previous data while refetching
+    placeholderData: () => {
+      // Try to find the geocache in existing cache first
+      const parsed = parseNaddr(naddr);
+      if (!parsed) return undefined;
+      
+      const { pubkey, dTag } = parsed;
+      
+      // Check main geocaches cache
+      const geocachesData = queryClient.getQueryData(['geocaches']) as Geocache[] | undefined;
+      if (geocachesData && Array.isArray(geocachesData)) {
+        const cachedGeocache = geocachesData.find(cache => 
+          cache.pubkey === pubkey && cache.dTag === dTag
+        );
+        
+        if (cachedGeocache) {
+          console.log('🚀 Using cached geocache data from main query:', cachedGeocache.name);
+          return cachedGeocache;
+        }
+      }
+      
+      // Check other potential cache locations
+      const fastGeocachesData = queryClient.getQueryData(['geocaches-fast']) as Geocache[] | undefined;
+      if (fastGeocachesData && Array.isArray(fastGeocachesData)) {
+        const cachedGeocache = fastGeocachesData.find(cache => 
+          cache.pubkey === pubkey && cache.dTag === dTag
+        );
+        
+        if (cachedGeocache) {
+          console.log('🚀 Using cached geocache data from fast query:', cachedGeocache.name);
+          return cachedGeocache;
+        }
+      }
+      
+      // Check proximity geocaches cache
+      const proximityData = queryClient.getQueryData(['proximity-geocaches']) as Geocache[] | undefined;
+      if (proximityData && Array.isArray(proximityData)) {
+        const cachedGeocache = proximityData.find(cache => 
+          cache.pubkey === pubkey && cache.dTag === dTag
+        );
+        
+        if (cachedGeocache) {
+          console.log('🚀 Using cached geocache data from proximity query:', cachedGeocache.name);
+          return cachedGeocache;
+        }
+      }
+      
+      return undefined;
+    },
     queryFn: async (c) => {
       console.log('useGeocacheByNaddr query starting...', {
         naddr,
@@ -50,6 +98,17 @@ export function useGeocacheByNaddr(naddr: string) {
       }
       
       const { pubkey, dTag, relays } = parsed;
+
+      // Check if we have fresh data in cache first (avoid unnecessary network requests)
+      const existingData = queryClient.getQueryData(['geocache-by-naddr', naddr]) as Geocache | undefined;
+      if (existingData) {
+        const cacheAge = Date.now() - (queryClient.getQueryState(['geocache-by-naddr', naddr])?.dataUpdatedAt || 0);
+        // If data is less than 30 seconds old, use it
+        if (cacheAge < 30000) {
+          console.log('🚀 Using fresh cached data, skipping network request:', existingData.name);
+          return existingData;
+        }
+      }
 
       // Always try to get offline data first as a fallback
       let offlineGeocache: Geocache | null = null;
