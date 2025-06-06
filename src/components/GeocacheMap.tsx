@@ -243,6 +243,7 @@ interface GeocacheMapProps {
   showStyleSelector?: boolean; // Whether to show the map style selector
   isNearMeActive?: boolean; // Whether "Near Me" mode is active
   mapRef?: React.RefObject<L.Map>; // Reference to the map instance
+  isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
 }
 
 // Helper function to calculate appropriate zoom level based on search radius
@@ -267,25 +268,91 @@ function MapController({
   center, 
   zoom,
   searchLocation,
-  searchRadius 
+  searchRadius,
+  isMapCenterLocked = false
 }: { 
   center: LatLngExpression; 
   zoom: number;
   searchLocation?: { lat: number; lng: number } | null;
   searchRadius?: number;
+  isMapCenterLocked?: boolean;
 }) {
   const map = useMap();
   const lastCenterRef = useRef<string | null>(null);
   const lastRadiusRef = useRef<number | null>(null);
+  const userIsInteracting = useRef(false);
+  const userHasInteracted = useRef(false);
+  const lastUpdateTime = useRef<number>(0);
+  const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    // Comprehensive user interaction tracking
+    const handleInteractionStart = () => {
+      userIsInteracting.current = true;
+      userHasInteracted.current = true;
+      
+      // Clear any existing timeout
+      if (interactionTimeoutRef.current) {
+        clearTimeout(interactionTimeoutRef.current);
+      }
+    };
+    
+    const handleInteractionEnd = () => {
+      userIsInteracting.current = false;
+      
+      // Set a longer timeout before allowing automatic updates
+      interactionTimeoutRef.current = setTimeout(() => {
+        userHasInteracted.current = false;
+      }, 15000); // 15 seconds - much longer protection
+    };
+    
+    // Listen to all possible user interactions
+    map.on('dragstart', handleInteractionStart);
+    map.on('dragend', handleInteractionEnd);
+    map.on('zoomstart', handleInteractionStart);
+    map.on('zoomend', handleInteractionEnd);
+    map.on('movestart', handleInteractionStart);
+    map.on('moveend', handleInteractionEnd);
+    
+    // Also listen for mouse/touch events as backup
+    const mapContainer = map.getContainer();
+    mapContainer.addEventListener('mousedown', handleInteractionStart);
+    mapContainer.addEventListener('touchstart', handleInteractionStart);
+    
+    return () => {
+      map.off('dragstart', handleInteractionStart);
+      map.off('dragend', handleInteractionEnd);
+      map.off('zoomstart', handleInteractionStart);
+      map.off('zoomend', handleInteractionEnd);
+      map.off('movestart', handleInteractionStart);
+      map.off('moveend', handleInteractionEnd);
+      
+      mapContainer.removeEventListener('mousedown', handleInteractionStart);
+      mapContainer.removeEventListener('touchstart', handleInteractionStart);
+      
+      if (interactionTimeoutRef.current) {
+        clearTimeout(interactionTimeoutRef.current);
+      }
+    };
+  }, [map]);
   
   useEffect(() => {
     if (center) {
       // Create a key to track if the center has actually changed
       const centerKey = `${center[0]},${center[1]},${zoom}`;
+      const now = Date.now();
       
-      // Only update if the center has actually changed
-      if (centerKey !== lastCenterRef.current) {
+      // NEVER update if user is currently interacting or has interacted recently
+      // NEVER update if map center is locked from parent component
+      // Only update if enough time has passed since last update (prevent spam)
+      if (centerKey !== lastCenterRef.current && 
+          !userIsInteracting.current &&
+          !userHasInteracted.current &&
+          !isMapCenterLocked &&
+          now - lastUpdateTime.current > 2000) { // 2 second minimum between updates
+        
         lastCenterRef.current = centerKey;
+        lastUpdateTime.current = now;
         
         // If we have a search location with radius, use radius-based zoom
         if (searchLocation && searchRadius) {
@@ -305,11 +372,16 @@ function MapController({
         }
       }
     }
-  }, [map, center, zoom, searchLocation, searchRadius]);
+  }, [map, center, zoom, searchLocation, searchRadius, isMapCenterLocked]);
   
   // Handle radius changes independently of center changes
   useEffect(() => {
-    if (searchLocation && searchRadius && lastRadiusRef.current !== searchRadius) {
+    if (searchLocation && searchRadius && 
+        lastRadiusRef.current !== searchRadius && 
+        !userIsInteracting.current &&
+        !userHasInteracted.current &&
+        !isMapCenterLocked) {
+      
       lastRadiusRef.current = searchRadius;
       
       // Calculate appropriate zoom level based on radius and update map
@@ -320,7 +392,7 @@ function MapController({
         duration: 0.25
       });
     }
-  }, [map, searchLocation, searchRadius]);
+  }, [map, searchLocation, searchRadius, isMapCenterLocked]);
   
   return null;
 }
@@ -402,15 +474,8 @@ function MapSizeController() {
   const map = useMap();
   
   useEffect(() => {
-    // Invalidate size when component mounts
-    const timer1 = setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
-    
-    // Additional invalidation after a longer delay to ensure proper rendering
-    const timer2 = setTimeout(() => {
-      map.invalidateSize();
-    }, 500);
+    // Invalidate size immediately when component mounts
+    map.invalidateSize();
     
     // Also invalidate size on window resize
     const handleResize = () => {
@@ -420,8 +485,6 @@ function MapSizeController() {
     window.addEventListener('resize', handleResize);
     
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
       window.removeEventListener('resize', handleResize);
     };
   }, [map]);
@@ -444,10 +507,10 @@ function MapRefController({
       mapRef.current = map;
     }
     
-    // Mark map as ready after a short delay to ensure tiles start loading
+    // Mark map as ready almost immediately - just a tiny delay for DOM
     const timer = setTimeout(() => {
       onMapReady?.();
-    }, 100);
+    }, 50); // Minimal delay
     
     return () => clearTimeout(timer);
   }, [map, mapRef, onMapReady]);
@@ -639,13 +702,13 @@ function AutoOfflineTileManager({
     }
   };
 
-  // Auto-cache initial map view
+  // Auto-cache initial map view - don't block initial display
   useEffect(() => {
     if (!isOnline || isOfflineMode || !autoCacheMaps) return;
 
     const cacheInitialView = async () => {
-      // Reduced wait time for faster initial loading
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Minimal wait time - don't block map display
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const bounds = map.getBounds();
       const currentZoom = map.getZoom();
@@ -674,8 +737,8 @@ function AutoOfflineTileManager({
       const locationKey = `${location.lat.toFixed(4)},${location.lng.toFixed(4)},${searchRadius || 10}`;
       if (locationKey === lastCachedLocation) return;
 
-      // Wait a bit for the map to settle after location change
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Minimal wait for the map to settle after location change
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       let bounds: LatLngBounds;
       
@@ -746,10 +809,10 @@ function OfflineTileLayer({ mapStyle }: { mapStyle: any }) {
       attribution={mapStyle.attribution}
       url={mapStyle.url}
       maxZoom={19}
-      // Optimize tile loading
-      keepBuffer={2}
-      updateWhenIdle={false}
-      updateWhenZooming={true}
+      // Optimize for fastest possible loading
+      keepBuffer={0} // Minimal buffer for faster initial load
+      updateWhenIdle={false} // Update immediately
+      updateWhenZooming={true} // Keep updating during zoom
       // Add error handling for offline mode
       errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
     />
@@ -769,12 +832,13 @@ export function GeocacheMap({
   highlightedGeocache,
   showStyleSelector = true,
   isNearMeActive = false,
-  mapRef
+  mapRef,
+  isMapCenterLocked = false
 }: GeocacheMapProps) {
   const navigate = useNavigate();
   const { theme, systemTheme } = useTheme();
   const { isOnline, isOfflineMode } = useOfflineMode();
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
   
   // Determine if we should use dark mode for the map
   const getDefaultMapStyle = () => {
@@ -853,24 +917,14 @@ export function GeocacheMap({
     return () => mediaQuery.removeEventListener('change', handleThemeChange);
   }, [theme, currentMapStyle, hasManuallySelectedStyle]);
 
-  // Calculate center if not provided
+  // Calculate center if not provided - use stable defaults to prevent jumping
   const mapCenter: LatLngExpression = center 
     ? [center.lat, center.lng]
     : searchLocation
       ? [searchLocation.lat, searchLocation.lng]
-      : userLocation && geocaches.length > 0 && geocaches.every(g => g.location)
-        ? (() => {
-            // Snap to the closest geocache to user location
-            const closestCache = findClosestGeocache(geocaches, userLocation.lat, userLocation.lng);
-            return closestCache ? [closestCache.location.lat, closestCache.location.lng] : [userLocation.lat, userLocation.lng];
-          })()
-        : geocaches.length > 0 && geocaches.every(g => g.location)
-          ? (() => {
-              // When no user location, snap to the first geocache instead of averaging
-              const firstCache = geocaches[0];
-              return [firstCache.location.lat, firstCache.location.lng];
-            })()
-          : [40.7128, -74.0060]; // Default to NYC
+      : userLocation
+        ? [userLocation.lat, userLocation.lng] // Use user location directly, don't snap to geocaches
+        : [40.7128, -74.0060]; // Default to NYC - stable fallback
 
 
 
@@ -883,13 +937,18 @@ export function GeocacheMap({
     }
   };
 
-  // Standard map options for all devices
+  // Optimized map options for fastest loading
   const mapOptions = {
     scrollWheelZoom: true,
     tap: false,
     tapTolerance: 10,
-    bounceAtZoomLimits: true,
-    maxBoundsViscosity: 1.0
+    bounceAtZoomLimits: false, // Disable for faster performance
+    maxBoundsViscosity: 0.5, // Reduce viscosity for better performance
+    preferCanvas: true, // Use canvas for better performance
+    fadeAnimation: false, // Disable fade for faster tile display
+    zoomAnimation: true, // Keep zoom animation but make it faster
+    zoomAnimationThreshold: 4,
+    markerZoomAnimation: false, // Disable marker zoom animation for speed
   };
 
   // Set up event listener for popup view details button
@@ -915,8 +974,8 @@ export function GeocacheMap({
         backgroundColor: '#f8fafc'
       }}
     >
-      {/* Map Loading Skeleton */}
-      {!isMapLoaded && (
+      {/* Map Loading Skeleton - minimal loading time */}
+      {!isMapReady && (
         <div className="absolute inset-0 z-10 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
@@ -934,14 +993,20 @@ export function GeocacheMap({
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
-
+        // Optimize for fastest loading
+        whenCreated={(map) => {
+          // Force immediate tile loading
+          map.invalidateSize();
+          // Set loading priority
+          map.getContainer().style.background = '#f8fafc';
+        }}
         {...mapOptions}
       >
       <OfflineTileLayer mapStyle={mapStyle} />
       
       <MapSizeController />
       
-      <MapRefController mapRef={mapRef} onMapReady={() => setIsMapLoaded(true)} />
+      <MapRefController mapRef={mapRef} onMapReady={() => setIsMapReady(true)} />
       
       <AutoOfflineTileManager 
         userLocation={userLocation}
@@ -956,6 +1021,7 @@ export function GeocacheMap({
         zoom={zoom} 
         searchLocation={searchLocation}
         searchRadius={searchRadius}
+        isMapCenterLocked={isMapCenterLocked}
       />
       
       <ThemeController 

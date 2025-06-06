@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { LoadingCard } from "@/components/ui/loading";
+import { FullPageLoading } from "@/components/ui/loading";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 
 // Import core/frequently used pages directly for instant navigation (no lazy loading)
@@ -25,7 +25,12 @@ export function AppRouter() {
       
       {/* Main Content Area - with bottom padding for mobile nav */}
       <main className="flex-1 pb-16 md:pb-0">
-        <Suspense fallback={<LoadingCard title="Loading page..." />}>
+        <Suspense fallback={
+          <FullPageLoading 
+            title="Loading..."
+            description="The adventure awaits"
+          />
+        }>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/map" element={<Map />} />

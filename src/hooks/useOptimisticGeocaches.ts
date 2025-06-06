@@ -51,7 +51,7 @@ export function useOptimisticGeocaches(
     enableMemoryOptimization: true,
   });
 
-  // Fast initial load with smaller limit
+  // Fast initial load with smaller limit - prioritize speed over completeness
   const fastQuery = useQuery({
     queryKey: ['geocaches-fast'],
     queryFn: async (c) => {
@@ -84,9 +84,11 @@ export function useOptimisticGeocaches(
     staleTime: 30000, // 30 seconds - short for fast updates
     gcTime: 300000, // 5 minutes
     refetchOnWindowFocus: false,
+    // Start immediately without waiting
+    networkMode: 'online',
   });
 
-  // Full query with all geocaches
+  // Full query with all geocaches - run in parallel with fast query
   const fullQuery = useQuery({
     queryKey: ['geocaches'],
     queryFn: async (c) => {
@@ -115,8 +117,9 @@ export function useOptimisticGeocaches(
     refetchOnWindowFocus: false,
     refetchInterval: enablePolling ? POLLING_INTERVALS.GEOCACHES : false,
     refetchIntervalInBackground: true,
-    // Start this query slightly delayed to let fast query show first
-    enabled: !fastInitialLoad || !!fastQuery.data,
+    // Run in parallel - don't wait for fast query to complete
+    enabled: true,
+    networkMode: 'online',
   });
 
   // Track when data was last updated

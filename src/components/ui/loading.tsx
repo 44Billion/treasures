@@ -104,38 +104,6 @@ export function LoadingState({
 }
 
 // ============================================================================
-// LOADING CARD - Card wrapper for loading states
-// ============================================================================
-
-interface LoadingCardProps {
-  title?: string;
-  description?: string;
-  variant?: 'page' | 'component';
-  className?: string;
-}
-
-export function LoadingCard({ 
-  title = 'Loading...', 
-  description,
-  variant = 'page', // Use green compass for page loading cards
-  className 
-}: LoadingCardProps) {
-  return (
-    <Card className={className}>
-      <CardContent className="flex items-center justify-center p-6">
-        <div className="text-center space-y-2">
-          <CompassSpinner size="lg" variant={variant} className="mx-auto" />
-          <div className="font-medium">{title}</div>
-          {description && (
-            <div className="text-sm text-muted-foreground">{description}</div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ============================================================================
 // INLINE LOADING - For buttons and inline elements
 // ============================================================================
 

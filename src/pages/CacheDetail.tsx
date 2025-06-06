@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, Navigation, Calendar, User, Trophy, Edit, Trash2, RefreshCw, Upload, X, Save, RotateCcw, Compass as CompassIcon, Eye, EyeOff, QrCode } from "lucide-react";
+import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { CacheDetailTabs } from "@/components/ui/mobile-button-patterns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
@@ -25,8 +25,7 @@ import { formatDistanceToNow } from "@/lib/date";
 
 import { LocationWarnings } from "@/components/LocationWarnings";
 import { verifyLocation, type LocationVerification } from "@/lib/osmVerification";
-import { Compass } from "@/components/Compass";
-import { getDifficultyLabel, getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
+import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 import { getDefaultCacheValues } from "@/lib/geocache-constants";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import { GeocacheForm, type GeocacheFormData } from "@/components/ui/geocache-form";

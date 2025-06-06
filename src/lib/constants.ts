@@ -10,7 +10,7 @@ export const TIMEOUTS = {
   FAST_QUERY: 5000, // 5 seconds - optimistic fast loading
   DELETE_OPERATION: 5000, // 5 seconds - a bit more time for deletions
   PUBLISH: 12000, // 12 seconds - reasonable timeout for publishing events
-  OPTIMISTIC_LOAD: 3000, // 3 seconds - very fast initial load
+  OPTIMISTIC_LOAD: 1000, // 1 second - very fast initial load
 } as const;
 
 // Query limits
@@ -20,7 +20,7 @@ export const QUERY_LIMITS = {
   BATCH_SIZE: 3,
   PROXIMITY_RESULTS: 100,
   HOME_PAGE_LIMIT: 3,
-  FAST_LOAD_LIMIT: 8, // Load 8 geocaches quickly for immediate display
+  FAST_LOAD_LIMIT: 5, // Load 5 geocaches quickly for immediate display
   SKELETON_COUNT: 6, // Number of skeleton cards to show
 } as const;
 

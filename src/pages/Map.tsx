@@ -42,6 +42,12 @@ export default function Map() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapZoom, setMapZoom] = useState(10);
+  const [isMapCenterLocked, setIsMapCenterLocked] = useState(false);
+  
+  // Function to clear interaction state for explicit user actions
+  const clearMapInteractionLock = () => {
+    setIsMapCenterLocked(false);
+  };
   const [showNearMe, setShowNearMe] = useState(false);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchRadius, setSearchRadius] = useState(25); // km
@@ -56,7 +62,7 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
-  // Use optimistic loading for base geocaches
+  // Use optimistic loading for base geocaches - don't block map rendering
   const optimisticGeocaches = useMapPageGeocaches();
 
   const { 
@@ -84,7 +90,7 @@ export default function Map() {
 
 
 
-  // Parse URL parameters on mount
+  // Parse URL parameters on mount - these are explicit navigation actions
   useEffect(() => {
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
@@ -93,6 +99,9 @@ export default function Map() {
     const tab = searchParams.get('tab');
 
     if (lat && lng) {
+      // URL navigation is an explicit action - clear interaction locks
+      clearMapInteractionLock();
+      
       const center = {
         lat: parseFloat(lat),
         lng: parseFloat(lng),
@@ -138,6 +147,51 @@ export default function Map() {
       }
     }
   }, [coords, showNearMe, userLocation]);
+
+  // Lock map center after user interactions to prevent unwanted updates
+  useEffect(() => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+      let lockTimeout: NodeJS.Timeout | null = null;
+      
+      const handleUserInteraction = () => {
+        setIsMapCenterLocked(true);
+        
+        // Clear any existing timeout
+        if (lockTimeout) {
+          clearTimeout(lockTimeout);
+        }
+        
+        // Unlock after 20 seconds to allow programmatic updates
+        lockTimeout = setTimeout(() => {
+          setIsMapCenterLocked(false);
+        }, 20000); // Much longer protection - 20 seconds
+      };
+      
+      // Listen to comprehensive interaction events
+      map.on('dragstart', handleUserInteraction);
+      map.on('zoomstart', handleUserInteraction);
+      map.on('movestart', handleUserInteraction);
+      
+      // Also listen for mouse/touch events on the map container
+      const mapContainer = map.getContainer();
+      mapContainer.addEventListener('mousedown', handleUserInteraction);
+      mapContainer.addEventListener('touchstart', handleUserInteraction);
+      
+      return () => {
+        map.off('dragstart', handleUserInteraction);
+        map.off('zoomstart', handleUserInteraction);
+        map.off('movestart', handleUserInteraction);
+        
+        mapContainer.removeEventListener('mousedown', handleUserInteraction);
+        mapContainer.removeEventListener('touchstart', handleUserInteraction);
+        
+        if (lockTimeout) {
+          clearTimeout(lockTimeout);
+        }
+      };
+    }
+  }, [mapRef.current]);
 
   // Remove automatic location request - only get location when user clicks "Near Me"
 
@@ -202,6 +256,9 @@ export default function Map() {
   }
 
   const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
+    // This is an explicit user action - clear all interaction locks
+    clearMapInteractionLock();
+    
     // Update all location-related state
     const newCenter = { lat: location.lat, lng: location.lng };
     setMapCenter(newCenter);
@@ -215,6 +272,9 @@ export default function Map() {
   };
 
   const handleNearMe = () => {
+    // This is an explicit user action - clear all interaction locks
+    clearMapInteractionLock();
+    
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
     setSearchInView(false); // Clear search in view
@@ -224,6 +284,9 @@ export default function Map() {
   };
 
   const handleSearchInView = () => {
+    // This is an explicit user action - clear all interaction locks
+    clearMapInteractionLock();
+    
     // Get current map bounds from the map ref
     if (mapRef.current) {
       const bounds = mapRef.current.getBounds();
@@ -270,11 +333,20 @@ export default function Map() {
   };
 
   const handleCardClick = (geocache: Geocache) => {
+    // This is an explicit user action - clear all interaction locks
+    clearMapInteractionLock();
+    
     // On desktop, snap to the location on the map and highlight it
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
     setMapZoom(16); // Zoom in closer for better detail
     setHighlightedGeocache(geocache.dTag); // Highlight this geocache
     setMapUpdateKey(prev => prev + 1); // Force map update
+    
+    // Clear any location-based searches to prevent conflicts
+    setShowNearMe(false);
+    setSearchLocation(null);
+    setSearchInView(false);
+    setViewBounds(null);
   };
 
   return (
@@ -325,8 +397,7 @@ export default function Map() {
                 <div className="flex gap-2">
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
-                    className="flex-1 h-8"
-                    
+                    className={`h-8 ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
                   >
@@ -336,18 +407,18 @@ export default function Map() {
                   
                   <Button 
                     variant={searchInView ? "default" : "outline"} 
-                    className="flex-1 h-8"
+                    className={`h-8 ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
                     onClick={handleSearchInView}
                     disabled={isLoading}
                   >
                     <MapPin className="h-4 w-4 mr-1" />
-                    Search in View
+                    {(showNearMe || searchLocation || searchInView) ? 'In View' : 'Search in View'}
                   </Button>
                   
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-24 h-8" >
+                        <SelectTrigger className="w-20 h-8" >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -362,7 +433,6 @@ export default function Map() {
                       
                       <Button
                         variant="ghost"
-                        
                         className="h-8 w-8 p-0"
                         onClick={() => {
                           setShowNearMe(false);
@@ -461,7 +531,7 @@ export default function Map() {
           </div>
         </div>
 
-        {/* Map */}
+        {/* Map - render immediately, don't wait for geocache data */}
         <div className="flex-1 relative bg-background min-h-[600px]" style={{ height: 'calc(100vh - 4rem)' }}>
           <GeocacheMap 
             key={mapUpdateKey}
@@ -476,6 +546,7 @@ export default function Map() {
             showStyleSelector={true}
             isNearMeActive={showNearMe}
             mapRef={mapRef}
+            isMapCenterLocked={isMapCenterLocked}
           />
         </div>
       </div>
@@ -517,8 +588,7 @@ export default function Map() {
                 <div className="flex gap-2">
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
-                    className="flex-1 h-9"
-                    
+                    className={`h-9 ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
                   >
@@ -528,12 +598,12 @@ export default function Map() {
                   
                   <Button 
                     variant={searchInView ? "default" : "outline"} 
-                    className="flex-1 h-9"
+                    className={`h-9 ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
                     onClick={handleSearchInView}
                     disabled={isLoading}
                   >
                     <MapPin className="h-4 w-4 mr-1" />
-                    In View
+                    {(showNearMe || searchLocation || searchInView) ? 'In View' : 'Search in View'}
                   </Button>
                   
                   {(showNearMe || searchLocation || searchInView) && (
@@ -554,7 +624,6 @@ export default function Map() {
                       
                       <Button
                         variant="ghost"
-                        
                         className="h-9 w-9 p-0"
                         onClick={() => {
                           setShowNearMe(false);
@@ -684,6 +753,7 @@ export default function Map() {
                   showStyleSelector={true}
                   isNearMeActive={showNearMe}
                   mapRef={mapRef}
+                  isMapCenterLocked={isMapCenterLocked}
                 />
               </div>
             </TabsContent>
