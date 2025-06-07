@@ -530,20 +530,12 @@ function MapStyleControl({
   const map = useMap();
   const rootRef = useRef<any>(null);
   const controlRef = useRef<L.Control | null>(null);
-  
-  // Create the render function with useCallback to stabilize dependencies
-  const renderSelector = useCallback(() => {
-    if (rootRef.current) {
-      rootRef.current.render(
-        <MapStyleSelector
-          currentStyle={currentStyle}
-          onStyleChange={onStyleChange}
-        />
-      );
-    }
-  }, [currentStyle, onStyleChange]);
+  const isInitializedRef = useRef(false);
   
   useEffect(() => {
+    // Only initialize once
+    if (isInitializedRef.current) return;
+    
     // Create a custom control
     const StyleControl = L.Control.extend({
       onAdd: function() {
@@ -560,6 +552,12 @@ function MapStyleControl({
         
         // Create React root and render the MapStyleSelector
         rootRef.current = createRoot(div);
+        rootRef.current.render(
+          <MapStyleSelector
+            currentStyle={currentStyle}
+            onStyleChange={onStyleChange}
+          />
+        );
         
         return div;
       }
@@ -568,9 +566,7 @@ function MapStyleControl({
     const styleControl = new StyleControl({ position: 'topright' });
     controlRef.current = styleControl;
     map.addControl(styleControl);
-    
-    // Initial render
-    renderSelector();
+    isInitializedRef.current = true;
     
     // Cleanup
     return () => {
@@ -582,13 +578,21 @@ function MapStyleControl({
         map.removeControl(controlRef.current);
         controlRef.current = null;
       }
+      isInitializedRef.current = false;
     };
-  }, [map, renderSelector]);
+  }, [map]); // Only depend on map, not on currentStyle or onStyleChange
   
-  // Update the rendered component when props change
+  // Update the rendered component when props change (without recreating the control)
   useEffect(() => {
-    renderSelector();
-  }, [renderSelector]);
+    if (rootRef.current && isInitializedRef.current) {
+      rootRef.current.render(
+        <MapStyleSelector
+          currentStyle={currentStyle}
+          onStyleChange={onStyleChange}
+        />
+      );
+    }
+  }, [currentStyle, onStyleChange]);
   
   return null;
 }
@@ -780,24 +784,7 @@ function AutoOfflineTileManager({
     countCachedTiles();
   }, []);
 
-  // Only show offline status when actually offline (not just using cached tiles)
-  if (isOfflineMode || (!isOnline && !navigator.onLine)) {
-    return (
-      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-[1000]">
-        <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 shadow-sm">
-          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <WifiOff className="h-3 w-3" />
-            <span>Offline</span>
-            <Badge variant="secondary" className="text-xs">
-              {cachedTiles} tiles
-            </Badge>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Don't show caching status when online - removed per user request
+  // No offline banners - removed both competing banners
   return null;
 }
 
@@ -1198,18 +1185,6 @@ export function GeocacheMap({
         </Marker>
       ))}
     </MapContainer>
-    
-    {/* Offline status overlay - only show when actually offline */}
-    {(isOfflineMode || (!isOnline && !navigator.onLine)) && (
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-[1000]">
-        <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 shadow-sm">
-          <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
-            <WifiOff className="h-3 w-3" />
-            <span>Offline mode</span>
-          </div>
-        </div>
-      </div>
-    )}
 
   </div>
   );
