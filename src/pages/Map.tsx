@@ -350,12 +350,12 @@ export default function Map() {
   };
 
   return (
-    <div className="bg-background md:h-mobile-map md:h-screen flex flex-col">
+    <div className="bg-background h-screen flex flex-col">
       <DesktopHeader variant="map" />
 
-      <div className="hidden lg:flex flex-1">
+      <div className="hidden lg:flex flex-1 min-h-0">
         {/* Adventure Sidebar */}
-        <div className="w-96 border-r bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col">
+        <div className="w-96 border-r bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col min-h-0">
           {/* Adventure Search and Filters */}
           <div className="p-4 border-b bg-muted/50">
             <div className="space-y-4">
@@ -454,7 +454,7 @@ export default function Map() {
           </div>
 
           {/* Results */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 16rem)' }}>
             <SmartLoadingState
               isLoading={isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading}
               isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
@@ -477,6 +477,7 @@ export default function Map() {
                   </p>
                 </div>
               }
+              className="h-full"
             >
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
@@ -552,7 +553,7 @@ export default function Map() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden flex-1 flex flex-col overflow-hidden">
+      <div className="block lg:hidden flex-1 flex flex-col min-h-0">
         {/* Adventure Mobile Filters Header */}
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0">
           <div className="p-3">
@@ -643,39 +644,40 @@ export default function Map() {
         </div>
         
         {/* Mobile Content Area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0">
           <MapViewTabs 
             className="h-full flex flex-col"
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsContent value="list" className="flex-1 overflow-y-auto p-4 m-0 data-[state=active]:flex data-[state=active]:flex-col bg-background">
-              <SmartLoadingState
-                isLoading={isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading}
-                isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
-                hasData={filteredGeocaches.length > 0}
-                data={filteredGeocaches}
-                error={(isProximitySearchActive ? error : optimisticGeocaches.error) as Error}
-                onRetry={() => {
-                  optimisticGeocaches.refresh();
-                  refetch();
-                }}
-                skeletonCount={QUERY_LIMITS.SKELETON_COUNT}
-                skeletonVariant="compact"
-                compact={true}
-                emptyState={
-                  <div className="flex items-center justify-center flex-1">
-                    <div className="text-center text-muted-foreground">
-                      <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p>No geocaches found</p>
-                      <p className="text-sm mt-2">
-                        {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
-                      </p>
+            <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(100vh - 14rem)' }}>
+                <SmartLoadingState
+                  isLoading={isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading}
+                  isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
+                  hasData={filteredGeocaches.length > 0}
+                  data={filteredGeocaches}
+                  error={(isProximitySearchActive ? error : optimisticGeocaches.error) as Error}
+                  onRetry={() => {
+                    optimisticGeocaches.refresh();
+                    refetch();
+                  }}
+                  skeletonCount={QUERY_LIMITS.SKELETON_COUNT}
+                  skeletonVariant="compact"
+                  compact={true}
+                  emptyState={
+                    <div className="flex items-center justify-center min-h-[300px]">
+                      <div className="text-center text-muted-foreground">
+                        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p>No geocaches found</p>
+                        <p className="text-sm mt-2">
+                          {searchLocation ? 'Try increasing the search radius or searching a different area' : 'Try adjusting your filters'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                }
-                className="flex-1 flex flex-col"
-              >
+                  }
+                  className="h-full"
+                >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
@@ -737,8 +739,9 @@ export default function Map() {
                   </div>
                 </div>
               </SmartLoadingState>
+              </div>
             </TabsContent>
-            <TabsContent value="map" className="flex-1 m-0 p-0 data-[state=active]:block">
+            <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block">
               <div className="h-full w-full bg-background min-h-[400px]" style={{ height: 'calc(100vh - 12rem)' }}>
                 <GeocacheMap 
                   key={mapUpdateKey}

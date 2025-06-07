@@ -263,7 +263,7 @@ export function MapViewTabs({ children, className, value, onValueChange, default
         onValueChange={onValueChange}
         className={cn("w-full", className)}
       >
-        <TabsList className="grid w-full h-auto grid-cols-2">
+        <TabsList className="grid w-full h-auto grid-cols-2 mb-0">
           {mapTabs.map((item) => {
             const Icon = item.icon;
             return (
