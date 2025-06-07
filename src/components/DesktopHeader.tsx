@@ -3,6 +3,7 @@ import { Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { RelaySelector } from '@/components/RelaySelector';
 import { useTheme } from 'next-themes';
 
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -59,6 +60,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
               </Link>
             )}
             
+            <RelaySelector className="w-[200px]" />
             <ThemeToggle />
             <LoginArea />
           </nav>

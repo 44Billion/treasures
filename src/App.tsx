@@ -10,11 +10,13 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
 import { PWAUpdateNotification } from '@/components/PWAUpdateNotification';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { AppProvider } from '@/components/AppProvider';
+import { AppConfig } from '@/contexts/AppContext';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { connectivityChecker } from '@/lib/connectivityChecker';
-import { getUserRelays } from '@/lib/relayConfig';
 import { initializeCacheCleanup } from '@/lib/cacheCleanup';
-import { useEffect, useState } from 'react';
+import { DEFAULT_RELAY, PRESET_RELAYS } from '@/lib/constants';
+import { useEffect } from 'react';
 import './styles/leaflet-overrides.css';
 
 const queryClient = new QueryClient({
@@ -32,10 +34,11 @@ const queryClient = new QueryClient({
   mutationCache: undefined, // Use default
 });
 
-export function App() {
-  // State for user's preferred relays
-  const [relays, setRelays] = useState<string[]>(getUserRelays);
+const defaultConfig: AppConfig = {
+  relayUrl: DEFAULT_RELAY,
+};
 
+export function App() {
   // Initialize offline storage and connectivity checking on app start
   useEffect(() => {
     offlineStorage.init().catch(console.error);
@@ -62,53 +65,31 @@ export function App() {
     };
   }, []);
 
-  // Listen for changes to relay preferences in localStorage
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'geocaching-relays') {
-        setRelays(getUserRelays());
-      }
-    };
-
-    // Listen for storage changes from other tabs/windows
-    window.addEventListener('storage', handleStorageChange);
-
-    // Also listen for custom events from the same tab (Settings page)
-    const handleRelayUpdate = () => {
-      setRelays(getUserRelays());
-    };
-
-    window.addEventListener('relays-updated', handleRelayUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('relays-updated', handleRelayUpdate);
-    };
-  }, []);
-
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      themes={['light', 'dark', 'system', 'adventure']}
-    >
-      <NostrLoginProvider storageKey='nostr:login'>
-        <NostrProvider relays={relays}>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <div className="min-h-screen flex flex-col">
-                <AppRouter />
-              </div>
-              <PWAUpdateNotification />
-              <Toaster />
-              <Sonner />
-            </TooltipProvider>
-          </QueryClientProvider>
-        </NostrProvider>
-      </NostrLoginProvider>
-    </ThemeProvider>
+    <AppProvider storageKey="treasures:app-config" defaultConfig={defaultConfig} presetRelays={PRESET_RELAYS}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+        themes={['light', 'dark', 'system', 'adventure']}
+      >
+        <QueryClientProvider client={queryClient}>
+          <NostrLoginProvider storageKey='nostr:login'>
+            <NostrProvider>
+              <TooltipProvider>
+                <div className="min-h-screen flex flex-col">
+                  <AppRouter />
+                </div>
+                <PWAUpdateNotification />
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </NostrProvider>
+          </NostrLoginProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </AppProvider>
   );
 }
 

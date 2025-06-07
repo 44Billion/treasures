@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { RelaySelector } from '@/components/RelaySelector';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -130,11 +131,15 @@ export function MobileHeader() {
                       <p className="text-xs text-muted-foreground">Logged in</p>
                     </div>
                   </div>
-                  <div className="px-3 py-2 space-y-2">
+                  <div className="px-3 py-2 space-y-3">
                     <OfflineIndicator showDetails={false} />
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Theme</span>
                       <ThemeToggle variant="mobile-sheet" />
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-sm text-muted-foreground">Relay</span>
+                      <RelaySelector className="w-full" />
                     </div>
                   </div>
                   <Button

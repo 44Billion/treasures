@@ -96,3 +96,13 @@ export const DEFAULT_RELAYS = [
 
 // Primary relay for backwards compatibility
 export const DEFAULT_RELAY = DEFAULT_RELAYS[0];
+
+// Preset relays for the relay selector
+export const PRESET_RELAYS = [
+  { url: 'wss://ditto.pub/relay', name: 'Ditto' },
+  { url: 'wss://relay.nostr.band', name: 'Nostr.Band' },
+  { url: 'wss://relay.damus.io', name: 'Damus' },
+  { url: 'wss://relay.primal.net', name: 'Primal' },
+  { url: 'wss://nos.lol', name: 'nos.lol' },
+  { url: 'wss://relay.snort.social', name: 'Snort' },
+];

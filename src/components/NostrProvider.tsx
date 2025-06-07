@@ -1,46 +1,56 @@
+import React, { useEffect, useRef } from 'react';
 import { NostrEvent, NPool, NRelay1 } from '@nostrify/nostrify';
 import { NostrContext } from '@nostrify/react';
-import React, { useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface NostrProviderProps {
   children: React.ReactNode;
-  relays: string[];
 }
 
 const NostrProvider: React.FC<NostrProviderProps> = (props) => {
-  const { children, relays } = props;
+  const { children } = props;
+  const { config, presetRelays } = useAppContext();
 
-  // Create NPool instance only once and recreate only when relays change
+  const queryClient = useQueryClient();
+
+  // Create NPool instance only once
   const pool = useRef<NPool | undefined>(undefined);
-  const lastRelays = useRef<string[]>([]);
 
-  // Check if relays have changed
-  const relaysChanged = JSON.stringify(relays) !== JSON.stringify(lastRelays.current);
+  // Use refs so the pool always has the latest data
+  const relayUrl = useRef<string>(config.relayUrl);
 
-  if (!pool.current || relaysChanged) {
-    // Clean up old pool if it exists
-    if (pool.current && relaysChanged) {
-      try {
-        // Close existing connections
-        pool.current = undefined;
-      } catch (error) {
-        console.warn('Error cleaning up old Nostr pool:', error);
-      }
-    }
+  // Update refs when config changes
+  useEffect(() => {
+    relayUrl.current = config.relayUrl;
+    queryClient.resetQueries();
+  }, [config.relayUrl, queryClient]);
 
+  // Initialize NPool only once
+  if (!pool.current) {
     pool.current = new NPool({
       open(url: string) {
         return new NRelay1(url);
       },
       reqRouter(filters) {
-        return new Map(relays.map((url) => [url, filters]));
+        return new Map([[relayUrl.current, filters]]);
       },
       eventRouter(_event: NostrEvent) {
-        return relays;
+        // Publish to the selected relay
+        const allRelays = new Set<string>([relayUrl.current]);
+
+        // Also publish to the preset relays, capped to 5
+        for (const { url } of (presetRelays ?? [])) {
+          allRelays.add(url);
+
+          if (allRelays.size >= 5) {
+            break;
+          }
+        }
+
+        return [...allRelays];
       },
     });
-    
-    lastRelays.current = [...relays];
   }
 
   return (
