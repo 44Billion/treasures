@@ -407,6 +407,12 @@ export function OfflineSettings() {
           <CardTitle>About Offline Mode</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="text-amber-800 text-xs">
+              <strong>Note:</strong> Offline support is experimental and may not work perfectly in all situations.
+            </div>
+          </div>
           <p>
             Offline mode allows you to use Treasures without an internet connection. 
             The app automatically caches geocaches, profiles, and map data as you browse.
