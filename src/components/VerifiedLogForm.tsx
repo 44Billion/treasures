@@ -35,7 +35,7 @@ export function VerifiedLogForm({
   const handleCreateLog = () => {
     if (!logText.trim() || !geocache) return;
     
-    setPostingStatus("Creating verified log...");
+    setPostingStatus("Creating verified log (this may take a moment)...");
     
     // Get the primary relay from the geocache's relay list
     const primaryRelay = geocache.relays?.[0] || '';
@@ -51,11 +51,11 @@ export function VerifiedLogForm({
       verificationKey,
     }, {
       onSuccess: () => {
-        setPostingStatus("Posted successfully!");
+        setPostingStatus("Verified log posted successfully!");
         setLogText("");
         setTimeout(() => {
           setPostingStatus("");
-        }, 1500);
+        }, 2000);
       },
       onError: () => {
         setPostingStatus("");
@@ -96,7 +96,7 @@ export function VerifiedLogForm({
           className="w-full bg-green-600 hover:bg-green-700"
         >
           <ShieldCheck className="h-4 w-4 mr-2" />
-          {isCreatingLog ? "Posting Verified Log..." : "Post Verified Log"}
+          {isCreatingLog ? "Posting Verified Log (please wait)..." : "Post Verified Log"}
         </Button>
         
         {postingStatus && (

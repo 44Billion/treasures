@@ -8,9 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
-import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
-import { PWAProvider } from '@/components/PWAProvider';
-import { ServiceWorkerProvider } from '@/components/ServiceWorkerProvider';
+import { PWAUpdateNotification } from '@/components/PWAUpdateNotification';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { connectivityChecker } from '@/lib/connectivityChecker';
@@ -85,24 +83,20 @@ export function App() {
       enableSystem
       disableTransitionOnChange
     >
-      <ServiceWorkerProvider>
-        <PWAProvider>
-          <NostrLoginProvider storageKey='nostr:login'>
-            <NostrProvider relays={relays}>
-              <QueryClientProvider client={queryClient}>
-                <TooltipProvider>
-                  <div className="min-h-screen flex flex-col">
-                    <AppRouter />
-                  </div>
-                  <PWAUpdatePrompt />
-                  <Toaster />
-                  <Sonner />
-                </TooltipProvider>
-              </QueryClientProvider>
-            </NostrProvider>
-          </NostrLoginProvider>
-        </PWAProvider>
-      </ServiceWorkerProvider>
+      <NostrLoginProvider storageKey='nostr:login'>
+        <NostrProvider relays={relays}>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <div className="min-h-screen flex flex-col">
+                <AppRouter />
+              </div>
+              <PWAUpdateNotification />
+              <Toaster />
+              <Sonner />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </NostrProvider>
+      </NostrLoginProvider>
     </ThemeProvider>
   );
 }

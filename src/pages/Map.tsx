@@ -418,7 +418,7 @@ export default function Map() {
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-24 h-8 text-xs" >
+                        <SelectTrigger className="flex-1 min-w-0 h-8 text-xs" >
                           <SelectValue placeholder="25 km" />
                         </SelectTrigger>
                         <SelectContent className="z-[60]">
@@ -433,7 +433,7 @@ export default function Map() {
                       
                       <Button
                         variant="ghost"
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 flex-shrink-0"
                         onClick={() => {
                           setShowNearMe(false);
                           setSearchLocation(null);
@@ -610,7 +610,7 @@ export default function Map() {
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-24 h-9 text-xs">
+                        <SelectTrigger className="flex-1 min-w-0 h-9 text-xs">
                           <SelectValue placeholder="25 km" />
                         </SelectTrigger>
                         <SelectContent className="z-[60]">
@@ -625,7 +625,7 @@ export default function Map() {
                       
                       <Button
                         variant="ghost"
-                        className="h-9 w-9 p-0"
+                        className="h-9 w-9 p-0 flex-shrink-0"
                         onClick={() => {
                           setShowNearMe(false);
                           setSearchLocation(null);

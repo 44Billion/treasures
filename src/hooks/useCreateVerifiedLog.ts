@@ -10,10 +10,110 @@ import {
   buildVerificationEventContent
 } from '@/lib/nip-gc';
 import { createVerificationEvent } from '@/lib/verification';
-import { TIMEOUTS } from '@/lib/constants';
+import { TIMEOUTS, RETRY_CONFIG } from '@/lib/constants';
 
 interface CreateVerifiedLogData extends CreateLogData {
   verificationKey: string; // nsec for signing
+}
+
+/**
+ * Publish verified log with robust retry logic
+ * Verified logs are critical, so we need to be very patient
+ */
+async function publishVerifiedLogWithRetries(
+  nostr: any, 
+  signedLogEvent: any
+): Promise<void> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= RETRY_CONFIG.VERIFIED_LOG_MAX_RETRIES; attempt++) {
+    try {
+      console.log(`Publishing verified log attempt ${attempt}/${RETRY_CONFIG.VERIFIED_LOG_MAX_RETRIES}`);
+      
+      // Use longer timeout for verified logs
+      const signal = AbortSignal.timeout(RETRY_CONFIG.VERIFIED_LOG_TIMEOUT);
+      await nostr.event(signedLogEvent, { signal });
+      
+      console.log('Verified log published successfully on attempt', attempt);
+      return; // Success!
+      
+    } catch (error) {
+      const errorObj = error as { message?: string };
+      lastError = new Error(errorObj.message || 'Unknown error');
+      
+      console.warn(`Verified log publish attempt ${attempt} failed:`, errorObj.message);
+      
+      // If this is the last attempt, don't wait
+      if (attempt === RETRY_CONFIG.VERIFIED_LOG_MAX_RETRIES) {
+        break;
+      }
+      
+      // Exponential backoff with jitter
+      const baseDelay = RETRY_CONFIG.VERIFIED_LOG_BASE_DELAY;
+      const exponentialDelay = baseDelay * Math.pow(2, attempt - 1);
+      const jitter = Math.random() * 1000; // Add up to 1 second of jitter
+      const totalDelay = exponentialDelay + jitter;
+      
+      console.log(`Waiting ${Math.round(totalDelay)}ms before retry ${attempt + 1}`);
+      await new Promise(resolve => setTimeout(resolve, totalDelay));
+    }
+  }
+  
+  // If we get here, all attempts failed
+  const errorMessage = lastError?.message || 'Unknown error';
+  
+  // For verified logs, we still want to provide helpful error messages
+  if (errorMessage.includes('timeout')) {
+    throw new Error('Publishing timed out after multiple attempts. The verified log may have been posted successfully. Please check the cache logs in a few minutes.');
+  } else if (errorMessage.includes('relay')) {
+    throw new Error('Could not connect to Nostr relays after multiple attempts. Please check your internet connection and try again.');
+  } else {
+    throw new Error(`Failed to publish verified log after ${RETRY_CONFIG.VERIFIED_LOG_MAX_RETRIES} attempts: ${errorMessage}`);
+  }
+}
+
+/**
+ * Verify that the event was actually published to the relay
+ * This gives us confidence that the verified log is available
+ */
+async function verifyEventWasPublished(
+  nostr: any, 
+  signedLogEvent: any
+): Promise<void> {
+  console.log('Verifying that verified log was published...');
+  
+  // Wait a moment for the relay to process the event
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const signal = AbortSignal.timeout(TIMEOUTS.FAST_QUERY);
+      const verification = await nostr.query([{ ids: [signedLogEvent.id] }], { signal });
+      
+      if (verification.length > 0) {
+        console.log('Verified log confirmed on relay');
+        return; // Success!
+      }
+      
+      console.log(`Verification attempt ${attempt}: Event not found yet`);
+      
+      // Wait before next attempt
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+    } catch (error) {
+      console.warn(`Verification attempt ${attempt} failed:`, error);
+      
+      // Wait before next attempt
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  }
+  
+  // If verification fails, warn but don't fail the entire operation
+  console.warn('Could not verify that the event was published, but it may still be successful');
 }
 
 export function useCreateVerifiedLog() {
@@ -76,18 +176,11 @@ export function useCreateVerifiedLog() {
       });
       
       // Step 3: Publish the log event (with embedded verification)
-      // Use the same streamlined approach as regular logs - set and forget
-      try {
-        await nostr.event(signedLogEvent, { signal: AbortSignal.timeout(TIMEOUTS.QUERY) });
-      } catch (error) {
-        const errorObj = error as { message?: string };
-        // Don't fail for timeout or relay issues - just log and continue
-        if (errorObj.message?.includes('timeout') || errorObj.message?.includes('relay')) {
-          console.warn('Verified log publish may have timed out, but this is normal:', errorObj.message);
-        } else {
-          throw new Error(`Failed to publish verified log: ${errorObj.message || 'Unknown error'}`);
-        }
-      }
+      // For verified logs, we need to be very patient and persistent
+      await publishVerifiedLogWithRetries(nostr, signedLogEvent);
+      
+      // Step 4: Verify the event was actually published
+      await verifyEventWasPublished(nostr, signedLogEvent);
       
       return { 
         logEvent: signedLogEvent, 
@@ -153,6 +246,8 @@ export function useCreateVerifiedLog() {
         errorMessage = "Invalid verification key. Please check the QR code or verification link.";
       } else if (errorObj.message?.includes('Failed to publish') && errorObj.message?.includes('relay')) {
         errorMessage = "Could not connect to Nostr relays. Your log may have been posted successfully.";
+      } else if (errorObj.message?.includes('multiple attempts')) {
+        errorMessage = errorObj.message; // Use the detailed retry message
       } else if (errorObj.message) {
         errorMessage = errorObj.message;
       }
