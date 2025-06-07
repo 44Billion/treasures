@@ -12,6 +12,7 @@ import { formatDistanceToNow } from '@/lib/date';
 import { formatDistance } from '@/lib/geo';
 import { getCacheIcon } from '@/lib/cacheIcons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useTheme } from 'next-themes';
 import type { Geocache } from '@/types/geocache';
 
 // Base interface for all geocache cards
@@ -99,6 +100,7 @@ export function GeocacheCard({
   showStats = true
 }: GeocacheCardProps) {
   const { user } = useCurrentUser();
+  const { theme } = useTheme();
   const { navigateToGeocache } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
@@ -109,6 +111,9 @@ export function GeocacheCard({
 
   // Check if this cache is hidden and the current user is the creator
   const isHiddenByCreator = cache.hidden && cache.pubkey === user?.pubkey;
+  
+  // Check if adventure theme is active
+  const isAdventureTheme = theme === 'adventure';
 
   // Optimized navigation handler
   const handleNavigate = (fromMap?: boolean) => {
@@ -228,7 +233,7 @@ export function GeocacheCard({
         <div className="flex items-start gap-3 sm:gap-4 h-full">
           {/* Icon with hidden indicator */}
           <div className="relative shrink-0">
-            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted">
+            <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
               {getCacheIcon(cache.type, 'sm', 'sm:w-5 sm:h-5')}
             </div>
             {isHiddenByCreator && (
@@ -295,7 +300,7 @@ export function GeocacheCard({
           <div className="flex flex-col h-full">
             <div className="flex items-start gap-3">
               <div className="relative shrink-0">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted">
+                <div className={`flex items-center justify-center w-8 h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
                   {getCacheIcon(cache.type, 'sm')}
                 </div>
                 {isHiddenByCreator && (

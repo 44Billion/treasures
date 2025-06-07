@@ -146,6 +146,12 @@
   animation: pulse-treasure 3s ease-in-out infinite;
 }
 
+/* Adventure cache icon styling */
+.adventure-cache-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 6px rgba(63, 74, 90, 0.4);
+}
+
 /* Hover effects for enhanced interactivity */
 @media (hover: hover) {
   .group:hover .transition-transform {

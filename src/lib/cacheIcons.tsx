@@ -1,6 +1,7 @@
 import React from 'react';
 import { Compass, HelpCircle } from 'lucide-react';
 import { chest as chestPaths } from '@lucide/lab';
+import { useTheme } from 'next-themes';
 
 // Create a proper React component for the chest icon
 const Chest = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
@@ -41,19 +42,72 @@ export interface CacheIconProps {
  * This ensures consistency between map markers and UI cards
  */
 export function getCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', className?: string): React.ReactNode {
+  const { theme } = useTheme();
+  const isAdventureTheme = theme === 'adventure';
+  
   const sizeClasses = {
     sm: "h-4 w-4",
     md: "h-5 w-5", 
     lg: "h-8 w-8"
   };
   
+  const cacheType = type.toLowerCase() as CacheType;
+  
+  if (isAdventureTheme) {
+    // Adventure mode: white SVGs with #5f7292 background and parchment texture
+    // Fill the entire container space (the container already has the right size)
+    const adventureIconStyle: React.CSSProperties = {
+      background: `url('/parchment-50.jpg'), #5f7292`,
+      backgroundBlendMode: 'darken',
+      backgroundSize: '50px 50px, auto',
+      border: '2px solid #4a5a6b',
+      borderRadius: '6px', // More squared off border
+      width: '100%',
+      height: '100%',
+      color: '#FFFFFF',
+      boxShadow: '0 2px 4px rgba(63, 74, 90, 0.3)',
+      transition: 'all 0.2s ease',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    };
+    
+    const iconProps = {
+      className: `${sizeClasses[size]} ${className || ''}`.trim(),
+      strokeWidth: 2.5,
+      style: { color: '#FFFFFF' }
+    };
+    
+    const IconComponent = (() => {
+      switch (cacheType) {
+        case 'traditional':
+          return <Chest {...iconProps} />;
+        case 'multi':
+          return <Compass {...iconProps} />;
+        case 'mystery':
+          return <HelpCircle {...iconProps} />;
+        default:
+          return <Chest {...iconProps} />;
+      }
+    })();
+    
+    return (
+      <div 
+        style={adventureIconStyle}
+        className="adventure-cache-icon"
+      >
+        {IconComponent}
+      </div>
+    );
+  }
+  
+  // Standard theme colors
   const colorClasses = {
     traditional: "text-emerald-600",
     multi: "text-amber-600", 
     mystery: "text-purple-600"
   };
   
-  const cacheType = type.toLowerCase() as CacheType;
   const iconClass = `${sizeClasses[size]} ${colorClasses[cacheType] || colorClasses.traditional} ${className || ''}`.trim();
   
   const iconProps = {
