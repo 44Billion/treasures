@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/popover";
 import { useState } from "react";
 import { useAppContext } from "@/hooks/useAppContext";
+import { useTheme } from "next-themes";
 
 interface RelaySelectorProps {
   className?: string;
@@ -24,6 +25,8 @@ interface RelaySelectorProps {
 export function RelaySelector(props: RelaySelectorProps) {
   const { className } = props;
   const { config, updateConfig, presetRelays = [] } = useAppContext();
+  const { theme } = useTheme();
+  const isAdventureTheme = theme === 'adventure';
   
   const selectedRelay = config.relayUrl;
   const setSelectedRelay = (relay: string) => {
@@ -78,7 +81,11 @@ export function RelaySelector(props: RelaySelectorProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn(
+            "justify-between", 
+            isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600 hover:!text-stone-100",
+            className
+          )}
         >
           <div className="flex items-center gap-2">
             <Wifi className="h-4 w-4" />
