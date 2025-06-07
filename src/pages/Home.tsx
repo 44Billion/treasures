@@ -82,10 +82,18 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative pt-6 pb-12 px-4 md:py-20 overflow-hidden">
-        {/* Full-width top depth shadow with better fade */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/35 via-black/18 via-black/10 via-black/5 via-black/2 to-transparent pointer-events-none z-20"></div>
-        {/* Full-width bottom depth shadow with better fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/35 via-black/18 via-black/10 via-black/5 via-black/2 to-transparent pointer-events-none z-20"></div>
+        {/* Parchment background for adventure mode only - behind everything */}
+        <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
+          backgroundImage: 'url(/parchment-300.jpg)',
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px 300px',
+          opacity: 0.6
+        }}></div>
+        
+        {/* Full-width top depth shadow with better fade - adventure mode only */}
+        <div className="absolute top-0 left-0 right-0 h-16 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+        {/* Full-width bottom depth shadow with better fade - adventure mode only */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
         {/* Modern background elements (default and dark themes) */}
         <div className="absolute inset-0 -z-10 flex justify-center adventure:hidden">
           <div className="relative w-full max-w-screen-2xl h-full">
@@ -242,15 +250,7 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Parchment texture overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/40 via-yellow-50/30 to-orange-50/35 opacity-70"></div>
-            
-            {/* Subtle aged paper texture */}
-            <div className="absolute inset-0 opacity-20" style={{
-              backgroundImage: `radial-gradient(circle at 20% 30%, rgba(120, 113, 108, 0.1) 0%, transparent 50%),
-                               radial-gradient(circle at 80% 70%, rgba(87, 83, 78, 0.08) 0%, transparent 50%),
-                               radial-gradient(circle at 40% 80%, rgba(68, 64, 60, 0.06) 0%, transparent 50%)`
-            }}></div>
+
           </div>
         </div>
         

@@ -135,30 +135,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                     backgroundColor: isActive ? adventureColors.primaryLight + '40' : 'transparent',
                     color: adventureColors.text,
                   } : {}}
-                  onMouseEnter={(e) => {
-                    if (isAdventureTheme && !isActive) {
-                      e.currentTarget.style.backgroundColor = adventureColors.primaryLight + '20';
-                      // Ensure text remains readable on hover
-                      const textElements = e.currentTarget.querySelectorAll('span, p');
-                      textElements.forEach((el: any) => {
-                        el.style.color = adventureColors.text;
-                      });
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isAdventureTheme && !isActive) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      // Reset text colors
-                      const textElements = e.currentTarget.querySelectorAll('span, p');
-                      textElements.forEach((el: any, index: number) => {
-                        if (index === 0) {
-                          el.style.color = adventureColors.text; // Main text
-                        } else {
-                          el.style.color = adventureColors.textMuted; // Description text
-                        }
-                      });
-                    }
-                  }}
+
                 >
                   <div className={`
                     flex items-center justify-center w-8 h-8 rounded-full transition-all
@@ -178,9 +155,14 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm" style={isAdventureTheme ? {
-                        color: adventureColors.text,
-                      } : {}}>{style.name}</span>
+                      <span 
+                        className="map-style-name font-medium text-sm" 
+                        style={isAdventureTheme ? {
+                          color: adventureColors.text,
+                        } : {}}
+                      >
+                        {style.name}
+                      </span>
                       {isActive && (
                         <Badge 
                           variant="secondary" 
@@ -195,9 +177,14 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                         </Badge>
                       )}
                     </div>
-                    <p className={`text-xs mt-0.5 ${!isAdventureTheme ? 'text-muted-foreground' : ''}`} style={isAdventureTheme ? {
-                      color: adventureColors.textMuted,
-                    } : {}}>{style.description}</p>
+                    <p 
+                      className={`map-style-desc text-xs mt-0.5 ${!isAdventureTheme ? 'text-muted-foreground' : ''}`} 
+                      style={isAdventureTheme ? {
+                        color: adventureColors.textMuted,
+                      } : {}}
+                    >
+                      {style.description}
+                    </p>
                   </div>
                 </button>
               );

@@ -132,7 +132,20 @@ export default function Profile() {
 
   if (!targetPubkey) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 max-md:h-mobile-fit max-md:overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 max-md:h-mobile-fit max-md:overflow-hidden relative">
+        {/* Parchment background for adventure mode only - behind everything */}
+        <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
+          backgroundImage: 'url(/parchment-300.jpg)',
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px 300px',
+          opacity: 0.25
+        }}></div>
+        
+        {/* Full-width top depth shadow with better fade - adventure mode only */}
+        <div className="absolute top-0 left-0 right-0 h-12 adventure:bg-gradient-to-b adventure:from-black/8 adventure:via-black/4 adventure:via-black/2 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+        {/* Full-width bottom depth shadow with better fade - adventure mode only */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 adventure:bg-gradient-to-t adventure:from-black/8 adventure:via-black/4 adventure:via-black/2 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+        
         <DesktopHeader />
         <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
           <LoginRequiredCard
@@ -158,7 +171,20 @@ export default function Profile() {
   const shortPubkey = targetPubkey.slice(0, 8) + '...' + targetPubkey.slice(-8);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20">
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 relative">
+      {/* Parchment background for adventure mode only - behind everything */}
+      <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
+        backgroundImage: 'url(/parchment-300.jpg)',
+        backgroundRepeat: 'repeat',
+        backgroundSize: '300px 300px',
+        opacity: 0.25
+      }}></div>
+      
+      {/* Full-width top depth shadow with better fade - adventure mode only */}
+      <div className="absolute top-0 left-0 right-0 h-12 adventure:bg-gradient-to-b adventure:from-black/8 adventure:via-black/4 adventure:via-black/2 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+      {/* Full-width bottom depth shadow with better fade - adventure mode only */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 adventure:bg-gradient-to-t adventure:from-black/8 adventure:via-black/4 adventure:via-black/2 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+      
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">

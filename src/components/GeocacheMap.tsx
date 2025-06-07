@@ -34,70 +34,61 @@ const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
   const color = getCacheColor(type);
   
   if (isAdventureTheme) {
-    // Clean adventure-inspired icons
+    // Adventure-style quest markers - slightly more blue with parchment texture
     const adventureColors = {
-      traditional: '#a0825a', // Warm bronze
-      multi: '#b8860b',      // Golden brass
-      mystery: '#6b5b3f',    // Dark bronze
+      background: '#6495ED', // Cornflower blue - slightly more blue
+      border: '#4169E1',     // Royal blue - more blue border
+      icon: '#FFFFFF',       // Pure white - maximum contrast against sepia
+      shadow: '#4682B4',     // Steel blue shadow
     };
-    
-    const accentColors = {
-      traditional: '#d4af37', // Gold accent
-      multi: '#ffd700',      // Bright gold
-      mystery: '#8b7355',    // Bronze accent
-    };
-    
-    const adventureColor = adventureColors[type as keyof typeof adventureColors] || adventureColors.traditional;
-    const accentColor = accentColors[type as keyof typeof accentColors] || accentColors.traditional;
     
     return L.divIcon({
       html: `
         <div style="
           background: 
-            linear-gradient(135deg, ${adventureColor} 0%, ${accentColor} 50%, ${adventureColor} 100%);
-          border: 2px solid ${accentColor};
-          border-radius: 6px;
-          width: 44px;
-          height: 44px;
+            url('/parchment-50.jpg'),
+            ${adventureColors.background};
+          background-blend-mode: soft-light;
+          background-size: 50px 50px, auto;
+          border: 2px solid ${adventureColors.border};
+          border-radius: 4px;
+          width: 36px;
+          height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 
-            0 3px 8px rgba(160, 130, 90, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.3),
-            inset 0 -1px 0 rgba(107, 91, 63, 0.3);
+          box-shadow: 0 2px 4px rgba(65, 105, 225, 0.3);
           position: relative;
-          transition: all 0.3s ease;
+          transition: all 0.2s ease;
           cursor: pointer;
+          color: ${adventureColors.icon};
         ">
-          ${iconSvg}
+          ${iconSvg.replace(/stroke="currentColor"/g, `stroke="${adventureColors.icon}"`).replace(/fill="currentColor"/g, `fill="${adventureColors.icon}"`)}
         </div>
         <div style="
           position: absolute;
-          bottom: -10px;
+          bottom: -6px;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
           height: 0;
-          border-left: 10px solid transparent;
-          border-right: 10px solid transparent;
-          border-top: 10px solid ${adventureColor};
-          filter: drop-shadow(0 2px 4px rgba(160, 130, 90, 0.3));
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+          border-top: 6px solid ${adventureColors.background};
+          filter: drop-shadow(0 1px 2px rgba(70, 130, 180, 0.3));
         "></div>
         <style>
           .custom-cache-icon:hover > div:first-child {
-            transform: scale(1.1);
-            box-shadow: 
-              0 4px 12px rgba(160, 130, 90, 0.5),
-              inset 0 2px 0 rgba(255, 255, 255, 0.4),
-              inset 0 -2px 0 rgba(107, 91, 63, 0.4);
+            transform: scale(1.05);
+            box-shadow: 0 3px 6px rgba(65, 105, 225, 0.4);
+            opacity: 1;
           }
         </style>
       `,
-      className: "custom-cache-icon adventure-cache-icon",
-      iconSize: [44, 54],
-      iconAnchor: [22, 54],
-      popupAnchor: [0, -54],
+      className: "custom-cache-icon adventure-cache-icon adventure-quest-marker",
+      iconSize: [36, 42],
+      iconAnchor: [18, 42],
+      popupAnchor: [0, -42],
     });
   }
   

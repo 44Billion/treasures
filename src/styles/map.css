@@ -1,5 +1,3 @@
-/* Clean map styles - Original (OSM Bright), Pirate, and Dark Mode */
-
 /* Original theme (OSM Bright) - clean and colorful */
 .leaflet-container {
   background: #f8fafc;
@@ -186,6 +184,7 @@
 .leaflet-container.adventure-theme .leaflet-popup-content h4,
 .leaflet-container.adventure-theme .leaflet-popup-content p {
   color: #2d1810 !important; /* Very dark brown for maximum contrast */
+  opacity: .5;
 }
 
 .leaflet-container.adventure-theme .leaflet-popup-content .text-gray-600,
@@ -362,7 +361,7 @@
 }
 
 /* Enhanced map container styling - only for non-themed maps */
-.leaflet-container:not(.pirate-theme):not(.dark-theme):not(.system-dark-theme) {
+.leaflet-container:not(.adventure-theme):not(.dark-theme):not(.system-dark-theme) {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   position: relative;
   /* Additional mobile fixes */
@@ -1015,10 +1014,38 @@
 .adventure-map-style-button:hover {
   background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%) !important;
   border-color: #654321 !important;
-  color: #a0825a !important;
+  color: #654321 !important;
 }
 
 .adventure-map-style-button svg {
+  color: #3c2e1f !important;
+}
+
+/* Fix for adventure theme hover text visibility - override hover:text-accent-foreground */
+.adventure-popover button:hover {
+  color: #3c2e1f !important;
+}
+
+.adventure-popover button:hover span,
+.adventure-popover button:hover p {
+  color: #3c2e1f !important;
+}
+
+/* Fix for map style selector trigger button in adventure mode - target the specific button classes */
+.map-style-control button.hover\:text-accent-foreground:hover {
+  color: #3c2e1f !important;
+}
+
+.map-style-control button.hover\:text-accent-foreground:hover span {
+  color: #3c2e1f !important;
+}
+
+/* Also target by the full class combination */
+.map-style-control button[class*="hover:text-accent-foreground"]:hover {
+  color: #3c2e1f !important;
+}
+
+.map-style-control button[class*="hover:text-accent-foreground"]:hover span {
   color: #3c2e1f !important;
 }
 
