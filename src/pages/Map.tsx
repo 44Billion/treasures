@@ -353,9 +353,9 @@ export default function Map() {
     <div className="bg-background h-screen flex flex-col">
       <DesktopHeader variant="map" />
 
-      <div className="hidden lg:flex flex-1 min-h-0">
+      <div className="hidden lg:flex flex-1 overflow-hidden">
         {/* Adventure Sidebar */}
-        <div className="w-96 border-r bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col min-h-0">
+        <div className="w-96 border-r bg-background/95 backdrop-blur-sm flex flex-col h-full">
           {/* Adventure Search and Filters */}
           <div className="p-4 border-b bg-muted/50">
             <div className="space-y-4">
@@ -454,7 +454,7 @@ export default function Map() {
           </div>
 
           {/* Results */}
-          <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 16rem)' }}>
+          <div className="flex-1 overflow-y-auto min-h-0">
             <SmartLoadingState
               isLoading={isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading}
               isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
@@ -533,7 +533,7 @@ export default function Map() {
         </div>
 
         {/* Map - render immediately, don't wait for geocache data */}
-        <div className="flex-1 relative bg-background min-h-[600px]" style={{ height: 'calc(100vh - 4rem)' }}>
+        <div className="flex-1 relative bg-background h-full">
           <GeocacheMap 
             key={mapUpdateKey}
             geocaches={filteredGeocaches} 
@@ -553,7 +553,7 @@ export default function Map() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden flex-1 flex flex-col min-h-0">
+      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '4rem', bottom: '4rem' }}>
         {/* Adventure Mobile Filters Header */}
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0">
           <div className="p-3">
@@ -644,14 +644,14 @@ export default function Map() {
         </div>
         
         {/* Mobile Content Area */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 overflow-hidden">
           <MapViewTabs 
             className="h-full flex flex-col"
             value={activeTab}
             onValueChange={setActiveTab}
           >
             <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(100vh - 14rem)' }}>
+              <div className="flex-1 overflow-y-auto p-4 pb-6 min-h-0">
                 <SmartLoadingState
                   isLoading={isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading}
                   isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
@@ -742,7 +742,7 @@ export default function Map() {
               </div>
             </TabsContent>
             <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block">
-              <div className="h-full w-full bg-background min-h-[400px]" style={{ height: 'calc(100vh - 12rem)' }}>
+              <div className="h-full w-full bg-background">
                 <GeocacheMap 
                   key={mapUpdateKey}
                   geocaches={filteredGeocaches} 
