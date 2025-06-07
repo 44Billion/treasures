@@ -19,8 +19,8 @@ export const QUERY_LIMITS = {
   LOGS: 200,
   BATCH_SIZE: 3,
   PROXIMITY_RESULTS: 100,
-  HOME_PAGE_LIMIT: 3,
-  FAST_LOAD_LIMIT: 5, // Load 5 geocaches quickly for immediate display
+  HOME_PAGE_LIMIT: 6,
+  FAST_LOAD_LIMIT: 6, // Load 5 geocaches quickly for immediate display
   SKELETON_COUNT: 6, // Number of skeleton cards to show
 } as const;
 
@@ -90,9 +90,6 @@ export const UI_CONFIG = {
 // Multi-relay configuration for better stability
 export const DEFAULT_RELAYS = [
   'wss://ditto.pub/relay',      // Primary relay
-  'wss://relay.damus.io',       // Popular, reliable relay
-  'wss://nos.lol',              // Fast relay
-  'wss://relay.snort.social',   // Well-maintained relay
 ];
 
 // Primary relay for backwards compatibility

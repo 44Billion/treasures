@@ -1,6 +1,5 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
 import { TIMEOUTS, QUERY_LIMITS } from '@/lib/constants';
 import { useOfflineMode } from '@/hooks/useOfflineStorage';

@@ -10,6 +10,7 @@ import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHomePageGeocaches } from "@/hooks/useOptimisticGeocaches";
 import { GeocacheList } from "@/components/GeocacheList";
+import { GeocacheCard } from "@/components/ui/geocache-card";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { QUERY_LIMITS } from "@/lib/constants";
 
@@ -29,6 +30,28 @@ export default function Home() {
   
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
+
+  // Responsive skeleton count to match grid layout
+  // Mobile: 6 items (1 column), Tablet: 6 items (2 columns), Desktop: 6 items (3 columns)
+  const getSkeletonCount = () => {
+    if (typeof window === 'undefined') return 6; // SSR fallback
+    const width = window.innerWidth;
+    if (width < 768) return 6; // Mobile: show 6 skeletons (1 column)
+    if (width < 1024) return 6; // Tablet: show 6 skeletons (2 columns, 3 rows)
+    return 6; // Desktop: show 6 skeletons (3 columns, 2 rows)
+  };
+
+  const [skeletonCount, setSkeletonCount] = useState(getSkeletonCount);
+
+  // Update skeleton count on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setSkeletonCount(getSkeletonCount());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLoginSuccess = () => {
     setLoginDialogOpen(false);
@@ -218,32 +241,46 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="py-12 md:py-16 px-4">
+      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-background to-muted/30">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-6 md:mb-8">
-            <div className="flex items-center gap-3">
-              <h3 className="text-2xl md:text-3xl font-bold text-foreground">Recent Geocaches</h3>
-              {isStale && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <RefreshCw className="h-3 w-3 animate-spin" />
-                  <span>Updating...</span>
-                </div>
-              )}
+          {/* Section Header */}
+          <div className="text-center mb-8 md:mb-12">
+            <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <MapPin className="w-4 h-4" />
+              <span>Latest Adventures</span>
             </div>
-            <div className="flex gap-2">
+            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Recently Hidden Treasures
+            </h3>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Discover the newest geocaches hidden by adventurers around the world. Each one waiting for you to find it.
+            </p>
+            
+            {/* Action buttons */}
+            <div className="flex items-center justify-center gap-3 mt-6">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={refresh}
-                className="hidden sm:flex"
+                className="flex items-center gap-2"
                 title="Refresh geocaches"
                 disabled={isLoading && !hasInitialData}
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading && !hasInitialData ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
-              <Link to="/map" className="hidden sm:block">
-                <Button variant="outline">View All</Button>
+              <Link to="/map">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  <span>Explore All</span>
+                </Button>
               </Link>
+              {isStale && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <span>Updating...</span>
+                </div>
+              )}
             </div>
           </div>
           
@@ -254,23 +291,63 @@ export default function Home() {
             data={geocaches}
             error={error}
             onRetry={refresh}
-            skeletonCount={QUERY_LIMITS.HOME_PAGE_LIMIT}
-            skeletonVariant="default"
+            skeletonCount={skeletonCount}
+            skeletonVariant="featured"
             emptyState={
-              <EmptyStateCard
-                icon={MapPin}
-                title="No geocaches found yet."
-                description="Be the first to hide one!"
-              />
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 flex items-center justify-center">
+                  <MapPin className="w-8 h-8 text-green-600" />
+                </div>
+                <h4 className="text-lg font-semibold text-foreground mb-2">No treasures found yet</h4>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  Be the first explorer to hide a geocache and start the adventure!
+                </p>
+                {user ? (
+                  <Link to="/create">
+                    <Button className="bg-green-600 hover:bg-green-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Hide Your First Treasure
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button onClick={handleLoginClick} className="bg-green-600 hover:bg-green-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Login to Hide Treasures
+                  </Button>
+                )}
+              </div>
             }
           >
-            <GeocacheList 
-              geocaches={geocaches} 
-              isLoading={isStale}
-            />
-            <div className="mt-6 text-center sm:hidden">
+            {/* Featured Grid Layout */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {geocaches.slice(0, 6).map((geocache) => (
+                <GeocacheCard
+                  key={geocache.id}
+                  cache={geocache}
+                  variant="featured"
+                />
+              ))}
+            </div>
+            
+            {/* Show more button if there are more caches */}
+            {geocaches.length > 6 && (
+              <div className="text-center mt-8">
+                <Link to="/map">
+                  <Button variant="outline" size="lg" className="group">
+                    <Search className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                    Discover {geocaches.length - 6} More Treasures
+                  </Button>
+                </Link>
+              </div>
+            )}
+            
+            {/* Mobile view all button */}
+            <div className="mt-8 text-center sm:hidden">
               <Link to="/map">
-                <Button variant="outline" className="w-full">View All Geocaches</Button>
+                <Button variant="outline" className="w-full">
+                  <Search className="h-4 w-4 mr-2" />
+                  View All Geocaches
+                </Button>
               </Link>
             </div>
           </SmartLoadingState>
