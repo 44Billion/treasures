@@ -149,175 +149,166 @@ export function OfflineSettings() {
   return (
     <div className="space-y-6">
       {/* Connection Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {isOnline ? (
-              <Wifi className="h-5 w-5 text-green-500" />
-            ) : (
-              <WifiOff className="h-5 w-5 text-red-500" />
-            )}
-            Connection Status
-          </CardTitle>
-          <CardDescription>
-            Current network status and synchronization information
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-              <div className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                {isConnected ? `Connected (${connectionQuality})` : 'Offline'}
-              </div>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          {isOnline ? (
+            <Wifi className="h-4 w-4 text-green-500" />
+          ) : (
+            <WifiOff className="h-4 w-4 text-red-500" />
+          )}
+          <h3 className="font-medium">Connection Status</h3>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground">Status</Label>
+            <div className={`font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+              {isConnected ? `Connected (${connectionQuality})` : 'Offline'}
             </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Last Sync</Label>
-              <div className="text-sm">{formatLastSync(lastSyncTime)}</div>
-            </div>
-            {latency && (
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Latency</Label>
-                <div className="text-sm">{latency}ms</div>
-              </div>
-            )}
           </div>
-
-          {pendingActions > 0 && (
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-600" />
-                <span className="text-sm font-medium text-orange-800">
-                  {pendingActions} action{pendingActions !== 1 ? 's' : ''} pending sync
-                </span>
-              </div>
-              <Badge variant="secondary">{pendingActions}</Badge>
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground">Last Sync</Label>
+            <div className="text-sm">{formatLastSync(lastSyncTime)}</div>
+          </div>
+          {latency && (
+            <div>
+              <Label className="text-xs font-medium text-muted-foreground">Latency</Label>
+              <div className="text-sm">{latency}ms</div>
             </div>
           )}
+        </div>
 
-          {syncErrors.length > 0 && (
-            <div className="p-3 bg-red-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <span className="text-sm font-medium text-red-800">Sync Errors</span>
-              </div>
-              <div className="space-y-1">
-                {syncErrors.slice(0, 2).map((error, index) => (
-                  <div key={index} className="text-xs text-red-700 bg-red-100 p-2 rounded">
-                    {error}
-                  </div>
-                ))}
-                {syncErrors.length > 2 && (
-                  <div className="text-xs text-red-600">
-                    +{syncErrors.length - 2} more errors
-                  </div>
-                )}
-              </div>
+        {pendingActions > 0 && (
+          <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-orange-600" />
+              <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                {pendingActions} action{pendingActions !== 1 ? 's' : ''} pending sync
+              </span>
             </div>
-          )}
+            <Badge variant="secondary">{pendingActions}</Badge>
+          </div>
+        )}
 
-          <div className="flex gap-2">
+        {syncErrors.length > 0 && (
+          <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <span className="text-sm font-medium text-red-800 dark:text-red-200">Sync Errors</span>
+            </div>
+            <div className="space-y-1">
+              {syncErrors.slice(0, 2).map((error, index) => (
+                <div key={index} className="text-xs text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 p-2 rounded">
+                  {error}
+                </div>
+              ))}
+              {syncErrors.length > 2 && (
+                <div className="text-xs text-red-600 dark:text-red-400">
+                  +{syncErrors.length - 2} more errors
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button
+            onClick={handleTestConnection}
+            disabled={isTestingConnection}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            {isTestingConnection ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Wifi className="h-4 w-4 mr-2" />
+                Test Connection
+              </>
+            )}
+          </Button>
+          
+          {isConnected && (
             <Button
-              onClick={handleTestConnection}
-              disabled={isTestingConnection}
-              variant="outline"
+              onClick={handleForceSync}
+              disabled={isSyncing}
+              size="sm"
               className="flex-1"
             >
-              {isTestingConnection ? (
+              {isSyncing ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Testing...
+                  Syncing...
                 </>
               ) : (
                 <>
-                  <Wifi className="h-4 w-4 mr-2" />
-                  Test Connection
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Sync Now
                 </>
               )}
             </Button>
-            
-            {isConnected && (
-              <Button
-                onClick={handleForceSync}
-                disabled={isSyncing}
-                className="flex-1"
-              >
-                {isSyncing ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Syncing...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Sync Now
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </div>
+
+      <Separator />
 
       {/* Storage Usage */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            Storage Usage
-          </CardTitle>
-          <CardDescription>
-            Local storage usage for offline functionality
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <div className="flex justify-between text-sm mb-2">
-              <span>Used Storage</span>
-              <span>{formatBytes(storageInfo.used)} / {formatBytes(storageInfo.quota)}</span>
-            </div>
-            <Progress value={storageUsagePercent} className="h-2" />
-            <div className="text-xs text-muted-foreground mt-1">
-              {storageUsagePercent.toFixed(1)}% of available storage
-            </div>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <HardDrive className="h-4 w-4" />
+          <h3 className="font-medium">Storage Usage</h3>
+        </div>
+        
+        <div>
+          <div className="flex justify-between text-sm mb-2">
+            <span>Used Storage</span>
+            <span>{formatBytes(storageInfo.used)} / {formatBytes(storageInfo.quota)}</span>
           </div>
-
-          <Separator />
-
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-blue-500" />
-                  <span>Geocaches</span>
-                </div>
-                <Badge variant="secondary">{storageInfo.geocaches}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="h-4 w-4 text-green-500" />
-                  <span>Map Tiles</span>
-                </div>
-                <Badge variant="secondary">{storageInfo.mapTiles}</Badge>
-              </div>
-            </div>
-            
-            <Button
-              variant="outline"
-              onClick={refreshStorageInfo}
-              className="w-full"
-              size="sm"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Storage Info
-            </Button>
+          <Progress value={storageUsagePercent} className="h-2" />
+          <div className="text-xs text-muted-foreground mt-1">
+            {storageUsagePercent.toFixed(1)}% of available storage
           </div>
+        </div>
 
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-blue-500" />
+              <span>Geocaches</span>
+            </div>
+            <Badge variant="secondary">{storageInfo.geocaches}</Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-green-500" />
+              <span>Map Tiles</span>
+            </div>
+            <Badge variant="secondary">{storageInfo.mapTiles}</Badge>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={refreshStorageInfo}
+            size="sm"
+            className="flex-1"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Info
+          </Button>
+          
           <Button
             variant="destructive"
             onClick={handleClearOfflineData}
             disabled={isClearing}
-            className="w-full"
+            size="sm"
+            className="flex-1"
           >
             {isClearing ? (
               <>
@@ -327,26 +318,24 @@ export function OfflineSettings() {
             ) : (
               <>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Clear All Offline Data
+                Clear Data
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Offline Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Offline Preferences</CardTitle>
-          <CardDescription>
-            Configure how the app behaves when offline
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Separator />
+
+      {/* Offline Preferences */}
+      <div className="space-y-4">
+        <h3 className="font-medium">Offline Preferences</h3>
+        
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="auto-sync">Auto Sync</Label>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 Automatically sync when connection is restored
               </div>
             </div>
@@ -360,7 +349,7 @@ export function OfflineSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="offline-mode">Prefer Offline Mode</Label>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 Use cached data when available, even when online
               </div>
             </div>
@@ -374,7 +363,7 @@ export function OfflineSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="offline-only">Offline Only Mode</Label>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 Force app to work offline and show offline status
               </div>
             </div>
@@ -388,8 +377,8 @@ export function OfflineSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="cache-maps">Auto-cache Map Areas</Label>
-              <div className="text-sm text-muted-foreground">
-                Automatically download map tiles when viewing maps and using "Near Me"
+              <div className="text-xs text-muted-foreground">
+                Automatically download map tiles when viewing maps
               </div>
             </div>
             <Switch
@@ -398,40 +387,40 @@ export function OfflineSettings() {
               onCheckedChange={(checked) => setSetting({ key: 'autoCacheMaps', value: checked })}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <Separator />
 
       {/* Help & Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>About Offline Mode</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div className="text-amber-800 text-xs">
-              <strong>Note:</strong> Offline support is experimental and may not work perfectly in all situations.
-            </div>
+      <div className="space-y-3">
+        <h3 className="font-medium">About Offline Mode</h3>
+        
+        <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="text-amber-800 dark:text-amber-200 text-xs">
+            <strong>Note:</strong> Offline support is experimental and may not work perfectly in all situations.
           </div>
+        </div>
+        
+        <div className="text-sm text-muted-foreground space-y-2">
           <p>
             Offline mode allows you to use Treasures without an internet connection. 
             The app automatically caches geocaches, profiles, and map data as you browse.
           </p>
-          <p>
-            When offline, you can:
-          </p>
-          <ul className="list-disc list-inside space-y-1 ml-4">
+          <p>When offline, you can:</p>
+          <ul className="list-disc list-inside space-y-1 ml-4 text-xs">
             <li>View cached geocaches and their details</li>
             <li>Browse cached map areas</li>
             <li>Create logs and geocaches (synced when online)</li>
             <li>Access your saved/bookmarked caches</li>
           </ul>
-          <p>
+          <p className="text-xs">
             All changes made while offline will be automatically synchronized 
             when your connection is restored.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
