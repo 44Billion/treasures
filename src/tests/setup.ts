@@ -7,6 +7,21 @@ import '@testing-library/jest-dom';
 
 // Mock window APIs that might not be available in test environment
 beforeAll(() => {
+  // Mock window.matchMedia for theme detection
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(), // deprecated
+      removeListener: vi.fn(), // deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+
   // Mock document.visibilityState
   Object.defineProperty(document, 'visibilityState', {
     value: 'visible',

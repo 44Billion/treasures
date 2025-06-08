@@ -1,19 +1,14 @@
-import { Check, ChevronsUpDown, Wifi, Plus } from "lucide-react";
+import { Wifi, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useTheme } from "next-themes";
@@ -33,10 +28,11 @@ export function RelaySelector(props: RelaySelectorProps) {
     updateConfig((current) => ({ ...current, relayUrl: relay }));
   };
 
-  const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customUrl, setCustomUrl] = useState("");
 
   const selectedOption = presetRelays.find((option) => option.url === selectedRelay);
+  const isCustomRelay = !selectedOption && selectedRelay;
 
   // Function to normalize relay URL by adding wss:// if no protocol is present
   const normalizeRelayUrl = (url: string): string => {
@@ -53,10 +49,22 @@ export function RelaySelector(props: RelaySelectorProps) {
   };
 
   // Handle adding a custom relay
-  const handleAddCustomRelay = (url: string) => {
-    setSelectedRelay?.(normalizeRelayUrl(url));
-    setOpen(false);
-    setInputValue("");
+  const handleAddCustomRelay = () => {
+    if (customUrl.trim()) {
+      setSelectedRelay(normalizeRelayUrl(customUrl));
+      setCustomUrl("");
+      setShowCustomInput(false);
+    }
+  };
+
+  // Handle preset relay selection
+  const handlePresetSelection = (value: string) => {
+    if (value === "custom") {
+      setShowCustomInput(true);
+    } else {
+      setSelectedRelay(value);
+      setShowCustomInput(false);
+    }
   };
 
   // Check if input value looks like a valid relay URL
@@ -75,107 +83,109 @@ export function RelaySelector(props: RelaySelectorProps) {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "justify-between", 
-            isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600 hover:!text-stone-100",
-            className
-          )}
+    <div className={cn("space-y-2", className)}>
+      <div className="flex items-center gap-2">
+        <Wifi className="h-4 w-4 text-muted-foreground" />
+        <Select 
+          value={isCustomRelay ? "custom" : selectedRelay} 
+          onValueChange={handlePresetSelection}
         >
-          <div className="flex items-center gap-2">
-            <Wifi className="h-4 w-4" />
-            <span className="truncate">
+          <SelectTrigger 
+            className={cn(
+              "flex-1",
+              isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600 hover:!text-stone-100"
+            )}
+          >
+            <SelectValue placeholder="Select relay...">
               {selectedOption 
                 ? selectedOption.name 
-                : selectedRelay 
+                : isCustomRelay 
                   ? selectedRelay.replace(/^wss?:\/\//, '')
                   : "Select relay..."
               }
-            </span>
-          </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput 
-            placeholder="Search relays or type URL..." 
-            value={inputValue}
-            onValueChange={setInputValue}
-          />
-          <CommandList>
-            <CommandEmpty>
-              {inputValue && isValidRelayInput(inputValue) ? (
-                <CommandItem
-                  onSelect={() => handleAddCustomRelay(inputValue)}
-                  className="cursor-pointer"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  <div className="flex flex-col">
-                    <span className="font-medium">Add custom relay</span>
-                    <span className="text-xs text-muted-foreground">
-                      {normalizeRelayUrl(inputValue)}
-                    </span>
-                  </div>
-                </CommandItem>
-              ) : (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  {inputValue ? "Invalid relay URL" : "No relay found."}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {presetRelays.map((option) => (
+              <SelectItem key={option.url} value={option.url}>
+                <div className="flex flex-col">
+                  <span className="font-medium">{option.name}</span>
+                  <span className="text-xs text-muted-foreground">{option.url}</span>
                 </div>
-              )}
-            </CommandEmpty>
-            <CommandGroup>
-              {presetRelays
-                .filter((option) => 
-                  !inputValue || 
-                  option.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-                  option.url.toLowerCase().includes(inputValue.toLowerCase())
-                )
-                .map((option) => (
-                  <CommandItem
-                    key={option.url}
-                    value={option.url}
-                    onSelect={(currentValue) => {
-                      setSelectedRelay(normalizeRelayUrl(currentValue));
-                      setOpen(false);
-                      setInputValue("");
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedRelay === option.url ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.name}</span>
-                      <span className="text-xs text-muted-foreground">{option.url}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              {inputValue && isValidRelayInput(inputValue) && (
-                <CommandItem
-                  onSelect={() => handleAddCustomRelay(inputValue)}
-                  className="cursor-pointer border-t"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  <div className="flex flex-col">
-                    <span className="font-medium">Add custom relay</span>
-                    <span className="text-xs text-muted-foreground">
-                      {normalizeRelayUrl(inputValue)}
-                    </span>
-                  </div>
-                </CommandItem>
-              )}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+              </SelectItem>
+            ))}
+            <SelectItem value="custom">
+              <div className="flex items-center">
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Add custom relay...</span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        
+        {isCustomRelay && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              setSelectedRelay("");
+              setShowCustomInput(false);
+            }}
+            className={cn(
+              "shrink-0",
+              isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600 hover:!text-stone-100"
+            )}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {showCustomInput && (
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="wss://relay.example.com"
+            value={customUrl}
+            onChange={(e) => setCustomUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleAddCustomRelay();
+              } else if (e.key === 'Escape') {
+                setShowCustomInput(false);
+                setCustomUrl("");
+              }
+            }}
+            className={cn(
+              "flex-1",
+              isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 placeholder:!text-stone-400"
+            )}
+            autoFocus
+          />
+          <Button
+            onClick={handleAddCustomRelay}
+            disabled={!isValidRelayInput(customUrl)}
+            size="sm"
+            className={cn(
+              isAdventureTheme && "!bg-stone-600 !text-stone-100 hover:!bg-stone-500"
+            )}
+          >
+            Add
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowCustomInput(false);
+              setCustomUrl("");
+            }}
+            size="sm"
+            className={cn(
+              isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600"
+            )}
+          >
+            Cancel
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
