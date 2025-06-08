@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { FullPageLoading } from "@/components/ui/loading";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 // Import core/frequently used pages directly for instant navigation (no lazy loading)
 import Home from "./pages/Home";
@@ -20,6 +21,9 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 export function AppRouter() {
   return (
     <BrowserRouter>
+      {/* Scroll to top on route changes */}
+      <ScrollToTop />
+      
       {/* Mobile Header */}
       <MobileHeader />
       
