@@ -44,7 +44,7 @@ export default defineConfig(() => ({
         skipWaiting: true,
         clientsClaim: true,
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png', 'icon-192x192.png', 'icon-192x192-maskable.png', 'icon-512x512.png', 'icon-512x512-maskable.png'],
+      includeAssets: ['favicon.ico', 'icon.png', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png', 'icon-144x144.png', 'icon-192x192.png', 'icon-192x192-maskable.png', 'icon-512x512.png', 'icon-512x512-maskable.png'],
       manifest: {
         name: 'Treasures - Decentralized Geocaching',
         short_name: 'Treasures',
@@ -59,10 +59,10 @@ export default defineConfig(() => ({
         permissions: ['geolocation', 'device-orientation'],
         icons: [
           {
-            src: 'icon-192x192-maskable.png',
-            sizes: '192x192',
+            src: 'icon-144x144.png',
+            sizes: '144x144',
             type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'any'
           },
           {
             src: 'icon-192x192.png',
@@ -71,8 +71,8 @@ export default defineConfig(() => ({
             purpose: 'any'
           },
           {
-            src: 'icon-512x512-maskable.png',
-            sizes: '512x512',
+            src: 'icon-192x192-maskable.png',
+            sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           },
@@ -83,12 +83,23 @@ export default defineConfig(() => ({
             purpose: 'any'
           },
           {
+            src: 'icon-512x512-maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: 'icon.png',
+            sizes: '1024x1024',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
             src: 'apple-touch-icon.png',
             sizes: '180x180',
             type: 'image/png',
             purpose: 'any'
-          },
-
+          }
         ]
       }
     })
