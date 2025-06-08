@@ -24,7 +24,21 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { useToast } from "@/hooks/useToast";
 import { verifyLocation, getVerificationSummary, type LocationVerification } from "@/lib/osmVerification";
 import { LocationWarnings } from "@/components/LocationWarnings";
-import { GeocacheForm, createDefaultGeocacheFormData, type GeocacheFormData } from "@/components/ui/geocache-form";
+import { 
+  GeocacheForm, 
+  createDefaultGeocacheFormData, 
+  type GeocacheFormData,
+  CacheNameField,
+  CacheDescriptionField,
+  CacheHintField,
+  CacheDifficultyField,
+  CacheTerrainField,
+  CacheTypeField,
+  CacheSizeField,
+  CacheImageManager,
+  CacheHiddenField
+} from "@/components/ui/geocache-form";
+import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import { mapIcons } from "@/lib/mapIcons";
 
 import "leaflet/dist/leaflet.css";
@@ -79,11 +93,63 @@ export default function CreateCache() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [createdNaddr, setCreatedNaddr] = useState<string>('');
   const [verificationKeyPair, setVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
+
+  // Handle location verification when location changes
+  const handleLocationChange = async (newLocation: { lat: number; lng: number } | null) => {
+    setLocation(newLocation);
+    
+    if (newLocation && currentStep === 1) {
+      setIsVerifying(true);
+      try {
+        const verification = await verifyLocation(newLocation.lat, newLocation.lng);
+        setLocationVerification(verification);
+      } catch (error) {
+        // Set a fallback verification with warning
+        setLocationVerification({
+          isRestricted: false,
+          warnings: ['Unable to verify location restrictions. Please manually verify the location is appropriate.'],
+          nearbyFeatures: [],
+          accessibility: {
+            wheelchair: undefined,
+            parking: undefined,
+            publicTransport: undefined,
+            fee: undefined,
+            openingHours: undefined,
+          },
+          terrain: {
+            surface: undefined,
+            hazards: [],
+            lit: undefined,
+            covered: undefined,
+          },
+          legal: {
+            restrictions: [],
+          },
+          environmental: {
+            nesting: undefined,
+            protected: undefined,
+            leaveNoTrace: undefined,
+          },
+          safety: {
+            surveillance: undefined,
+            cellCoverage: undefined,
+            lighting: undefined,
+          },
+        });
+      } finally {
+        setIsVerifying(false);
+      }
+    } else if (!newLocation) {
+      setLocationVerification(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,52 +181,8 @@ export default function CreateCache() {
       return;
     }
 
-    // Verify location before showing dialog
-    setIsVerifying(true);
-    try {
-      const verification = await verifyLocation(location.lat, location.lng);
-      setLocationVerification(verification);
-      
-      // Always show confirmation dialog, even for restricted locations
-      // The dialog will display appropriate warnings
-      setShowConfirmDialog(true);
-    } catch (error) {
-      // Still show dialog but with a warning
-      setLocationVerification({
-        isRestricted: false,
-        warnings: ['Unable to verify location restrictions. Please manually verify the location is appropriate.'],
-        nearbyFeatures: [],
-        accessibility: {
-          wheelchair: undefined,
-          parking: undefined,
-          publicTransport: undefined,
-          fee: undefined,
-          openingHours: undefined,
-        },
-        terrain: {
-          surface: undefined,
-          hazards: [],
-          lit: undefined,
-          covered: undefined,
-        },
-        legal: {
-          restrictions: [],
-        },
-        environmental: {
-          nesting: undefined,
-          protected: undefined,
-          leaveNoTrace: undefined,
-        },
-        safety: {
-          surveillance: undefined,
-          cellCoverage: undefined,
-          lighting: undefined,
-        },
-      });
-      setShowConfirmDialog(true);
-    } finally {
-      setIsVerifying(false);
-    }
+    // Location should already be verified from step 1, so just show confirmation
+    setShowConfirmDialog(true);
   };
 
   const handleConfirmSubmit = () => {
@@ -216,44 +238,464 @@ export default function CreateCache() {
 
   return (
     <PageLayout maxWidth="2xl" background="muted" className="pb-4 md:pb-0">
-      <Card className="max-w-2xl mx-auto">
+      {/* Mobile: No card wrapper, desktop: Card wrapper */}
+      <div className="max-w-2xl mx-auto">
+        {/* Header - mobile only */}
+        <div className="md:hidden px-4 py-6">
+          <h1 className="text-2xl font-bold">Hide a New Treasure</h1>
+          <p className="text-muted-foreground mt-2">
+            Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully - 
+            they help seekers know what to expect and prepare appropriately.
+          </p>
+        </div>
+        
+        {/* Desktop Card Header */}
+        <Card className="hidden md:block">
           <CardHeader>
             <CardTitle>Hide a New Treasure</CardTitle>
             <CardDescription>
-              Create a new geocache for others to discover. Make sure to provide accurate information
-              and follow local regulations.
+              Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully - 
+              they help seekers know what to expect and prepare appropriately.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Main Form */}
-              <GeocacheForm
-                formData={formData}
-                onFormDataChange={setFormData}
-                images={images}
-                onImagesChange={setImages}
-                showRequiredMarkers={true}
-                isSubmitting={isPending || isVerifying}
-              />
-
-              {/* Location */}
-              <div>
-                <Label>Location *</Label>
-                <LocationPicker
-                  value={location}
-                  onChange={setLocation}
-                />
+              {/* Progress Indicator */}
+              <div className="flex items-center justify-center mb-4 max-w-md mx-auto">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      step < currentStep ? 'bg-green-500 text-white' :
+                      step === currentStep ? 'bg-blue-500 text-white' :
+                      'bg-gray-200 text-gray-500'
+                    }`}>
+                      {step < currentStep ? '✓' : step}
+                    </div>
+                    {step < totalSteps && (
+                      <div className={`h-1 mx-3 ${
+                        step < currentStep ? 'bg-green-500' : 'bg-gray-200'
+                      } w-16 md:w-24`} />
+                    )}
+                  </div>
+                ))}
               </div>
 
-              <Alert>
-                <AlertDescription>
-                  By creating this geocache, you confirm that you have permission to place it at this location
-                  and that it complies with all local laws and regulations.
-                </AlertDescription>
-              </Alert>
+              {/* Step Content */}
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold mb-1">Choose the location</h3>
+                    <p className="text-sm text-muted-foreground">Where will seekers find your treasure?</p>
+                  </div>
+                  
+                  <div>
+                    <Label>Location *</Label>
+                    <LocationPicker
+                      value={location}
+                      onChange={handleLocationChange}
+                    />
+                  </div>
+                  
+                  {isVerifying && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CompassSpinner size={16} variant="component" />
+                      Checking location restrictions...
+                    </div>
+                  )}
+                  
+                  {locationVerification && (
+                    <LocationWarnings 
+                      verification={locationVerification} 
+                      className="space-y-2"
+                      hideCreatorWarnings={true}
+                    />
+                  )}
+                  
+                  <Alert>
+                    <AlertDescription>
+                      Make sure you have permission to place a cache at this location and that it's publicly accessible.
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={isPending || isVerifying} className="flex-1">
+              {currentStep === 2 && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold mb-1">Tell us about your cache</h3>
+                    <p className="text-sm text-muted-foreground">Give your treasure a name and description</p>
+                  </div>
+                  
+                  <CacheNameField
+                    value={formData.name}
+                    onChange={(value) => setFormData({...formData, name: value})}
+                    required={true}
+                  />
+                  
+                  <CacheDescriptionField
+                    value={formData.description}
+                    onChange={(value) => setFormData({...formData, description: value})}
+                    required={true}
+                  />
+                  
+                  <CacheHintField
+                    value={formData.hint}
+                    onChange={(value) => setFormData({...formData, hint: value})}
+                  />
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold mb-1">Set the challenge level</h3>
+                    <p className="text-sm text-muted-foreground">Help seekers know what to expect</p>
+                  </div>
+                  
+                  <CacheDifficultyField
+                    value={formData.difficulty}
+                    onChange={(value) => setFormData({...formData, difficulty: value})}
+                  />
+                  
+                  <CacheTerrainField
+                    value={formData.terrain}
+                    onChange={(value) => setFormData({...formData, terrain: value})}
+                  />
+                  
+                  <div className="space-y-4">
+                    <CacheTypeField
+                      value={formData.type}
+                      onChange={(value) => setFormData({...formData, type: value})}
+                    />
+                    
+                    <CacheSizeField
+                      value={formData.size}
+                      onChange={(value) => setFormData({...formData, size: value})}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold mb-1">Add photos & final touches</h3>
+                    <p className="text-sm text-muted-foreground">Help seekers identify the area</p>
+                  </div>
+                  
+                  <CacheImageManager
+                    images={images}
+                    onImagesChange={setImages}
+                    disabled={isPending || isVerifying}
+                  />
+                  
+                  <CacheHiddenField
+                    checked={formData.hidden || false}
+                    onChange={(checked) => setFormData({...formData, hidden: checked})}
+                  />
+                  
+                  {/* Preview */}
+                  <div className="bg-muted/20 border border-muted rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview: How your cache will appear</h4>
+                    <div className="space-y-2">
+                      <h5 className="font-medium">{formData.name || "Your Cache Name"}</h5>
+                      <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
+                      <DifficultyTerrainRating
+                        difficulty={parseInt(formData.difficulty) || 1}
+                        terrain={parseInt(formData.terrain) || 1}
+                        cacheSize={formData.size}
+                        showLabels={true}
+                        size="small"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-4 pt-4">
+                {currentStep > 1 && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(currentStep - 1)}
+                    className="flex-1"
+                  >
+                    ← Previous
+                  </Button>
+                )}
+                
+                {currentStep < totalSteps ? (
+                  <Button 
+                    type="button" 
+                    onClick={() => {
+                      // Validate current step
+                      if (currentStep === 1 && !location) {
+                        toast({
+                          title: "Please select a location",
+                          description: "Location is required to continue",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      if (currentStep === 1 && location && !locationVerification) {
+                        toast({
+                          title: "Verifying location",
+                          description: "Please wait while we verify your location",
+                          variant: "default",
+                        });
+                        return;
+                      }
+                      if (currentStep === 2 && (!formData.name.trim() || !formData.description.trim())) {
+                        toast({
+                          title: "Please complete required fields",
+                          description: "Name and description are required",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      setCurrentStep(currentStep + 1);
+                    }}
+                    className="flex-1"
+                  >
+                    Next →
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit" 
+                    disabled={isPending || isVerifying} 
+                    className="flex-1"
+                  >
+                    {isVerifying ? (
+                      <>
+                        <CompassSpinner size={16} variant="component" className="mr-2" />
+                        Verifying Location...
+                      </>
+                    ) : isPending ? (
+                      "Creating..."
+                    ) : (
+                      "Create Geocache"
+                    )}
+                  </Button>
+                )}
+                
+                <Button type="button" variant="outline" onClick={() => navigate("/")}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+        
+        {/* Mobile Form - no card wrapper */}
+        <div className="md:hidden px-4 pb-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-center mb-4 max-w-md mx-auto">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    step < currentStep ? 'bg-green-500 text-white' :
+                    step === currentStep ? 'bg-blue-500 text-white' :
+                    'bg-gray-200 text-gray-500'
+                  }`}>
+                    {step < currentStep ? '✓' : step}
+                  </div>
+                  {step < totalSteps && (
+                    <div className={`h-1 mx-3 ${
+                      step < currentStep ? 'bg-green-500' : 'bg-gray-200'
+                    } w-16 md:w-24`} />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Step Content */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold mb-1">Choose the location</h3>
+                  <p className="text-sm text-muted-foreground">Where will seekers find your treasure?</p>
+                </div>
+                
+                <div>
+                  <Label>Location *</Label>
+                  <LocationPicker
+                    value={location}
+                    onChange={handleLocationChange}
+                  />
+                </div>
+                
+                {isVerifying && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CompassSpinner size={16} variant="component" />
+                    Checking location restrictions...
+                  </div>
+                )}
+                
+                {locationVerification && (
+                  <LocationWarnings 
+                    verification={locationVerification} 
+                    className="space-y-2"
+                    hideCreatorWarnings={true}
+                  />
+                )}
+                
+                <Alert>
+                  <AlertDescription>
+                    Make sure you have permission to place a cache at this location and that it's publicly accessible.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold mb-1">Tell us about your cache</h3>
+                  <p className="text-sm text-muted-foreground">Give your treasure a name and description</p>
+                </div>
+                
+                <CacheNameField
+                  value={formData.name}
+                  onChange={(value) => setFormData({...formData, name: value})}
+                  required={true}
+                />
+                
+                <CacheDescriptionField
+                  value={formData.description}
+                  onChange={(value) => setFormData({...formData, description: value})}
+                  required={true}
+                />
+                
+                <CacheHintField
+                  value={formData.hint}
+                  onChange={(value) => setFormData({...formData, hint: value})}
+                />
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold mb-1">Set the challenge level</h3>
+                  <p className="text-sm text-muted-foreground">Help seekers know what to expect</p>
+                </div>
+                
+                <CacheDifficultyField
+                  value={formData.difficulty}
+                  onChange={(value) => setFormData({...formData, difficulty: value})}
+                />
+                
+                <CacheTerrainField
+                  value={formData.terrain}
+                  onChange={(value) => setFormData({...formData, terrain: value})}
+                />
+                
+                <div className="space-y-4">
+                  <CacheTypeField
+                    value={formData.type}
+                    onChange={(value) => setFormData({...formData, type: value})}
+                  />
+                  
+                  <CacheSizeField
+                    value={formData.size}
+                    onChange={(value) => setFormData({...formData, size: value})}
+                  />
+                </div>
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold mb-1">Add photos & final touches</h3>
+                  <p className="text-sm text-muted-foreground">Help seekers identify the area</p>
+                </div>
+                
+                <CacheImageManager
+                  images={images}
+                  onImagesChange={setImages}
+                  disabled={isPending || isVerifying}
+                />
+                
+                <CacheHiddenField
+                  checked={formData.hidden || false}
+                  onChange={(checked) => setFormData({...formData, hidden: checked})}
+                />
+                
+                {/* Preview */}
+                <div className="bg-muted/20 border border-muted rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview: How your cache will appear</h4>
+                  <div className="space-y-2">
+                    <h5 className="font-medium">{formData.name || "Your Cache Name"}</h5>
+                    <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
+                    <DifficultyTerrainRating
+                      difficulty={parseInt(formData.difficulty) || 1}
+                      terrain={parseInt(formData.terrain) || 1}
+                      cacheSize={formData.size}
+                      showLabels={true}
+                      size="small"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-4 pt-4">
+              {currentStep > 1 && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  className="flex-1"
+                >
+                  ← Previous
+                </Button>
+              )}
+              
+              {currentStep < totalSteps ? (
+                <Button 
+                  type="button" 
+                  onClick={() => {
+                    // Validate current step
+                    if (currentStep === 1 && !location) {
+                      toast({
+                        title: "Please select a location",
+                        description: "Location is required to continue",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (currentStep === 1 && location && !locationVerification) {
+                      toast({
+                        title: "Verifying location",
+                        description: "Please wait while we verify your location",
+                        variant: "default",
+                      });
+                      return;
+                    }
+                    if (currentStep === 2 && (!formData.name.trim() || !formData.description.trim())) {
+                      toast({
+                        title: "Please complete required fields",
+                        description: "Name and description are required",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    setCurrentStep(currentStep + 1);
+                  }}
+                  className="flex-1"
+                >
+                  Next →
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  disabled={isPending || isVerifying} 
+                  className="flex-1"
+                >
                   {isVerifying ? (
                     <>
                       <CompassSpinner size={16} variant="component" className="mr-2" />
@@ -265,13 +707,15 @@ export default function CreateCache() {
                     "Create Geocache"
                   )}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate("/")}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+              )}
+              
+              <Button type="button" variant="outline" onClick={() => navigate("/")}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       {/* Location Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
@@ -348,6 +792,7 @@ export default function CreateCache() {
                   <LocationWarnings 
                     verification={locationVerification} 
                     className="space-y-2"
+                    hideCreatorWarnings={false}
                   />
                 )}
 
@@ -373,7 +818,7 @@ export default function CreateCache() {
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4" />
-                  Confirm & Create Cache
+                  Create Geocache
                 </>
               )}
             </AlertDialogAction>

@@ -116,9 +116,12 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         lng: lng.toFixed(6) 
       });
       
-      // Don't automatically set the cache location - user must click on map
+      // If no pin has been set yet, automatically set it at current location
+      if (!value) {
+        onChange(location);
+      }
     }
-  }, [coords]);
+  }, [coords, value, onChange]);
 
   const handleGetCurrentLocation = () => {
     getLocation();

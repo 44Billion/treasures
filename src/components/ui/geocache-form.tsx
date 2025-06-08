@@ -1,5 +1,6 @@
 import React from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Compass, HelpCircle, Dot, Square, Package, Archive, Accessibility, User, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu } from 'lucide-react';
+import { getCacheIcon } from '@/lib/cacheIcons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BlurredImage } from '@/components/BlurredImage';
+import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rating';
 import { useUploadFile } from '@/hooks/useUploadFile';
 import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
@@ -46,8 +48,15 @@ interface CacheNameFieldProps {
 }
 
 export function CacheNameField({ value, onChange, required = false, fieldId = "name" }: CacheNameFieldProps) {
+  const suggestions = [
+    "Hidden Treasure at [Location]",
+    "Secret of [Landmark]", 
+    "[Location] Mystery Cache",
+    "Adventure at [Place]"
+  ];
+
   return (
-    <div>
+    <div className="space-y-2">
       <Label htmlFor={fieldId}>
         Cache Name{required && ' *'}
       </Label>
@@ -58,6 +67,23 @@ export function CacheNameField({ value, onChange, required = false, fieldId = "n
         placeholder="Give your cache a memorable name"
         required={required}
       />
+      {!value && (
+        <div className="text-xs text-muted-foreground">
+          <p className="mb-1">Name ideas:</p>
+          <div className="flex flex-wrap gap-1">
+            {suggestions.map((suggestion, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onChange(suggestion)}
+                className="px-2 py-1 bg-muted/50 hover:bg-muted rounded text-xs transition-colors"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -138,50 +164,390 @@ function CacheSelectField({ value, onChange, label, fieldId, options }: CacheSel
 }
 
 export function CacheTypeField({ value, onChange, fieldId = "type" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+  const typeOptions = [
+    { 
+      value: "traditional", 
+      name: "Traditional", 
+      description: "Classic geocache at given coordinates",
+      example: "Container hidden at the exact GPS location"
+    },
+    { 
+      value: "multi", 
+      name: "Multi-Cache", 
+      description: "Multiple stages leading to final cache",
+      example: "Visit several waypoints to gather final coordinates"
+    },
+    { 
+      value: "mystery", 
+      name: "Mystery/Puzzle", 
+      description: "Solve a puzzle to find coordinates",
+      example: "Decode clues, solve riddles, or complete challenges"
+    }
+  ];
+  
   return (
-    <CacheSelectField
-      value={value}
-      onChange={onChange}
-      label="Cache Type"
-      fieldId={fieldId}
-      options={CACHE_TYPE_OPTIONS}
-    />
+    <div className="space-y-3">
+      <Label>
+        What type of cache?
+        <span className="text-xs text-muted-foreground block mt-1">Choose the cache style</span>
+      </Label>
+      
+      <div className="grid grid-cols-3 gap-2">
+        {typeOptions.map((type) => {
+          return (
+            <button
+              key={type.value}
+              type="button"
+              onClick={() => onChange(type.value)}
+              className={`p-2 rounded-lg border text-center transition-all ${
+                value === type.value
+                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
+                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+              }`}
+            >
+              <div className="h-5 w-5 mx-auto mb-1">
+                {getCacheIcon(type.value, 'md')}
+              </div>
+              <span className="font-medium text-xs">{type.name}</span>
+            </button>
+          );
+        })}
+      </div>
+      
+      {value && (
+        <div className="bg-muted/30 p-2 rounded-md">
+          <p className="text-xs text-orange-700 dark:text-orange-300">
+            {typeOptions.find(t => t.value === value)?.description}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
 export function CacheSizeField({ value, onChange, fieldId = "size" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+  const sizeOptions = [
+    { 
+      value: "micro", 
+      name: "Micro", 
+      icon: Dot,
+      description: "Film canister or smaller",
+      example: "Pill bottle, magnetic nano"
+    },
+    { 
+      value: "small", 
+      name: "Small", 
+      icon: Square,
+      description: "Sandwich container size",
+      example: "Small tupperware, mint tin"
+    },
+    { 
+      value: "regular", 
+      name: "Regular", 
+      icon: Package,
+      description: "Shoebox or tupperware",
+      example: "Lock & lock container, shoebox"
+    },
+    { 
+      value: "large", 
+      name: "Large", 
+      icon: Archive,
+      description: "Bucket or ammo can",
+      example: "Ammo can, large storage box"
+    },
+    { 
+      value: "other", 
+      name: "Other", 
+      icon: HelpCircle,
+      description: "Unusual or virtual cache",
+      example: "Virtual cache, unusual container"
+    }
+  ];
+  
   return (
-    <CacheSelectField
-      value={value}
-      onChange={onChange}
-      label="Cache Size"
-      fieldId={fieldId}
-      options={CACHE_SIZE_OPTIONS}
-    />
+    <div className="space-y-3">
+      <Label>
+        Container size
+        <span className="text-xs text-muted-foreground block mt-1">Choose the container size</span>
+      </Label>
+      
+      <div className="grid grid-cols-5 gap-2">
+        {sizeOptions.map((size) => {
+          const IconComponent = size.icon;
+          return (
+            <button
+              key={size.value}
+              type="button"
+              onClick={() => onChange(size.value)}
+              className={`p-2 rounded-lg border text-center transition-all ${
+                value === size.value
+                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-950'
+                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+              }`}
+            >
+              <IconComponent className={`mx-auto mb-1 text-purple-600 ${
+                size.value === 'micro' ? 'h-3 w-3' :
+                size.value === 'small' ? 'h-4 w-4' :
+                size.value === 'regular' ? 'h-5 w-5' :
+                size.value === 'large' ? 'h-6 w-6' :
+                'h-5 w-5'
+              }`} />
+              <div className="font-medium text-xs">{size.name}</div>
+            </button>
+          );
+        })}
+      </div>
+      
+      {value && (
+        <div className="bg-muted/30 p-2 rounded-md">
+          <p className="text-xs text-purple-700 dark:text-purple-300">
+            {sizeOptions.find(s => s.value === value)?.description}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
 export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+  const numericValue = parseInt(value) || 1;
+  
+  const difficultyLevels = [
+    { 
+      level: 1, 
+      name: "Easy", 
+      icon: Eye,
+      description: "Simple find, minimal thinking required",
+      example: "Cache is visible or in an obvious hiding spot"
+    },
+    { 
+      level: 2, 
+      name: "Moderate", 
+      icon: Search,
+      description: "Some problem-solving needed",
+      example: "May require reading clues or simple puzzle solving"
+    },
+    { 
+      level: 3, 
+      name: "Challenging", 
+      icon: Brain,
+      description: "Requires planning and effort",
+      example: "Multi-step puzzle or research required"
+    },
+    { 
+      level: 4, 
+      name: "Hard", 
+      icon: Lightbulb,
+      description: "Challenging, may need special skills",
+      example: "Complex puzzles, special tools, or knowledge needed"
+    },
+    { 
+      level: 5, 
+      name: "Expert", 
+      icon: Cpu,
+      description: "Extremely difficult, expert level",
+      example: "Advanced cryptography, specialized skills required"
+    }
+  ];
+  
   return (
-    <CacheSelectField
-      value={value}
-      onChange={onChange}
-      label="Difficulty"
-      fieldId={fieldId}
-      options={DIFFICULTY_TERRAIN_OPTIONS}
-    />
+    <div className="space-y-3">
+      <Label>
+        How hard is it to solve?
+        <span className="text-xs text-muted-foreground block mt-1">Mental challenge level</span>
+      </Label>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 justify-items-center">
+        {difficultyLevels.slice(0, 3).map((level) => {
+          const IconComponent = level.icon;
+          return (
+            <button
+              key={level.level}
+              type="button"
+              onClick={() => onChange(level.level.toString())}
+              className={`p-2 rounded-lg border text-center transition-all w-full ${
+                numericValue === level.level
+                  ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+              }`}
+            >
+                <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                <div className="flex gap-1 justify-center mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded ${
+                        i <= level.level ? "bg-green-600" : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-medium text-xs">{level.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        {/* Last row - always centered */}
+        <div className="col-span-2 md:col-span-3 flex gap-2 justify-center">
+          {difficultyLevels.slice(3).map((level) => {
+            const IconComponent = level.icon;
+            return (
+              <button
+                key={level.level}
+                type="button"
+                onClick={() => onChange(level.level.toString())}
+                className={`p-2 rounded-lg border text-center transition-all w-24 md:w-28 ${
+                  numericValue === level.level
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                }`}
+              >
+              <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+              <div className="flex gap-1 justify-center mb-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded ${
+                      i <= level.level ? "bg-green-600" : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="font-medium text-xs">{level.name}</span>
+            </button>
+          );
+        })}
+      </div>
+      
+      {numericValue > 0 && (
+        <div className="bg-muted/30 p-2 rounded-md">
+          <p className="text-xs text-green-700 dark:text-green-300">
+            {difficultyLevels.find(l => l.level === numericValue)?.description}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
 export function CacheTerrainField({ value, onChange, fieldId = "terrain" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+  const numericValue = parseInt(value) || 1;
+  
+  const terrainLevels = [
+    { 
+      level: 1, 
+      name: "Easy Walk", 
+      icon: Accessibility,
+      description: "Wheelchair accessible, paved paths",
+      example: "Sidewalks, parking lots, accessible trails"
+    },
+    { 
+      level: 2, 
+      name: "Light Hike", 
+      icon: User,
+      description: "Suitable for most, minor obstacles",
+      example: "Gravel paths, slight inclines, easy trails"
+    },
+    { 
+      level: 3, 
+      name: "Moderate Hike", 
+      icon: Footprints,
+      description: "Not suitable for all, some climbing",
+      example: "Uneven terrain, hills, some scrambling"
+    },
+    { 
+      level: 4, 
+      name: "Difficult Hike", 
+      icon: Mountain,
+      description: "Experienced hikers, special equipment",
+      example: "Steep climbs, rough terrain, may need gear"
+    },
+    { 
+      level: 5, 
+      name: "Extreme", 
+      icon: Pickaxe,
+      description: "Extreme conditions, serious hazards",
+      example: "Rock climbing, dangerous conditions, expert only"
+    }
+  ];
+  
   return (
-    <CacheSelectField
-      value={value}
-      onChange={onChange}
-      label="Terrain"
-      fieldId={fieldId}
-      options={DIFFICULTY_TERRAIN_OPTIONS}
-    />
+    <div className="space-y-3">
+      <Label>
+        How hard is it to reach?
+        <span className="text-xs text-muted-foreground block mt-1">Physical challenge level</span>
+      </Label>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 justify-items-center">
+        {terrainLevels.slice(0, 3).map((level) => {
+          const IconComponent = level.icon;
+          return (
+            <button
+              key={level.level}
+              type="button"
+              onClick={() => onChange(level.level.toString())}
+              className={`p-2 rounded-lg border text-center transition-all w-full ${
+                numericValue === level.level
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+              }`}
+            >
+                <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+                <div className="flex gap-1 justify-center mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded ${
+                        i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-medium text-xs">{level.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        {/* Last row - always centered */}
+        <div className="col-span-2 md:col-span-3 flex gap-2 justify-center">
+          {terrainLevels.slice(3).map((level) => {
+            const IconComponent = level.icon;
+            return (
+              <button
+                key={level.level}
+                type="button"
+                onClick={() => onChange(level.level.toString())}
+                className={`p-2 rounded-lg border text-center transition-all w-24 md:w-28 ${
+                  numericValue === level.level
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                }`}
+              >
+              <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+              <div className="flex gap-1 justify-center mb-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded ${
+                      i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="font-medium text-xs">{level.name}</span>
+            </button>
+          );
+        })}
+      </div>
+      
+      {numericValue > 0 && (
+        <div className="bg-muted/30 p-2 rounded-md">
+          <p className="text-xs text-blue-700 dark:text-blue-300">
+            {terrainLevels.find(l => l.level === numericValue)?.description}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -328,9 +694,14 @@ export function GeocacheForm({
   };
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("space-y-6", className)}>
       {/* Basic Information */}
       <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-medium">Basic Information</h3>
+          <p className="text-sm text-muted-foreground">Tell seekers about your cache</p>
+        </div>
+        
         <CacheNameField
           value={formData.name}
           onChange={(value) => updateField('name', value)}
@@ -352,48 +723,81 @@ export function GeocacheForm({
         />
       </div>
 
-      {/* Cache Details Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <CacheTypeField
-          value={formData.type}
-          onChange={(value) => updateField('type', value)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-type` : 'type'}
-        />
+      {/* Cache Properties */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-medium">Cache Properties</h3>
+          <p className="text-sm text-muted-foreground">Set the type, size, and challenge level</p>
+        </div>
         
-        <CacheSizeField
-          value={formData.size}
-          onChange={(value) => updateField('size', value)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-size` : 'size'}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <CacheTypeField
+            value={formData.type}
+            onChange={(value) => updateField('type', value)}
+            fieldId={fieldPrefix ? `${fieldPrefix}-type` : 'type'}
+          />
+          
+          <CacheSizeField
+            value={formData.size}
+            onChange={(value) => updateField('size', value)}
+            fieldId={fieldPrefix ? `${fieldPrefix}-size` : 'size'}
+          />
+        </div>
         
-        <CacheDifficultyField
-          value={formData.difficulty}
-          onChange={(value) => updateField('difficulty', value)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-difficulty` : 'difficulty'}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <CacheDifficultyField
+            value={formData.difficulty}
+            onChange={(value) => updateField('difficulty', value)}
+            fieldId={fieldPrefix ? `${fieldPrefix}-difficulty` : 'difficulty'}
+          />
+          
+          <CacheTerrainField
+            value={formData.terrain}
+            onChange={(value) => updateField('terrain', value)}
+            fieldId={fieldPrefix ? `${fieldPrefix}-terrain` : 'terrain'}
+          />
+        </div>
+
+        {/* Rating Preview */}
+        <div className="bg-muted/20 border border-muted rounded-lg p-4">
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">How your cache will appear to seekers</h4>
+          <DifficultyTerrainRating
+            difficulty={parseInt(formData.difficulty) || 1}
+            terrain={parseInt(formData.terrain) || 1}
+            cacheSize={formData.size}
+            showLabels={true}
+            size="default"
+          />
+        </div>
+      </div>
+
+      {/* Images */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-medium">Images</h3>
+          <p className="text-sm text-muted-foreground">Add photos to help seekers identify the area</p>
+        </div>
         
-        <CacheTerrainField
-          value={formData.terrain}
-          onChange={(value) => updateField('terrain', value)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-terrain` : 'terrain'}
+        <CacheImageManager
+          images={images}
+          onImagesChange={onImagesChange}
+          disabled={isSubmitting}
         />
       </div>
 
       {/* Visibility Settings */}
       <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-medium">Visibility</h3>
+          <p className="text-sm text-muted-foreground">Control who can find your cache</p>
+        </div>
+        
         <CacheHiddenField
           checked={formData.hidden || false}
           onChange={(checked) => updateField('hidden', checked)}
           fieldId={fieldPrefix ? `${fieldPrefix}-hidden` : 'hidden'}
         />
       </div>
-
-      {/* Images */}
-      <CacheImageManager
-        images={images}
-        onImagesChange={onImagesChange}
-        disabled={isSubmitting}
-      />
     </div>
   );
 }
