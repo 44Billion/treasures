@@ -54,10 +54,7 @@ export default function MyCaches() {
           backgroundSize: '300px 300px',
           opacity: 0.25
         }}></div>
-        
-        {/* Full-width top depth shadow with better fade - adventure mode only */}
-        <div className="absolute top-0 left-0 right-0 h-12 adventure:bg-gradient-to-b adventure:from-black/8 adventure:via-black/4 adventure:via-black/2 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
-        
+
         <DesktopHeader />
         <div className="flex-1 flex flex-col justify-center">
           <div className="container mx-auto px-4 py-8">

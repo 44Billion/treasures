@@ -330,13 +330,12 @@ export default function Map() {
         <div className="w-96 border-r bg-background/95 backdrop-blur-sm flex flex-col h-full">
           {/* Adventure Search and Filters */}
           <div className="p-4 border-b bg-muted/50">
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <Label htmlFor="search">Search Caches</Label>
                   <Input
                     id="search"
-                    placeholder="Search by name or description..."
+                    placeholder="Search by Geocache"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -365,8 +364,6 @@ export default function Map() {
                     placeholder="Search city or zip..."
                   />
                 </div>
-                
-
 
                 <div className="flex gap-2">
                   <Button 
@@ -553,8 +550,6 @@ export default function Map() {
                   placeholder="Search city or zip..."
                 />
                 
-
-                
                 <div className="flex gap-2">
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
@@ -613,7 +608,6 @@ export default function Map() {
         </div>
         
 
-
         {/* Mobile Content Area */}
         <div className="flex-1 overflow-hidden">
           <MapViewTabs 
@@ -646,14 +640,6 @@ export default function Map() {
                         {isProximitySearchActive && ` • ${searchRadius}km radius`}
                         {searchInView && ' • in view'}
                       </p>
-                      {import.meta.env.DEV && debugInfo && (
-                        <details className="mt-1">
-                          <summary className="cursor-pointer text-xs opacity-60">Debug Info</summary>
-                          <pre className="text-xs mt-1 opacity-60 whitespace-pre-wrap">
-                            {JSON.stringify(debugInfo, null, 2)}
-                          </pre>
-                        </details>
-                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       {((isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0) || optimisticGeocaches.isStale || optimisticGeocaches.isFetching ? (

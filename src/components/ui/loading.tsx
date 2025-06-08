@@ -3,6 +3,7 @@ import { LucideIcon, MapPin, Compass, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 // ============================================================================
 // COMPASS SPINNER - Base component for all loading states
@@ -30,7 +31,9 @@ export function CompassSpinner({
       }[size];
 
   // Use green for page loads (like the old compass-loading.tsx), grey for components
-  const colorClass = variant === 'page' ? 'text-green-600' : 'text-muted-foreground';
+  const { theme } = useTheme();
+  const isAdventureTheme = theme === 'adventure';
+  const colorClass = variant === 'page' ? isAdventureTheme ? 'text-stone-600' : 'text-green-600' : 'text-muted-foreground';
 
   return (
     <Compass 
