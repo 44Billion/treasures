@@ -447,7 +447,7 @@ export default function Map() {
                         <SelectTrigger className="flex-1 min-w-0 h-8 text-xs" >
                           <SelectValue placeholder="25 km" />
                         </SelectTrigger>
-                        <SelectContent className="z-[60]">
+                        <SelectContent>
                           <SelectItem value="1">1 km</SelectItem>
                           <SelectItem value="5">5 km</SelectItem>
                           <SelectItem value="10">10 km</SelectItem>
@@ -634,7 +634,7 @@ export default function Map() {
                         <SelectTrigger className="flex-1 min-w-0 h-9 text-xs">
                           <SelectValue placeholder="25 km" />
                         </SelectTrigger>
-                        <SelectContent className="z-[60]">
+                        <SelectContent>
                           <SelectItem value="1">1 km</SelectItem>
                           <SelectItem value="5">5 km</SelectItem>
                           <SelectItem value="10">10 km</SelectItem>
