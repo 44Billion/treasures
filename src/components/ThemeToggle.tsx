@@ -24,14 +24,14 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
     setMounted(true)
   }, [])
 
-  // Get adventure theme styling based on variant
+  // Get adventure theme styling based on variant - matching combobox styling
   const getAdventureClasses = () => {
     if (variant === 'mobile-sheet') {
       // Mobile sheet has light background, needs dark text
       return "adventure:bg-transparent adventure:border-stone-400 adventure:text-stone-700 adventure:hover:bg-stone-700/50 adventure:hover:text-stone-100";
     } else {
-      // Desktop header has dark background, needs light text
-      return "adventure:bg-transparent adventure:border-stone-400 adventure:text-stone-200 adventure:hover:bg-stone-700/50 adventure:hover:text-stone-100";
+      // Desktop header - match combobox styling exactly
+      return "adventure:!bg-stone-700 adventure:!border-stone-600 adventure:!text-stone-200 adventure:hover:!bg-stone-600 adventure:hover:!text-stone-100";
     }
   };
 
