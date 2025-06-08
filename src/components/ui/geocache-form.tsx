@@ -357,20 +357,55 @@ export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }
         <span className="text-xs text-muted-foreground block mt-1">Mental challenge level</span>
       </Label>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 justify-items-center">
-        {difficultyLevels.slice(0, 3).map((level) => {
+      {/* Desktop: 5 options in a single row */}
+      <div className="hidden md:grid md:grid-cols-5 gap-2">
+        {difficultyLevels.map((level) => {
           const IconComponent = level.icon;
           return (
             <button
               key={level.level}
               type="button"
               onClick={() => onChange(level.level.toString())}
-              className={`p-2 rounded-lg border text-center transition-all w-full ${
+              className={`p-2 rounded-lg border text-center transition-all ${
                 numericValue === level.level
                   ? 'border-green-500 bg-green-50 dark:bg-green-950'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
             >
+              <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+              <div className="flex gap-1 justify-center mb-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded ${
+                      i <= level.level ? "bg-green-600" : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="font-medium text-xs">{level.name}</span>
+            </button>
+          );
+        })}
+      </div>
+      
+      {/* Mobile: 3 options in first row, 2 options centered in second row */}
+      <div className="md:hidden space-y-2">
+        {/* First row: 3 options */}
+        <div className="grid grid-cols-3 gap-2">
+          {difficultyLevels.slice(0, 3).map((level) => {
+            const IconComponent = level.icon;
+            return (
+              <button
+                key={level.level}
+                type="button"
+                onClick={() => onChange(level.level.toString())}
+                className={`p-2 rounded-lg border text-center transition-all ${
+                  numericValue === level.level
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                }`}
+              >
                 <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
                 <div className="flex gap-1 justify-center mb-1">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -387,8 +422,9 @@ export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }
             );
           })}
         </div>
-        {/* Last row - always centered */}
-        <div className="col-span-2 md:col-span-3 flex gap-2 justify-center">
+        
+        {/* Second row: 2 options centered */}
+        <div className="flex gap-2 justify-center">
           {difficultyLevels.slice(3).map((level) => {
             const IconComponent = level.icon;
             return (
@@ -396,27 +432,28 @@ export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }
                 key={level.level}
                 type="button"
                 onClick={() => onChange(level.level.toString())}
-                className={`p-2 rounded-lg border text-center transition-all w-24 md:w-28 ${
+                className={`p-2 rounded-lg border text-center transition-all w-24 ${
                   numericValue === level.level
                     ? 'border-green-500 bg-green-50 dark:bg-green-950'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
               >
-              <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
-              <div className="flex gap-1 justify-center mb-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className={`h-1.5 w-1.5 rounded ${
-                      i <= level.level ? "bg-green-600" : "bg-gray-200"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="font-medium text-xs">{level.name}</span>
-            </button>
-          );
-        })}
+                <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                <div className="flex gap-1 justify-center mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded ${
+                        i <= level.level ? "bg-green-600" : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-medium text-xs">{level.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
       
       {numericValue > 0 && (
@@ -478,20 +515,55 @@ export function CacheTerrainField({ value, onChange, fieldId = "terrain" }: Omit
         <span className="text-xs text-muted-foreground block mt-1">Physical challenge level</span>
       </Label>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 justify-items-center">
-        {terrainLevels.slice(0, 3).map((level) => {
+      {/* Desktop: 5 options in a single row */}
+      <div className="hidden md:grid md:grid-cols-5 gap-2">
+        {terrainLevels.map((level) => {
           const IconComponent = level.icon;
           return (
             <button
               key={level.level}
               type="button"
               onClick={() => onChange(level.level.toString())}
-              className={`p-2 rounded-lg border text-center transition-all w-full ${
+              className={`p-2 rounded-lg border text-center transition-all ${
                 numericValue === level.level
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
             >
+              <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+              <div className="flex gap-1 justify-center mb-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded ${
+                      i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="font-medium text-xs">{level.name}</span>
+            </button>
+          );
+        })}
+      </div>
+      
+      {/* Mobile: 3 options in first row, 2 options centered in second row */}
+      <div className="md:hidden space-y-2">
+        {/* First row: 3 options */}
+        <div className="grid grid-cols-3 gap-2">
+          {terrainLevels.slice(0, 3).map((level) => {
+            const IconComponent = level.icon;
+            return (
+              <button
+                key={level.level}
+                type="button"
+                onClick={() => onChange(level.level.toString())}
+                className={`p-2 rounded-lg border text-center transition-all ${
+                  numericValue === level.level
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                }`}
+              >
                 <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
                 <div className="flex gap-1 justify-center mb-1">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -508,8 +580,9 @@ export function CacheTerrainField({ value, onChange, fieldId = "terrain" }: Omit
             );
           })}
         </div>
-        {/* Last row - always centered */}
-        <div className="col-span-2 md:col-span-3 flex gap-2 justify-center">
+        
+        {/* Second row: 2 options centered */}
+        <div className="flex gap-2 justify-center">
           {terrainLevels.slice(3).map((level) => {
             const IconComponent = level.icon;
             return (
@@ -517,27 +590,28 @@ export function CacheTerrainField({ value, onChange, fieldId = "terrain" }: Omit
                 key={level.level}
                 type="button"
                 onClick={() => onChange(level.level.toString())}
-                className={`p-2 rounded-lg border text-center transition-all w-24 md:w-28 ${
+                className={`p-2 rounded-lg border text-center transition-all w-24 ${
                   numericValue === level.level
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
               >
-              <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
-              <div className="flex gap-1 justify-center mb-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className={`h-1.5 w-1.5 rounded ${
-                      i <= level.level ? "bg-blue-600" : "bg-gray-200"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="font-medium text-xs">{level.name}</span>
-            </button>
-          );
-        })}
+                <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+                <div className="flex gap-1 justify-center mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded ${
+                        i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-medium text-xs">{level.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
       
       {numericValue > 0 && (
