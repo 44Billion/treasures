@@ -1,31 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "@/hooks/useAppContext";
-import { Link, useSearchParams } from "react-router-dom";
-import { MapPin, Navigation, Filter, X, Locate, Compass, RefreshCw, Sparkles } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { MapPin, X, Locate, RefreshCw, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { LoginArea } from "@/components/auth/LoginArea";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/hooks/useReliableProximitySearch";
 import { useMapPageGeocaches } from "@/hooks/useOptimisticGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
-import { DetailedGeocacheCard, CompactGeocacheCard } from "@/components/ui/geocache-card";
+import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
 import { LocationSearch } from "@/components/LocationSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
-import { ComparisonFilter, type ComparisonOperator } from "@/components/ui/comparison-filter";
+import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { FilterButton } from "@/components/FilterButton";
-import { DIFFICULTY_TERRAIN_OPTIONS } from "@/lib/geocache-constants";
 import type { Geocache } from "@/types/geocache";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDistance } from "@/lib/geo";
+import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { QUERY_LIMITS } from "@/lib/constants";
@@ -153,53 +148,6 @@ export default function Map() {
       }
     }
   }, [coords, showNearMe, userLocation]);
-
-  // Lock map center after user interactions to prevent unwanted updates
-  useEffect(() => {
-    if (mapRef.current) {
-      const map = mapRef.current;
-      let lockTimeout: NodeJS.Timeout | null = null;
-      
-      const handleUserInteraction = () => {
-        setIsMapCenterLocked(true);
-        
-        // Clear any existing timeout
-        if (lockTimeout) {
-          clearTimeout(lockTimeout);
-        }
-        
-        // Unlock after 20 seconds to allow programmatic updates
-        lockTimeout = setTimeout(() => {
-          setIsMapCenterLocked(false);
-        }, 20000); // Much longer protection - 20 seconds
-      };
-      
-      // Listen to comprehensive interaction events
-      map.on('dragstart', handleUserInteraction);
-      map.on('zoomstart', handleUserInteraction);
-      map.on('movestart', handleUserInteraction);
-      
-      // Also listen for mouse/touch events on the map container
-      const mapContainer = map.getContainer();
-      mapContainer.addEventListener('mousedown', handleUserInteraction);
-      mapContainer.addEventListener('touchstart', handleUserInteraction);
-      
-      return () => {
-        map.off('dragstart', handleUserInteraction);
-        map.off('zoomstart', handleUserInteraction);
-        map.off('movestart', handleUserInteraction);
-        
-        mapContainer.removeEventListener('mousedown', handleUserInteraction);
-        mapContainer.removeEventListener('touchstart', handleUserInteraction);
-        
-        if (lockTimeout) {
-          clearTimeout(lockTimeout);
-        }
-      };
-    }
-  }, [mapRef.current]);
-
-  // Remove automatic location request - only get location when user clicks "Near Me"
 
   // Check if proximity search is active
   const isProximitySearchActive = !!(searchLocation || (showNearMe && userLocation) || searchInView);

@@ -2,8 +2,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthorDeletionFilter } from '@/hooks/useDeletionFilter';
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import type { Geocache } from '@/types/geocache';
-import { NostrFilter } from '@nostrify/nostrify';
 import { NIP_GC_KINDS, parseGeocacheEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
 import { TIMEOUTS } from '@/lib/constants';
 

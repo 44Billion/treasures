@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { getIPLocation } from '@/lib/ipGeolocation';
-import { TIMEOUTS } from '@/lib/constants';
 
 interface GeolocationState {
   loading: boolean;

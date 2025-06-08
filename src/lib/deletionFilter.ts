@@ -4,7 +4,6 @@
  */
 
 import type { NostrEvent } from '@nostrify/nostrify';
-import { NIP_GC_KINDS } from '@/lib/nip-gc';
 
 /**
  * Check if an event has been marked for deletion by a kind 5 event

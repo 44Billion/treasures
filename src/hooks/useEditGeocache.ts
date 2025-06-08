@@ -7,7 +7,6 @@ import {
   buildGeocacheTags, 
   validateCacheType, 
   validateCacheSize,
-  encodeGeohash,
   parseGeocacheEvent,
   type ValidCacheType,
   type ValidCacheSize

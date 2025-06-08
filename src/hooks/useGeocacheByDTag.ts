@@ -1,15 +1,13 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
+import { NostrEvent } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
-import { decodeHint } from '@/lib/rot13';
 import { TIMEOUTS, QUERY_LIMITS } from '@/lib/constants';
 import { useOfflineMode } from '@/hooks/useOfflineStorage';
 import { offlineStorage, type CachedGeocache } from '@/lib/offlineStorage';
 import { 
   NIP_GC_KINDS, 
   parseGeocacheEvent, 
-  parseLogEvent, 
   createGeocacheCoordinate 
 } from '@/lib/nip-gc';
 

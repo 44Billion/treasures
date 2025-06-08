@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import { NostrFilter } from '@nostrify/nostrify';
 import type { Geocache } from '@/types/geocache';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { QUERY_LIMITS, TIMEOUTS } from '@/lib/constants';

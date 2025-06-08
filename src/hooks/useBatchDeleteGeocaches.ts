@@ -4,7 +4,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { NIP_GC_KINDS, createGeocacheCoordinate } from '@/lib/nip-gc';
-import { TIMEOUTS, RETRY_CONFIG } from '@/lib/constants';
+import { TIMEOUTS } from '@/lib/constants';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 interface BatchDeleteParams {

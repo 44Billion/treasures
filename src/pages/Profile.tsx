@@ -3,25 +3,15 @@ import { Link, useParams } from 'react-router-dom';
 import { 
   User, 
   MapPin, 
-  CheckCircle, 
-  Globe, 
-  ShieldCheck, 
-  ShieldX, 
-  ExternalLink, 
-  Calendar,
+  CheckCircle,
   Edit,
-  Copy,
-  Check,
-  Compass,
   Bookmark
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { InfoCard, EmptyStateCard } from '@/components/ui/card-patterns';
+import { Card, CardContent } from '@/components/ui/card';
+import { EmptyStateCard } from '@/components/ui/card-patterns';
 import { DesktopHeader } from '@/components/DesktopHeader';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { FullPageLoading, ComponentLoading } from '@/components/ui/loading';
 

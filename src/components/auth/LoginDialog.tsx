@@ -1,16 +1,16 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Shield, Upload, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BaseDialog } from '@/components/ui/base-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs';
 import { LoginMethodTabs } from '@/components/ui/mobile-button-patterns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLoginActions } from '@/hooks/useLoginActions';
-import { validateNsec, validateBunkerUri, validateFileContent, sanitizeFilename } from '@/lib/security';
+import { validateNsec, validateBunkerUri, validateFileContent } from '@/lib/security';
 
 interface LoginDialogProps {
   isOpen: boolean;

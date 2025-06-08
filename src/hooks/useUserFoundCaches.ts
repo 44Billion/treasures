@@ -1,10 +1,9 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import { NostrFilter } from '@nostrify/nostrify';
 import { useCurrentUser } from './useCurrentUser';
 import { useAuthorDeletionFilter } from '@/hooks/useDeletionFilter';
 import { TIMEOUTS } from '@/lib/constants';
-import type { GeocacheLog, Geocache } from '@/types/geocache';
+import type { Geocache } from '@/types/geocache';
 import { NIP_GC_KINDS, parseLogEvent, parseGeocacheEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
 
 interface FoundCache {

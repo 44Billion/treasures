@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
@@ -11,7 +10,6 @@ import {
   validateCacheType, 
   validateCacheSize,
   validateCoordinates,
-  decodeGeohash,
   parseGeocacheEvent,
   type ValidCacheType,
   type ValidCacheSize

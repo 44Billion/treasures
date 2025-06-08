@@ -87,13 +87,6 @@
   /* Removed isolation: isolate for better performance */
 }
 
-/* Simplified marker and popup styling */
-.leaflet-container.adventure-theme .leaflet-marker-icon,
-.leaflet-container.adventure-theme .leaflet-popup,
-.leaflet-container.adventure-theme .leaflet-popup-content-wrapper {
-  /* Removed isolation: isolate and mix-blend-mode for better performance */
-}
-
 /* Simplified adventure popup styling for better performance */
 .leaflet-container.adventure-theme .leaflet-popup-content-wrapper {
   /* Simplified background for better performance */

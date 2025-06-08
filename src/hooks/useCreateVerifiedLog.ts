@@ -2,15 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/useToast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
-import type { CreateLogData, GeocacheLog } from '@/types/geocache';
+import type { CreateLogData } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
-  buildFoundLogTags,
-  buildVerificationEventTags,
-  buildVerificationEventContent
+  buildFoundLogTags
 } from '@/lib/nip-gc';
 import { createVerificationEvent } from '@/lib/verification';
-import { TIMEOUTS } from '@/lib/constants';
 
 interface CreateVerifiedLogData extends CreateLogData {
   verificationKey: string; // nsec for signing

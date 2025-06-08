@@ -3,7 +3,6 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { generateVerificationKeyPair } from '@/lib/verification';
 import { geocacheToNaddr } from '@/lib/naddr-utils';
-import { TIMEOUTS } from '@/lib/constants';
 import type { Geocache } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 

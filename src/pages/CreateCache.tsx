@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { MapPin, Upload, X, AlertTriangle, CheckCircle, XCircle, Check, WifiOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, AlertTriangle, CheckCircle, Check, WifiOff } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -31,7 +30,6 @@ import { mapIcons } from "@/lib/mapIcons";
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { VerificationQRDialog } from "@/components/VerificationQRDialog";
-import { geocacheToNaddr } from "@/lib/naddr-utils";
 import type { VerificationKeyPair } from "@/lib/verification";
 import { useOfflineMode } from "@/hooks/useOfflineStorage";
 

@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { HintDisplay } from "@/components/ui/hint-display";
-import { MapPin, Navigation, Calendar, User, Trophy, ExternalLink } from "lucide-react";
+import { Navigation, Calendar, User, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BaseDialog } from "@/components/ui/base-dialog";
-import { DetailsCard, StatsCard, InteractiveCard } from "@/components/ui/card-patterns";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DetailsCard, StatsCard } from "@/components/ui/card-patterns";
+import { TabsContent } from "@/components/ui/tabs";
 import { CacheDetailTabs } from "@/components/ui/mobile-button-patterns";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { useGeocacheLogs } from "@/hooks/useGeocacheLogs";
@@ -16,7 +15,7 @@ import { LogsSection } from "@/components/LogsSection";
 import { formatDistanceToNow } from "@/lib/date";
 import { useNavigate } from "react-router-dom";
 import { geocacheToNaddr } from "@/lib/naddr-utils";
-import { getDifficultyLabel, getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
+import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import type { Geocache } from "@/types/geocache";
 

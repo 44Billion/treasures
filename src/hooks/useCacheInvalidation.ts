@@ -4,7 +4,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
+import { NostrEvent } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { useOfflineMode } from './useOfflineStorage';

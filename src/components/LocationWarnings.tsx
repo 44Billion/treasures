@@ -1,7 +1,5 @@
 import { AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Info } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocationVerification, getVerificationSummary } from "@/lib/osmVerification";
 import { useState } from "react";
 

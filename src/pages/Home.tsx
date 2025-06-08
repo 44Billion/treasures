@@ -1,19 +1,16 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, Trophy, QrCode, RefreshCw, Scroll, Crown, Shield, Users, Globe } from "lucide-react";
+import { MapPin, Plus, Search, Compass, QrCode, RefreshCw, Scroll, Crown, Shield, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FeatureCard, EmptyStateCard } from "@/components/ui/card-patterns";
+import { FeatureCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { LoginArea } from "@/components/auth/LoginArea";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHomePageGeocaches } from "@/hooks/useOptimisticGeocaches";
-import { GeocacheList } from "@/components/GeocacheList";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { QUERY_LIMITS } from "@/lib/constants";
 
 export default function Home() {
   const { user } = useCurrentUser();

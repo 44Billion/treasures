@@ -1,14 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Geocache } from '@/types/geocache';
-import { NostrFilter, NostrEvent } from '@nostrify/nostrify';
 import { 
-  NIP_GC_KINDS, 
-  parseGeocacheEvent, 
-  createGeocacheCoordinate 
+  parseGeocacheEvent 
 } from '@/lib/nip-gc';
 import { TIMEOUTS } from '@/lib/constants';
 

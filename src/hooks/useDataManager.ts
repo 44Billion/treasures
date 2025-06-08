@@ -32,6 +32,7 @@ interface DataManagerStatus {
     totalGeocaches: number;
     prefetchedLogs: number;
     prefetchedAuthors: number;
+    cacheStatus: Object;
   };
 }
 

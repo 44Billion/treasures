@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from "react-leaflet";
+import { useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { LatLngExpression, LatLngBounds } from "leaflet";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
 import { useTheme } from "next-themes";
-import { MapPin, Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck, Sparkles, Download, WifiOff } from "lucide-react";
+import { Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { SaveButton } from "@/components/SaveButton";
 import { MapStyleSelector, MAP_STYLES } from "@/components/MapStyleSelector";
 import { useSavedCaches } from "@/hooks/useSavedCaches";
 import { useToast } from "@/hooks/useToast";
@@ -17,8 +15,6 @@ import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import type { Geocache } from "@/types/geocache";
 import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
 
-import { findClosestGeocache } from "@/lib/geo";
-import { geocacheToNaddr } from "@/lib/naddr-utils";
 import { getCacheIconSvg, getCacheColor } from "@/lib/cacheIcons";
 import { useOfflineMode, useOfflineSettings } from "@/hooks/useOfflineStorage";
 import { getCacheEntryCount, cacheMapTile } from "@/lib/cacheUtils";
@@ -478,11 +474,7 @@ function MapRefController({
 }) {
   const map = useMap();
   
-  useEffect(() => {
-    if (mapRef) {
-      mapRef.current = map;
-    }
-    
+  useEffect(() => {   
     // Mark map as ready almost immediately - just a tiny delay for DOM
     const timer = setTimeout(() => {
       onMapReady?.();

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, MapPin, Trash2, Cloud, Compass, MoreVertical, WifiOff } from 'lucide-react';
+import { Bookmark, MapPin, Trash2, Cloud, MoreVertical, WifiOff } from 'lucide-react';
 import { DetailedGeocacheCard } from '@/components/ui/geocache-card';
-import { InfoCard, EmptyStateCard } from '@/components/ui/card-patterns';
+import { EmptyStateCard } from '@/components/ui/card-patterns';
 import { DesktopHeader } from '@/components/DesktopHeader';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';

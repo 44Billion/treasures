@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
+import { NostrEvent } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/lib/nip-gc';
-import { hasEmbeddedVerification, verifyEmbeddedVerification, getEmbeddedVerification } from '@/lib/verification';
+import { verifyEmbeddedVerification, getEmbeddedVerification } from '@/lib/verification';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/lib/constants';
 import { useDeletionFilter } from '@/hooks/useDeletionFilter';
 import { cacheManager } from '@/lib/cacheManager';

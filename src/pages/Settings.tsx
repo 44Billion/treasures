@@ -3,7 +3,6 @@ import { MapPin, Palette, Sun, Moon, Monitor, Wifi, Compass } from "lucide-react
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DetailsCard } from "@/components/ui/card-patterns";
 import { PageLayout } from "@/components/layout";
 import { Label } from "@/components/ui/label";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
