@@ -143,3 +143,53 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Very small screen utilities */
+  .text-xs-responsive {
+    @apply text-[10px] xs:text-xs;
+  }
+  
+  .text-sm-responsive {
+    @apply text-xs xs:text-sm;
+  }
+  
+  .text-base-responsive {
+    @apply text-sm xs:text-base;
+  }
+  
+  .px-responsive {
+    @apply px-3 xs:px-4;
+  }
+  
+  .py-responsive {
+    @apply py-2 xs:py-3;
+  }
+  
+  .gap-responsive {
+    @apply gap-1 xs:gap-2;
+  }
+  
+  .space-y-responsive > * + * {
+    @apply mt-2 xs:mt-3;
+  }
+  
+  /* Compact spacing for very small screens */
+  .compact-spacing {
+    @apply space-y-1 xs:space-y-2;
+  }
+  
+  /* Touch-friendly minimum sizes */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Responsive icon sizes */
+  .icon-sm-responsive {
+    @apply h-3 w-3 xs:h-4 xs:w-4;
+  }
+  
+  .icon-responsive {
+    @apply h-4 w-4 xs:h-5 xs:w-5;
+  }
+}

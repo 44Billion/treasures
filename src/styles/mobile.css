@@ -140,9 +140,191 @@
   button, 
   a,
   .touch-target {
-    min-height: 40px;
-    min-width: 40px;
+    min-height: 44px;
+    min-width: 44px;
   }
+}
+
+/* Very small screen optimizations */
+@media (max-width: 375px) {
+  /* Reduce container padding on very small screens */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Ensure buttons are still touchable but more compact */
+  button {
+    min-height: 40px;
+    font-size: 0.875rem;
+  }
+  
+  /* Compact form elements */
+  input, 
+  textarea,
+  select {
+    font-size: 14px;
+    padding: 0.5rem;
+  }
+  
+  /* Reduce card padding */
+  .card {
+    padding: 0.75rem;
+  }
+  
+  /* Compact navigation */
+  .mobile-nav-compact {
+    padding: 0.25rem;
+  }
+  
+  /* Ensure text doesn't get too small */
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  
+  /* Compact spacing for very small screens */
+  .space-compact > * + * {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Mobile navigation sheet optimizations */
+@media (max-height: 600px) {
+  /* For landscape mode or short screens */
+  .mobile-nav-sheet {
+    max-height: 100vh;
+  }
+  
+  /* Reduce padding in navigation sheet */
+  .mobile-nav-sheet .nav-section {
+    padding: 0.5rem;
+  }
+  
+  /* Make navigation grid more compact */
+  .mobile-nav-grid {
+    gap: 0.25rem;
+  }
+  
+  /* Reduce minimum heights for nav items */
+  .mobile-nav-item {
+    min-height: 50px;
+  }
+}
+
+/* Landscape mode optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Very compact layout for landscape phones */
+  .mobile-nav-sheet {
+    padding: 0;
+  }
+  
+  .mobile-nav-header {
+    padding: 0.5rem 1rem;
+  }
+  
+  .mobile-nav-footer {
+    padding: 0.5rem 1rem;
+  }
+  
+  /* Hide less important elements in landscape */
+  .mobile-nav-optional {
+    display: none;
+  }
+  
+  /* Make grid items smaller */
+  .mobile-nav-grid-item {
+    min-height: 45px;
+    padding: 0.5rem;
+  }
+}
+
+/* Scrollable area styling */
+.mobile-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.mobile-nav-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mobile-nav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-nav-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.mobile-nav-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile navigation sheet close button positioning - simple approach */
+.mobile-nav-sheet button[aria-label="Close"] {
+  top: 0.25rem !important;
+  right: 0.5rem !important;
+}
+
+/* Radix UI close button selector */
+.mobile-nav-sheet > button[data-radix-collection-item] {
+  top: 0.25rem !important;
+  right: 0.5rem !important;
+}
+
+/* Most specific selector for the close button */
+.mobile-nav-sheet > button:last-child {
+  top: 0.25rem !important;
+  right: 0.5rem !important;
+  /* Hide the large focus ring/click box */
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Target the actual Radix close button */
+.mobile-nav-sheet button:has(svg) {
+  top: 0.25rem !important;
+  right: 0.5rem !important;
+  /* Hide focus indicators */
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Ensure the button remains functional */
+.mobile-nav-sheet button {
+  pointer-events: auto;
+}
+
+/* Remove focus ring and click feedback on all states */
+.mobile-nav-sheet > button:last-child:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.mobile-nav-sheet > button:last-child:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.mobile-nav-sheet > button:last-child:active {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+  border: none !important;
+  background: transparent !important;
 }
 
 /* PWA splash screen styles */

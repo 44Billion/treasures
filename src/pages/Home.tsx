@@ -96,7 +96,7 @@ export default function Home() {
       <DesktopHeader />
 
       {/* Hero Section */}
-      <section className="relative min-h-[calc(100vh-8rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-4 md:py-24 overflow-hidden">
+      <section className="relative min-h-[calc(100vh-8rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
         {/* Parchment background for adventure mode only - behind everything */}
         <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
           backgroundImage: 'url(/parchment-300.jpg)',
@@ -284,7 +284,7 @@ export default function Home() {
             </Link>
           </div>
           
-          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 animate-slide-up">
+          <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 animate-slide-up">
             <span className="adventure:hidden">Discover Hidden</span>
             <span className="hidden adventure:inline">Embark on Epic</span>
             <span className="relative inline-block mx-2">
@@ -296,7 +296,7 @@ export default function Home() {
             </span>
           </h2>
           
-          <p className="text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
+          <p className="text-base xs:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
             <span className="adventure:hidden">
               Join the decentralized geocaching adventure powered by Nostr. 
               Hide caches, find treasures, and connect with explorers worldwide.
@@ -307,43 +307,67 @@ export default function Home() {
             </span>
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
+          <div className="flex flex-col sm:flex-row gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
             <Link to="/map" className="flex-1 sm:flex-initial group">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 adventure:bg-stone-700 adventure:hover:bg-stone-800 adventure:text-stone-100 w-full sm:w-auto transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
-                <Search className="h-5 w-5 mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
-                <Compass className="h-5 w-5 mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
-                <span className="adventure:hidden">Start Exploring</span>
-                <span className="hidden adventure:inline">Begin Your Quest</span>
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 adventure:bg-stone-700 adventure:hover:bg-stone-800 adventure:text-stone-100 w-full sm:w-auto transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base px-4 xs:px-6">
+                <Search className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
+                <Compass className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
+                <span className="adventure:hidden">
+                  <span className="hidden xs:inline">Start Exploring</span>
+                  <span className="xs:hidden">Explore</span>
+                </span>
+                <span className="hidden adventure:inline">
+                  <span className="hidden xs:inline">Begin Your Quest</span>
+                  <span className="xs:hidden">Quest</span>
+                </span>
               </Button>
             </Link>
             <Link to="/claim" className="flex-1 sm:flex-initial group">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105">
-                <QrCode className="h-5 w-5 mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
-                <Scroll className="h-5 w-5 mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
-                <span className="adventure:hidden">Claim Treasure</span>
-                <span className="hidden adventure:inline">Claim Artifact</span>
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6">
+                <QrCode className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
+                <Scroll className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
+                <span className="adventure:hidden">
+                  <span className="hidden xs:inline">Claim Treasure</span>
+                  <span className="xs:hidden">Claim</span>
+                </span>
+                <span className="hidden adventure:inline">
+                  <span className="hidden xs:inline">Claim Artifact</span>
+                  <span className="xs:hidden">Claim</span>
+                </span>
               </Button>
             </Link>
             {user ? (
               <Link to="/create" className="flex-1 sm:flex-initial group">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in">
-                  <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
-                  <Crown className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
-                  <span className="adventure:hidden">Hide a Treasure</span>
-                  <span className="hidden adventure:inline">Conceal an Artifact</span>
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6">
+                  <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
+                  <Crown className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
+                  <span className="adventure:hidden">
+                    <span className="hidden xs:inline">Hide a Treasure</span>
+                    <span className="xs:hidden">Hide</span>
+                  </span>
+                  <span className="hidden adventure:inline">
+                    <span className="hidden xs:inline">Conceal an Artifact</span>
+                    <span className="xs:hidden">Conceal</span>
+                  </span>
                 </Button>
               </Link>
             ) : (
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group"
+                className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6"
                 onClick={handleLoginClick}
               >
-                <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />
-                <Shield className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
-                <span className="adventure:hidden">Login to Hide Treasures</span>
-                <span className="hidden adventure:inline">Join the Guild</span>
+                <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />
+                <Shield className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
+                <span className="adventure:hidden">
+                  <span className="hidden xs:inline">Login to Hide Treasures</span>
+                  <span className="xs:hidden">Login</span>
+                </span>
+                <span className="hidden adventure:inline">
+                  <span className="hidden xs:inline">Join the Guild</span>
+                  <span className="xs:hidden">Join</span>
+                </span>
               </Button>
             )}
           </div>
@@ -351,7 +375,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-12 md:py-16 px-4 bg-background border-t">
+      <section className="py-8 xs:py-12 md:py-16 px-3 xs:px-4 bg-background border-t">
         <div className="container mx-auto">
           <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-foreground">
             <span className="adventure:hidden">Why Treasures?</span>
@@ -414,7 +438,7 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-background to-muted/30">
+      <section className="py-8 xs:py-12 md:py-16 px-3 xs:px-4 bg-gradient-to-b from-background to-muted/30">
         <div className="container mx-auto">
           {/* Section Header */}
           <div className="text-center mb-8 md:mb-12">

@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils"
 
 interface ThemeToggleProps {
-  variant?: 'default' | 'mobile-sheet';
+  variant?: 'default' | 'mobile-sheet' | 'compact-icon';
 }
 
 export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
@@ -28,6 +28,9 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
   const getAdventureClasses = () => {
     if (variant === 'mobile-sheet') {
       // Mobile sheet has light background, needs dark text
+      return "adventure:bg-transparent adventure:border-stone-400 adventure:text-stone-700 adventure:hover:bg-stone-700/50 adventure:hover:text-stone-100";
+    } else if (variant === 'compact-icon') {
+      // Compact icon for mobile footer
       return "adventure:bg-transparent adventure:border-stone-400 adventure:text-stone-700 adventure:hover:bg-stone-700/50 adventure:hover:text-stone-100";
     } else {
       // Desktop header - match combobox styling exactly
@@ -54,7 +57,8 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
         disabled
         className={cn(
           getAdventureClasses(),
-          variant === 'mobile-sheet' && "flex-1 justify-start gap-2"
+          variant === 'mobile-sheet' && "flex-1 justify-start gap-2",
+          variant === 'compact-icon' && "h-6 w-6 p-0"
         )}
       >
         {variant === 'mobile-sheet' ? (
@@ -62,6 +66,8 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
             <Monitor className="h-4 w-4" />
             System
           </>
+        ) : variant === 'compact-icon' ? (
+          <Monitor className="h-3 w-3" />
         ) : (
           <Sun className="h-[1.2rem] w-[1.2rem]" />
         )}
@@ -91,6 +97,49 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
           >
             {mounted ? getThemeIcon() : <Monitor className="h-4 w-4" />}
             {getThemeDisplayName()}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setTheme("light")}>
+            <Sun className="mr-2 h-4 w-4" />
+            Light
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("dark")}>
+            <Moon className="mr-2 h-4 w-4" />
+            Dark
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("adventure")}>
+            <Sword className="mr-2 h-4 w-4" />
+            Adventure
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("system")}>
+            <Monitor className="mr-2 h-4 w-4" />
+            System
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
+
+  if (variant === 'compact-icon') {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="icon"
+            className={cn(getAdventureClasses(), "h-6 w-6 p-0")}
+            title={`Theme: ${getThemeDisplayName()}`}
+          >
+            {mounted ? (
+              <>
+                <Sun className="h-3 w-3 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 adventure:-rotate-90 adventure:scale-0" />
+                <Moon className="absolute h-3 w-3 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 adventure:rotate-90 adventure:scale-0" />
+                <Sword className="absolute h-3 w-3 rotate-90 scale-0 transition-all adventure:rotate-0 adventure:scale-100" />
+              </>
+            ) : (
+              <Monitor className="h-3 w-3" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

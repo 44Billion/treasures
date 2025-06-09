@@ -34,7 +34,7 @@ function getThemeClasses(isAdventureTheme: boolean) {
   };
 }
 
-// Navigation link component for reusability
+// Compact navigation link component for additional links
 function NavLink({ 
   to, 
   icon: Icon, 
@@ -53,14 +53,14 @@ function NavLink({
       to={to}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground min-h-[40px]",
         isActive 
           ? "bg-accent text-accent-foreground" 
           : "text-muted-foreground"
       )}
     >
-      <Icon className="h-4 w-4" />
-      {children}
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="truncate">{children}</span>
     </Link>
   );
 }
@@ -81,7 +81,7 @@ export function MobileHeader() {
       "sticky top-0 z-40 w-full border-b md:hidden pt-safe-top",
       themeClasses.header
     )}>
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between px-3 xs:px-4">
         {/* Menu Button */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
@@ -95,128 +95,128 @@ export function MobileHeader() {
             </Button>
           </SheetTrigger>
           
-          {/* Side Sheet Content */}
-          <SheetContent side="left" className="flex flex-col">
-            {/* Header */}
-            <div className="flex items-center gap-2 px-2 py-4">
+          {/* Side Sheet Content - Optimized for limited vertical space */}
+          <SheetContent side="left" className="mobile-nav-sheet flex flex-col w-[280px] xs:w-[320px] sm:w-[400px] p-0">
+            {/* Compact Header */}
+            <div className="mobile-nav-header flex items-center gap-2 px-3 py-2 pr-10 border-b bg-muted/30 shrink-0">
               <img 
                 src="/icon.png" 
                 alt="Treasures" 
-                className={cn("h-10 w-10 transition-all duration-200", themeClasses.icon)} 
+                className={cn("h-6 w-6 xs:h-7 xs:w-7 transition-all duration-200", themeClasses.icon)} 
               />
-              <span className="font-bold text-lg">Treasures</span>
+              <span className="font-bold text-sm xs:text-base">Treasures</span>
             </div>
             
-            {/* Navigation Links */}
-            <nav className="flex flex-col gap-2 px-2 flex-1">
-              {navigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  icon={item.icon}
-                  isActive={location.pathname === item.href}
-                  onClick={closeSheet}
-                >
-                  {item.name}
-                </NavLink>
-              ))}
-              
-              <NavLink
-                to="/saved"
-                icon={Bookmark}
-                isActive={location.pathname === '/saved'}
-                onClick={closeSheet}
-              >
-                Saved Caches
-              </NavLink>
-              
-              {user && (
-                <>
+            {/* Scrollable Content Area */}
+            <div className="mobile-nav-scroll flex-1 overflow-y-auto">
+              {/* Navigation Links - List Layout */}
+              <div className="nav-section p-2 xs:p-3">
+                <div className="space-y-1">
+                  {navigation.map((item) => (
+                    <NavLink
+                      key={item.name}
+                      to={item.href}
+                      icon={item.icon}
+                      isActive={location.pathname === item.href}
+                      onClick={closeSheet}
+                    >
+                      {item.name}
+                    </NavLink>
+                  ))}
+                  
                   <NavLink
-                    to="/profile"
-                    icon={User}
-                    isActive={location.pathname === '/profile'}
+                    to="/saved"
+                    icon={Bookmark}
+                    isActive={location.pathname === '/saved'}
                     onClick={closeSheet}
                   >
-                    My Profile
+                    Saved Caches
                   </NavLink>
-                  <NavLink
-                    to="/settings"
-                    icon={Settings}
-                    isActive={location.pathname === '/settings'}
-                    onClick={closeSheet}
-                  >
-                    App Settings
-                  </NavLink>
-                </>
-              )}
-            </nav>
-            
-            {/* Footer */}
-            <div className="mt-auto p-2">
-              <div className="space-y-3">
-                {/* Settings - Always visible */}
-                <div className="px-3 py-2 space-y-3">
-                  <OfflineIndicator showDetails={false} />
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground shrink-0">Theme</span>
-                    <ThemeToggle variant="mobile-sheet" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground shrink-0">Relay</span>
-                    <RelaySelector className="flex-1" />
-                  </div>
+                  
+                  {user && (
+                    <>
+                      <NavLink
+                        to="/profile"
+                        icon={User}
+                        isActive={location.pathname === '/profile'}
+                        onClick={closeSheet}
+                      >
+                        My Profile
+                      </NavLink>
+                      <NavLink
+                        to="/settings"
+                        icon={Settings}
+                        isActive={location.pathname === '/settings'}
+                        onClick={closeSheet}
+                      >
+                        App Settings
+                      </NavLink>
+                    </>
+                  )}
                 </div>
-
-                {/* User-specific content */}
-                {currentUser ? (
-                  <div className="space-y-3">
-                    {/* User Info */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={currentUser.metadata.picture} alt={currentUser.metadata.name} />
-                        <AvatarFallback>
-                          {currentUser.metadata.name?.charAt(0) || <User className="w-4 h-4" />}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {currentUser.metadata.name || `${currentUser.pubkey.slice(0, 8)}...`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Logged in</p>
-                      </div>
+              </div>
+            </div>
+            
+            {/* Compact Footer - Always Visible */}
+            <div className="mobile-nav-footer border-t bg-muted/30 p-2 xs:p-3 shrink-0">
+              {/* User Section */}
+              {currentUser ? (
+                <div className="space-y-2 mb-2 xs:mb-3">
+                  {/* Compact User Info */}
+                  <div className="flex items-center gap-2 p-1.5 xs:p-2 rounded-lg bg-accent/50">
+                    <Avatar className="w-5 h-5 xs:w-6 xs:h-6 shrink-0">
+                      <AvatarImage src={currentUser.metadata.picture} alt={currentUser.metadata.name} />
+                      <AvatarFallback className="text-[10px] xs:text-xs">
+                        {currentUser.metadata.name?.charAt(0) || <User className="w-2.5 h-2.5 xs:w-3 xs:h-3" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[10px] xs:text-xs truncate">
+                        {currentUser.metadata.name || `${currentUser.pubkey.slice(0, 8)}...`}
+                      </p>
                     </div>
-                    
-                    {/* Logout Button */}
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         removeLogin(currentUser.id);
                         closeSheet();
                       }}
-                      className="w-full flex items-center gap-2"
+                      className="h-5 w-5 xs:h-6 xs:w-6 p-0 hover:bg-destructive/20"
+                      title="Log out"
                     >
-                      <LogOut className="w-4 h-4" />
-                      Log out
+                      <LogOut className="w-2.5 h-2.5 xs:w-3 xs:h-3" />
                     </Button>
                   </div>
-                ) : (
+                </div>
+              ) : (
+                <div className="mb-2 xs:mb-3">
                   <LoginArea />
-                )}
+                </div>
+              )}
+
+              {/* Ultra-Compact Settings Row */}
+              <div className="flex items-center justify-between gap-2 text-[10px] xs:text-xs">
+                <div className="flex items-center gap-1">
+                  <OfflineIndicator showDetails={false} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <ThemeToggle variant="compact-icon" />
+                  <RelaySelector className="flex-1 min-w-[80px]" />
+                </div>
               </div>
             </div>
           </SheetContent>
         </Sheet>
         
         {/* Center Logo */}
-        <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
+        <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-0.5 xs:gap-1">
           <img 
             src="/icon.png" 
             alt="Treasures" 
-            className={cn("h-8 w-8 transition-all duration-200", themeClasses.icon)} 
+            className={cn("h-6 w-6 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)} 
           />
-          <h1 className={cn("text-xs font-bold m-0 leading-none", themeClasses.text)}>
+          <h1 className={cn("text-[10px] xs:text-xs font-bold m-0 leading-none", themeClasses.text)}>
             Treasures
           </h1>
         </Link>
@@ -248,17 +248,17 @@ function BottomNavItem({
     <Link
       to={to}
       className={cn(
-        "flex flex-col items-center justify-center gap-1 px-2 py-1 text-xs transition-colors",
+        "flex flex-col items-center justify-center gap-0.5 xs:gap-1 px-1 xs:px-2 py-1 text-[10px] xs:text-xs transition-colors min-h-[44px]",
         isActive 
           ? themeClasses.textActive 
           : cn(themeClasses.textMuted, "hover:text-foreground")
       )}
     >
-      <div className="flex items-center justify-center w-6 h-6">
-        <Icon className={cn("h-5 w-5", isActive && themeClasses.textActive)} />
+      <div className="flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6">
+        <Icon className={cn("h-4 w-4 xs:h-5 xs:w-5", isActive && themeClasses.textActive)} />
       </div>
       <span className={cn(
-        "text-center leading-tight",
+        "text-center leading-tight max-w-[60px] xs:max-w-none truncate",
         isActive && cn(themeClasses.textActive, "font-medium")
       )}>
         {children}
