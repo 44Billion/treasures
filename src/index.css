@@ -193,3 +193,32 @@
     @apply h-4 w-4 xs:h-5 xs:w-5;
   }
 }
+
+/* Prevent scroll locking issues with dropdown menus on mobile */
+@layer base {
+  /* Ensure body scroll is not locked when dropdown is open */
+  body[data-scroll-locked] {
+    overflow: auto !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Prevent dropdown content from interfering with scroll */
+  [data-radix-dropdown-menu-content] {
+    /* Ensure dropdown doesn't block scroll events */
+    pointer-events: auto;
+  }
+  
+  /* Fix for mobile touch scrolling */
+  @media (max-width: 768px) {
+    body {
+      -webkit-overflow-scrolling: touch;
+      overflow-scrolling: touch;
+    }
+    
+    /* Prevent dropdown from locking scroll on mobile */
+    [data-radix-dropdown-menu-content] {
+      /* Allow scroll events to pass through when not directly interacting */
+      touch-action: manipulation;
+    }
+  }
+}

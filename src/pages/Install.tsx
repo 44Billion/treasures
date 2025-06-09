@@ -29,7 +29,7 @@ export default function Install() {
               Install Treasures App
             </h2>
             
-            <p className="text-lg text-muted-foreground mb-6">
+            <p className="text-md text-muted-foreground mb-6">
               Get the full geocaching experience with our Progressive Web App. 
               Works offline, loads faster, and feels like a native app.
             </p>

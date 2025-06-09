@@ -20,11 +20,18 @@ interface CacheMenuProps {
 
 export function CacheMenu({ geocache, variant = 'default', className }: CacheMenuProps) {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleViewOnMap = () => {
     const mapUrl = `/map?lat=${geocache.location.lat}&lng=${geocache.location.lng}&zoom=16&highlight=${geocache.dTag}&tab=map`;
     navigate(mapUrl);
+    setDropdownOpen(false); // Close dropdown after action
+  };
+
+  const handleShare = () => {
+    setShareDialogOpen(true);
+    setDropdownOpen(false); // Close dropdown after action
   };
 
   const buttonSize = variant === 'compact' ? 'sm' : 'icon';
@@ -32,7 +39,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
@@ -46,19 +53,40 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             <span className="sr-only">More options</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={(e) => {
-            e.stopPropagation();
-            handleViewOnMap();
-          }}>
+        <DropdownMenuContent 
+          align="end" 
+          className="w-48"
+          onCloseAutoFocus={(e) => {
+            // Prevent focus trap issues on mobile
+            e.preventDefault();
+          }}
+        >
+          <DropdownMenuItem 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewOnMap();
+            }}
+            onSelect={(e) => {
+              // Prevent default select behavior that might interfere with scroll
+              e.preventDefault();
+              handleViewOnMap();
+            }}
+          >
             <MapPin className="h-4 w-4 mr-2" />
             View on Map
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={(e) => {
-            e.stopPropagation();
-            setShareDialogOpen(true);
-          }}>
+          <DropdownMenuItem 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
+            onSelect={(e) => {
+              // Prevent default select behavior that might interfere with scroll
+              e.preventDefault();
+              handleShare();
+            }}
+          >
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </DropdownMenuItem>
