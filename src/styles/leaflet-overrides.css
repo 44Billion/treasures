@@ -119,17 +119,9 @@
     min-height: 400px !important;
   }
   
-  /* Ensure tiles load properly on iOS */
-  .leaflet-tile {
-    /* Remove transforms that can cause issues */
-    opacity: 1 !important;
-    display: block !important;
-  }
-  
-  /* Fix iOS Safari map rendering */
-  .leaflet-map-pane {
-    position: relative !important;
-    height: 100% !important;
-    width: 100% !important;
+  /* Reduce adventure theme overlay opacity on iOS Safari to prevent tinting */
+  .adventure-parchment-overlay,
+  .adventure-border-overlay {
+    opacity: 0.3 !important;
   }
 }
