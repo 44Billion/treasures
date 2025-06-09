@@ -158,6 +158,10 @@
   opacity: .5;
 }
 
+.leaflet-container.adventure-theme .leaflet-popup-content h3 {
+  font-size: 1.15rem !important;
+}
+
 .leaflet-container.adventure-theme .leaflet-popup-content .text-gray-600,
 .leaflet-container.adventure-theme .leaflet-popup-content .text-gray-500,
 .leaflet-container.adventure-theme .leaflet-popup-content .text-muted-foreground {

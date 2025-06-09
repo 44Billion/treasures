@@ -45,7 +45,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
           
           <nav className="flex items-center gap-4">
             <Link to="/map">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isAdventureTheme ? "text-md" : ""}>
                 <Search className="h-4 w-4 mr-2" />
                 Explore Map
               </Button>
@@ -53,7 +53,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
             
             {user && (
               <Link to="/create">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isAdventureTheme ? "text-md" : ""}>
                   <Plus className="h-4 w-4 mr-2" />
                   Hide a Treasure
                 </Button>

@@ -48,7 +48,7 @@
 /* Specific font size overrides for consistent scaling */
 .adventure .text-xs { font-size: 0.8rem !important; }
 .adventure .text-sm { font-size: 0.95rem !important; }
-.adventure .text-md { font-size: 1.25rem !important; }
+.adventure .text-md { font-size: 1.15rem !important; }
 .adventure .text-lg { font-size: 1.25rem !important; }
 .adventure .text-xl { font-size: 1.375rem !important; }
 .adventure .text-2xl { font-size: 1.875rem !important; }
@@ -67,8 +67,8 @@
 
 /* Heading overrides to ensure consistent sizing */
 .adventure h2 { font-size: 2rem !important; }
-.adventure h3 { font-size: 1.75rem !important; }
-.adventure h4 { font-size: 1.5rem !important; }
+.adventure h3 { font-size: 1.5rem !important; }
+.adventure h4 { font-size: 1.35rem !important; }
 .adventure h5 { font-size: 1.25rem !important; }
 .adventure h6 { font-size: 1.125rem !important; }
 

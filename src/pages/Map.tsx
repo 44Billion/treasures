@@ -516,7 +516,7 @@ export default function Map() {
                           variant="ghost"
                           size="sm"
                           onClick={handleRetry}
-                          className="h-6 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950/20"
+                          className="h-6 px-2 text-xs text-red-900 hover:text-red-950 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
                         >
                           <RefreshCw className="h-3 w-3 mr-1" />
                           Update available
@@ -538,7 +538,7 @@ export default function Map() {
                       onClick={handleRetry}
                       className={`h-8 px-3 hover:bg-muted/50 border-muted-foreground/20 transition-all duration-200 ${
                         optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
-                          ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-950/20 dark:text-amber-400 dark:hover:bg-amber-950/40' 
+                          ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
                           : ''
                       }`}
                       title="Refresh geocaches (R)"
@@ -597,7 +597,7 @@ export default function Map() {
             <div className="absolute top-4 right-4 z-20">
               <Button
                 onClick={handleRetry}
-                className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg animate-in fade-in duration-300"
+                className="bg-red-900 hover:bg-red-950 text-white shadow-lg animate-in fade-in duration-300"
                 size="sm"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRetrying ? "animate-spin" : ""}`} />
@@ -773,7 +773,7 @@ export default function Map() {
                             variant="ghost"
                             size="sm"
                             onClick={handleRetry}
-                            className="h-6 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950/20"
+                            className="h-6 px-2 text-xs text-red-900 hover:text-red-950 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
                           >
                             <RefreshCw className="h-3 w-3 mr-1" />
                             Update
@@ -794,7 +794,7 @@ export default function Map() {
                         onClick={handleRetry}
                         className={`h-8 px-3 hover:bg-muted/50 border-muted-foreground/20 transition-all duration-200 ${
                           optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
-                            ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-950/20 dark:text-amber-400 dark:hover:bg-amber-950/40' 
+                            ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
                             : ''
                         }`}
                         title="Refresh geocaches (R)"
@@ -863,7 +863,7 @@ export default function Map() {
                   <div className="absolute top-4 right-4 z-20">
                     <Button
                       onClick={handleRetry}
-                      className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg animate-in fade-in duration-300"
+                      className="bg-red-900 hover:bg-red-950 text-white shadow-lg animate-in fade-in duration-300"
                       size="sm"
                     >
                       <RefreshCw className={`h-4 w-4 mr-1 ${isRetrying ? "animate-spin" : ""}`} />

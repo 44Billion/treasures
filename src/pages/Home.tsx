@@ -271,13 +271,13 @@ export default function Home() {
         
         <div className="container mx-auto text-center relative flex-1 flex flex-col justify-center md:block">
           <div className="mb-6 animate-fade-in">
-            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-green-900 adventure:bg-[#4682B4] text-green-700 dark:text-green-300 adventure:text-white px-4 py-1.5 rounded-full text-base font-medium hover:bg-green-200 dark:hover:bg-green-800 adventure:hover:bg-stone-700 transition-colors">
+            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-green-900 adventure:bg-[#4682B4] text-green-700 dark:text-green-300 adventure:text-white px-4 py-1.5 rounded-full text-base adventure:text-[16px] font-medium hover:bg-green-200 dark:hover:bg-green-800 adventure:hover:bg-stone-700 transition-colors">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4" />
                 <span className="adventure:hidden">Join the Quest</span>
                 <span className="hidden adventure:inline">Begin Your Journey</span>
               </div>
-              <span className="text-[10px] opacity-75 leading-none">
+              <span className="text-[10px] adventure:text-[12px] opacity-75 leading-none">
                 <span className="adventure:hidden">Install the PWA</span>
                 <span className="hidden adventure:inline">Forge Your Tools</span>
               </span>
@@ -296,7 +296,7 @@ export default function Home() {
             </span>
           </h2>
           
-          <p className="text-base xs:text-sm md:text-xl adventure:text-lg adventure:xs:text-sm text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
+          <p className="text-md xs:text-sm md:text-xl adventure:text-lg adventure:xs:text-sm text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
             <span className="adventure:hidden">
               Join the decentralized geocaching adventure powered by Nostr. 
               Hide caches, find treasures, and connect with explorers worldwide.

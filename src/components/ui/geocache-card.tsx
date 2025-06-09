@@ -247,7 +247,7 @@ export function GeocacheCard({
           <div className="flex-1 min-w-0 flex flex-col h-full">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <h3 className="font-semibold text-lg sm:text-xl adventure:text-xl adventure:sm:text-2xl leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-amber-700 transition-colors duration-150 min-w-0 flex-1">
+              <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
                 {cache.name}
               </h3>
               {variant !== 'detailed' && renderActionButtons(buttonSize)}
@@ -310,7 +310,7 @@ export function GeocacheCard({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg adventure:text-xl leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-amber-700 transition-colors">
+                <h3 className="font-semibold text-base leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors">
                   {cache.name}
                 </h3>
                 
