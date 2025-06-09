@@ -110,10 +110,10 @@ export default function About() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Compass className="h-6 w-6" />
-              Currently Supported Cache Types
+              Supported Cache Types
             </CardTitle>
             <CardDescription>
-              Treasures supports the most popular geocache types with plans to expand
+              Treasures supports the most popular geocache types
             </CardDescription>
           </CardHeader>
           <CardContent>

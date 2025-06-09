@@ -140,8 +140,8 @@
   button, 
   a,
   .touch-target {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 40px;
+    min-width: 40px;
   }
 }
 
