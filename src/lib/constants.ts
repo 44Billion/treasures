@@ -15,7 +15,7 @@ export const TIMEOUTS = {
 
 // Query limits
 export const QUERY_LIMITS = {
-  GEOCACHES: 100, // Increased for better caching
+  GEOCACHES: 500, // Increased to prevent legitimate caches being bumped off by test traffic
   LOGS: 100, // Reasonable limit per geocache
   BATCH_SIZE: 3,
   PROXIMITY_RESULTS: 100,
