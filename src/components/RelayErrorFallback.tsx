@@ -133,8 +133,8 @@ export function RelayErrorFallback({
           )}
           
           <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
+            <div className="text-center">
+              <label className="text-sm font-medium text-foreground mb-2">
                 Try a different relay:
               </label>
               <RelaySelector className="w-full" />

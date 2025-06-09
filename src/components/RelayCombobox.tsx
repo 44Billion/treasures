@@ -105,7 +105,7 @@ export function RelayCombobox(props: RelayComboboxProps) {
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 justify-center">
         <Wifi className="h-4 w-4 text-muted-foreground shrink-0" />
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>

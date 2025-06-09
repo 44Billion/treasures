@@ -1,4 +1,5 @@
 import { getDifficultyLabel, getSizeLabel, getSizeLevel } from '@/lib/geocache-utils';
+import { useTheme } from 'next-themes';
 
 // Difficulty/terrain/size rating display component
 export function DifficultyTerrainRating({ 
@@ -14,9 +15,18 @@ export function DifficultyTerrainRating({
   showLabels?: boolean;
   size?: 'small' | 'default';
 }) {
+  const { theme } = useTheme();
+  const isAdventureTheme = theme === 'adventure';
+  
   const dotSize = size === 'small' ? 'h-3 w-3' : 'h-4 w-4';
   const textSize = size === 'small' ? 'text-xs' : 'text-sm';
   const sizeLevel = cacheSize ? getSizeLevel(cacheSize) : 0;
+  
+  // Use more neutral colors in adventure mode
+  const difficultyActiveColor = isAdventureTheme ? "bg-stone-600" : "bg-green-600";
+  const terrainActiveColor = isAdventureTheme ? "bg-stone-500" : "bg-blue-600";
+  const sizeActiveColor = isAdventureTheme ? "bg-stone-400" : "bg-purple-600";
+  const inactiveColor = isAdventureTheme ? "bg-stone-200" : "bg-gray-200";
   
   return (
     <div className="space-y-2">
@@ -28,7 +38,7 @@ export function DifficultyTerrainRating({
               <div
                 key={i}
                 className={`${dotSize} rounded ${
-                  i <= difficulty ? "bg-green-600" : "bg-gray-200"
+                  i <= difficulty ? difficultyActiveColor : inactiveColor
                 }`}
               />
             ))}
@@ -45,7 +55,7 @@ export function DifficultyTerrainRating({
               <div
                 key={i}
                 className={`${dotSize} rounded ${
-                  i <= terrain ? "bg-blue-600" : "bg-gray-200"
+                  i <= terrain ? terrainActiveColor : inactiveColor
                 }`}
               />
             ))}
@@ -63,7 +73,7 @@ export function DifficultyTerrainRating({
                 <div
                   key={i}
                   className={`rounded ${
-                    i <= sizeLevel ? "bg-purple-600" : "bg-gray-200"
+                    i <= sizeLevel ? sizeActiveColor : inactiveColor
                   } ${
                     // Different sizes for each level to represent cache size visually
                     i === 1 ? (size === 'small' ? 'h-2 w-2' : 'h-3 w-3') :

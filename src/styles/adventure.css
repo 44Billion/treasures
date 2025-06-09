@@ -67,10 +67,10 @@
 
 /* Heading overrides to ensure consistent sizing */
 .adventure h2 { font-size: 2rem !important; }
-.adventure h3 { font-size: 1.5rem !important; }
-.adventure h4 { font-size: 1.35rem !important; }
-.adventure h5 { font-size: 1.25rem !important; }
-.adventure h6 { font-size: 1.125rem !important; }
+.adventure h3 { font-size: 1.25rem !important; }
+.adventure h4 { font-size: 1.15rem !important; }
+.adventure h5 { font-size: 1.10rem !important; }
+.adventure h6 { font-size: 1.05rem !important; }
 
 /* Common UI elements */
 .adventure .label,
