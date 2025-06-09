@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -59,6 +59,13 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
                 </Button>
               </Link>
             )}
+            
+            <Link to="/about">
+              <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isAdventureTheme ? "text-md" : ""}>
+                <Info className="h-4 w-4 mr-2" />
+                About
+              </Button>
+            </Link>
             
             <RelaySelector className="w-[200px]" />
             <ThemeToggle />

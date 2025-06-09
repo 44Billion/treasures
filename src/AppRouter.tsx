@@ -16,6 +16,7 @@ const CacheDetail = lazy(() => import("./pages/CacheDetail"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Install = lazy(() => import("./pages/Install"));
 const Claim = lazy(() => import("./pages/Claim"));
+const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 export function AppRouter() {
@@ -45,6 +46,7 @@ export function AppRouter() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/install" element={<Install />} />
             <Route path="/claim" element={<Claim />} />
+            <Route path="/about" element={<About />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
             <Route path="/:naddr" element={<CacheDetail />} />
