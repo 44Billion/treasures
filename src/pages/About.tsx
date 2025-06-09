@@ -185,7 +185,14 @@ export default function About() {
             
             <p className="text-muted-foreground leading-relaxed">
               The application was created using the <code className="bg-muted px-2 py-1 rounded text-sm">stacks</code> command 
-              from mkstack, a powerful toolkit for building Nostr applications with modern web technologies.
+              in combination with <a 
+                href="https://getstacks.dev/stack/naddr1qvzqqqrhl5pzqprpljlvcnpnw3pejvkkhrc3y6wvmd7vjuad0fg2ud3dky66gaxaqqrk66mnw3skx6c4g6ltw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-primary/80 underline font-medium"
+              >
+                mkstack
+              </a>, a powerful toolkit for building Nostr applications with modern web technologies.
             </p>
             
             <div className="flex justify-center">
