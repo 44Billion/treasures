@@ -371,6 +371,11 @@ export default function CreateCache() {
                     <p className="text-sm text-muted-foreground">Help seekers know what to expect</p>
                   </div>
                   
+                  <CacheTypeField
+                    value={formData.type}
+                    onChange={(value) => setFormData({...formData, type: value})}
+                  />
+                  
                   <CacheDifficultyField
                     value={formData.difficulty}
                     onChange={(value) => setFormData({...formData, difficulty: value})}
@@ -381,17 +386,10 @@ export default function CreateCache() {
                     onChange={(value) => setFormData({...formData, terrain: value})}
                   />
                   
-                  <div className="space-y-4">
-                    <CacheTypeField
-                      value={formData.type}
-                      onChange={(value) => setFormData({...formData, type: value})}
-                    />
-                    
-                    <CacheSizeField
-                      value={formData.size}
-                      onChange={(value) => setFormData({...formData, size: value})}
-                    />
-                  </div>
+                  <CacheSizeField
+                    value={formData.size}
+                    onChange={(value) => setFormData({...formData, size: value})}
+                  />
                 </div>
               )}
 
@@ -607,6 +605,11 @@ export default function CreateCache() {
                   <p className="text-sm text-muted-foreground">Help seekers know what to expect</p>
                 </div>
                 
+                <CacheTypeField
+                  value={formData.type}
+                  onChange={(value) => setFormData({...formData, type: value})}
+                />
+                
                 <CacheDifficultyField
                   value={formData.difficulty}
                   onChange={(value) => setFormData({...formData, difficulty: value})}
@@ -617,17 +620,10 @@ export default function CreateCache() {
                   onChange={(value) => setFormData({...formData, terrain: value})}
                 />
                 
-                <div className="space-y-4">
-                  <CacheTypeField
-                    value={formData.type}
-                    onChange={(value) => setFormData({...formData, type: value})}
-                  />
-                  
-                  <CacheSizeField
-                    value={formData.size}
-                    onChange={(value) => setFormData({...formData, size: value})}
-                  />
-                </div>
+                <CacheSizeField
+                  value={formData.size}
+                  onChange={(value) => setFormData({...formData, size: value})}
+                />
               </div>
             )}
 

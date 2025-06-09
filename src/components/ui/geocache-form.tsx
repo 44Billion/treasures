@@ -1,5 +1,49 @@
 import React from 'react';
-import { Upload, X, Compass, HelpCircle, Dot, Square, Package, Archive, Accessibility, User, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu } from 'lucide-react';
+import { Upload, X, Compass, HelpCircle, Dot, Square, Package, Archive, Accessibility, User, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, StepBack } from 'lucide-react';
+import { sneaker, treesForest } from '@lucide/lab';
+
+// Create React components from Lucide Lab icons
+const SneakerIcon = ({ className, ...props }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {sneaker.map(([element, attrs], index) => {
+      const Element = element as keyof JSX.IntrinsicElements;
+      return <Element key={index} {...attrs} />;
+    })}
+  </svg>
+);
+
+const TreesForestIcon = ({ className, ...props }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {treesForest.map(([element, attrs], index) => {
+      const Element = element as keyof JSX.IntrinsicElements;
+      return <Element key={index} {...attrs} />;
+    })}
+  </svg>
+);
 import { getCacheIcon } from '@/lib/cacheIcons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -330,14 +374,14 @@ export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }
     { 
       level: 3, 
       name: "Challenging", 
-      icon: Brain,
+      icon: Lightbulb,
       description: "Requires planning and effort",
       example: "Multi-step puzzle or research required"
     },
     { 
       level: 4, 
       name: "Hard", 
-      icon: Lightbulb,
+      icon: Brain,
       description: "Challenging, may need special skills",
       example: "Complex puzzles, special tools, or knowledge needed"
     },
@@ -474,28 +518,28 @@ export function CacheTerrainField({ value, onChange, fieldId = "terrain" }: Omit
     { 
       level: 1, 
       name: "Easy Walk", 
-      icon: Accessibility,
+      icon: SneakerIcon,
       description: "Wheelchair accessible, paved paths",
       example: "Sidewalks, parking lots, accessible trails"
     },
     { 
       level: 2, 
       name: "Light Hike", 
-      icon: User,
+      icon: Footprints,
       description: "Suitable for most, minor obstacles",
       example: "Gravel paths, slight inclines, easy trails"
     },
     { 
       level: 3, 
       name: "Moderate Hike", 
-      icon: Footprints,
+      icon: Mountain,
       description: "Not suitable for all, some climbing",
       example: "Uneven terrain, hills, some scrambling"
     },
     { 
       level: 4, 
       name: "Difficult Hike", 
-      icon: Mountain,
+      icon: TreesForestIcon,
       description: "Experienced hikers, special equipment",
       example: "Steep climbs, rough terrain, may need gear"
     },
