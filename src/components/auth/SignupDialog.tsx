@@ -270,7 +270,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
     );
     if (step === 'generate') return (
       <div className="text-center">
-        Creating your magical key to unlock the treasure quest world
+        Creating your magical key to unlock treasures
       </div>
     );
     if (step === 'download') return (
@@ -280,7 +280,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
     );
     if (step === 'profile') return (
       <div className="text-center">
-        Tell other adventurers about yourself (optional)
+        Tell other adventurers about yourself
       </div>
     );
     return (
@@ -426,8 +426,8 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                         Ready to forge your treasure key?
                       </p>
                       <p className='text-sm text-muted-foreground'>
-                        This magical key will be your passport to the treasure quest world. 
-                        It's completely unique and secure.
+                        This magical key will be your passport to the world of Treasures. 
+                        It's completely unique and secure - keep it secret, keep it safe!
                       </p>
                     </div>
                   </div>
@@ -655,7 +655,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 </p>
                 
                 <p className='text-sm text-muted-foreground'>
-                  Help other adventurers recognize you on your quests
+                  Your legend starts here
                 </p>
               </div>
             </div>
@@ -745,34 +745,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 Skip for now - Begin Quest!
               </Button>
             </div>
-          </div>
-        )}
-
-        {/* Done Step - Celebration */}
-        {step === 'done' && (
-          <div className='text-center py-8 space-y-4'>
-            <div className='relative pt-4'>
-              <div className='w-24 h-24 mx-auto bg-gradient-to-br from-green-400 to-emerald-500 adventure:from-amber-400 adventure:to-orange-500 rounded-full flex items-center justify-center'>
-                <Crown className='w-12 h-12 text-white' />
-              </div>
-              <div className='absolute inset-0 flex items-center justify-center'>
-                <div className='w-32 h-32 border-4 border-green-300 adventure:border-amber-300 rounded-full animate-ping opacity-75'></div>
-              </div>
-            </div>
-            
-            <div className='space-y-2'>
-              <h3 className='text-2xl font-bold text-green-700 adventure:text-amber-700 flex items-center justify-center gap-2'>
-                <Sparkles className='w-6 h-6' />
-                Welcome, Adventurer!
-              </h3>
-              <p className='text-muted-foreground'>
-                Your adventure begins now. Epic quests and hidden treasures await your discovery!
-              </p>
-            </div>
-            
-            <ComponentLoading size="sm" title={
-              "Preparing your treasure map..."
-            } />
           </div>
         )}
       </div>
