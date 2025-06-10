@@ -1,4 +1,34 @@
 /**
+ * Parse coordinate string to number, handling various formats
+ * @param coordStr Coordinate string (e.g., "40", "40.7", "-74.0060")
+ * @returns Parsed number or NaN if invalid
+ */
+export function parseCoordinate(coordStr: string): number {
+  if (!coordStr || typeof coordStr !== 'string') {
+    return NaN;
+  }
+
+  // Trim whitespace
+  const trimmed = coordStr.trim();
+  
+  // Handle empty string
+  if (trimmed === '') {
+    return NaN;
+  }
+
+  // Handle various number formats
+  // This includes integers, decimals, and scientific notation
+  const parsed = parseFloat(trimmed);
+  
+  // Additional validation - ensure it's a finite number
+  if (!isFinite(parsed)) {
+    return NaN;
+  }
+
+  return parsed;
+}
+
+/**
  * Autocorrect coordinates to handle common input errors
  * @param lat Latitude value
  * @param lng Longitude value

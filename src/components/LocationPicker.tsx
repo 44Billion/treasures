@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels } from "@/lib/coordinates";
+import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels, parseCoordinate } from "@/lib/coordinates";
 import { mapIcons } from "@/lib/mapIcons";
 
 import "leaflet/dist/leaflet.css";
@@ -87,10 +87,11 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     if (value) {
       // Preserve the original precision of the coordinates
       // Only format if the current input doesn't match the value
-      const currentLat = parseFloat(manualCoords.lat);
-      const currentLng = parseFloat(manualCoords.lng);
+      const currentLat = parseCoordinate(manualCoords.lat);
+      const currentLng = parseCoordinate(manualCoords.lng);
       
-      if (Math.abs(currentLat - value.lat) > 1e-10 || Math.abs(currentLng - value.lng) > 1e-10) {
+      if (isNaN(currentLat) || isNaN(currentLng) || 
+          Math.abs(currentLat - value.lat) > 1e-10 || Math.abs(currentLng - value.lng) > 1e-10) {
         setManualCoords({
           lat: value.lat.toString(),
           lng: value.lng.toString(),
@@ -136,11 +137,17 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   };
 
   const handleManualInput = () => {
-    const inputLat = parseFloat(manualCoords.lat);
-    const inputLng = parseFloat(manualCoords.lng);
+    const inputLat = parseCoordinate(manualCoords.lat);
+    const inputLng = parseCoordinate(manualCoords.lng);
 
     if (isNaN(inputLat) || isNaN(inputLng)) {
-      alert("Please enter valid coordinates");
+      alert("Please enter valid coordinates. Examples: 40.7128, -74.0060 or 40, -74");
+      return;
+    }
+
+    // Validate coordinate ranges before autocorrection
+    if (Math.abs(inputLat) > 90 && Math.abs(inputLng) > 180) {
+      alert("Both coordinates are out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180.");
       return;
     }
 
@@ -248,27 +255,24 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
               <div className="space-y-2">
                 <Label>Or enter coordinates manually:</Label>
+                <p className="text-xs text-muted-foreground">
+                  Accepts various formats: 40.7128, -74.0060 or 40, -74 or 40.7, -74.1
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Input
-                      type="number"
-                      placeholder="Latitude"
+                      type="text"
+                      placeholder="Latitude (e.g., 40.7128)"
                       value={manualCoords.lat}
                       onChange={(e) => setManualCoords({ ...manualCoords, lat: e.target.value })}
-                      step="any"
-                      min="-90"
-                      max="90"
                     />
                   </div>
                   <div>
                     <Input
-                      type="number"
-                      placeholder="Longitude"
+                      type="text"
+                      placeholder="Longitude (e.g., -74.0060)"
                       value={manualCoords.lng}
                       onChange={(e) => setManualCoords({ ...manualCoords, lng: e.target.value })}
-                      step="any"
-                      min="-180"
-                      max="180"
                     />
                   </div>
                 </div>
@@ -292,42 +296,6 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
           <p>
             <strong>Selected location:</strong> {value.lat}, {value.lng}
           </p>
-          
-          {/* Precision indicator */}
-          {(() => {
-            const latPrecision = getCoordinatePrecision(value.lat);
-            const lngPrecision = getCoordinatePrecision(value.lng);
-            const maxPrecision = Math.max(latPrecision, lngPrecision);
-            const precisionLevels = getGeohashPrecisionLevels(value.lat, value.lng);
-            
-            let precisionDescription = "";
-            if (maxPrecision === 0) {
-              precisionDescription = "City/region level (~100km)";
-            } else if (maxPrecision === 1) {
-              precisionDescription = "City level (~11km)";
-            } else if (maxPrecision === 2) {
-              precisionDescription = "Neighborhood level (~1.1km)";
-            } else if (maxPrecision === 3) {
-              precisionDescription = "Block level (~110m)";
-            } else if (maxPrecision === 4) {
-              precisionDescription = "Building level (~11m)";
-            } else if (maxPrecision === 5) {
-              precisionDescription = "Room level (~1.1m)";
-            } else {
-              precisionDescription = "Exact location (~0.1m or better)";
-            }
-            
-            return (
-              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-2">
-                <p className="text-xs text-blue-700 dark:text-blue-300">
-                  <strong>Coordinate precision:</strong> {maxPrecision} decimal place{maxPrecision !== 1 ? 's' : ''} ({precisionDescription})
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  This will generate {precisionLevels.length} geohash precision level{precisionLevels.length !== 1 ? 's' : ''} for optimal search performance
-                </p>
-              </div>
-            );
-          })()}
           
           <a
             href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
