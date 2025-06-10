@@ -87,15 +87,17 @@
 .leaflet-popup-content-wrapper {
   background: var(--popup-bg);
   border: 2px solid var(--popup-border);
-  border-radius: 16px;
+  border-radius: 1rem;
   color: var(--popup-text);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  padding: 4px;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 0.25rem;
 }
 
 .leaflet-popup-content {
   margin: 0;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   overflow: hidden;
   color: var(--popup-text);
 }
@@ -123,231 +125,180 @@
 .leaflet-container.adventure-theme .leaflet-popup-content h3,
 .leaflet-container.adventure-theme .leaflet-popup-content h4,
 .leaflet-container.adventure-theme .leaflet-popup-content p {
-  color: #2d1810 !important;
-  font-weight: 500 !important;
+  color: #2d1810;
+  font-weight: 500;
 }
 
 /* ===== BUTTON STYLING ===== */
 .leaflet-popup-content button:not([class*="outline"]) {
-  background: var(--button-primary-bg) !important;
-  color: var(--button-primary-text) !important;
-  border: 1px solid var(--button-primary-border) !important;
-  font-weight: 500 !important;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  border: 1px solid var(--button-primary-border);
+  font-weight: 500;
 }
 
 .leaflet-popup-content button:not([class*="outline"]):hover {
-  background: var(--button-primary-border) !important;
-  color: var(--button-primary-text) !important;
+  background: var(--button-primary-border);
+  color: var(--button-primary-text);
 }
 
 .leaflet-popup-content button[class*="outline"] {
-  background: var(--button-outline-bg) !important;
-  color: var(--button-outline-text) !important;
-  border: 1px solid var(--button-outline-border) !important;
+  background: var(--button-outline-bg);
+  color: var(--button-outline-text);
+  border: 1px solid var(--button-outline-border);
 }
 
 .leaflet-popup-content button[class*="outline"]:hover {
-  background: var(--control-hover-bg) !important;
-  color: var(--popup-text) !important;
+  background: var(--control-hover-bg);
+  color: var(--popup-text);
 }
 
 /* ===== BADGE STYLING ===== */
 .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
 .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
 .leaflet-popup-content .badge {
-  color: var(--badge-text) !important;
-  font-weight: 600 !important;
+  color: var(--badge-text);
+  font-weight: 600;
 }
 
 /* Outline badges (D/T pills) */
 .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
-  background: var(--badge-outline-bg, var(--button-outline-bg)) !important;
-  color: var(--badge-outline-text, var(--button-outline-text)) !important;
-  border-color: var(--badge-border) !important;
+  background: var(--badge-outline-bg, var(--button-outline-bg));
+  color: var(--badge-outline-text, var(--button-outline-text));
+  border-color: var(--badge-border);
 }
 
 /* Secondary badges (size/type) */
 .leaflet-popup-content [class*="bg-secondary"],
 .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
-  background: var(--badge-bg) !important;
-  color: var(--badge-text) !important;
-  border-color: var(--badge-border) !important;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border-color: var(--badge-border);
 }
 
 /* Adventure theme badge contrast fixes */
 .leaflet-container.adventure-theme .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #2d1810 !important;
-  border-color: #8b4513 !important;
-  font-weight: 700 !important;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2d1810;
+  border-color: #8b4513;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+  opacity: .5;
 }
 
 .leaflet-container.adventure-theme .leaflet-popup-content [class*="bg-secondary"] {
-  background: #8b4513 !important;
-  color: #ffffff !important;
-  border-color: #654321 !important;
-  font-weight: 600 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  background: #8b4513;
+  color: #ffffff;
+  border-color: #654321;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* ===== CONTROL STYLING ===== */
 .leaflet-control-zoom,
 .leaflet-touch .leaflet-control-zoom {
-  border: none !important;
-  border-radius: 6px !important;
-  overflow: hidden !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-  margin-bottom: 10px !important;
+  border: none;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  margin-block-end: 0.625rem;
 }
 
 .leaflet-control-zoom a,
 .leaflet-touch .leaflet-control-zoom a,
 .leaflet-touch .leaflet-bar a {
-  background: var(--control-bg) !important;
-  backdrop-filter: blur(8px) !important;
-  border: 1px solid var(--control-border) !important;
-  color: var(--control-text) !important;
-  font-weight: 500 !important;
-  font-size: 18px !important;
-  width: 36px !important;
-  height: 36px !important;
-  line-height: 36px !important;
-  transition: all 0.2s ease !important;
+  background: var(--control-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  font-weight: 500;
+  font-size: 1.125rem;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  line-height: 2.25rem;
+  transition: all 0.2s ease;
 }
 
 .leaflet-control-zoom a:hover,
 .leaflet-touch .leaflet-control-zoom a:hover,
 .leaflet-touch .leaflet-bar a:hover {
-  background: var(--control-hover-bg) !important;
-  color: var(--control-hover-text) !important;
+  background: var(--control-hover-bg);
+  color: var(--control-hover-text);
 }
 
 .leaflet-control-zoom a:first-child {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-start-start-radius: 0.375rem;
+  border-start-end-radius: 0.375rem;
 }
 
 .leaflet-control-zoom a:last-child {
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border-end-start-radius: 0.375rem;
+  border-end-end-radius: 0.375rem;
 }
 
 /* ===== ATTRIBUTION ===== */
 .leaflet-control-attribution {
   background: var(--control-bg);
   backdrop-filter: blur(8px);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   border: 1px solid var(--control-border);
   color: var(--control-text);
-  font-size: 11px;
-  padding: 4px 8px;
-  margin: 8px;
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0.5rem;
 }
 
 /* ===== MAP STYLE CONTROL ===== */
 .map-style-control {
-  margin-top: 10px !important;
+  margin-block-start: 0.625rem;
 }
 
 .map-style-control .leaflet-control,
 .map-style-control button {
-  position: relative !important;
-  z-index: 401 !important;
-  background: var(--control-bg) !important;
-}
-
-/* Fix map style selector button visibility in different site themes */
-.map-style-control button {
-  color: var(--control-text) !important;
+  position: relative;
+  z-index: 401;
+  background: var(--control-bg);
+  color: var(--control-text);
 }
 
 .map-style-control button:hover {
-  background: var(--control-hover-bg) !important;
-  color: var(--control-hover-text) !important;
+  background: var(--control-hover-bg);
+  color: var(--control-hover-text);
 }
 
 .map-style-control button span,
 .map-style-control button svg {
-  color: inherit !important;
+  color: inherit;
 }
 
-/* Dark site theme fixes for map style button */
-.dark .map-style-control button:not(.adventure-map-style-button) {
-  background: rgba(31, 41, 55, 0.9) !important;
-  border-color: #374151 !important;
-  color: #d1d5db !important;
-}
-
-.dark .map-style-control button:not(.adventure-map-style-button):hover {
-  background: rgba(55, 65, 81, 0.95) !important;
-  color: #34d399 !important;
-}
-
-.dark .map-style-control button:not(.adventure-map-style-button) span,
-.dark .map-style-control button:not(.adventure-map-style-button) svg {
-  color: #d1d5db !important;
-}
-
-.dark .map-style-control button:not(.adventure-map-style-button):hover span,
-.dark .map-style-control button:not(.adventure-map-style-button):hover svg {
-  color: #34d399 !important;
-}
-
-/* Adventure site theme fixes for map style button */
+/* Site theme overrides for map style button */
+.dark .map-style-control button:not(.adventure-map-style-button),
+.adventure .map-style-control button,
 .adventure-map-style-button {
-  background: linear-gradient(135deg, #f5f1e8 0%, #ede4d3 100%) !important;
-  border-color: #a0825a !important;
-  color: #3c2e1f !important;
+  --control-bg: rgba(31, 41, 55, 0.9);
+  --control-border: #374151;
+  --control-text: #d1d5db;
+  --control-hover-bg: rgba(55, 65, 81, 0.95);
+  --control-hover-text: #34d399;
 }
 
-.adventure-map-style-button:hover {
-  background: linear-gradient(135deg, #ede4d3 0%, #e0d4c0 100%) !important;
-  border-color: #8b4513 !important;
-  color: #2d1810 !important;
-}
-
-.adventure-map-style-button span,
-.adventure-map-style-button svg {
-  color: #3c2e1f !important;
-}
-
-.adventure-map-style-button:hover span,
-.adventure-map-style-button:hover svg {
-  color: #2d1810 !important;
-}
-
-/* Adventure site theme - ensure map style button is always visible */
-.adventure .map-style-control button {
-  background: linear-gradient(135deg, #f5f1e8 0%, #ede4d3 100%) !important;
-  border-color: #a0825a !important;
-  color: #3c2e1f !important;
-}
-
-.adventure .map-style-control button:hover {
-  background: linear-gradient(135deg, #ede4d3 0%, #e0d4c0 100%) !important;
-  border-color: #8b4513 !important;
-  color: #2d1810 !important;
-}
-
-.adventure .map-style-control button span,
-.adventure .map-style-control button svg {
-  color: #3c2e1f !important;
-}
-
-.adventure .map-style-control button:hover span,
-.adventure .map-style-control button:hover svg {
-  color: #2d1810 !important;
+.adventure .map-style-control button,
+.adventure-map-style-button {
+  --control-bg: linear-gradient(135deg, #f5f1e8 0%, #ede4d3 100%);
+  --control-border: #a0825a;
+  --control-text: #3c2e1f;
+  --control-hover-bg: linear-gradient(135deg, #ede4d3 0%, #e0d4c0 100%);
+  --control-hover-text: #2d1810;
 }
 
 /* Map style popover positioning */
 .map-style-control [data-radix-popper-content-wrapper] {
-  position: fixed !important;
-  z-index: 9999 !important;
+  position: fixed;
+  z-index: 9999;
 }
 
 .map-style-control [data-radix-popover-content] {
-  transform-origin: top right !important;
+  transform-origin: top right;
   opacity: 0;
   animation: fadeInPopover 200ms ease-out forwards;
 }
@@ -355,7 +306,7 @@
 @keyframes fadeInPopover {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-0.5rem);
   }
   to {
     opacity: 1;
@@ -369,7 +320,7 @@
   overflow: hidden;
 }
 
-/* Adventure parchment and border overlays */
+/* Adventure overlays */
 .adventure-parchment-overlay {
   pointer-events: none;
   opacity: 0.15;
@@ -382,135 +333,78 @@
 
 /* Adventure popover styling */
 .adventure-popover {
-  background: linear-gradient(135deg, #f5f1e8 0%, #ede4d3 100%) !important;
-  border: 2px solid #a0825a !important;
-  color: #3c2e1f !important;
-  box-shadow: 0 4px 12px rgba(160, 130, 90, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  background: linear-gradient(135deg, #f5f1e8 0%, #ede4d3 100%);
+  border: 2px solid #a0825a;
+  color: #3c2e1f;
+  box-shadow: 
+    0 4px 12px rgba(160, 130, 90, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-.adventure-popover * {
-  color: #3c2e1f !important;
+.adventure-popover *,
+.adventure-popover svg {
+  color: #3c2e1f;
+  opacity: 1;
 }
 
 .adventure-popover .text-muted-foreground,
 .adventure-popover p:not(.font-medium),
 .adventure-popover .map-style-desc {
-  color: #6b5b3f !important;
+  color: #6b5b3f;
 }
 
 .adventure-popover .map-style-name {
-  color: #3c2e1f !important;
-  font-weight: 600 !important;
+  color: #3c2e1f;
+  font-weight: 600;
 }
 
 .adventure-popover button:hover {
-  background-color: rgba(180, 150, 110, 0.2) !important;
+  background-color: rgba(180, 150, 110, 0.2);
 }
 
 .adventure-popover button[data-active="true"] {
-  background-color: rgba(212, 175, 55, 0.25) !important;
-  border-color: #d4af37 !important;
+  background-color: rgba(212, 175, 55, 0.25);
+  border-color: #d4af37;
 }
 
-/* Fix icon visibility in adventure popover */
-.adventure-popover svg {
-  color: #3c2e1f !important;
-}
-
-/* Ensure dark mode map style is visible in adventure popover */
-.adventure-popover button svg {
-  opacity: 1 !important;
-}
-
-/* Make sure all map style icons are visible */
-.adventure-popover .flex.items-center.justify-center svg {
-  color: inherit !important;
-  opacity: 1 !important;
-}
-
-/* Specific fix for dark mode icon visibility in adventure site theme */
+/* Ensure all icons are visible in adventure popover */
 .adventure .adventure-popover button svg,
-.adventure .adventure-popover .flex.items-center.justify-center svg {
-  color: #3c2e1f !important;
-  opacity: 1 !important;
-}
-
-/* Ensure moon icon (dark mode) is visible in adventure popover */
-.adventure .adventure-popover button:has(svg[data-lucide="moon"]) svg,
-.adventure .adventure-popover .flex:has(svg[data-lucide="moon"]) svg {
-  color: #2d1810 !important;
-  opacity: 1 !important;
-}
-
-/* ===== RESPONSIVE DESIGN ===== */
-@media (min-width: 1024px) {
-  .leaflet-container {
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 100% !important;
-  }
-}
-
-@media (max-width: 1024px) {
-  [data-state="active"][data-orientation="horizontal"] .leaflet-container {
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 400px !important;
-  }
-  
-  .leaflet-map-pane,
-  .leaflet-tile-pane,
-  .leaflet-overlay-pane,
-  .leaflet-marker-pane {
-    display: block !important;
-    position: relative !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .leaflet-popup-content-wrapper {
-    border-radius: 12px;
-  }
-  
-  .custom-cache-icon {
-    transform: scale(0.9);
-  }
+.adventure .adventure-popover .flex svg {
+  color: #3c2e1f;
+  opacity: 1;
 }
 
 /* ===== Z-INDEX MANAGEMENT ===== */
 .leaflet-container .leaflet-control-container {
   position: relative;
-  z-index: 1000 !important;
+  z-index: 1000;
 }
 
 .leaflet-container .leaflet-marker-pane,
 .leaflet-container .leaflet-popup-pane,
 .leaflet-container .leaflet-tooltip-pane,
 .leaflet-container .leaflet-shadow-pane {
-  position: relative !important;
-  z-index: 500 !important;
+  position: relative;
+  z-index: 500;
 }
 
 /* Modal and overlay z-index */
 [data-radix-dialog-overlay],
-[data-radix-dialog-content] {
-  z-index: 9999 !important;
+[data-radix-dialog-content],
+.geocache-dialog,
+.profile-dialog {
+  z-index: 9999;
 }
 
 [data-radix-popover-content],
 [data-radix-dropdown-menu-content],
 [data-radix-select-content],
 [data-radix-tooltip-content] {
-  z-index: 9996 !important;
-}
-
-.geocache-dialog,
-.profile-dialog {
-  z-index: 9999 !important;
+  z-index: 9996;
 }
 
 .image-gallery {
-  z-index: 10001 !important;
+  z-index: 10001;
 }
 
 /* ===== UTILITY CLASSES ===== */
@@ -552,7 +446,9 @@
   color: white;
   font-weight: bold;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .marker-cluster-small div,
@@ -560,4 +456,39 @@
 .marker-cluster-large div {
   background: transparent;
   border-radius: 50%;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (min-width: 1024px) {
+  .leaflet-container {
+    block-size: 100%;
+    inline-size: 100%;
+    min-block-size: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  [data-state="active"][data-orientation="horizontal"] .leaflet-container {
+    block-size: 100%;
+    inline-size: 100%;
+    min-block-size: 25rem;
+  }
+  
+  .leaflet-map-pane,
+  .leaflet-tile-pane,
+  .leaflet-overlay-pane,
+  .leaflet-marker-pane {
+    display: block;
+    position: relative;
+  }
+}
+
+@media (max-width: 768px) {
+  .leaflet-popup-content-wrapper {
+    border-radius: 0.75rem;
+  }
+  
+  .custom-cache-icon {
+    transform: scale(0.9);
+  }
 }
