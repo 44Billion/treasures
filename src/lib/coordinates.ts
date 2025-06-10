@@ -152,3 +152,21 @@ export function getGeohashPrecisionLevels(lat: number, lng: number): number[] {
   
   return levels;
 }
+/**
+ * Format a single coordinate value for input fields
+ * Limits precision to 5 decimal places for automatic sources (map clicks, GPS, search)
+ * but preserves full precision for manual entry
+ * @param value The coordinate value
+ * @param isFromAutomaticSource Whether this came from map click, GPS, or search
+ * @returns Formatted coordinate string
+ */
+export function formatCoordinateForInput(value: number, isFromAutomaticSource: boolean = true): string {
+  if (isFromAutomaticSource) {
+    // Limit to 5 decimal places for automatic sources (~1.1m precision)
+    // This matches our geohash precision requirements
+    return value.toFixed(5);
+  } else {
+    // For manual entry, preserve the original precision
+    return value.toString();
+  }
+}

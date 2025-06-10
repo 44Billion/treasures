@@ -733,6 +733,9 @@ npx vitest run --grep "your-feature"
 - Test offline scenarios and network failures
 - Integration tests are as important as unit tests
 - **Focus testing on your immediate scope of work**
+- **NEVER DELETE TEST FILES** unless they are deprecated (broken AND unfixable)
+- Test files are valuable documentation and regression prevention
+- Keep test files even after feature completion for future maintenance
 
 ## Common TypeScript Issues
 

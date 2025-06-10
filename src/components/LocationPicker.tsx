@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels, parseCoordinate } from "@/lib/coordinates";
+import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels, parseCoordinate, formatCoordinateForInput } from "@/lib/coordinates";
 import { mapIcons } from "@/lib/mapIcons";
 
 import "leaflet/dist/leaflet.css";
@@ -24,13 +24,15 @@ function LocationSelector({
   onChange,
   center,
   beaconLocation,
-  onPinDropped
+  onPinDropped,
+  onMapClick
 }: { 
   value: { lat: number; lng: number } | null;
   onChange: (location: { lat: number; lng: number }) => void;
   center?: LatLngExpression;
   beaconLocation?: { lat: number; lng: number } | null;
   onPinDropped?: () => void;
+  onMapClick?: () => void;
 }) {
   const map = useMap();
   
@@ -42,6 +44,8 @@ function LocationSelector({
       });
       // Notify parent that pin was dropped (so it doesn't update map center)
       onPinDropped?.();
+      // Notify parent that map was clicked (to reset manual coords modification)
+      onMapClick?.();
     },
   });
 
@@ -83,18 +87,16 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   const lastCoordsRef = useRef<GeolocationCoordinates | null>(null);
 
+  // Track if manual coordinates have been modified by user
+  const [manualCoordsModified, setManualCoordsModified] = useState(false);
+
   useEffect(() => {
     if (value) {
-      // Preserve the original precision of the coordinates
-      // Only format if the current input doesn't match the value
-      const currentLat = parseCoordinate(manualCoords.lat);
-      const currentLng = parseCoordinate(manualCoords.lng);
-      
-      if (isNaN(currentLat) || isNaN(currentLng) || 
-          Math.abs(currentLat - value.lat) > 1e-10 || Math.abs(currentLng - value.lng) > 1e-10) {
+      // Only update manual coords if they haven't been manually modified
+      if (!manualCoordsModified) {
         setManualCoords({
-          lat: value.lat.toString(),
-          lng: value.lng.toString(),
+          lat: formatCoordinateForInput(value.lat, true),
+          lng: formatCoordinateForInput(value.lng, true),
         });
       }
       
@@ -105,7 +107,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       // Reset the pin dropped flag
       setPinDropped(false);
     }
-  }, [value, pinDropped, manualCoords.lat, manualCoords.lng]);
+  }, [value, pinDropped, manualCoordsModified]);
 
   // Only update location when user explicitly gets location, not automatically
   useEffect(() => {
@@ -121,9 +123,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       setBeaconLocation(location);
       setMapCenter([lat, lng]);
       setManualCoords({ 
-        lat: lat.toString(), 
-        lng: lng.toString() 
+        lat: formatCoordinateForInput(lat, true), 
+        lng: formatCoordinateForInput(lng, true) 
       });
+      setManualCoordsModified(false);
       
       // If no pin has been set yet, automatically set it at current location
       if (!value) {
@@ -157,12 +160,13 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     // Update input fields to show corrected values
     if (corrected) {
       setManualCoords({ 
-        lat: lat.toString(), 
-        lng: lng.toString() 
+        lat: formatCoordinateForInput(lat, true), 
+        lng: formatCoordinateForInput(lng, true) 
       });
     }
 
     const location = { lat, lng };
+    setManualCoordsModified(false); // Reset modification flag
     onChange(location);
     setMapCenter([lat, lng]);
   };
@@ -175,11 +179,12 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     // Set beacon location for searched location
     setBeaconLocation(newLocation);
     setMapCenter([lat, lng]);
-    // Update manual coords to show corrected values
+    // Update manual coords to show corrected values and reset modification flag
     setManualCoords({ 
-      lat: lat.toString(), 
-      lng: lng.toString() 
+      lat: formatCoordinateForInput(lat, true), 
+      lng: formatCoordinateForInput(lng, true) 
     });
+    setManualCoordsModified(false);
     
     // Don't automatically set the cache location - user must click on map
   };
@@ -208,6 +213,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                   center={mapCenter} 
                   beaconLocation={beaconLocation}
                   onPinDropped={() => setPinDropped(true)}
+                  onMapClick={() => setManualCoordsModified(false)}
                 />
               </MapContainer>
             </div>
@@ -264,7 +270,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                       type="text"
                       placeholder="Latitude (e.g., 40.7128)"
                       value={manualCoords.lat}
-                      onChange={(e) => setManualCoords({ ...manualCoords, lat: e.target.value })}
+                      onChange={(e) => {
+                        setManualCoordsModified(true);
+                        setManualCoords({ ...manualCoords, lat: e.target.value });
+                      }}
                     />
                   </div>
                   <div>
@@ -272,7 +281,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                       type="text"
                       placeholder="Longitude (e.g., -74.0060)"
                       value={manualCoords.lng}
-                      onChange={(e) => setManualCoords({ ...manualCoords, lng: e.target.value })}
+                      onChange={(e) => {
+                        setManualCoordsModified(true);
+                        setManualCoords({ ...manualCoords, lng: e.target.value });
+                      }}
                     />
                   </div>
                 </div>
@@ -285,28 +297,30 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                 >
                   Set Coordinates
                 </Button>
+
+                {/* Selected location display */}
+                {value && (
+                  <div className="text-sm text-gray-600 pt-2 text-center">
+                    <p>
+                      <strong>Selected location:</strong> {value.lat}, {value.lng}
+                    </p>
+                    
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline inline-block"
+                    >
+                      View on OpenStreetMap →
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {value && (
-        <div className="text-sm text-gray-600 space-y-2">
-          <p>
-            <strong>Selected location:</strong> {value.lat}, {value.lng}
-          </p>
-          
-          <a
-            href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline inline-block"
-          >
-            View on OpenStreetMap →
-          </a>
-        </div>
-      )}
     </div>
   );
 }
