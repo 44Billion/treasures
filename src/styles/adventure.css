@@ -1,6 +1,11 @@
-/* Adventure-themed animations for the home page hero section */
+/* ===== ADVENTURE THEME CSS VARIABLES ===== */
+:root {
+  --adventure-grid-primary: rgb(34 197 94 / 0.35);
+  --adventure-grid-secondary: rgb(34 197 94 / 0.4);
+  --adventure-grid-tertiary: rgb(34 197 94 / 0.3);
+  --adventure-grid-quaternary: rgb(34 197 94 / 0.4);
+}
 
-/* Adventure theme CSS variables */
 .adventure {
   --adventure-grid-primary: rgb(180 83 9 / 0.4);
   --adventure-grid-secondary: rgb(180 83 9 / 0.5);
@@ -8,7 +13,8 @@
   --adventure-grid-quaternary: rgb(180 83 9 / 0.45);
 }
 
-/* Adventure theme font styling - Pirata One for non-paragraph text */
+/* ===== ADVENTURE FONT SYSTEM ===== */
+/* Pirata One font for headings and UI elements */
 .adventure h1,
 .adventure h2,
 .adventure h3,
@@ -43,73 +49,16 @@
 .adventure .text-5xl,
 .adventure .text-6xl {
   font-family: 'Pirata One', cursive;
+  letter-spacing: 0.02em;
+  font-weight: 400;
 }
 
-/* Specific font size overrides for consistent scaling */
-.adventure .text-xs { font-size: 0.8rem !important; }
-.adventure .text-sm { font-size: 0.95rem !important; }
-.adventure .text-md { font-size: 1.15rem !important; }
-.adventure .text-lg { font-size: 1.25rem !important; }
-.adventure .text-xl { font-size: 1.375rem !important; }
-.adventure .text-2xl { font-size: 1.875rem !important; }
-.adventure .text-3xl { font-size: 2.25rem !important; }
-.adventure .text-4xl { font-size: 3.5rem !important; }
-.adventure .text-5xl { font-size: 4.5rem !important; }
-.adventure .text-6xl { font-size: 5.5rem !important; }
-.adventure .text-7xl { font-size: 7rem !important; }
-
-/* Navigation and UI element sizing */
-.adventure nav,
-.adventure .nav,
-.adventure .menu {
-  font-size: 1.02rem !important;
-}
-
-/* Heading overrides to ensure consistent sizing */
-.adventure h2 { font-size: 2rem !important; }
-.adventure h3 { font-size: 1.25rem !important; }
-.adventure h4 { font-size: 1.15rem !important; }
-.adventure h5 { font-size: 1.10rem !important; }
-.adventure h6 { font-size: 1.05rem !important; }
-
-/* Common UI elements */
-.adventure .label,
-.adventure .badge,
-.adventure .tag {
-  font-size: 0.95rem !important;
-}
-
-/* Responsive adjustments for mobile devices */
-@media (max-width: 640px) {
-  .adventure .text-2xl { font-size: 1.625rem !important; }
-  .adventure .text-3xl { font-size: 2rem !important; }
-  .adventure .text-4xl { font-size: 3rem !important; }
-  .adventure .text-5xl { font-size: 4rem !important; }
-  .adventure .text-6xl { font-size: 5rem !important; }
-  .adventure .text-7xl { font-size: 6rem !important; }
-}
-
-/* Very small screens - more conservative sizing */
-@media (max-width: 375px) {
-  .adventure .text-xl { font-size: 1.25rem !important; }
-  .adventure .text-2xl { font-size: 1.5rem !important; }
-  .adventure .text-3xl { font-size: 1.875rem !important; }
-  .adventure .text-4xl { font-size: 2.5rem !important; }
-  .adventure .text-5xl { font-size: 3.5rem !important; }
-  .adventure .text-6xl { font-size: 4.5rem !important; }
-  .adventure .text-7xl { font-size: 5rem !important; }
-}
-
-/* Keep paragraphs and body text with default font */
+/* Keep body text with default font */
 .adventure p,
 .adventure .text-content,
 .adventure .prose,
 .adventure .description,
-.adventure .content {
-  font-family: inherit;
-}
-
-/* Override for text size classes that should NOT use Pirata One */
+.adventure .content,
 .adventure p.text-sm,
 .adventure p.text-xs,
 .adventure p.text-base,
@@ -119,245 +68,134 @@
 .adventure .prose .text-sm,
 .adventure .prose .text-xs,
 .adventure .prose .text-base {
-  font-family: inherit !important;
+  font-family: inherit;
 }
 
-/* Utility classes for explicit font control */
+/* ===== FONT SIZE SYSTEM ===== */
+.adventure .text-xs { font-size: 0.8rem; }
+.adventure .text-sm { font-size: 0.95rem; }
+.adventure .text-md { font-size: 1.15rem; }
+.adventure .text-lg { font-size: 1.25rem; }
+.adventure .text-xl { font-size: 1.375rem; }
+.adventure .text-2xl { font-size: 1.875rem; }
+.adventure .text-3xl { font-size: 2.25rem; }
+.adventure .text-4xl { font-size: 3.5rem; }
+.adventure .text-5xl { font-size: 4.5rem; }
+.adventure .text-6xl { font-size: 5.5rem; }
+.adventure .text-7xl { font-size: 7rem; }
+
+/* Heading sizes */
+.adventure h2 { font-size: 2rem; }
+.adventure h3 { font-size: 1.25rem; }
+.adventure h4 { font-size: 1.15rem; }
+.adventure h5 { font-size: 1.10rem; }
+.adventure h6 { font-size: 1.05rem; }
+
+/* UI element sizes */
+.adventure nav,
+.adventure .nav,
+.adventure .menu { font-size: 1.02rem; }
+
+.adventure .label,
+.adventure .badge,
+.adventure .tag { font-size: 0.95rem; }
+
+/* Hero section specific sizing */
+.adventure section:first-of-type h2 { font-size: 2.25rem; }
+
+/* ===== UTILITY CLASSES ===== */
 .font-adventure {
   font-family: 'Pirata One', cursive;
-  font-size: 1.1rem !important;
-  letter-spacing: 0.02em; /* Slight letter spacing for better readability */
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
 }
 
 .font-body {
   font-family: inherit;
 }
 
-/* Adventure theme specific overrides for common UI elements */
-.adventure .font-adventure {
-  font-family: 'Pirata One', cursive;
-  font-size: 1.1rem !important;
-  letter-spacing: 0.02em;
-}
-
-/* Specific override for the main hero heading - target the first section's h2 specifically */
-.adventure section:first-of-type h2 {
-  font-size: 2.25rem !important;
-}
-
-/* Responsive overrides for the hero section h2 heading */
-@media (min-width: 475px) {
-  .adventure section:first-of-type h2 {
-    font-size: 2.75rem !important;
-  }
-}
-
-@media (min-width: 768px) {
-  .adventure section:first-of-type h2 {
-    font-size: 3.5rem !important;
-  }
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 640px) {
-  .adventure section:first-of-type h2 {
-    font-size: 2rem !important;
-  }
-}
-
-@media (max-width: 375px) {
-  .adventure section:first-of-type h2 {
-    font-size: 1.75rem !important;
-  }
-}
-
-/* Enhanced styling for Pirata One font in adventure theme */
-.adventure h1,
-.adventure h2,
-.adventure h3,
-.adventure h4,
-.adventure h5,
-.adventure h6,
-.adventure .font-heading,
-.adventure nav,
-.adventure .nav,
-.adventure .menu,
-.adventure .title,
-.adventure .label,
-.adventure .badge,
-.adventure .tag,
-.adventure .card-title,
-.adventure .dialog-title,
-.adventure .alert-title,
-.adventure .sidebar-title,
-.adventure .breadcrumb,
-.adventure .tab,
-.adventure .dropdown,
-.adventure .select,
-.adventure .input[type="submit"],
-.adventure .input[type="button"],
-.adventure .link,
-.adventure a:not(.text-content a) {
-  letter-spacing: 0.02em; /* Improved readability */
-  font-weight: 400; /* Ensure consistent weight */
-}
-
-/* Adventure navigation bar styling */
-.adventure .bg-adventure-nav {
+/* ===== ADVENTURE BACKGROUNDS ===== */
+.bg-adventure-nav {
   background-color: rgb(var(--adventure-nav-bg));
 }
 
-.adventure .border-adventure-nav {
+.border-adventure-nav {
   border-color: rgb(var(--adventure-nav-border));
 }
 
-/* Default theme variables */
-:root {
-  --adventure-grid-primary: rgb(34 197 94 / 0.35);
-  --adventure-grid-secondary: rgb(34 197 94 / 0.4);
-  --adventure-grid-tertiary: rgb(34 197 94 / 0.3);
-  --adventure-grid-quaternary: rgb(34 197 94 / 0.4);
-}
-
-/* Adventure map background pattern - very subtle dark theme */
 .bg-adventure-map {
   background-image: 
     radial-gradient(circle at 25% 35%, rgba(101, 67, 33, 0.08) 1px, transparent 1px),
     radial-gradient(circle at 70% 60%, rgba(92, 51, 23, 0.06) 1px, transparent 1px),
     radial-gradient(circle at 85% 25%, rgba(101, 67, 33, 0.05) 0.5px, transparent 0.5px);
-  background-size: 
-    120px 80px,
-    160px 100px, 
-    140px 90px;
-  background-position:
-    0 0,
-    30px 20px,
-    60px 15px;
+  background-size: 120px 80px, 160px 100px, 140px 90px;
+  background-position: 0 0, 30px 20px, 60px 15px;
 }
 
-/* Organic, natural animations */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes bounce-gentle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes expand-line {
-  0% {
-    transform: scaleX(0);
-  }
-  100% {
-    transform: scaleX(1);
-  }
-}
-
+/* ===== ANIMATIONS ===== */
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes bounce-gentle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes fade-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes expand-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes float-gentle {
-  0%, 100% {
-    transform: translateY(0) translateX(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-3px) translateX(1px) rotate(1deg);
-  }
-  50% {
-    transform: translateY(-1px) translateX(-0.5px) rotate(-0.5deg);
-  }
-  75% {
-    transform: translateY(-4px) translateX(0.5px) rotate(0.5deg);
-  }
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  25% { transform: translateY(-3px) translateX(1px) rotate(1deg); }
+  50% { transform: translateY(-1px) translateX(-0.5px) rotate(-0.5deg); }
+  75% { transform: translateY(-4px) translateX(0.5px) rotate(0.5deg); }
 }
-
 @keyframes pulse-treasure {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.1);
-  }
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
 }
 
-/* Animation classes - more organic timing */
-.animate-spin-slow {
-  animation: spin-slow 30s linear infinite;
-}
-
-.animate-bounce-slow {
-  animation: bounce-gentle 4s ease-in-out infinite;
-}
-
-.animate-fade-in {
-  animation: fade-in 1s ease-out 0.3s both;
-}
-
-.animate-slide-up {
-  animation: slide-up 1s ease-out 0.5s both;
-}
-
-.animate-slide-up-delay {
-  animation: slide-up 1s ease-out 0.7s both;
-}
-
-.animate-slide-up-delay-2 {
-  animation: slide-up 1s ease-out 0.9s both;
-}
-
-.animate-expand-line {
-  animation: expand-line 1.2s ease-out 1.4s both;
-}
-
-.animate-float-gentle {
-  animation: float-gentle 8s ease-in-out infinite;
-}
-
-/* Treasure-specific pulse */
-.animate-pulse {
-  animation: pulse-treasure 3s ease-in-out infinite;
-}
+/* Animation utility classes */
+.animate-spin-slow { animation: spin-slow 30s linear infinite; }
+.animate-bounce-slow { animation: bounce-gentle 4s ease-in-out infinite; }
+.animate-fade-in { animation: fade-in 1s ease-out 0.3s both; }
+.animate-slide-up { animation: slide-up 1s ease-out 0.5s both; }
+.animate-slide-up-delay { animation: slide-up 1s ease-out 0.7s both; }
+.animate-slide-up-delay-2 { animation: slide-up 1s ease-out 0.9s both; }
+.animate-expand-line { animation: expand-line 1.2s ease-out 1.4s both; }
+.animate-float-gentle { animation: float-gentle 8s ease-in-out infinite; }
+.animate-pulse { animation: pulse-treasure 3s ease-in-out infinite; }
 
 /* Adventure cache icon styling */
-.adventure-cache-icon:hover {
-  transform: scale(1.05);
+.adventure-cache-icon:hover { transform: scale(1.05); }
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 640px) {
+  .adventure .text-2xl { font-size: 1.625rem; }
+  .adventure .text-3xl { font-size: 2rem; }
+  .adventure .text-4xl { font-size: 3rem; }
+  .adventure .text-5xl { font-size: 4rem; }
+  .adventure .text-6xl { font-size: 5rem; }
+  .adventure .text-7xl { font-size: 6rem; }
+  .adventure section:first-of-type h2 { font-size: 2rem; }
 }
 
-/* Hover effects for enhanced interactivity */
+@media (max-width: 375px) {
+  .adventure .text-xl { font-size: 1.25rem; }
+  .adventure .text-2xl { font-size: 1.5rem; }
+  .adventure .text-3xl { font-size: 1.875rem; }
+  .adventure .text-4xl { font-size: 2.5rem; }
+  .adventure .text-5xl { font-size: 3.5rem; }
+  .adventure .text-6xl { font-size: 4.5rem; }
+  .adventure .text-7xl { font-size: 5rem; }
+  .adventure section:first-of-type h2 { font-size: 1.75rem; }
+}
+
+@media (min-width: 475px) {
+  .adventure section:first-of-type h2 { font-size: 2.75rem; }
+}
+
+@media (min-width: 768px) {
+  .adventure section:first-of-type h2 { font-size: 3.5rem; }
+}
+
+/* Enhanced hover effects */
 @media (hover: hover) {
   .group:hover .transition-transform {
-    transition-duration: 0.3s;
-    transition-timing-function: ease-out;
+    transition: transform 0.3s ease-out;
   }
 }

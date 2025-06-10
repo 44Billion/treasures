@@ -1,127 +1,106 @@
-/* Fix for Leaflet marker icons in Vite */
+/* ===== LEAFLET CORE FIXES ===== */
 .leaflet-container {
-  height: 100% !important;
-  width: 100% !important;
+  block-size: 100%;
+  inline-size: 100%;
   z-index: 0;
-  /* Improve touch performance on mobile */
   touch-action: manipulation;
-  /* Remove problematic transforms that can cause rendering issues */
   position: relative;
-  /* Ensure proper rendering on all browsers */
-  min-height: 300px;
+  min-block-size: 18.75rem; /* 300px */
 }
 
-/* Fix marker icon paths */
+/* Fix marker icon paths for Vite */
 .leaflet-default-icon-path {
   background-image: url('https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png');
 }
 
-/* Ensure popups are above other elements */
+/* ===== POPUP IMPROVEMENTS ===== */
 .leaflet-popup {
   z-index: 1000;
 }
 
-/* Custom cache icon styles */
-.custom-cache-icon {
-  background: none !important;
-  border: none !important;
-}
-
-/* Improve popup styling */
 .leaflet-popup-content-wrapper {
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border-radius: 0.5rem;
+  box-shadow: 
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .leaflet-popup-content {
   margin: 0;
-  min-width: 200px;
-  max-width: 250px;
+  min-inline-size: 12.5rem; /* 200px */
+  max-inline-size: 15.625rem; /* 250px */
 }
 
-/* Make close button X bigger and properly centered */
+/* Enhanced close button */
 .leaflet-popup-close-button {
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 18px !important;
-  line-height: 32px !important;
-  text-align: center !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
+  inline-size: 2rem;
+  block-size: 2rem;
+  font-size: 1.125rem;
+  line-height: 2rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
-/* Fix control positioning */
-.leaflet-control-container .leaflet-top {
-  top: 10px;
+/* ===== CONTROL POSITIONING ===== */
+.leaflet-control-container .leaflet-top { inset-block-start: 0.625rem; }
+.leaflet-control-container .leaflet-bottom { inset-block-end: 0.625rem; }
+.leaflet-control-container .leaflet-left { inset-inline-start: 0.625rem; }
+.leaflet-control-container .leaflet-right { inset-inline-end: 0.625rem; }
+
+/* ===== CUSTOM ICONS ===== */
+.custom-cache-icon {
+  background: none;
+  border: none;
 }
 
-.leaflet-control-container .leaflet-bottom {
-  bottom: 10px;
-}
-
-.leaflet-control-container .leaflet-left {
-  left: 10px;
-}
-
-.leaflet-control-container .leaflet-right {
-  right: 10px;
-}
-
-/* Mobile-specific improvements */
+/* ===== MOBILE OPTIMIZATIONS ===== */
 @media (max-width: 1024px) {
-  /* Make zoom controls larger on mobile */
   .leaflet-control-zoom a {
-    width: 36px !important;
-    height: 36px !important;
-    line-height: 36px !important;
-    font-size: 20px !important;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    line-height: 2.25rem;
+    font-size: 1.25rem;
   }
   
-  /* Improve popup on mobile */
   .leaflet-popup-content-wrapper {
-    max-width: calc(100vw - 40px);
+    max-inline-size: calc(100vw - 2.5rem);
   }
   
-  /* Ensure map fills container properly on mobile */
   .leaflet-container {
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 400px !important;
-    display: block !important;
+    block-size: 100%;
+    inline-size: 100%;
+    min-block-size: 25rem; /* 400px */
+    display: block;
   }
   
-  /* Fix touch interactions */
   .leaflet-container a {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Force map to be visible */
   .leaflet-map-pane {
-    display: block !important;
-    position: relative !important;
+    display: block;
+    position: relative;
   }
 }
 
-/* iOS Safari specific fixes */
+/* ===== iOS SAFARI FIXES ===== */
 @supports (-webkit-touch-callout: none) {
   .leaflet-container {
-    /* Remove hardware acceleration that can cause rendering issues */
-    position: relative !important;
+    position: relative;
     overflow: hidden;
-    /* Ensure proper dimensions */
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 400px !important;
+    block-size: 100%;
+    inline-size: 100%;
+    min-block-size: 25rem; /* 400px */
   }
   
-  /* Reduce adventure theme overlay opacity on iOS Safari to prevent tinting */
   .adventure-parchment-overlay,
   .adventure-border-overlay {
-    opacity: 0.3 !important;
+    opacity: 0.3;
   }
 }

@@ -1,130 +1,88 @@
-/* Mobile PWA styles */
-.pb-safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+/* ===== CSS CUSTOM PROPERTIES FOR MOBILE ===== */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --mobile-nav-height: 4rem;
+  --mobile-header-height: 4rem;
 }
 
-.pt-safe-top {
-  padding-top: env(safe-area-inset-top, 0px);
-}
+/* ===== SAFE AREA UTILITIES ===== */
+.pb-safe-bottom { padding-block-end: var(--safe-area-bottom); }
+.pt-safe-top { padding-block-start: var(--safe-area-top); }
+.pl-safe-left { padding-inline-start: var(--safe-area-left); }
+.pr-safe-right { padding-inline-end: var(--safe-area-right); }
 
-.pl-safe-left {
-  padding-left: env(safe-area-inset-left, 0px);
-}
+/* ===== MOBILE NAVIGATION SPACING ===== */
+.pb-nav-safe { padding-block-end: var(--mobile-nav-height); }
+.pb-nav-safe-inset { padding-block-end: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
+.mb-nav-safe { margin-block-end: var(--mobile-nav-height); }
+.mb-nav-safe-inset { margin-block-end: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
 
-.pr-safe-right {
-  padding-right: env(safe-area-inset-right, 0px);
-}
+/* ===== MOBILE HEADER SPACING ===== */
+.pt-header-safe { padding-block-start: calc(var(--mobile-header-height) + var(--safe-area-top)); }
+.pt-mobile-header { padding-block-start: calc(var(--mobile-header-height) + var(--safe-area-top)); }
+.mobile-page-safe { padding-block-start: calc(var(--mobile-header-height) + var(--safe-area-top)); }
 
-/* Mobile navigation spacing - just nav height */
-.pb-nav-safe {
-  padding-bottom: 4rem;
-}
-
-/* Mobile navigation spacing with safe area insets for special cases */
-.pb-nav-safe-inset {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* Mobile margin bottom variant */
-.mb-nav-safe {
-  margin-bottom: 4rem;
-}
-
-.mb-nav-safe-inset {
-  margin-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* Mobile header + safe area height */
-.pt-header-safe {
-  padding-top: calc(4rem + env(safe-area-inset-top, 0px));
-}
-
-/* Mobile scrollable content padding - accounts for sticky header */
-.pt-mobile-header {
-  padding-top: calc(4rem + env(safe-area-inset-top, 0px));
-}
-
-/* Mobile page wrapper - prevents content sliding behind header */
-.mobile-page-safe {
-  padding-top: calc(4rem + env(safe-area-inset-top, 0px));
-}
-
-/* Mobile page container - constrained height with proper spacing */
+/* ===== MOBILE HEIGHT UTILITIES ===== */
 .h-mobile-page {
-  height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  block-size: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom));
+  block-size: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
 }
 
-/* Mobile scrollable container - accounts for header and bottom nav */
 .h-mobile-scroll {
-  height: calc(100dvh - 4rem - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  height: calc(100vh - 4rem - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  min-height: 400px;
+  block-size: calc(100dvh - var(--mobile-header-height) - var(--mobile-nav-height) - var(--safe-area-top) - var(--safe-area-bottom));
+  block-size: calc(100vh - var(--mobile-header-height) - var(--mobile-nav-height) - var(--safe-area-top) - var(--safe-area-bottom));
+  min-block-size: 25rem; /* 400px */
 }
 
-/* Mobile content height - using modern dynamic viewport units with fallbacks */
 .h-mobile-content {
-  height: calc(100dvh - 4rem - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  /* Fallback for browsers that don't support dvh */
-  height: calc(100vh - 4rem - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  block-size: calc(100dvh - var(--mobile-header-height) - var(--mobile-nav-height) - var(--safe-area-top) - var(--safe-area-bottom));
+  block-size: calc(100vh - var(--mobile-header-height) - var(--mobile-nav-height) - var(--safe-area-top) - var(--safe-area-bottom));
 }
 
-/* Alternative using stable height calculation for single-page apps */
 .h-mobile-stable {
-  height: calc(100% - 4rem - env(safe-area-inset-bottom, 0px));
-  min-height: calc(50vh - 2rem);
+  block-size: calc(100% - var(--mobile-nav-height) - var(--safe-area-bottom));
+  min-block-size: calc(50vh - 2rem);
 }
 
-/* Full height minus header and nav but stable */
 .h-mobile-map {
-  height: calc(100dvh - 4rem - 4rem);
-  height: calc(100vh - 4rem - 4rem);
-  min-height: 400px; /* Ensure minimum usable height */
+  block-size: calc(100dvh - var(--mobile-header-height) - var(--mobile-nav-height));
+  block-size: calc(100vh - var(--mobile-header-height) - var(--mobile-nav-height));
+  min-block-size: 25rem; /* 400px */
 }
 
-/* Alternative approach for pages that need precise height control */
 .h-mobile-full {
-  height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  block-size: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
 }
 
-/* Mobile-only bottom padding with safe area */
-.pb-mobile-safe {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-}
+.pb-mobile-safe { padding-block-end: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
 
-/* Mobile margin bottom to account for fixed bottom nav */
-.mb-nav-safe {
-  margin-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* Prevent overscroll on mobile */
+/* ===== MOBILE BEHAVIOR ===== */
 @media (max-width: 768px) {
   body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Prevent overscroll bounce on iOS */
   html, body {
     overscroll-behavior: none;
     touch-action: pan-x pan-y;
   }
   
-  /* Prevent scrolling when content fits in viewport */
   .mobile-no-overscroll {
     overflow: hidden;
-    height: calc(100vh - 4rem - 4rem); /* Account for header and nav */
-    height: calc(100dvh - 4rem - 4rem);
+    block-size: calc(100vh - var(--mobile-header-height) - var(--mobile-nav-height));
+    block-size: calc(100dvh - var(--mobile-header-height) - var(--mobile-nav-height));
   }
   
-  /* Allow scrolling only when needed */
   .mobile-scroll-when-needed {
     overflow-y: auto;
-    max-height: calc(100vh - 4rem - 4rem);
-    max-height: calc(100dvh - 4rem - 4rem);
+    max-block-size: calc(100vh - var(--mobile-header-height) - var(--mobile-nav-height));
+    max-block-size: calc(100dvh - var(--mobile-header-height) - var(--mobile-nav-height));
   }
   
-  /* Hide scrollbars on mobile */
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -135,187 +93,107 @@
   }
 }
 
-/* Touch targets for mobile */
+/* ===== TOUCH TARGETS ===== */
 @media (max-width: 768px) {
   button, 
   a,
   .touch-target {
-    min-height: 40px;
-    min-width: 40px;
-  }
-}
-
-/* Very small screen optimizations */
-@media (max-width: 375px) {
-  /* Reduce container padding on very small screens */
-  .container {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+    min-block-size: 2.5rem; /* 40px */
+    min-inline-size: 2.5rem; /* 40px */
   }
   
-  /* Ensure buttons are still touchable but more compact */
-  button {
-    min-height: 40px;
-    font-size: 0.875rem;
-  }
-  
-  /* Compact form elements */
   input, 
   textarea,
   select {
-    font-size: 14px;
-    padding: 0.5rem;
-  }
-  
-  /* Reduce card padding */
-  .card {
-    padding: 0.75rem;
-  }
-  
-  /* Compact navigation */
-  .mobile-nav-compact {
-    padding: 0.25rem;
-  }
-  
-  /* Ensure text doesn't get too small */
-  .text-xs {
-    font-size: 0.75rem;
-  }
-  
-  /* Compact spacing for very small screens */
-  .space-compact > * + * {
-    margin-top: 0.5rem;
+    font-size: 1rem; /* Prevent zoom on iOS */
+    border-radius: 0.5rem;
   }
 }
 
-/* Mobile navigation sheet optimizations */
+/* ===== SMALL SCREEN OPTIMIZATIONS ===== */
+@media (max-width: 375px) {
+  .container {
+    padding-inline: 0.75rem;
+  }
+  
+  button {
+    min-block-size: 2.5rem; /* 40px */
+    font-size: 0.875rem;
+  }
+  
+  input, 
+  textarea,
+  select {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+  
+  .card { padding: 0.75rem; }
+  .mobile-nav-compact { padding: 0.25rem; }
+  .text-xs { font-size: 0.75rem; }
+  .space-compact > * + * { margin-block-start: 0.5rem; }
+}
+
+/* ===== LANDSCAPE MODE ===== */
 @media (max-height: 600px) {
-  /* For landscape mode or short screens */
-  .mobile-nav-sheet {
-    max-height: 100vh;
-  }
-  
-  /* Reduce padding in navigation sheet */
-  .mobile-nav-sheet .nav-section {
-    padding: 0.5rem;
-  }
-  
-  /* Make navigation grid more compact */
-  .mobile-nav-grid {
-    gap: 0.25rem;
-  }
-  
-  /* Reduce minimum heights for nav items */
-  .mobile-nav-item {
-    min-height: 50px;
-  }
+  .mobile-nav-sheet { max-block-size: 100vh; }
+  .mobile-nav-sheet .nav-section { padding: 0.5rem; }
+  .mobile-nav-grid { gap: 0.25rem; }
+  .mobile-nav-item { min-block-size: 3.125rem; /* 50px */ }
 }
 
-/* Landscape mode optimizations */
 @media (orientation: landscape) and (max-height: 500px) {
-  /* Very compact layout for landscape phones */
-  .mobile-nav-sheet {
-    padding: 0;
-  }
-  
-  .mobile-nav-header {
-    padding: 0.5rem 1rem;
-  }
-  
-  .mobile-nav-footer {
-    padding: 0.5rem 1rem;
-  }
-  
-  /* Hide less important elements in landscape */
-  .mobile-nav-optional {
-    display: none;
-  }
-  
-  /* Make grid items smaller */
+  .mobile-nav-sheet { padding: 0; }
+  .mobile-nav-header { padding: 0.5rem 1rem; }
+  .mobile-nav-footer { padding: 0.5rem 1rem; }
+  .mobile-nav-optional { display: none; }
   .mobile-nav-grid-item {
-    min-height: 45px;
+    min-block-size: 2.8125rem; /* 45px */
     padding: 0.5rem;
   }
 }
 
-/* Scrollable area styling */
+/* ===== SCROLLBAR STYLING ===== */
 .mobile-nav-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
-.mobile-nav-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.mobile-nav-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+.mobile-nav-scroll::-webkit-scrollbar { inline-size: 0.25rem; }
+.mobile-nav-scroll::-webkit-scrollbar-track { background: transparent; }
 .mobile-nav-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 2px;
+  border-radius: 0.125rem;
 }
+.mobile-nav-scroll::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 0, 0, 0.3); }
 
-.mobile-nav-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-/* Mobile navigation sheet close button positioning - simple approach */
-.mobile-nav-sheet button[aria-label="Close"] {
-  top: 0.25rem !important;
-  right: 0.5rem !important;
-}
-
-/* Radix UI close button selector */
+/* ===== MOBILE NAV SHEET CLOSE BUTTON ===== */
+.mobile-nav-sheet button[aria-label="Close"],
 .mobile-nav-sheet > button[data-radix-collection-item] {
-  top: 0.25rem !important;
-  right: 0.5rem !important;
+  inset-block-start: 0.25rem;
+  inset-inline-end: 0.5rem;
 }
 
-/* Most specific selector for the close button */
 .mobile-nav-sheet > button:last-child {
-  top: 0.45rem !important;
-  right: -0.5rem !important;
-  /* Hide the large focus ring/click box */
-  outline: none !important;
-  box-shadow: none !important;
-  ring: none !important;
-  border: none !important;
-  background: transparent !important;
-}
-
-/* Ensure the button remains functional */
-.mobile-nav-sheet button {
+  inset-block-start: 0.45rem;
+  inset-inline-end: -0.5rem;
+  outline: none;
+  box-shadow: none;
+  border: none;
+  background: transparent;
   pointer-events: auto;
 }
 
-/* Remove focus ring and click feedback on all states */
-.mobile-nav-sheet > button:last-child:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  ring: none !important;
-  border: none !important;
-  background: transparent !important;
-}
-
-.mobile-nav-sheet > button:last-child:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-  ring: none !important;
-  border: none !important;
-  background: transparent !important;
-}
-
+.mobile-nav-sheet > button:last-child:focus,
+.mobile-nav-sheet > button:last-child:focus-visible,
 .mobile-nav-sheet > button:last-child:active {
-  outline: none !important;
-  box-shadow: none !important;
-  ring: none !important;
-  border: none !important;
-  background: transparent !important;
+  outline: none;
+  box-shadow: none;
+  border: none;
+  background: transparent;
 }
 
-/* PWA splash screen styles */
+/* ===== PWA STYLES ===== */
 @media (display-mode: standalone) {
   body {
     user-select: none;
@@ -325,106 +203,64 @@
   }
 }
 
-/* Mobile form improvements */
-@media (max-width: 768px) {
-  input, 
-  textarea,
-  select {
-    font-size: 16px; /* Prevent zoom on iOS */
-    border-radius: 8px;
-  }
-}
-
-/* Map container mobile fixes */
+/* ===== MAP MOBILE FIXES ===== */
 .leaflet-container {
   touch-action: pan-x pan-y;
 }
 
-/* Dropdown menu collision detection for mobile nav */
+/* ===== DROPDOWN Z-INDEX FIXES ===== */
 @media (max-width: 768px) {
-  /* Ensure dropdown menus have proper z-index above mobile nav */
-  [data-radix-popper-content-wrapper] {
-    z-index: 9999 !important;
-  }
-  
-  /* Ensure dropdown content is above mobile nav */
+  [data-radix-popper-content-wrapper],
   [data-radix-dropdown-menu-content] {
-    z-index: 9999 !important;
+    z-index: 9999;
   }
   
-  /* Prevent dropdowns from being clipped by mobile nav */
   [data-radix-popper-content-wrapper][data-side="bottom"] {
-    /* Add extra margin to prevent overlap with mobile nav */
-    margin-bottom: 1rem;
+    margin-block-end: 1rem;
   }
   
-  /* For dropdowns that are positioned near the bottom of the screen */
   [data-radix-dropdown-menu-content][data-side="top"] {
-    /* Ensure upward dropdowns have enough space */
-    margin-top: 0.5rem;
+    margin-block-start: 0.5rem;
   }
 }
 
-/* Progress indicator mobile fixes */
+/* ===== MOBILE SPACING UTILITIES ===== */
+@media (max-width: 768px) {
+  .card-mobile { margin-block-end: 1rem; }
+  .mobile-padding { padding: 1rem; }
+  .mobile-bottom-spacing { margin-block-end: 1.5rem; }
+  .mobile-scroll-padding { padding-block-end: 1.5rem; }
+  .last-child-mobile-spacing *:last-child { margin-block-end: 2rem; }
+  .mobile-button-spacing { margin-block-end: 1rem; }
+}
+
+/* ===== PROGRESS INDICATOR MOBILE FIXES ===== */
 @media (max-width: 375px) {
-  /* Ensure progress indicators don't overflow on very small screens */
   .progress-indicator {
-    padding: 0 0.5rem;
+    padding-inline: 0.5rem;
     overflow: hidden;
   }
   
   .progress-step {
-    min-width: 1.5rem;
-    min-height: 1.5rem;
+    min-inline-size: 1.5rem;
+    min-block-size: 1.5rem;
     font-size: 0.75rem;
     flex-shrink: 0;
   }
   
   .progress-connector {
-    min-width: 0.25rem;
-    margin: 0 0.125rem;
+    min-inline-size: 0.25rem;
+    margin-inline: 0.125rem;
     flex: 1;
   }
   
-  /* Prevent any horizontal overflow in create cache form */
   .create-cache-container {
     overflow-x: hidden;
-    max-width: 100vw;
+    max-inline-size: 100vw;
   }
   
   .create-cache-progress {
-    max-width: calc(100vw - 2rem);
+    max-inline-size: calc(100vw - 2rem);
     overflow: hidden;
-  }
-}
-
-/* Better mobile card spacing */
-@media (max-width: 768px) {
-  .card-mobile {
-    margin-bottom: 1rem;
-  }
-  
-  .mobile-padding {
-    padding: 1rem;
-  }
-  
-  /* Ensure content doesn't feel cramped against bottom nav */
-  .mobile-bottom-spacing {
-    margin-bottom: 1.5rem;
-  }
-  
-  /* For scrollable containers that need extra bottom space */
-  .mobile-scroll-padding {
-    padding-bottom: 1.5rem;
-  }
-  
-  /* For last child elements that should have extra space above nav */
-  .last-child-mobile-spacing *:last-child {
-    margin-bottom: 2rem;
-  }
-  
-  /* For buttons and interactive elements near bottom */
-  .mobile-button-spacing {
-    margin-bottom: 1rem;
   }
 }
