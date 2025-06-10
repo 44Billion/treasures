@@ -21,7 +21,7 @@ const sizeClasses = {
   lg: "sm:max-w-2xl", 
   xl: "sm:max-w-4xl",
   full: "max-w-[100vw] max-h-[100vh] w-[100vw] h-[100vh]",
-  auth: "sm:max-w-md p-0 overflow-hidden rounded-2xl",
+  auth: "sm:max-w-md max-h-[90vh] p-0 overflow-hidden rounded-2xl",
 };
 
 export function BaseDialog({

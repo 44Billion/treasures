@@ -2,7 +2,7 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import React, { useRef, useState } from 'react';
-import { Shield, Upload, AlertTriangle } from 'lucide-react';
+import { Shield, Upload, AlertTriangle, Sparkles, Crown, Gem, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BaseDialog } from '@/components/ui/base-dialog';
@@ -197,12 +197,65 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       isOpen={isOpen} 
       onOpenChange={onClose}
       size="auth"
-      title={<span className='font-semibold text-center'>Log in</span>}
-      description={<span className='text-center text-muted-foreground mt-2'>Access your account securely with your preferred method</span>}
-      headerClassName='px-6 pt-6 pb-0 relative'
+      title={<span className='font-semibold text-center'>Welcome Back!</span>}
+      description={<div className='text-center text-muted-foreground'>Choose your login method or start your treasure hunting adventure</div>}
+      headerClassName='px-6 pt-6 pb-1 relative'
+      contentClassName='flex flex-col max-h-[90vh]'
     >
-      <div className='px-6 py-6 pt-0 space-y-4'>
-          <LoginMethodTabs defaultMethod={'nostr' in window ? 'extension' : 'key'}>
+      <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-auto flex-1'>
+        {/* Prominent Sign Up Section */}
+        <div className='relative p-4 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-green-200 dark:border-green-800 adventure:border-amber-200 adventure:dark:border-amber-800 overflow-hidden'>
+          {/* Magical sparkles */}
+          <div className='absolute inset-0 pointer-events-none'>
+            <Sparkles className='absolute top-2 right-3 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />
+            <Star className='absolute top-4 left-4 w-2 h-2 text-yellow-500 animate-pulse' style={{animationDelay: '0.5s'}} />
+            <Gem className='absolute bottom-3 right-4 w-2 h-2 text-yellow-400 animate-pulse' style={{animationDelay: '1s'}} />
+          </div>
+          
+          <div className='relative z-10 text-center space-y-3'>
+            <div className='flex justify-center items-center gap-2 mb-2'>
+              <Crown className='w-5 h-5 text-green-600 adventure:text-amber-700' />
+              <span className='font-semibold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200'>
+                <span className='adventure:hidden'>New to Treasure Hunting?</span>
+                <span className='hidden adventure:inline'>New to the Quest?</span>
+              </span>
+            </div>
+            
+            <p className='text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3'>
+              <span className='adventure:hidden'>
+                Join thousands of adventurers discovering hidden treasures worldwide!
+              </span>
+              <span className='hidden adventure:inline'>
+                Join the ancient guild of treasure seekers on legendary quests!
+              </span>
+            </p>
+            
+            <Button
+              onClick={handleSignupClick}
+              className='w-full rounded-full py-3 text-base font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg border-0'
+            >
+              <Sparkles className='w-4 h-4 mr-2' />
+              <span className='adventure:hidden'>Start Your Treasure Hunt!</span>
+              <span className='hidden adventure:inline'>Begin Your Quest!</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className='relative'>
+          <div className='absolute inset-0 flex items-center'>
+            <div className='w-full border-t border-gray-300 dark:border-gray-600'></div>
+          </div>
+          <div className='relative flex justify-center text-sm'>
+            <span className='px-3 bg-background text-muted-foreground'>
+              <span className='adventure:hidden'>Or log in to your existing account</span>
+              <span className='hidden adventure:inline'>Or return to your adventure</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Login Methods */}
+        <LoginMethodTabs defaultMethod='key'>
             <TabsContent value='extension' className='space-y-3'>
               {errors.extension && (
                 <Alert variant="destructive">
@@ -227,11 +280,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               </div>
             </TabsContent>
 
-            <TabsContent value='key' className='space-y-3'>
-              <div className='space-y-3'>
+            <TabsContent value='key' className='space-y-4'>
+              <div className='space-y-4'>
                 <div className='space-y-2'>
-                  <label htmlFor='nsec' className='text-sm font-medium text-gray-700 dark:text-gray-400'>
-                    Enter your nsec
+                  <label htmlFor='nsec' className='text-sm font-medium'>
+                    Secret Key (nsec)
                   </label>
                   <Input
                     id='nsec'
@@ -241,8 +294,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                       setNsec(e.target.value);
                       if (errors.nsec) setErrors(prev => ({ ...prev, nsec: undefined }));
                     }}
-                    className={`rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary ${
-                      errors.nsec ? 'border-red-500' : ''
+                    className={`rounded-lg ${
+                      errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''
                     }`}
                     placeholder='nsec1...'
                     autoComplete="off"
@@ -252,8 +305,26 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   )}
                 </div>
 
+                <Button
+                  className='w-full rounded-full py-3'
+                  onClick={handleKeyLogin}
+                  disabled={isLoading || !nsec.trim()}
+                >
+                  {isLoading ? 'Verifying...' : 'Log In'}
+                </Button>
+
+                <div className='relative'>
+                  <div className='absolute inset-0 flex items-center'>
+                    <div className='w-full border-t border-muted'></div>
+                  </div>
+                  <div className='relative flex justify-center text-xs'>
+                    <span className='px-2 bg-background text-muted-foreground'>
+                      or
+                    </span>
+                  </div>
+                </div>
+
                 <div className='text-center'>
-                  <p className='text-sm mb-2 text-gray-600 dark:text-gray-400'>Or upload a key file</p>
                   <input
                     type='file'
                     accept='.txt,text/plain'
@@ -261,30 +332,18 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     ref={fileInputRef}
                     onChange={handleFileUpload}
                   />
-                  <div className="flex justify-center">
-                    <Button
-                      variant='outline'
-                      className='w-full dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700'
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isLoading}
-                    >
-                      <Upload className='w-4 h-4 mr-2' />
-                      Upload Nsec File
-                    </Button>
-                  </div>
+                  <Button
+                    variant='outline'
+                    className='w-full'
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                  >
+                    <Upload className='w-4 h-4 mr-2' />
+                    Upload Key File
+                  </Button>
                   {errors.file && (
                     <p className="text-sm text-red-500 mt-2">{errors.file}</p>
                   )}
-                </div>
-
-                <div className="flex justify-center">
-                  <Button
-                    className='w-full rounded-full py-4'
-                    onClick={handleKeyLogin}
-                    disabled={isLoading || !nsec.trim()}
-                  >
-                    {isLoading ? 'Verifying...' : 'Login with Nsec'}
-                  </Button>
                 </div>
               </div>
             </TabsContent>
@@ -323,18 +382,6 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               </div>
             </TabsContent>
           </LoginMethodTabs>
-
-          <div className='text-center text-sm'>
-            <p className='text-gray-600 dark:text-gray-400'>
-              Don't have an account?{' '}
-              <button
-                onClick={handleSignupClick}
-                className='text-primary hover:underline font-medium'
-              >
-                Sign up
-              </button>
-            </p>
-          </div>
         </div>
       </BaseDialog>
     );
