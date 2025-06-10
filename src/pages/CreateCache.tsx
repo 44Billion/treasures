@@ -309,16 +309,13 @@ export default function CreateCache() {
                     <p className="text-sm text-muted-foreground">Where will seekers find your treasure?</p>
                   </div>
                   
-                  <div>
-                    <Label>Location *</Label>
-                    <LocationPicker
-                      value={location}
-                      onChange={handleLocationChange}
-                    />
-                  </div>
+                  <LocationPicker
+                    value={location}
+                    onChange={handleLocationChange}
+                  />
                   
                   {isVerifying && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
                       <CompassSpinner size={16} variant="component" />
                       Checking location restrictions...
                     </div>
@@ -327,14 +324,13 @@ export default function CreateCache() {
                   {locationVerification && (
                     <LocationWarnings 
                       verification={locationVerification} 
-                      className="space-y-2"
                       hideCreatorWarnings={true}
                     />
                   )}
                   
-                  <Alert>
-                    <AlertDescription>
-                      Make sure you have permission to place a cache at this location and that it's publicly accessible.
+                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <AlertDescription className="text-sm">
+                      Ensure you have permission to place a cache here and that it's publicly accessible.
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -545,16 +541,13 @@ export default function CreateCache() {
                   <p className="text-sm text-muted-foreground">Where will seekers find your treasure?</p>
                 </div>
                 
-                <div>
-                  <Label>Location *</Label>
-                  <LocationPicker
-                    value={location}
-                    onChange={handleLocationChange}
-                  />
-                </div>
+                <LocationPicker
+                  value={location}
+                  onChange={handleLocationChange}
+                />
                 
                 {isVerifying && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
                     <CompassSpinner size={16} variant="component" />
                     Checking location restrictions...
                   </div>
@@ -563,14 +556,13 @@ export default function CreateCache() {
                 {locationVerification && (
                   <LocationWarnings 
                     verification={locationVerification} 
-                    className="space-y-2"
                     hideCreatorWarnings={true}
                   />
                 )}
                 
-                <Alert>
-                  <AlertDescription>
-                    Make sure you have permission to place a cache at this location and that it's publicly accessible.
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                  <AlertDescription className="text-sm">
+                    Ensure you have permission to place a cache here and that it's publicly accessible.
                   </AlertDescription>
                 </Alert>
               </div>

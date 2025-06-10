@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
+import { MapStyleSelector, MAP_STYLES } from "@/components/MapStyleSelector";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useTheme } from "next-themes";
 import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels, parseCoordinate, formatCoordinateForInput } from "@/lib/coordinates";
 import { mapIcons } from "@/lib/mapIcons";
 
@@ -77,6 +79,7 @@ function LocationSelector({
 }
 
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
+  const { theme, systemTheme } = useTheme();
   const [manualCoords, setManualCoords] = useState({
     lat: value?.lat?.toString() || "",
     lng: value?.lng?.toString() || "",
@@ -89,6 +92,66 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   // Track if manual coordinates have been modified by user
   const [manualCoordsModified, setManualCoordsModified] = useState(false);
+
+  // Map style management
+  const getDefaultMapStyle = () => {
+    if (theme === "dark") {
+      return "dark";
+    } else if (theme === "light") {
+      return "original";
+    } else if (theme === "adventure") {
+      return "adventure";
+    } else if (theme === "system") {
+      return systemTheme === "dark" ? "dark" : "original";
+    }
+    
+    // Fallback to system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return "dark";
+    }
+    return "original";
+  };
+  
+  const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
+  const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
+  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
+
+  // Handle manual style changes
+  const handleStyleChange = (style: string) => {
+    setCurrentMapStyle(style);
+    setHasManuallySelectedStyle(true);
+  };
+
+  // Listen for app theme changes and system theme changes
+  useEffect(() => {
+    // Only auto-update if user hasn't manually selected a style
+    if (hasManuallySelectedStyle) {
+      return;
+    }
+
+    const newDefaultStyle = () => {
+      if (theme === "dark") {
+        return "dark";
+      } else if (theme === "light") {
+        return "original";
+      } else if (theme === "adventure") {
+        return "adventure";
+      } else if (theme === "system") {
+        return systemTheme === "dark" ? "dark" : "original";
+      }
+      
+      // Fallback to system preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return "dark";
+      }
+      return "original";
+    };
+
+    const newStyle = newDefaultStyle();
+    if (currentMapStyle !== newStyle) {
+      setCurrentMapStyle(newStyle);
+    }
+  }, [theme, systemTheme, currentMapStyle, hasManuallySelectedStyle]);
 
   useEffect(() => {
     if (value) {
@@ -191,136 +254,134 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardContent className="p-4">
-          <div className="space-y-4">
-            {/* Map */}
-            <div className="w-full h-64 rounded-lg overflow-hidden border">
-              <MapContainer
-                center={mapCenter}
-                zoom={value ? 15 : 10}
-                style={{ height: "100%", width: "100%" }}
-                attributionControl={false}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                  maxZoom={19}
-                />
-                <LocationSelector 
-                  value={value} 
-                  onChange={onChange} 
-                  center={mapCenter} 
-                  beaconLocation={beaconLocation}
-                  onPinDropped={() => setPinDropped(true)}
-                  onMapClick={() => setManualCoordsModified(false)}
-                />
-              </MapContainer>
-            </div>
+      {/* Map - no card wrapper on mobile */}
+      <div className="w-full h-64 rounded-lg overflow-hidden border relative">
+        <MapContainer
+          center={mapCenter}
+          zoom={value ? 15 : 10}
+          style={{ height: "100%", width: "100%" }}
+          attributionControl={false}
+        >
+          <TileLayer
+            attribution={mapStyle.attribution}
+            url={mapStyle.url}
+            maxZoom={19}
+          />
+          <LocationSelector 
+            value={value} 
+            onChange={onChange} 
+            center={mapCenter} 
+            beaconLocation={beaconLocation}
+            onPinDropped={() => setPinDropped(true)}
+            onMapClick={() => setManualCoordsModified(false)}
+          />
+        </MapContainer>
+        
+        {/* Map Style Selector - floating over the map */}
+        <div className="absolute top-2 right-2 z-[1000]">
+          <MapStyleSelector
+            currentStyle={currentMapStyle}
+            onStyleChange={handleStyleChange}
+          />
+        </div>
+      </div>
 
-            <p className="text-sm text-gray-600 text-center">
-              {beaconLocation ? (
-                <>Click on the map to set the geocache location<br />
-                <span className="text-blue-600">Blue beacon shows your current/searched location</span></>
-              ) : (
-                "Click on the map to set the geocache location"
-              )}
-            </p>
+      <p className="text-sm text-muted-foreground text-center">
+        {beaconLocation ? (
+          <>Tap the map to set your cache location<br />
+          <span className="text-blue-600">Blue beacon shows your current/searched location</span></>
+        ) : (
+          "Tap the map to set your cache location"
+        )}
+      </p>
 
-            {/* Location Options */}
-            <div className="grid gap-4">
-              {/* Location Search */}
-              <div>
-                <Label>Search for a location</Label>
-                <LocationSearch 
-                  onLocationSelect={handleLocationSearch}
-                  placeholder="Search city, zip code, or address..."
-                  mobilePlaceholder="Search for a location..."
-                />
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Or</span>
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGetCurrentLocation}
-                disabled={isGettingLocation}
-                className="w-full"
-              >
-                <Navigation className="h-4 w-4 mr-2" />
-                {isGettingLocation ? "Getting location..." : "Use Current Location"}
-              </Button>
-
-              <div className="space-y-2">
-                <Label>Or enter coordinates manually:</Label>
-                <p className="text-xs text-muted-foreground">
-                  Accepts various formats: 40.7128, -74.0060 or 40, -74 or 40.7, -74.1
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Input
-                      type="text"
-                      placeholder="Latitude (e.g., 40.7128)"
-                      value={manualCoords.lat}
-                      onChange={(e) => {
-                        setManualCoordsModified(true);
-                        setManualCoords({ ...manualCoords, lat: e.target.value });
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      type="text"
-                      placeholder="Longitude (e.g., -74.0060)"
-                      value={manualCoords.lng}
-                      onChange={(e) => {
-                        setManualCoordsModified(true);
-                        setManualCoords({ ...manualCoords, lng: e.target.value });
-                      }}
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleManualInput}
-                  disabled={!manualCoords.lat || !manualCoords.lng}
-                  className="w-full"
-                >
-                  Set Coordinates
-                </Button>
-
-                {/* Selected location display */}
-                {value && (
-                  <div className="text-sm text-gray-600 pt-2 text-center">
-                    <p>
-                      <strong>Selected location:</strong> {value.lat}, {value.lng}
-                    </p>
-                    
-                    <a
-                      href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline inline-block"
-                    >
-                      View on OpenStreetMap →
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* Location Options */}
+      <div className="space-y-4">
+        {/* Location Search */}
+        <div>
+          <Label className="text-sm font-medium">Search for a location</Label>
+          <div className="mt-1">
+            <LocationSearch 
+              onLocationSelect={handleLocationSearch}
+              placeholder="Search city, zip code, or address..."
+              mobilePlaceholder="Search for a location..."
+            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
+        {/* Current Location Button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleGetCurrentLocation}
+          disabled={isGettingLocation}
+          className="w-full"
+        >
+          <Navigation className="h-4 w-4 mr-2" />
+          {isGettingLocation ? "Getting location..." : "Use Current Location"}
+        </Button>
+
+        {/* Manual Coordinates - Collapsible */}
+        <details className="group">
+          <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Enter coordinates manually
+          </summary>
+          <div className="mt-3 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Accepts formats like: 40.7128, -74.0060
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                type="text"
+                placeholder="Latitude"
+                value={manualCoords.lat}
+                onChange={(e) => {
+                  setManualCoordsModified(true);
+                  setManualCoords({ ...manualCoords, lat: e.target.value });
+                }}
+                className="text-sm"
+              />
+              <Input
+                type="text"
+                placeholder="Longitude"
+                value={manualCoords.lng}
+                onChange={(e) => {
+                  setManualCoordsModified(true);
+                  setManualCoords({ ...manualCoords, lng: e.target.value });
+                }}
+                className="text-sm"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleManualInput}
+              disabled={!manualCoords.lat || !manualCoords.lng}
+              className="w-full"
+              size="sm"
+            >
+              Set Coordinates
+            </Button>
+          </div>
+        </details>
+
+        {/* Selected location display */}
+        {value && (
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <p className="text-sm font-medium text-foreground">
+              Selected: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
+            </p>
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:underline inline-block mt-1"
+            >
+              View on OpenStreetMap →
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
