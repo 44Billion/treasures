@@ -32,9 +32,9 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
       headerClassName='px-6 pt-6 pb-1 relative flex-shrink-0'
       contentClassName='flex flex-col max-h-[90vh]'
     >
-      <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-auto flex-1'>
+      <div className='px-6 pt-2 pb-4 space-y-4 flex-1'>
         <div className='text-center py-8 space-y-4'>
-          <div className='relative pt-8'>
+          <div className='relative'>
             <div className='w-24 h-24 mx-auto bg-gradient-to-br from-green-400 to-emerald-500 adventure:from-amber-400 adventure:to-orange-500 rounded-full flex items-center justify-center'>
               <Crown className='w-12 h-12 text-white' />
             </div>
