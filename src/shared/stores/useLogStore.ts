@@ -1,1 +1,415 @@
-/**\n * Unified Log Store\n * Consolidates all log-related data management\n */\n\nimport { useState, useCallback, useEffect, useMemo } from 'react';\nimport { useQuery, useMutation } from '@tanstack/react-query';\nimport { \n  useBaseStore, \n  createQueryKey, \n  isDataStale, \n  batchOperations,\n  createOptimisticUpdate \n} from './baseStore';\nimport type { \n  LogStore, \n  LogStoreState, \n  StoreConfig, \n  StoreActionResult \n} from './types';\nimport type { GeocacheLog } from '@/types/geocache-log';\nimport { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/lib/nip-gc';\nimport { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';\nimport { QUERY_LIMITS, TIMEOUTS } from '@/shared/config/constants';\n\n/**\n * Unified log store hook\n */\nexport function useLogStore(config: Partial<StoreConfig> = {}): LogStore {\n  const baseStore = useBaseStore('log', config);\n  const { user } = useCurrentUser();\n  \n  // Store state\n  const [state, setState] = useState<LogStoreState>(() => ({\n    ...baseStore.createBaseState(),\n    logsByGeocache: {},\n    recentLogs: [],\n    userLogs: [],\n    syncStatus: baseStore.getSyncStatus(),\n    cacheStats: baseStore.getCacheStats(),\n  }));\n\n  // Update state helper\n  const updateState = useCallback((updates: Partial<LogStoreState>) => {\n    setState(prev => ({ ...prev, ...updates }));\n  }, []);\n\n  // Data fetching actions\n  const fetchLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {\n    return baseStore.safeAsyncOperation(async () => {\n      // Check cache first\n      const cached = state.logsByGeocache[geocacheId];\n      if (cached && !isDataStale(state.lastUpdate, baseStore.config.cacheTimeout!)) {\n        return cached;\n      }\n\n      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);\n      \n      // We need the geocache coordinate to query logs\n      // This is a simplified version - in practice, we'd get this from the geocache store\n      const geocacheCoordinate = `${NIP_GC_KINDS.GEOCACHE}:${geocacheId}`;\n      \n      const allEvents = [];\n      \n      // Fetch found logs\n      try {\n        const foundLogs = await baseStore.nostr.query([{\n          kinds: [NIP_GC_KINDS.FOUND_LOG],\n          '#a': [geocacheCoordinate],\n          limit: QUERY_LIMITS.LOGS,\n        }], { signal });\n        allEvents.push(...foundLogs);\n      } catch (error) {\n        console.warn('Failed to fetch found logs:', error);\n      }\n\n      // Fetch comment logs\n      try {\n        const commentLogs = await baseStore.nostr.query([{\n          kinds: [NIP_GC_KINDS.COMMENT_LOG],\n          '#a': [geocacheCoordinate],\n          '#A': [geocacheCoordinate],\n          limit: QUERY_LIMITS.LOGS,\n        }], { signal });\n        allEvents.push(...commentLogs);\n      } catch (error) {\n        console.warn('Failed to fetch comment logs:', error);\n      }\n\n      const logs = allEvents\n        .map(parseLogEvent)\n        .filter((log): log is GeocacheLog => log !== null)\n        .sort((a, b) => b.createdAt - a.createdAt);\n\n      // Update cache\n      updateState({\n        logsByGeocache: {\n          ...state.logsByGeocache,\n          [geocacheId]: logs,\n        },\n        lastUpdate: new Date(),\n      });\n\n      return logs;\n    }, 'fetchLogs');\n  }, [baseStore, state.logsByGeocache, state.lastUpdate, updateState]);\n\n  const fetchRecentLogs = useCallback(async (limit: number = 20): Promise<StoreActionResult<GeocacheLog[]>> => {\n    return baseStore.safeAsyncOperation(async () => {\n      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);\n      \n      const allEvents = [];\n      \n      // Fetch recent found logs\n      try {\n        const foundLogs = await baseStore.nostr.query([{\n          kinds: [NIP_GC_KINDS.FOUND_LOG],\n          limit: limit / 2,\n        }], { signal });\n        allEvents.push(...foundLogs);\n      } catch (error) {\n        console.warn('Failed to fetch recent found logs:', error);\n      }\n\n      // Fetch recent comment logs\n      try {\n        const commentLogs = await baseStore.nostr.query([{\n          kinds: [NIP_GC_KINDS.COMMENT_LOG],\n          limit: limit / 2,\n        }], { signal });\n        allEvents.push(...commentLogs);\n      } catch (error) {\n        console.warn('Failed to fetch recent comment logs:', error);\n      }\n\n      const recentLogs = allEvents\n        .map(parseLogEvent)\n        .filter((log): log is GeocacheLog => log !== null)\n        .sort((a, b) => b.createdAt - a.createdAt)\n        .slice(0, limit);\n\n      updateState({ recentLogs });\n      return recentLogs;\n    }, 'fetchRecentLogs');\n  }, [baseStore, updateState]);\n\n  const fetchUserLogs = useCallback(async (pubkey: string): Promise<StoreActionResult<GeocacheLog[]>> => {\n    return baseStore.safeAsyncOperation(async () => {\n      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);\n      \n      const allEvents = [];\n      \n      // Fetch user's found logs\n      try {\n        const foundLogs = await baseStore.nostr.query([{\n          kinds: [NIP_GC_KINDS.FOUND_LOG],\n          authors: [pubkey],\n          limit: QUERY_LIMITS.LOGS,\n        }], { signal });\n        allEvents.push(...foundLogs);\n      } catch (error) {\n        console.warn('Failed to fetch user found logs:', error);\n      }\n\n      // Fetch user's comment logs\n      try {\n        const commentLogs = await baseStore.nostr.query([{\n          kinds: [NIP_GC_KINDS.COMMENT_LOG],\n          authors: [pubkey],\n          limit: QUERY_LIMITS.LOGS,\n        }], { signal });\n        allEvents.push(...commentLogs);\n      } catch (error) {\n        console.warn('Failed to fetch user comment logs:', error);\n      }\n\n      const userLogs = allEvents\n        .map(parseLogEvent)\n        .filter((log): log is GeocacheLog => log !== null)\n        .sort((a, b) => b.createdAt - a.createdAt);\n\n      if (pubkey === user?.pubkey) {\n        updateState({ userLogs });\n      }\n\n      return userLogs;\n    }, 'fetchUserLogs');\n  }, [baseStore, user?.pubkey, updateState]);\n\n  // CRUD operations\n  const createLogMutation = useMutation({\n    mutationFn: async (logData: Partial<GeocacheLog>) => {\n      // This would integrate with the existing useCreateLog logic\n      throw new Error('Create log not implemented yet');\n    },\n    onSuccess: (newLog) => {\n      // Update relevant caches\n      const geocacheId = newLog.geocacheId;\n      if (geocacheId) {\n        updateState({\n          logsByGeocache: {\n            ...state.logsByGeocache,\n            [geocacheId]: [newLog, ...(state.logsByGeocache[geocacheId] || [])],\n          },\n          recentLogs: [newLog, ...state.recentLogs].slice(0, 20),\n          userLogs: newLog.pubkey === user?.pubkey \n            ? [newLog, ...state.userLogs] \n            : state.userLogs,\n        });\n      }\n    },\n  });\n\n  const deleteLogMutation = useMutation({\n    mutationFn: async (logId: string) => {\n      // This would integrate with the existing useDeleteLog logic\n      throw new Error('Delete log not implemented yet');\n    },\n    onMutate: (logId) => {\n      // Optimistic update - remove from all caches\n      const newLogsByGeocache = { ...state.logsByGeocache };\n      Object.keys(newLogsByGeocache).forEach(geocacheId => {\n        newLogsByGeocache[geocacheId] = newLogsByGeocache[geocacheId].filter(log => log.id !== logId);\n      });\n      \n      const rollback = createOptimisticUpdate(\n        createQueryKey('log', 'all'),\n        () => ({\n          logsByGeocache: newLogsByGeocache,\n          recentLogs: state.recentLogs.filter(log => log.id !== logId),\n          userLogs: state.userLogs.filter(log => log.id !== logId),\n        }),\n        baseStore.queryClient\n      );\n      \n      updateState({\n        logsByGeocache: newLogsByGeocache,\n        recentLogs: state.recentLogs.filter(log => log.id !== logId),\n        userLogs: state.userLogs.filter(log => log.id !== logId),\n      });\n      \n      return { rollback };\n    },\n    onError: (error, variables, context) => {\n      context?.rollback();\n    },\n  });\n\n  // Action implementations\n  const createLog = useCallback(async (log: Partial<GeocacheLog>): Promise<StoreActionResult<GeocacheLog>> => {\n    try {\n      const result = await createLogMutation.mutateAsync(log);\n      return baseStore.createSuccessResult(result);\n    } catch (error) {\n      return baseStore.createErrorResult(baseStore.handleError(error, 'createLog'));\n    }\n  }, [createLogMutation, baseStore]);\n\n  const createVerifiedLog = useCallback(async (log: Partial<GeocacheLog>): Promise<StoreActionResult<GeocacheLog>> => {\n    // This would add verification logic before creating\n    return createLog({ ...log, verified: true });\n  }, [createLog]);\n\n  const deleteLog = useCallback(async (logId: string): Promise<StoreActionResult<void>> => {\n    try {\n      await deleteLogMutation.mutateAsync(logId);\n      return baseStore.createSuccessResult(undefined);\n    } catch (error) {\n      return baseStore.createErrorResult(baseStore.handleError(error, 'deleteLog'));\n    }\n  }, [deleteLogMutation, baseStore]);\n\n  // Cache management\n  const invalidateLogs = useCallback((geocacheId: string) => {\n    baseStore.invalidateQueries(createQueryKey('log', 'geocache', geocacheId));\n    // Also remove from local state\n    updateState({\n      logsByGeocache: {\n        ...state.logsByGeocache,\n        [geocacheId]: [],\n      },\n    });\n  }, [baseStore, state.logsByGeocache, updateState]);\n\n  const invalidateAll = useCallback(() => {\n    baseStore.invalidateQueries(createQueryKey('log'));\n    updateState({\n      logsByGeocache: {},\n      recentLogs: [],\n      userLogs: [],\n    });\n  }, [baseStore, updateState]);\n\n  const refreshLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {\n    invalidateLogs(geocacheId);\n    return fetchLogs(geocacheId);\n  }, [invalidateLogs, fetchLogs]);\n\n  // Prefetching\n  const prefetchLogs = useCallback(async (geocacheIds: string[]): Promise<void> => {\n    await batchOperations(\n      geocacheIds,\n      async (geocacheId) => {\n        await baseStore.prefetchQuery(\n          createQueryKey('log', 'geocache', geocacheId),\n          () => fetchLogs(geocacheId).then(result => result.data!)\n        );\n      },\n      3 // Batch size\n    );\n  }, [baseStore, fetchLogs]);\n\n  // Background sync\n  const backgroundSyncFn = useCallback(async (geocacheIds?: string[]) => {\n    if (geocacheIds) {\n      // Sync specific geocaches\n      await batchOperations(geocacheIds, fetchLogs, 3);\n    } else {\n      // Sync recent logs\n      await fetchRecentLogs();\n    }\n  }, [fetchLogs, fetchRecentLogs]);\n\n  const startBackgroundSync = useCallback(() => {\n    baseStore.startBackgroundSync(() => backgroundSyncFn());\n    updateState({ syncStatus: baseStore.getSyncStatus() });\n  }, [baseStore, backgroundSyncFn, updateState]);\n\n  const stopBackgroundSync = useCallback(() => {\n    baseStore.stopBackgroundSync();\n    updateState({ syncStatus: baseStore.getSyncStatus() });\n  }, [baseStore, updateState]);\n\n  const triggerSync = useCallback(async (geocacheIds?: string[]): Promise<StoreActionResult<void>> => {\n    try {\n      await backgroundSyncFn(geocacheIds);\n      return baseStore.createSuccessResult(undefined);\n    } catch (error) {\n      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync'));\n    }\n  }, [backgroundSyncFn, baseStore]);\n\n  // Configuration\n  const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {\n    baseStore.updateConfig(newConfig);\n  }, [baseStore]);\n\n  const getStats = useCallback(() => {\n    const totalLogs = Object.values(state.logsByGeocache).reduce((sum, logs) => sum + logs.length, 0);\n    return {\n      ...baseStore.getCacheStats(),\n      totalItems: totalLogs,\n    };\n  }, [baseStore, state.logsByGeocache]);\n\n  // Auto-start background sync\n  useEffect(() => {\n    if (baseStore.config.enableBackgroundSync) {\n      startBackgroundSync();\n    }\n    return () => stopBackgroundSync();\n  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);\n\n  // Memoized store object\n  const store = useMemo((): LogStore => ({\n    // State\n    ...state,\n    \n    // Data fetching\n    fetchLogs,\n    fetchRecentLogs,\n    fetchUserLogs,\n    \n    // CRUD operations\n    createLog,\n    createVerifiedLog,\n    deleteLog,\n    \n    // Cache management\n    invalidateLogs,\n    invalidateAll,\n    refreshLogs,\n    \n    // Prefetching\n    prefetchLogs,\n    \n    // Background sync\n    startBackgroundSync,\n    stopBackgroundSync,\n    triggerSync,\n    \n    // Configuration\n    updateConfig,\n    getStats,\n  }), [\n    state,\n    fetchLogs,\n    fetchRecentLogs,\n    fetchUserLogs,\n    createLog,\n    createVerifiedLog,\n    deleteLog,\n    invalidateLogs,\n    invalidateAll,\n    refreshLogs,\n    prefetchLogs,\n    startBackgroundSync,\n    stopBackgroundSync,\n    triggerSync,\n    updateConfig,\n    getStats,\n  ]);\n\n  return store;\n}
+/**
+ * Unified Log Store
+ * Consolidates all log-related data management
+ */
+
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { 
+  useBaseStore, 
+  createQueryKey, 
+  isDataStale, 
+  batchOperations,
+  createOptimisticUpdate 
+} from './baseStore';
+import type { 
+  LogStore, 
+  LogStoreState, 
+  StoreConfig, 
+  StoreActionResult 
+} from './types';
+import type { GeocacheLog } from '@/types/geocache-log';
+import { NIP_GC_KINDS, parseLogEvent } from '@/lib/nip-gc';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { QUERY_LIMITS, TIMEOUTS } from '@/shared/config';
+
+/**
+ * Unified log store hook
+ */
+export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
+  const baseStore = useBaseStore('log', config);
+  const { user } = useCurrentUser();
+  
+  // Store state
+  const [state, setState] = useState<LogStoreState>(() => ({
+    ...baseStore.createBaseState(),
+    logsByGeocache: {},
+    recentLogs: [],
+    userLogs: [],
+    syncStatus: baseStore.getSyncStatus(),
+    cacheStats: baseStore.getCacheStats(),
+  }));
+
+  // Update state helper
+  const updateState = useCallback((updates: Partial<LogStoreState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  // Data fetching actions
+  const fetchLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      // Check cache first
+      const cached = state.logsByGeocache[geocacheId];
+      if (cached && !isDataStale(state.lastUpdate, baseStore.config.cacheTimeout!)) {
+        return cached;
+      }
+
+      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
+      
+      // We need the geocache coordinate to query logs
+      // This is a simplified version - in practice, we'd get this from the geocache store
+      const geocacheCoordinate = `${NIP_GC_KINDS.GEOCACHE}:${geocacheId}`;
+      
+      const allEvents = [];
+      
+      // Fetch found logs
+      try {
+        const foundLogs = await baseStore.nostr.query([{
+          kinds: [NIP_GC_KINDS.FOUND_LOG],
+          '#a': [geocacheCoordinate],
+          limit: QUERY_LIMITS.LOGS,
+        }], { signal });
+        allEvents.push(...foundLogs);
+      } catch (error) {
+        console.warn('Failed to fetch found logs:', error);
+      }
+
+      // Fetch comment logs
+      try {
+        const commentLogs = await baseStore.nostr.query([{
+          kinds: [NIP_GC_KINDS.COMMENT_LOG],
+          '#a': [geocacheCoordinate],
+          '#A': [geocacheCoordinate],
+          limit: QUERY_LIMITS.LOGS,
+        }], { signal });
+        allEvents.push(...commentLogs);
+      } catch (error) {
+        console.warn('Failed to fetch comment logs:', error);
+      }
+
+      const logs = allEvents
+        .map(parseLogEvent)
+        .filter((log): log is GeocacheLog => log !== null)
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+      // Update cache
+      updateState({
+        logsByGeocache: {
+          ...state.logsByGeocache,
+          [geocacheId]: logs,
+        },
+        lastUpdate: new Date(),
+      });
+
+      return logs;
+    }, 'fetchLogs');
+  }, [baseStore, state.logsByGeocache, state.lastUpdate, updateState]);
+
+  const fetchRecentLogs = useCallback(async (limit: number = 20): Promise<StoreActionResult<GeocacheLog[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
+      
+      const allEvents = [];
+      
+      // Fetch recent found logs
+      try {
+        const foundLogs = await baseStore.nostr.query([{
+          kinds: [NIP_GC_KINDS.FOUND_LOG],
+          limit: limit / 2,
+        }], { signal });
+        allEvents.push(...foundLogs);
+      } catch (error) {
+        console.warn('Failed to fetch recent found logs:', error);
+      }
+
+      // Fetch recent comment logs
+      try {
+        const commentLogs = await baseStore.nostr.query([{
+          kinds: [NIP_GC_KINDS.COMMENT_LOG],
+          limit: limit / 2,
+        }], { signal });
+        allEvents.push(...commentLogs);
+      } catch (error) {
+        console.warn('Failed to fetch recent comment logs:', error);
+      }
+
+      const recentLogs = allEvents
+        .map(parseLogEvent)
+        .filter((log): log is GeocacheLog => log !== null)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit);
+
+      updateState({ recentLogs });
+      return recentLogs;
+    }, 'fetchRecentLogs');
+  }, [baseStore, updateState]);
+
+  const fetchUserLogs = useCallback(async (pubkey: string): Promise<StoreActionResult<GeocacheLog[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
+      
+      const allEvents = [];
+      
+      // Fetch user's found logs
+      try {
+        const foundLogs = await baseStore.nostr.query([{
+          kinds: [NIP_GC_KINDS.FOUND_LOG],
+          authors: [pubkey],
+          limit: QUERY_LIMITS.LOGS,
+        }], { signal });
+        allEvents.push(...foundLogs);
+      } catch (error) {
+        console.warn('Failed to fetch user found logs:', error);
+      }
+
+      // Fetch user's comment logs
+      try {
+        const commentLogs = await baseStore.nostr.query([{
+          kinds: [NIP_GC_KINDS.COMMENT_LOG],
+          authors: [pubkey],
+          limit: QUERY_LIMITS.LOGS,
+        }], { signal });
+        allEvents.push(...commentLogs);
+      } catch (error) {
+        console.warn('Failed to fetch user comment logs:', error);
+      }
+
+      const userLogs = allEvents
+        .map(parseLogEvent)
+        .filter((log): log is GeocacheLog => log !== null)
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+      if (pubkey === user?.pubkey) {
+        updateState({ userLogs });
+      }
+
+      return userLogs;
+    }, 'fetchUserLogs');
+  }, [baseStore, user?.pubkey, updateState]);
+
+  // CRUD operations
+  const createLogMutation = useMutation({
+    mutationFn: async (logData: Partial<GeocacheLog>) => {
+      // This would integrate with the existing useCreateLog logic
+      throw new Error('Create log not implemented yet');
+    },
+    onSuccess: (newLog) => {
+      // Update relevant caches
+      const geocacheId = newLog.geocacheId;
+      if (geocacheId) {
+        updateState({
+          logsByGeocache: {
+            ...state.logsByGeocache,
+            [geocacheId]: [newLog, ...(state.logsByGeocache[geocacheId] || [])],
+          },
+          recentLogs: [newLog, ...state.recentLogs].slice(0, 20),
+          userLogs: newLog.pubkey === user?.pubkey 
+            ? [newLog, ...state.userLogs] 
+            : state.userLogs,
+        });
+      }
+    },
+  });
+
+  const deleteLogMutation = useMutation({
+    mutationFn: async (logId: string) => {
+      // This would integrate with the existing useDeleteLog logic
+      throw new Error('Delete log not implemented yet');
+    },
+    onMutate: (logId) => {
+      // Optimistic update - remove from all caches
+      const newLogsByGeocache = { ...state.logsByGeocache };
+      Object.keys(newLogsByGeocache).forEach(geocacheId => {
+        newLogsByGeocache[geocacheId] = newLogsByGeocache[geocacheId].filter(log => log.id !== logId);
+      });
+      
+      const rollback = createOptimisticUpdate(
+        createQueryKey('log', 'all'),
+        () => ({
+          logsByGeocache: newLogsByGeocache,
+          recentLogs: state.recentLogs.filter(log => log.id !== logId),
+          userLogs: state.userLogs.filter(log => log.id !== logId),
+        }),
+        baseStore.queryClient
+      );
+      
+      updateState({
+        logsByGeocache: newLogsByGeocache,
+        recentLogs: state.recentLogs.filter(log => log.id !== logId),
+        userLogs: state.userLogs.filter(log => log.id !== logId),
+      });
+      
+      return { rollback };
+    },
+    onError: (error, variables, context) => {
+      context?.rollback();
+    },
+  });
+
+  // Action implementations
+  const createLog = useCallback(async (log: Partial<GeocacheLog>): Promise<StoreActionResult<GeocacheLog>> => {
+    try {
+      const result = await createLogMutation.mutateAsync(log);
+      return baseStore.createSuccessResult(result);
+    } catch (error) {
+      return baseStore.createErrorResult(baseStore.handleError(error, 'createLog'));
+    }
+  }, [createLogMutation, baseStore]);
+
+  const createVerifiedLog = useCallback(async (log: Partial<GeocacheLog>): Promise<StoreActionResult<GeocacheLog>> => {
+    // This would add verification logic before creating
+    return createLog({ ...log, verified: true });
+  }, [createLog]);
+
+  const deleteLog = useCallback(async (logId: string): Promise<StoreActionResult<void>> => {
+    try {
+      await deleteLogMutation.mutateAsync(logId);
+      return baseStore.createSuccessResult(undefined);
+    } catch (error) {
+      return baseStore.createErrorResult(baseStore.handleError(error, 'deleteLog'));
+    }
+  }, [deleteLogMutation, baseStore]);
+
+  // Cache management
+  const invalidateLogs = useCallback((geocacheId: string) => {
+    baseStore.invalidateQueries(createQueryKey('log', 'geocache', geocacheId));
+    // Also remove from local state
+    updateState({
+      logsByGeocache: {
+        ...state.logsByGeocache,
+        [geocacheId]: [],
+      },
+    });
+  }, [baseStore, state.logsByGeocache, updateState]);
+
+  const invalidateAll = useCallback(() => {
+    baseStore.invalidateQueries(createQueryKey('log'));
+    updateState({
+      logsByGeocache: {},
+      recentLogs: [],
+      userLogs: [],
+    });
+  }, [baseStore, updateState]);
+
+  const refreshLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {
+    invalidateLogs(geocacheId);
+    return fetchLogs(geocacheId);
+  }, [invalidateLogs, fetchLogs]);
+
+  // Prefetching
+  const prefetchLogs = useCallback(async (geocacheIds: string[]): Promise<void> => {
+    await batchOperations(
+      geocacheIds,
+      async (geocacheId) => {
+        await baseStore.prefetchQuery(
+          createQueryKey('log', 'geocache', geocacheId),
+          () => fetchLogs(geocacheId).then(result => result.data!)
+        );
+      },
+      3 // Batch size
+    );
+  }, [baseStore, fetchLogs]);
+
+  // Background sync
+  const backgroundSyncFn = useCallback(async (geocacheIds?: string[]) => {
+    if (geocacheIds) {
+      // Sync specific geocaches
+      await batchOperations(geocacheIds, fetchLogs, 3);
+    } else {
+      // Sync recent logs
+      await fetchRecentLogs();
+    }
+  }, [fetchLogs, fetchRecentLogs]);
+
+  const startBackgroundSync = useCallback(() => {
+    baseStore.startBackgroundSync(() => backgroundSyncFn());
+    updateState({ syncStatus: baseStore.getSyncStatus() });
+  }, [baseStore, backgroundSyncFn, updateState]);
+
+  const stopBackgroundSync = useCallback(() => {
+    baseStore.stopBackgroundSync();
+    updateState({ syncStatus: baseStore.getSyncStatus() });
+  }, [baseStore, updateState]);
+
+  const triggerSync = useCallback(async (geocacheIds?: string[]): Promise<StoreActionResult<void>> => {
+    try {
+      await backgroundSyncFn(geocacheIds);
+      return baseStore.createSuccessResult(undefined);
+    } catch (error) {
+      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync'));
+    }
+  }, [backgroundSyncFn, baseStore]);
+
+  // Configuration
+  const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {
+    baseStore.updateConfig(newConfig);
+  }, [baseStore]);
+
+  const getStats = useCallback(() => {
+    const totalLogs = Object.values(state.logsByGeocache).reduce((sum, logs) => sum + logs.length, 0);
+    return {
+      ...baseStore.getCacheStats(),
+      totalItems: totalLogs,
+    };
+  }, [baseStore, state.logsByGeocache]);
+
+  // Auto-start background sync
+  useEffect(() => {
+    if (baseStore.config.enableBackgroundSync) {
+      startBackgroundSync();
+    }
+    return () => stopBackgroundSync();
+  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+
+  // Memoized store object
+  const store = useMemo((): LogStore => ({
+    // State
+    ...state,
+    
+    // Data fetching
+    fetchLogs,
+    fetchRecentLogs,
+    fetchUserLogs,
+    
+    // CRUD operations
+    createLog,
+    createVerifiedLog,
+    deleteLog,
+    
+    // Cache management
+    invalidateLogs,
+    invalidateAll,
+    refreshLogs,
+    
+    // Prefetching
+    prefetchLogs,
+    
+    // Background sync
+    startBackgroundSync,
+    stopBackgroundSync,
+    triggerSync,
+    
+    // Configuration
+    updateConfig,
+    getStats,
+  }), [
+    state,
+    fetchLogs,
+    fetchRecentLogs,
+    fetchUserLogs,
+    createLog,
+    createVerifiedLog,
+    deleteLog,
+    invalidateLogs,
+    invalidateAll,
+    refreshLogs,
+    prefetchLogs,
+    startBackgroundSync,
+    stopBackgroundSync,
+    triggerSync,
+    updateConfig,
+    getStats,
+  ]);
+
+  return store;
+}

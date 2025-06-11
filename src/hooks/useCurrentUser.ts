@@ -1,4 +1,4 @@
-// Backward compatibility re-export
-// This file maintains compatibility while hooks are migrated to the new structure
+// COMPATIBILITY LAYER: useCurrentUser
+// This hook now uses the new unified store system
 
-export { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+export { useCurrentUser } from '@/shared/stores/simpleStores';

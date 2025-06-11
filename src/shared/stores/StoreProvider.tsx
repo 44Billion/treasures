@@ -1,1 +1,279 @@
-/**\n * Unified Store Provider\n * Provides all stores through React context\n */\n\nimport React, { createContext, useContext, useMemo } from 'react';\nimport type { \n  UnifiedStores, \n  StoreProviderProps, \n  GeocacheStore,\n  LogStore,\n  AuthorStore,\n  OfflineStore,\n  StoreConfig \n} from './types';\nimport { useGeocacheStore } from './useGeocacheStore';\nimport { useLogStore } from './useLogStore';\nimport { useAuthorStore } from './useAuthorStore';\nimport { useOfflineStore } from './useOfflineStore';\nimport { DEFAULT_STORE_CONFIG } from './baseStore';\n\n// Create contexts for each store\nconst GeocacheStoreContext = createContext<GeocacheStore | null>(null);\nconst LogStoreContext = createContext<LogStore | null>(null);\nconst AuthorStoreContext = createContext<AuthorStore | null>(null);\nconst OfflineStoreContext = createContext<OfflineStore | null>(null);\nconst UnifiedStoresContext = createContext<UnifiedStores | null>(null);\n\n/**\n * Store Provider Component\n */\nexport function StoreProvider({ children, config = {} }: StoreProviderProps) {\n  const storeConfig: StoreConfig = useMemo(() => ({\n    ...DEFAULT_STORE_CONFIG,\n    ...config,\n  }), [config]);\n\n  // Initialize all stores\n  const geocacheStore = useGeocacheStore(storeConfig);\n  const logStore = useLogStore(storeConfig);\n  const authorStore = useAuthorStore(storeConfig);\n  const offlineStore = useOfflineStore(storeConfig);\n\n  // Create unified stores object\n  const unifiedStores = useMemo((): UnifiedStores => ({\n    geocache: geocacheStore,\n    log: logStore,\n    author: authorStore,\n    offline: offlineStore,\n  }), [geocacheStore, logStore, authorStore, offlineStore]);\n\n  return (\n    <GeocacheStoreContext.Provider value={geocacheStore}>\n      <LogStoreContext.Provider value={logStore}>\n        <AuthorStoreContext.Provider value={authorStore}>\n          <OfflineStoreContext.Provider value={offlineStore}>\n            <UnifiedStoresContext.Provider value={unifiedStores}>\n              {children}\n            </UnifiedStoresContext.Provider>\n          </OfflineStoreContext.Provider>\n        </AuthorStoreContext.Provider>\n      </LogStoreContext.Provider>\n    </GeocacheStoreContext.Provider>\n  );\n}\n\n/**\n * Hook to access the geocache store\n */\nexport function useGeocacheStoreContext(): GeocacheStore {\n  const store = useContext(GeocacheStoreContext);\n  if (!store) {\n    throw new Error('useGeocacheStoreContext must be used within a StoreProvider');\n  }\n  return store;\n}\n\n/**\n * Hook to access the log store\n */\nexport function useLogStoreContext(): LogStore {\n  const store = useContext(LogStoreContext);\n  if (!store) {\n    throw new Error('useLogStoreContext must be used within a StoreProvider');\n  }\n  return store;\n}\n\n/**\n * Hook to access the author store\n */\nexport function useAuthorStoreContext(): AuthorStore {\n  const store = useContext(AuthorStoreContext);\n  if (!store) {\n    throw new Error('useAuthorStoreContext must be used within a StoreProvider');\n  }\n  return store;\n}\n\n/**\n * Hook to access the offline store\n */\nexport function useOfflineStoreContext(): OfflineStore {\n  const store = useContext(OfflineStoreContext);\n  if (!store) {\n    throw new Error('useOfflineStoreContext must be used within a StoreProvider');\n  }\n  return store;\n}\n\n/**\n * Hook to access all stores\n */\nexport function useStores(): UnifiedStores {\n  const stores = useContext(UnifiedStoresContext);\n  if (!stores) {\n    throw new Error('useStores must be used within a StoreProvider');\n  }\n  return stores;\n}\n\n/**\n * Hook to access a specific store by name\n */\nexport function useStore<T extends keyof UnifiedStores>(storeName: T): UnifiedStores[T] {\n  const stores = useStores();\n  return stores[storeName];\n}\n\n/**\n * Higher-order component to provide stores\n */\nexport function withStores<P extends object>(\n  Component: React.ComponentType<P>,\n  config?: Partial<StoreConfig>\n) {\n  return function WithStoresComponent(props: P) {\n    return (\n      <StoreProvider config={config}>\n        <Component {...props} />\n      </StoreProvider>\n    );\n  };\n}\n\n/**\n * Hook for components that need multiple stores\n */\nexport function useMultipleStores<T extends (keyof UnifiedStores)[]>(\n  storeNames: T\n): Pick<UnifiedStores, T[number]> {\n  const stores = useStores();\n  \n  return useMemo(() => {\n    const selectedStores = {} as Pick<UnifiedStores, T[number]>;\n    storeNames.forEach(storeName => {\n      selectedStores[storeName] = stores[storeName];\n    });\n    return selectedStores;\n  }, [stores, storeNames]);\n}\n\n/**\n * Hook to get store status across all stores\n */\nexport function useStoreStatus() {\n  const stores = useStores();\n  \n  return useMemo(() => {\n    const status = {\n      isLoading: false,\n      isError: false,\n      errorCount: 0,\n      syncStatus: {\n        isActive: false,\n        lastSync: null as Date | null,\n        errorCount: 0,\n      },\n      cacheStats: {\n        totalItems: 0,\n        hitRate: 0,\n        memoryUsage: 0,\n        lastCleanup: null as Date | null,\n      },\n    };\n\n    // Aggregate status from all stores\n    Object.values(stores).forEach(store => {\n      if (store.isLoading) status.isLoading = true;\n      if (store.isError) status.isError = true;\n      if (store.error) status.errorCount++;\n      \n      const storeStats = store.getStats();\n      status.cacheStats.totalItems += storeStats.totalItems;\n      status.cacheStats.memoryUsage += storeStats.memoryUsage;\n      \n      if (store.syncStatus.isActive) {\n        status.syncStatus.isActive = true;\n      }\n      \n      if (store.syncStatus.lastSync) {\n        if (!status.syncStatus.lastSync || store.syncStatus.lastSync > status.syncStatus.lastSync) {\n          status.syncStatus.lastSync = store.syncStatus.lastSync;\n        }\n      }\n      \n      status.syncStatus.errorCount += store.syncStatus.errorCount;\n    });\n\n    // Calculate average hit rate\n    const storeCount = Object.keys(stores).length;\n    if (storeCount > 0) {\n      status.cacheStats.hitRate = Object.values(stores)\n        .reduce((sum, store) => sum + store.getStats().hitRate, 0) / storeCount;\n    }\n\n    return status;\n  }, [stores]);\n}\n\n/**\n * Hook to trigger actions across multiple stores\n */\nexport function useStoreActions() {\n  const stores = useStores();\n  \n  return useMemo(() => ({\n    // Refresh all data\n    refreshAll: async () => {\n      const results = await Promise.allSettled([\n        stores.geocache.refreshAll(),\n        stores.author.triggerSync(),\n        stores.offline.triggerSync(),\n      ]);\n      \n      const errors = results\n        .filter(result => result.status === 'rejected')\n        .map(result => (result as PromiseRejectedResult).reason);\n      \n      if (errors.length > 0) {\n        throw new Error(`Failed to refresh some stores: ${errors.map(e => e.message).join(', ')}`);\n      }\n    },\n    \n    // Clear all caches\n    clearAll: async () => {\n      await Promise.all([\n        stores.geocache.invalidateAll(),\n        stores.log.invalidateAll(),\n        stores.author.invalidateAll(),\n        stores.offline.clearOfflineData(),\n      ]);\n    },\n    \n    // Start background sync for all stores\n    startBackgroundSync: () => {\n      stores.geocache.startBackgroundSync();\n      stores.log.startBackgroundSync();\n      stores.author.startBackgroundSync();\n      stores.offline.startBackgroundSync();\n    },\n    \n    // Stop background sync for all stores\n    stopBackgroundSync: () => {\n      stores.geocache.stopBackgroundSync();\n      stores.log.stopBackgroundSync();\n      stores.author.stopBackgroundSync();\n      stores.offline.stopBackgroundSync();\n    },\n    \n    // Update configuration for all stores\n    updateConfig: (config: Partial<StoreConfig>) => {\n      stores.geocache.updateConfig(config);\n      stores.log.updateConfig(config);\n      stores.author.updateConfig(config);\n      stores.offline.updateConfig(config);\n    },\n  }), [stores]);\n}
+/**
+ * Unified Store Provider
+ * Provides all stores through React context
+ */
+
+import React, { createContext, useContext, useMemo } from 'react';
+import type { 
+  UnifiedStores, 
+  StoreProviderProps, 
+  GeocacheStore,
+  LogStore,
+  AuthorStore,
+  OfflineStore,
+  StoreConfig 
+} from './types';
+import { useGeocacheStore } from './useGeocacheStore';
+import { useLogStore } from './useLogStore';
+import { useAuthorStore } from './useAuthorStore';
+import { useOfflineStore } from './useOfflineStore';
+import { DEFAULT_STORE_CONFIG } from './baseStore';
+
+// Create contexts for each store
+const GeocacheStoreContext = createContext<GeocacheStore | null>(null);
+const LogStoreContext = createContext<LogStore | null>(null);
+const AuthorStoreContext = createContext<AuthorStore | null>(null);
+const OfflineStoreContext = createContext<OfflineStore | null>(null);
+const UnifiedStoresContext = createContext<UnifiedStores | null>(null);
+
+/**
+ * Store Provider Component
+ */
+export function StoreProvider({ children, config = {} }: StoreProviderProps) {
+  const storeConfig: StoreConfig = useMemo(() => ({
+    ...DEFAULT_STORE_CONFIG,
+    ...config,
+  }), [config]);
+
+  // Initialize all stores
+  const geocacheStore = useGeocacheStore(storeConfig);
+  const logStore = useLogStore(storeConfig);
+  const authorStore = useAuthorStore(storeConfig);
+  const offlineStore = useOfflineStore(storeConfig);
+
+  // Create unified stores object
+  const unifiedStores = useMemo((): UnifiedStores => ({
+    geocache: geocacheStore,
+    log: logStore,
+    author: authorStore,
+    offline: offlineStore,
+  }), [geocacheStore, logStore, authorStore, offlineStore]);
+
+  return (
+    <GeocacheStoreContext.Provider value={geocacheStore}>
+      <LogStoreContext.Provider value={logStore}>
+        <AuthorStoreContext.Provider value={authorStore}>
+          <OfflineStoreContext.Provider value={offlineStore}>
+            <UnifiedStoresContext.Provider value={unifiedStores}>
+              {children}
+            </UnifiedStoresContext.Provider>
+          </OfflineStoreContext.Provider>
+        </AuthorStoreContext.Provider>
+      </LogStoreContext.Provider>
+    </GeocacheStoreContext.Provider>
+  );
+}
+
+/**
+ * Hook to access the geocache store
+ */
+export function useGeocacheStoreContext(): GeocacheStore {
+  const store = useContext(GeocacheStoreContext);
+  if (!store) {
+    throw new Error('useGeocacheStoreContext must be used within a StoreProvider');
+  }
+  return store;
+}
+
+/**
+ * Hook to access the log store
+ */
+export function useLogStoreContext(): LogStore {
+  const store = useContext(LogStoreContext);
+  if (!store) {
+    throw new Error('useLogStoreContext must be used within a StoreProvider');
+  }
+  return store;
+}
+
+/**
+ * Hook to access the author store
+ */
+export function useAuthorStoreContext(): AuthorStore {
+  const store = useContext(AuthorStoreContext);
+  if (!store) {
+    throw new Error('useAuthorStoreContext must be used within a StoreProvider');
+  }
+  return store;
+}
+
+/**
+ * Hook to access the offline store
+ */
+export function useOfflineStoreContext(): OfflineStore {
+  const store = useContext(OfflineStoreContext);
+  if (!store) {
+    throw new Error('useOfflineStoreContext must be used within a StoreProvider');
+  }
+  return store;
+}
+
+/**
+ * Hook to access all stores
+ */
+export function useStores(): UnifiedStores {
+  const stores = useContext(UnifiedStoresContext);
+  if (!stores) {
+    throw new Error('useStores must be used within a StoreProvider');
+  }
+  return stores;
+}
+
+/**
+ * Hook to access a specific store by name
+ */
+export function useStore<T extends keyof UnifiedStores>(storeName: T): UnifiedStores[T] {
+  const stores = useStores();
+  return stores[storeName];
+}
+
+/**
+ * Higher-order component to provide stores
+ */
+export function withStores<P extends object>(
+  Component: React.ComponentType<P>,
+  config?: Partial<StoreConfig>
+) {
+  return function WithStoresComponent(props: P) {
+    return (
+      <StoreProvider config={config}>
+        <Component {...props} />
+      </StoreProvider>
+    );
+  };
+}
+
+/**
+ * Hook for components that need multiple stores
+ */
+export function useMultipleStores<T extends (keyof UnifiedStores)[]>(
+  storeNames: T
+): Pick<UnifiedStores, T[number]> {
+  const stores = useStores();
+  
+  return useMemo(() => {
+    const selectedStores = {} as Pick<UnifiedStores, T[number]>;
+    storeNames.forEach(storeName => {
+      selectedStores[storeName] = stores[storeName];
+    });
+    return selectedStores;
+  }, [stores, storeNames]);
+}
+
+/**
+ * Hook to get store status across all stores
+ */
+export function useStoreStatus() {
+  const stores = useStores();
+  
+  return useMemo(() => {
+    const status = {
+      isLoading: false,
+      isError: false,
+      errorCount: 0,
+      syncStatus: {
+        isActive: false,
+        lastSync: null as Date | null,
+        errorCount: 0,
+      },
+      cacheStats: {
+        totalItems: 0,
+        hitRate: 0,
+        memoryUsage: 0,
+        lastCleanup: null as Date | null,
+      },
+    };
+
+    // Aggregate status from all stores
+    Object.values(stores).forEach(store => {
+      if (store.isLoading) status.isLoading = true;
+      if (store.isError) status.isError = true;
+      if (store.error) status.errorCount++;
+      
+      const storeStats = store.getStats();
+      status.cacheStats.totalItems += storeStats.totalItems;
+      status.cacheStats.memoryUsage += storeStats.memoryUsage;
+      
+      if (store.syncStatus.isActive) {
+        status.syncStatus.isActive = true;
+      }
+      
+      if (store.syncStatus.lastSync) {
+        if (!status.syncStatus.lastSync || store.syncStatus.lastSync > status.syncStatus.lastSync) {
+          status.syncStatus.lastSync = store.syncStatus.lastSync;
+        }
+      }
+      
+      status.syncStatus.errorCount += store.syncStatus.errorCount;
+    });
+
+    // Calculate average hit rate
+    const storeCount = Object.keys(stores).length;
+    if (storeCount > 0) {
+      status.cacheStats.hitRate = Object.values(stores)
+        .reduce((sum, store) => sum + store.getStats().hitRate, 0) / storeCount;
+    }
+
+    return status;
+  }, [stores]);
+}
+
+/**
+ * Hook to trigger actions across multiple stores
+ */
+export function useStoreActions() {
+  const stores = useStores();
+  
+  return useMemo(() => ({
+    // Refresh all data
+    refreshAll: async () => {
+      const results = await Promise.allSettled([
+        stores.geocache.refreshAll(),
+        stores.author.triggerSync(),
+        stores.offline.triggerSync(),
+      ]);
+      
+      const errors = results
+        .filter(result => result.status === 'rejected')
+        .map(result => (result as PromiseRejectedResult).reason);
+      
+      if (errors.length > 0) {
+        throw new Error(`Failed to refresh some stores: ${errors.map(e => e.message).join(', ')}`);
+      }
+    },
+    
+    // Clear all caches
+    clearAll: async () => {
+      await Promise.all([
+        stores.geocache.invalidateAll(),
+        stores.log.invalidateAll(),
+        stores.author.invalidateAll(),
+        stores.offline.clearOfflineData(),
+      ]);
+    },
+    
+    // Start background sync for all stores
+    startBackgroundSync: () => {
+      stores.geocache.startBackgroundSync();
+      stores.log.startBackgroundSync();
+      stores.author.startBackgroundSync();
+      stores.offline.startBackgroundSync();
+    },
+    
+    // Stop background sync for all stores
+    stopBackgroundSync: () => {
+      stores.geocache.stopBackgroundSync();
+      stores.log.stopBackgroundSync();
+      stores.author.stopBackgroundSync();
+      stores.offline.stopBackgroundSync();
+    },
+    
+    // Update configuration for all stores
+    updateConfig: (config: Partial<StoreConfig>) => {
+      stores.geocache.updateConfig(config);
+      stores.log.updateConfig(config);
+      stores.author.updateConfig(config);
+      stores.offline.updateConfig(config);
+    },
+  }), [stores]);
+}

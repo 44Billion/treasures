@@ -1,4 +1,4 @@
-// Backward compatibility re-export
-// This file maintains compatibility while hooks are migrated to the new structure
+// COMPATIBILITY LAYER: useAuthor
+// This hook now uses the new unified store system
 
-export { useAuthor } from '@/features/auth/hooks/useAuthor';
+export { useAuthor } from '@/shared/stores/simpleStores';

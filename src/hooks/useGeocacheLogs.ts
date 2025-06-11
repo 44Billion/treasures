@@ -1,4 +1,4 @@
-// Backward compatibility re-export
-// This file maintains compatibility while hooks are migrated to the new structure
+// COMPATIBILITY LAYER: useGeocacheLogs
+// This hook now uses the new unified store system
 
-export { useGeocacheLogs } from '@/features/geocache/hooks/useGeocacheLogs';
+export { useGeocacheLogs } from '@/shared/stores/simpleStores';

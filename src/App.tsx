@@ -12,6 +12,7 @@ import { PWAUpdateNotification } from '@/components/PWAUpdateNotification';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
+import { SimpleStoreProvider } from '@/shared/stores/simpleStores';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { connectivityChecker } from '@/lib/connectivityChecker';
 import { initializeCacheCleanup } from '@/lib/cacheCleanup';
@@ -77,14 +78,16 @@ export function App() {
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
-              <TooltipProvider>
-                <div className="min-h-screen flex flex-col">
-                  <AppRouter />
-                </div>
-                <PWAUpdateNotification />
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
+              <SimpleStoreProvider>
+                <TooltipProvider>
+                  <div className="min-h-screen flex flex-col">
+                    <AppRouter />
+                  </div>
+                  <PWAUpdateNotification />
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </SimpleStoreProvider>
             </NostrProvider>
           </NostrLoginProvider>
         </QueryClientProvider>

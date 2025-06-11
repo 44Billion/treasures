@@ -1,1 +1,68 @@
-/**\n * NIP-05 verification utilities\n */\n\ninterface Nip05Response {\n  names: Record<string, string>;\n  relays?: Record<string, string[]>;\n}\n\n/**\n * Verify a NIP-05 identifier against a public key\n * @param pubkey - The public key to verify\n * @param nip05 - The NIP-05 identifier (e.g., \"bob@example.com\")\n * @returns Promise<boolean> - Whether the verification succeeded\n */\nexport async function verifyNip05(pubkey: string, nip05: string): Promise<boolean> {\n  if (!nip05 || !pubkey) {\n    return false;\n  }\n\n  // Parse the NIP-05 identifier\n  const parts = nip05.split('@');\n  if (parts.length !== 2) {\n    return false;\n  }\n\n  const [localPart, domain] = parts;\n  \n  // Validate local part (should only contain a-z0-9-_.)\n  if (!/^[a-z0-9\\-_.]+$/i.test(localPart)) {\n    return false;\n  }\n\n  try {\n    // Make request to the well-known endpoint\n    const url = `https://${domain}/.well-known/nostr.json?name=${encodeURIComponent(localPart)}`;\n    \n    const response = await fetch(url, {\n      signal: AbortSignal.timeout(5000), // 5 second timeout\n      headers: {\n        'Accept': 'application/json',\n      },\n    });\n\n    if (!response.ok) {\n      return false;\n    }\n\n    const data: Nip05Response = await response.json();\n\n    // Check if the names object exists\n    if (!data.names || typeof data.names !== 'object') {\n      return false;\n    }\n\n    // Check if the local part exists in the names mapping\n    const mappedPubkey = data.names[localPart];\n    if (!mappedPubkey) {\n      return false;\n    }\n\n    // Verify the public key matches\n    return mappedPubkey.toLowerCase() === pubkey.toLowerCase();\n  } catch (error) {\n    console.warn('NIP-05 verification failed:', error);\n    return false;\n  }\n}
+/**
+ * NIP-05 verification utilities
+ */
+
+interface Nip05Response {
+  names: Record<string, string>;
+  relays?: Record<string, string[]>;
+}
+
+/**
+ * Verify a NIP-05 identifier against a public key
+ * @param pubkey - The public key to verify
+ * @param nip05 - The NIP-05 identifier (e.g., "bob@example.com")
+ * @returns Promise<boolean> - Whether the verification succeeded
+ */
+export async function verifyNip05(pubkey: string, nip05: string): Promise<boolean> {
+  if (!nip05 || !pubkey) {
+    return false;
+  }
+
+  // Parse the NIP-05 identifier
+  const parts = nip05.split('@');
+  if (parts.length !== 2) {
+    return false;
+  }
+
+  const [localPart, domain] = parts;
+  
+  // Validate local part (should only contain a-z0-9-_.)
+  if (!/^[a-z0-9\-_.]+$/i.test(localPart)) {
+    return false;
+  }
+
+  try {
+    // Make request to the well-known endpoint
+    const url = `https://${domain}/.well-known/nostr.json?name=${encodeURIComponent(localPart)}`;
+    
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data: Nip05Response = await response.json();
+
+    // Check if the names object exists
+    if (!data.names || typeof data.names !== 'object') {
+      return false;
+    }
+
+    // Check if the local part exists in the names mapping
+    const mappedPubkey = data.names[localPart];
+    if (!mappedPubkey) {
+      return false;
+    }
+
+    // Verify the public key matches
+    return mappedPubkey.toLowerCase() === pubkey.toLowerCase();
+  } catch (error) {
+    console.warn('NIP-05 verification failed:', error);
+    return false;
+  }
+}

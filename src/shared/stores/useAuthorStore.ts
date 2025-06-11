@@ -1,1 +1,397 @@
-/**\n * Unified Author Store\n * Consolidates all author/profile-related data management\n */\n\nimport { useState, useCallback, useEffect, useMemo } from 'react';\nimport { useQuery, useMutation } from '@tanstack/react-query';\nimport { \n  useBaseStore, \n  createQueryKey, \n  isDataStale, \n  batchOperations \n} from './baseStore';\nimport type { \n  AuthorStore, \n  AuthorStoreState, \n  AuthorMetadata,\n  StoreConfig, \n  StoreActionResult \n} from './types';\nimport type { NostrEvent } from '@nostrify/nostrify';\nimport { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';\nimport { TIMEOUTS } from '@/shared/config/constants';\nimport { verifyNip05 } from '@/shared/utils/nip05';\n\n/**\n * Unified author store hook\n */\nexport function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {\n  const baseStore = useBaseStore('author', config);\n  const { user } = useCurrentUser();\n  \n  // Store state\n  const [state, setState] = useState<AuthorStoreState>(() => ({\n    ...baseStore.createBaseState(),\n    authors: {},\n    currentUser: null,\n    syncStatus: baseStore.getSyncStatus(),\n    cacheStats: baseStore.getCacheStats(),\n  }));\n\n  // Update state helper\n  const updateState = useCallback((updates: Partial<AuthorStoreState>) => {\n    setState(prev => ({ ...prev, ...updates }));\n  }, []);\n\n  // Update current user when user changes\n  useEffect(() => {\n    if (user?.pubkey) {\n      const currentUserMetadata = state.authors[user.pubkey];\n      if (currentUserMetadata) {\n        updateState({ currentUser: currentUserMetadata });\n      } else {\n        // Fetch current user metadata\n        fetchAuthor(user.pubkey);\n      }\n    } else {\n      updateState({ currentUser: null });\n    }\n  }, [user?.pubkey, state.authors]);\n\n  // Data fetching actions\n  const fetchAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {\n    return baseStore.safeAsyncOperation(async () => {\n      // Check cache first\n      const cached = state.authors[pubkey];\n      if (cached && !isDataStale(cached.lastUpdate, baseStore.config.cacheTimeout!)) {\n        return cached;\n      }\n\n      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);\n      const events = await baseStore.nostr.query([{\n        kinds: [0], // Profile metadata\n        authors: [pubkey],\n        limit: 1,\n      }], { signal });\n\n      const metadata = events[0] || null;\n      const authorData: AuthorMetadata = {\n        pubkey,\n        metadata,\n        nip05Verified: false,\n        lastUpdate: new Date(),\n      };\n\n      // Verify NIP-05 if metadata contains nip05 field\n      if (metadata?.content) {\n        try {\n          const content = JSON.parse(metadata.content);\n          if (content.nip05) {\n            authorData.nip05Verified = await verifyNip05(pubkey, content.nip05);\n          }\n        } catch (error) {\n          console.warn('Failed to parse metadata or verify NIP-05:', error);\n        }\n      }\n\n      // Update cache\n      updateState({\n        authors: {\n          ...state.authors,\n          [pubkey]: authorData,\n        },\n        lastUpdate: new Date(),\n      });\n\n      // Update current user if this is the current user\n      if (pubkey === user?.pubkey) {\n        updateState({ currentUser: authorData });\n      }\n\n      return authorData;\n    }, 'fetchAuthor');\n  }, [baseStore, state.authors, user?.pubkey, updateState]);\n\n  const fetchAuthors = useCallback(async (pubkeys: string[]): Promise<StoreActionResult<AuthorMetadata[]>> => {\n    return baseStore.safeAsyncOperation(async () => {\n      const uniquePubkeys = [...new Set(pubkeys)];\n      const results: AuthorMetadata[] = [];\n      \n      // Check cache for each pubkey\n      const uncachedPubkeys: string[] = [];\n      for (const pubkey of uniquePubkeys) {\n        const cached = state.authors[pubkey];\n        if (cached && !isDataStale(cached.lastUpdate, baseStore.config.cacheTimeout!)) {\n          results.push(cached);\n        } else {\n          uncachedPubkeys.push(pubkey);\n        }\n      }\n\n      // Fetch uncached authors in batches\n      if (uncachedPubkeys.length > 0) {\n        const fetchedAuthors = await batchOperations(\n          uncachedPubkeys,\n          async (pubkey) => {\n            const result = await fetchAuthor(pubkey);\n            return result.data!;\n          },\n          5 // Batch size\n        );\n        results.push(...fetchedAuthors);\n      }\n\n      return results;\n    }, 'fetchAuthors');\n  }, [baseStore, state.authors, fetchAuthor]);\n\n  // Profile management\n  const updateProfileMutation = useMutation({\n    mutationFn: async (metadata: Record<string, unknown>) => {\n      if (!user?.signer) {\n        throw new Error('No signer available');\n      }\n\n      const event = {\n        kind: 0,\n        content: JSON.stringify(metadata),\n        tags: [],\n        created_at: Math.floor(Date.now() / 1000),\n      };\n\n      const signedEvent = await user.signer.signEvent(event);\n      \n      // Publish to relay\n      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);\n      await baseStore.nostr.event(signedEvent, { signal });\n      \n      return signedEvent;\n    },\n    onSuccess: (signedEvent) => {\n      if (user?.pubkey) {\n        // Update local cache immediately\n        const authorData: AuthorMetadata = {\n          pubkey: user.pubkey,\n          metadata: signedEvent,\n          nip05Verified: false, // Will be re-verified\n          lastUpdate: new Date(),\n        };\n        \n        updateState({\n          authors: {\n            ...state.authors,\n            [user.pubkey]: authorData,\n          },\n          currentUser: authorData,\n        });\n        \n        // Re-verify NIP-05 if present\n        try {\n          const content = JSON.parse(signedEvent.content);\n          if (content.nip05) {\n            verifyNip05(user.pubkey, content.nip05).then(verified => {\n              updateState({\n                authors: {\n                  ...state.authors,\n                  [user.pubkey]: {\n                    ...authorData,\n                    nip05Verified: verified,\n                  },\n                },\n                currentUser: {\n                  ...authorData,\n                  nip05Verified: verified,\n                },\n              });\n            });\n          }\n        } catch (error) {\n          console.warn('Failed to re-verify NIP-05:', error);\n        }\n      }\n    },\n  });\n\n  const updateProfile = useCallback(async (metadata: Record<string, unknown>): Promise<StoreActionResult<NostrEvent>> => {\n    try {\n      const result = await updateProfileMutation.mutateAsync(metadata);\n      return baseStore.createSuccessResult(result);\n    } catch (error) {\n      return baseStore.createErrorResult(baseStore.handleError(error, 'updateProfile'));\n    }\n  }, [updateProfileMutation, baseStore]);\n\n  const verifyNip05Manual = useCallback(async (pubkey: string): Promise<StoreActionResult<boolean>> => {\n    return baseStore.safeAsyncOperation(async () => {\n      const author = state.authors[pubkey];\n      if (!author?.metadata) {\n        throw new Error('Author metadata not found');\n      }\n\n      const content = JSON.parse(author.metadata.content);\n      if (!content.nip05) {\n        return false;\n      }\n\n      const verified = await verifyNip05(pubkey, content.nip05);\n      \n      // Update cache\n      updateState({\n        authors: {\n          ...state.authors,\n          [pubkey]: {\n            ...author,\n            nip05Verified: verified,\n          },\n        },\n      });\n\n      return verified;\n    }, 'verifyNip05');\n  }, [baseStore, state.authors, updateState]);\n\n  // Cache management\n  const invalidateAuthor = useCallback((pubkey: string) => {\n    baseStore.invalidateQueries(createQueryKey('author', pubkey));\n    // Remove from local state\n    const newAuthors = { ...state.authors };\n    delete newAuthors[pubkey];\n    updateState({ authors: newAuthors });\n  }, [baseStore, state.authors, updateState]);\n\n  const invalidateAll = useCallback(() => {\n    baseStore.invalidateQueries(createQueryKey('author'));\n    updateState({\n      authors: {},\n      currentUser: null,\n    });\n  }, [baseStore, updateState]);\n\n  const refreshAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {\n    invalidateAuthor(pubkey);\n    return fetchAuthor(pubkey);\n  }, [invalidateAuthor, fetchAuthor]);\n\n  // Prefetching\n  const prefetchAuthors = useCallback(async (pubkeys: string[]): Promise<void> => {\n    const uniquePubkeys = [...new Set(pubkeys)];\n    await batchOperations(\n      uniquePubkeys,\n      async (pubkey) => {\n        await baseStore.prefetchQuery(\n          createQueryKey('author', pubkey),\n          () => fetchAuthor(pubkey).then(result => result.data!)\n        );\n      },\n      5 // Batch size\n    );\n  }, [baseStore, fetchAuthor]);\n\n  // Background sync\n  const backgroundSyncFn = useCallback(async (pubkeys?: string[]) => {\n    if (pubkeys) {\n      // Sync specific authors\n      await fetchAuthors(pubkeys);\n    } else if (user?.pubkey) {\n      // Sync current user\n      await fetchAuthor(user.pubkey);\n    }\n  }, [fetchAuthors, fetchAuthor, user?.pubkey]);\n\n  const startBackgroundSync = useCallback(() => {\n    baseStore.startBackgroundSync(() => backgroundSyncFn());\n    updateState({ syncStatus: baseStore.getSyncStatus() });\n  }, [baseStore, backgroundSyncFn, updateState]);\n\n  const stopBackgroundSync = useCallback(() => {\n    baseStore.stopBackgroundSync();\n    updateState({ syncStatus: baseStore.getSyncStatus() });\n  }, [baseStore, updateState]);\n\n  const triggerSync = useCallback(async (pubkeys?: string[]): Promise<StoreActionResult<void>> => {\n    try {\n      await backgroundSyncFn(pubkeys);\n      return baseStore.createSuccessResult(undefined);\n    } catch (error) {\n      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync'));\n    }\n  }, [backgroundSyncFn, baseStore]);\n\n  // User management\n  const setCurrentUser = useCallback((userMetadata: AuthorMetadata | null) => {\n    updateState({ currentUser: userMetadata });\n  }, [updateState]);\n\n  // Configuration\n  const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {\n    baseStore.updateConfig(newConfig);\n  }, [baseStore]);\n\n  const getStats = useCallback(() => {\n    return {\n      ...baseStore.getCacheStats(),\n      totalItems: Object.keys(state.authors).length,\n    };\n  }, [baseStore, state.authors]);\n\n  // Auto-start background sync\n  useEffect(() => {\n    if (baseStore.config.enableBackgroundSync) {\n      startBackgroundSync();\n    }\n    return () => stopBackgroundSync();\n  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);\n\n  // Memoized store object\n  const store = useMemo((): AuthorStore => ({\n    // State\n    ...state,\n    \n    // Data fetching\n    fetchAuthor,\n    fetchAuthors,\n    \n    // Profile management\n    updateProfile,\n    verifyNip05: verifyNip05Manual,\n    \n    // Cache management\n    invalidateAuthor,\n    invalidateAll,\n    refreshAuthor,\n    \n    // Prefetching\n    prefetchAuthors,\n    \n    // Background sync\n    startBackgroundSync,\n    stopBackgroundSync,\n    triggerSync,\n    \n    // User management\n    setCurrentUser,\n    \n    // Configuration\n    updateConfig,\n    getStats,\n  }), [\n    state,\n    fetchAuthor,\n    fetchAuthors,\n    updateProfile,\n    verifyNip05Manual,\n    invalidateAuthor,\n    invalidateAll,\n    refreshAuthor,\n    prefetchAuthors,\n    startBackgroundSync,\n    stopBackgroundSync,\n    triggerSync,\n    setCurrentUser,\n    updateConfig,\n    getStats,\n  ]);\n\n  return store;\n}
+/**
+ * Unified Author Store
+ * Consolidates all author/profile-related data management
+ */
+
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { 
+  useBaseStore, 
+  createQueryKey, 
+  isDataStale, 
+  batchOperations 
+} from './baseStore';
+import type { 
+  AuthorStore, 
+  AuthorStoreState, 
+  AuthorMetadata,
+  StoreConfig, 
+  StoreActionResult 
+} from './types';
+import type { NostrEvent } from '@nostrify/nostrify';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { TIMEOUTS } from '@/shared/config';
+import { verifyNip05 } from '@/shared/utils/nip05';
+
+/**
+ * Unified author store hook
+ */
+export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
+  const baseStore = useBaseStore('author', config);
+  const { user } = useCurrentUser();
+  
+  // Store state
+  const [state, setState] = useState<AuthorStoreState>(() => ({
+    ...baseStore.createBaseState(),
+    authors: {},
+    currentUser: null,
+    syncStatus: baseStore.getSyncStatus(),
+    cacheStats: baseStore.getCacheStats(),
+  }));
+
+  // Update state helper
+  const updateState = useCallback((updates: Partial<AuthorStoreState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  // Update current user when user changes
+  useEffect(() => {
+    if (user?.pubkey) {
+      const currentUserMetadata = state.authors[user.pubkey];
+      if (currentUserMetadata) {
+        updateState({ currentUser: currentUserMetadata });
+      } else {
+        // Fetch current user metadata
+        fetchAuthor(user.pubkey);
+      }
+    } else {
+      updateState({ currentUser: null });
+    }
+  }, [user?.pubkey, state.authors]);
+
+  // Data fetching actions
+  const fetchAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      // Check cache first
+      const cached = state.authors[pubkey];
+      if (cached && !isDataStale(cached.lastUpdate, baseStore.config.cacheTimeout!)) {
+        return cached;
+      }
+
+      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
+      const events = await baseStore.nostr.query([{
+        kinds: [0], // Profile metadata
+        authors: [pubkey],
+        limit: 1,
+      }], { signal });
+
+      const metadata = events[0] || null;
+      const authorData: AuthorMetadata = {
+        pubkey,
+        metadata,
+        nip05Verified: false,
+        lastUpdate: new Date(),
+      };
+
+      // Verify NIP-05 if metadata contains nip05 field
+      if (metadata?.content) {
+        try {
+          const content = JSON.parse(metadata.content);
+          if (content.nip05) {
+            authorData.nip05Verified = await verifyNip05(pubkey, content.nip05);
+          }
+        } catch (error) {
+          console.warn('Failed to parse metadata or verify NIP-05:', error);
+        }
+      }
+
+      // Update cache
+      updateState({
+        authors: {
+          ...state.authors,
+          [pubkey]: authorData,
+        },
+        lastUpdate: new Date(),
+      });
+
+      // Update current user if this is the current user
+      if (pubkey === user?.pubkey) {
+        updateState({ currentUser: authorData });
+      }
+
+      return authorData;
+    }, 'fetchAuthor');
+  }, [baseStore, state.authors, user?.pubkey, updateState]);
+
+  const fetchAuthors = useCallback(async (pubkeys: string[]): Promise<StoreActionResult<AuthorMetadata[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const uniquePubkeys = [...new Set(pubkeys)];
+      const results: AuthorMetadata[] = [];
+      
+      // Check cache for each pubkey
+      const uncachedPubkeys: string[] = [];
+      for (const pubkey of uniquePubkeys) {
+        const cached = state.authors[pubkey];
+        if (cached && !isDataStale(cached.lastUpdate, baseStore.config.cacheTimeout!)) {
+          results.push(cached);
+        } else {
+          uncachedPubkeys.push(pubkey);
+        }
+      }
+
+      // Fetch uncached authors in batches
+      if (uncachedPubkeys.length > 0) {
+        const fetchedAuthors = await batchOperations(
+          uncachedPubkeys,
+          async (pubkey) => {
+            const result = await fetchAuthor(pubkey);
+            return result.data!;
+          },
+          5 // Batch size
+        );
+        results.push(...fetchedAuthors);
+      }
+
+      return results;
+    }, 'fetchAuthors');
+  }, [baseStore, state.authors, fetchAuthor]);
+
+  // Profile management
+  const updateProfileMutation = useMutation({
+    mutationFn: async (metadata: Record<string, unknown>) => {
+      if (!user?.signer) {
+        throw new Error('No signer available');
+      }
+
+      const event = {
+        kind: 0,
+        content: JSON.stringify(metadata),
+        tags: [],
+        created_at: Math.floor(Date.now() / 1000),
+      };
+
+      const signedEvent = await user.signer.signEvent(event);
+      
+      // Publish to relay
+      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
+      await baseStore.nostr.event(signedEvent, { signal });
+      
+      return signedEvent;
+    },
+    onSuccess: (signedEvent) => {
+      if (user?.pubkey) {
+        // Update local cache immediately
+        const authorData: AuthorMetadata = {
+          pubkey: user.pubkey,
+          metadata: signedEvent,
+          nip05Verified: false, // Will be re-verified
+          lastUpdate: new Date(),
+        };
+        
+        updateState({
+          authors: {
+            ...state.authors,
+            [user.pubkey]: authorData,
+          },
+          currentUser: authorData,
+        });
+        
+        // Re-verify NIP-05 if present
+        try {
+          const content = JSON.parse(signedEvent.content);
+          if (content.nip05) {
+            verifyNip05(user.pubkey, content.nip05).then(verified => {
+              updateState({
+                authors: {
+                  ...state.authors,
+                  [user.pubkey]: {
+                    ...authorData,
+                    nip05Verified: verified,
+                  },
+                },
+                currentUser: {
+                  ...authorData,
+                  nip05Verified: verified,
+                },
+              });
+            });
+          }
+        } catch (error) {
+          console.warn('Failed to re-verify NIP-05:', error);
+        }
+      }
+    },
+  });
+
+  const updateProfile = useCallback(async (metadata: Record<string, unknown>): Promise<StoreActionResult<NostrEvent>> => {
+    try {
+      const result = await updateProfileMutation.mutateAsync(metadata);
+      return baseStore.createSuccessResult(result);
+    } catch (error) {
+      return baseStore.createErrorResult(baseStore.handleError(error, 'updateProfile'));
+    }
+  }, [updateProfileMutation, baseStore]);
+
+  const verifyNip05Manual = useCallback(async (pubkey: string): Promise<StoreActionResult<boolean>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const author = state.authors[pubkey];
+      if (!author?.metadata) {
+        throw new Error('Author metadata not found');
+      }
+
+      const content = JSON.parse(author.metadata.content);
+      if (!content.nip05) {
+        return false;
+      }
+
+      const verified = await verifyNip05(pubkey, content.nip05);
+      
+      // Update cache
+      updateState({
+        authors: {
+          ...state.authors,
+          [pubkey]: {
+            ...author,
+            nip05Verified: verified,
+          },
+        },
+      });
+
+      return verified;
+    }, 'verifyNip05');
+  }, [baseStore, state.authors, updateState]);
+
+  // Cache management
+  const invalidateAuthor = useCallback((pubkey: string) => {
+    baseStore.invalidateQueries(createQueryKey('author', pubkey));
+    // Remove from local state
+    const newAuthors = { ...state.authors };
+    delete newAuthors[pubkey];
+    updateState({ authors: newAuthors });
+  }, [baseStore, state.authors, updateState]);
+
+  const invalidateAll = useCallback(() => {
+    baseStore.invalidateQueries(createQueryKey('author'));
+    updateState({
+      authors: {},
+      currentUser: null,
+    });
+  }, [baseStore, updateState]);
+
+  const refreshAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {
+    invalidateAuthor(pubkey);
+    return fetchAuthor(pubkey);
+  }, [invalidateAuthor, fetchAuthor]);
+
+  // Prefetching
+  const prefetchAuthors = useCallback(async (pubkeys: string[]): Promise<void> => {
+    const uniquePubkeys = [...new Set(pubkeys)];
+    await batchOperations(
+      uniquePubkeys,
+      async (pubkey) => {
+        await baseStore.prefetchQuery(
+          createQueryKey('author', pubkey),
+          () => fetchAuthor(pubkey).then(result => result.data!)
+        );
+      },
+      5 // Batch size
+    );
+  }, [baseStore, fetchAuthor]);
+
+  // Background sync
+  const backgroundSyncFn = useCallback(async (pubkeys?: string[]) => {
+    if (pubkeys) {
+      // Sync specific authors
+      await fetchAuthors(pubkeys);
+    } else if (user?.pubkey) {
+      // Sync current user
+      await fetchAuthor(user.pubkey);
+    }
+  }, [fetchAuthors, fetchAuthor, user?.pubkey]);
+
+  const startBackgroundSync = useCallback(() => {
+    baseStore.startBackgroundSync(() => backgroundSyncFn());
+    updateState({ syncStatus: baseStore.getSyncStatus() });
+  }, [baseStore, backgroundSyncFn, updateState]);
+
+  const stopBackgroundSync = useCallback(() => {
+    baseStore.stopBackgroundSync();
+    updateState({ syncStatus: baseStore.getSyncStatus() });
+  }, [baseStore, updateState]);
+
+  const triggerSync = useCallback(async (pubkeys?: string[]): Promise<StoreActionResult<void>> => {
+    try {
+      await backgroundSyncFn(pubkeys);
+      return baseStore.createSuccessResult(undefined);
+    } catch (error) {
+      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync'));
+    }
+  }, [backgroundSyncFn, baseStore]);
+
+  // User management
+  const setCurrentUser = useCallback((userMetadata: AuthorMetadata | null) => {
+    updateState({ currentUser: userMetadata });
+  }, [updateState]);
+
+  // Configuration
+  const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {
+    baseStore.updateConfig(newConfig);
+  }, [baseStore]);
+
+  const getStats = useCallback(() => {
+    return {
+      ...baseStore.getCacheStats(),
+      totalItems: Object.keys(state.authors).length,
+    };
+  }, [baseStore, state.authors]);
+
+  // Auto-start background sync
+  useEffect(() => {
+    if (baseStore.config.enableBackgroundSync) {
+      startBackgroundSync();
+    }
+    return () => stopBackgroundSync();
+  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+
+  // Memoized store object
+  const store = useMemo((): AuthorStore => ({
+    // State
+    ...state,
+    
+    // Data fetching
+    fetchAuthor,
+    fetchAuthors,
+    
+    // Profile management
+    updateProfile,
+    verifyNip05: verifyNip05Manual,
+    
+    // Cache management
+    invalidateAuthor,
+    invalidateAll,
+    refreshAuthor,
+    
+    // Prefetching
+    prefetchAuthors,
+    
+    // Background sync
+    startBackgroundSync,
+    stopBackgroundSync,
+    triggerSync,
+    
+    // User management
+    setCurrentUser,
+    
+    // Configuration
+    updateConfig,
+    getStats,
+  }), [
+    state,
+    fetchAuthor,
+    fetchAuthors,
+    updateProfile,
+    verifyNip05Manual,
+    invalidateAuthor,
+    invalidateAll,
+    refreshAuthor,
+    prefetchAuthors,
+    startBackgroundSync,
+    stopBackgroundSync,
+    triggerSync,
+    setCurrentUser,
+    updateConfig,
+    getStats,
+  ]);
+
+  return store;
+}

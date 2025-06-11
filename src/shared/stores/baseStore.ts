@@ -12,7 +12,7 @@ import type {
   CacheStats,
   StoreActionResult 
 } from './types';
-import { TIMEOUTS, POLLING_INTERVALS } from '@/shared/config/constants';
+import { TIMEOUTS, POLLING_INTERVALS } from '@/shared/config';
 
 // Default store configuration
 export const DEFAULT_STORE_CONFIG: StoreConfig = {
@@ -75,4 +75,192 @@ export function useBaseStore(
     timeout: number = TIMEOUTS.QUERY
   ): Promise<StoreActionResult<T>> => {
     try {
-      const signal = AbortSignal.timeout(timeout);\n      const result = await Promise.race([\n        operation(),\n        new Promise<never>((_, reject) => {\n          signal.addEventListener('abort', () => reject(new Error('Operation timeout')));\n        })\n      ]);\n      return createSuccessResult(result);\n    } catch (error) {\n      return createErrorResult(handleError(error, context));\n    }\n  }, [handleError, createSuccessResult, createErrorResult]);\n\n  // Query client helpers\n  const invalidateQueries = useCallback((queryKey: unknown[]) => {\n    queryClient.invalidateQueries({ queryKey });\n  }, [queryClient]);\n\n  const setQueryData = useCallback(<T>(queryKey: unknown[], data: T) => {\n    queryClient.setQueryData(queryKey, data);\n  }, [queryClient]);\n\n  const getQueryData = useCallback(<T>(queryKey: unknown[]): T | undefined => {\n    return queryClient.getQueryData(queryKey);\n  }, [queryClient]);\n\n  const prefetchQuery = useCallback(async <T>(\n    queryKey: unknown[],\n    queryFn: () => Promise<T>,\n    staleTime?: number\n  ) => {\n    await queryClient.prefetchQuery({\n      queryKey,\n      queryFn,\n      staleTime: staleTime || configRef.current.cacheTimeout,\n    });\n  }, [queryClient]);\n\n  // Background sync management\n  const startBackgroundSync = useCallback((syncFn: () => Promise<void>) => {\n    if (!configRef.current.enableBackgroundSync) return;\n    \n    if (syncIntervalRef.current) {\n      clearInterval(syncIntervalRef.current);\n    }\n\n    syncStatusRef.current.isActive = true;\n    \n    syncIntervalRef.current = setInterval(async () => {\n      try {\n        await syncFn();\n        syncStatusRef.current.lastSync = new Date();\n        syncStatusRef.current.errorCount = Math.max(0, syncStatusRef.current.errorCount - 1);\n      } catch (error) {\n        handleError(error, 'Background sync');\n      }\n    }, configRef.current.syncInterval);\n  }, [handleError]);\n\n  const stopBackgroundSync = useCallback(() => {\n    if (syncIntervalRef.current) {\n      clearInterval(syncIntervalRef.current);\n      syncIntervalRef.current = null;\n    }\n    syncStatusRef.current.isActive = false;\n  }, []);\n\n  // Configuration management\n  const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {\n    configRef.current = { ...configRef.current, ...newConfig };\n    \n    // Restart background sync if interval changed\n    if (newConfig.syncInterval && syncIntervalRef.current) {\n      stopBackgroundSync();\n      // Note: Caller needs to restart sync with their sync function\n    }\n  }, [stopBackgroundSync]);\n\n  // Cache statistics\n  const getCacheStats = useCallback((): CacheStats => {\n    // This would be implemented by each specific store\n    return {\n      totalItems: 0,\n      hitRate: 0,\n      memoryUsage: 0,\n      lastCleanup: null,\n    };\n  }, []);\n\n  // Cleanup on unmount\n  useEffect(() => {\n    return () => {\n      stopBackgroundSync();\n    };\n  }, [stopBackgroundSync]);\n\n  return {\n    // Core dependencies\n    nostr,\n    queryClient,\n    \n    // Configuration\n    config: configRef.current,\n    updateConfig,\n    \n    // State helpers\n    createBaseState,\n    \n    // Error handling\n    handleError,\n    createSuccessResult,\n    createErrorResult,\n    safeAsyncOperation,\n    \n    // Query helpers\n    invalidateQueries,\n    setQueryData,\n    getQueryData,\n    prefetchQuery,\n    \n    // Background sync\n    startBackgroundSync,\n    stopBackgroundSync,\n    getSyncStatus: () => syncStatusRef.current,\n    \n    // Cache stats\n    getCacheStats,\n  };\n}\n\n/**\n * Utility function to create query keys with consistent naming\n */\nexport function createQueryKey(store: string, operation: string, ...params: unknown[]): unknown[] {\n  return [store, operation, ...params.filter(p => p !== undefined)];\n}\n\n/**\n * Utility function to check if data is stale\n */\nexport function isDataStale(lastUpdate: Date | null, maxAge: number): boolean {\n  if (!lastUpdate) return true;\n  return Date.now() - lastUpdate.getTime() > maxAge;\n}\n\n/**\n * Utility function to batch operations\n */\nexport async function batchOperations<T, R>(\n  items: T[],\n  operation: (item: T) => Promise<R>,\n  batchSize: number = 5\n): Promise<R[]> {\n  const results: R[] = [];\n  \n  for (let i = 0; i < items.length; i += batchSize) {\n    const batch = items.slice(i, i + batchSize);\n    const batchResults = await Promise.allSettled(\n      batch.map(item => operation(item))\n    );\n    \n    for (const result of batchResults) {\n      if (result.status === 'fulfilled') {\n        results.push(result.value);\n      }\n    }\n  }\n  \n  return results;\n}\n\n/**\n * Utility function for optimistic updates\n */\nexport function createOptimisticUpdate<T>(\n  queryKey: unknown[],\n  updateFn: (oldData: T | undefined) => T,\n  queryClient: any\n) {\n  const previousData = queryClient.getQueryData(queryKey);\n  \n  // Apply optimistic update\n  queryClient.setQueryData(queryKey, updateFn(previousData));\n  \n  // Return rollback function\n  return () => {\n    queryClient.setQueryData(queryKey, previousData);\n  };\n}
+      const signal = AbortSignal.timeout(timeout);
+      const result = await Promise.race([
+        operation(),
+        new Promise<never>((_, reject) => {
+          signal.addEventListener('abort', () => reject(new Error('Operation timeout')));
+        })
+      ]);
+      return createSuccessResult(result);
+    } catch (error) {
+      return createErrorResult(handleError(error, context));
+    }
+  }, [handleError, createSuccessResult, createErrorResult]);
+
+  // Query client helpers
+  const invalidateQueries = useCallback((queryKey: unknown[]) => {
+    queryClient.invalidateQueries({ queryKey });
+  }, [queryClient]);
+
+  const setQueryData = useCallback(<T>(queryKey: unknown[], data: T) => {
+    queryClient.setQueryData(queryKey, data);
+  }, [queryClient]);
+
+  const getQueryData = useCallback(<T>(queryKey: unknown[]): T | undefined => {
+    return queryClient.getQueryData(queryKey);
+  }, [queryClient]);
+
+  const prefetchQuery = useCallback(async <T>(
+    queryKey: unknown[],
+    queryFn: () => Promise<T>,
+    staleTime?: number
+  ) => {
+    await queryClient.prefetchQuery({
+      queryKey,
+      queryFn,
+      staleTime: staleTime || configRef.current.cacheTimeout,
+    });
+  }, [queryClient]);
+
+  // Background sync management
+  const startBackgroundSync = useCallback((syncFn: () => Promise<void>) => {
+    if (!configRef.current.enableBackgroundSync) return;
+    
+    if (syncIntervalRef.current) {
+      clearInterval(syncIntervalRef.current);
+    }
+
+    syncStatusRef.current.isActive = true;
+    
+    syncIntervalRef.current = setInterval(async () => {
+      try {
+        await syncFn();
+        syncStatusRef.current.lastSync = new Date();
+        syncStatusRef.current.errorCount = Math.max(0, syncStatusRef.current.errorCount - 1);
+      } catch (error) {
+        handleError(error, 'Background sync');
+      }
+    }, configRef.current.syncInterval);
+  }, [handleError]);
+
+  const stopBackgroundSync = useCallback(() => {
+    if (syncIntervalRef.current) {
+      clearInterval(syncIntervalRef.current);
+      syncIntervalRef.current = null;
+    }
+    syncStatusRef.current.isActive = false;
+  }, []);
+
+  // Configuration management
+  const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {
+    configRef.current = { ...configRef.current, ...newConfig };
+    
+    // Restart background sync if interval changed
+    if (newConfig.syncInterval && syncIntervalRef.current) {
+      stopBackgroundSync();
+      // Note: Caller needs to restart sync with their sync function
+    }
+  }, [stopBackgroundSync]);
+
+  // Cache statistics
+  const getCacheStats = useCallback((): CacheStats => {
+    // This would be implemented by each specific store
+    return {
+      totalItems: 0,
+      hitRate: 0,
+      memoryUsage: 0,
+      lastCleanup: null,
+    };
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopBackgroundSync();
+    };
+  }, [stopBackgroundSync]);
+
+  return {
+    // Core dependencies
+    nostr,
+    queryClient,
+    
+    // Configuration
+    config: configRef.current,
+    updateConfig,
+    
+    // State helpers
+    createBaseState,
+    
+    // Error handling
+    handleError,
+    createSuccessResult,
+    createErrorResult,
+    safeAsyncOperation,
+    
+    // Query helpers
+    invalidateQueries,
+    setQueryData,
+    getQueryData,
+    prefetchQuery,
+    
+    // Background sync
+    startBackgroundSync,
+    stopBackgroundSync,
+    getSyncStatus: () => syncStatusRef.current,
+    
+    // Cache stats
+    getCacheStats,
+  };
+}
+
+/**
+ * Utility function to create query keys with consistent naming
+ */
+export function createQueryKey(store: string, operation: string, ...params: unknown[]): unknown[] {
+  return [store, operation, ...params.filter(p => p !== undefined)];
+}
+
+/**
+ * Utility function to check if data is stale
+ */
+export function isDataStale(lastUpdate: Date | null, maxAge: number): boolean {
+  if (!lastUpdate) return true;
+  return Date.now() - lastUpdate.getTime() > maxAge;
+}
+
+/**
+ * Utility function to batch operations
+ */
+export async function batchOperations<T, R>(
+  items: T[],
+  operation: (item: T) => Promise<R>,
+  batchSize: number = 5
+): Promise<R[]> {
+  const results: R[] = [];
+  
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.allSettled(
+      batch.map(item => operation(item))
+    );
+    
+    for (const result of batchResults) {
+      if (result.status === 'fulfilled') {
+        results.push(result.value);
+      }
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Utility function for optimistic updates
+ */
+export function createOptimisticUpdate<T>(
+  queryKey: unknown[],
+  updateFn: (oldData: T | undefined) => T,
+  queryClient: any
+) {
+  const previousData = queryClient.getQueryData(queryKey);
+  
+  // Apply optimistic update
+  queryClient.setQueryData(queryKey, updateFn(previousData));
+  
+  // Return rollback function
+  return () => {
+    queryClient.setQueryData(queryKey, previousData);
+  };
+}

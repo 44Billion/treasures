@@ -327,3 +327,71 @@ export function useOfflineFirst<T>(
     retry: shouldUseOnline ? 3 : 0,
   });
 }
+
+// Hook that provides the interface expected by useOfflineStore
+export function useOfflineStorage() {
+  const saveGeocache = useCallback(async (geocache: any) => {
+    const cachedGeocache = {
+      id: geocache.id,
+      event: geocache,
+      lastUpdated: Date.now(),
+      coordinates: geocache.coordinates,
+      difficulty: geocache.difficulty,
+      terrain: geocache.terrain,
+      type: geocache.type,
+    };
+    await offlineStorage.storeGeocache(cachedGeocache);
+  }, []);
+
+  const saveLog = useCallback(async (log: any) => {
+    // For now, store logs as events since we don't have a specific log storage
+    await offlineStorage.storeEvent(log);
+  }, []);
+
+  const removeGeocache = useCallback(async (id: string) => {
+    await offlineStorage.removeGeocache(id);
+  }, []);
+
+  const removeLog = useCallback(async (id: string) => {
+    await offlineStorage.removeEvent(id);
+  }, []);
+
+  const getAllGeocaches = useCallback(async () => {
+    const cached = await offlineStorage.getAllGeocaches();
+    return cached.map(c => c.event);
+  }, []);
+
+  const getAllLogs = useCallback(async () => {
+    // Get all events that are logs (kind 1063 or similar)
+    const events = await offlineStorage.getEventsByKind(1063);
+    return events;
+  }, []);
+
+  const getStorageStats = useCallback(async () => {
+    // Basic storage stats
+    const geocaches = await offlineStorage.getAllGeocaches();
+    const logs = await getAllLogs();
+    
+    return {
+      totalSize: (geocaches.length + logs.length) * 1024, // Rough estimate
+      availableSpace: 100 * 1024 * 1024, // 100MB estimate
+      lastCleanup: null,
+    };
+  }, [getAllLogs]);
+
+  const clearAll = useCallback(async () => {
+    // Clear all data - this would need to be implemented in offlineStorage
+    console.warn('clearAll not fully implemented yet');
+  }, []);
+
+  return {
+    saveGeocache,
+    saveLog,
+    removeGeocache,
+    removeLog,
+    getAllGeocaches,
+    getAllLogs,
+    getStorageStats,
+    clearAll,
+  };
+}
