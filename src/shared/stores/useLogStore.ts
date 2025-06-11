@@ -304,7 +304,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
         content: 'Log deleted by author',
         tags: [
           ['e', logId],
-          ['k', logToDelete.kind?.toString() || '1111'],
+          ['k', logToDelete.kind?.toString() || NIP_GC_KINDS.COMMENT_LOG],
           ['client', 'treasures'],
         ],
         created_at: Math.floor(Date.now() / 1000),

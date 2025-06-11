@@ -94,7 +94,7 @@ export function useNostrSavedCaches() {
     const deletedEventIds = new Set<string>();
     deletions.forEach(deletion => {
       deletion.tags.forEach(tag => {
-        if (tag[0] === 'e') {
+        if (tag[0] === 'e' && tag[1]) {
           deletedEventIds.add(tag[1]);
         }
       });

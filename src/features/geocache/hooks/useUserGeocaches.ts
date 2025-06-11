@@ -11,6 +11,9 @@ export function useUserGeocaches(targetPubkey?: string) {
 
   // Use provided pubkey or fall back to current user's pubkey
   const pubkey = targetPubkey || user?.pubkey;
+  
+  // Determine if this is the user viewing their own profile
+  const isOwnProfile = pubkey === user?.pubkey;
 
   // Note: Deletion filtering has been simplified for now
 
@@ -39,9 +42,10 @@ export function useUserGeocaches(targetPubkey?: string) {
     const parsed = parseGeocacheEvent(event);
     if (!parsed) return null;
     
-    // In useUserGeocaches, we're fetching caches by a specific author (pubkey)
-    // Show ALL caches by that author, including hidden ones, when viewing their profile
-    // The filtering of hidden caches should only happen in the general geocaches list (useGeocaches)
+    // Filter out hidden caches unless the user is viewing their own profile
+    if (parsed.hidden && !isOwnProfile) {
+      return null;
+    }
     
     return {
       ...parsed,
