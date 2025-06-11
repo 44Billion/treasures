@@ -1,7 +1,59 @@
-// Backward compatibility re-export
-// This file maintains compatibility while utilities are migrated to the new structure
+/**
+ * OpenStreetMap location verification
+ * Checks if a location is in a restricted area
+ */
 
-export * from '@/features/geocache/utils/osmVerification';
+interface OSMElement {
+  type: string;
+  id: number;
+  tags?: Record<string, string>;
+}
+
+interface OSMResponse {
+  elements: OSMElement[];
+}
+
+export interface LocationVerification {
+  isRestricted: boolean;
+  warnings: string[];
+  nearbyFeatures: {
+    name?: string;
+    type: string;
+    distance?: number;
+  }[];
+  accessibility: {
+    wheelchair?: boolean;
+    parking?: boolean;
+    publicTransport?: boolean;
+    fee?: boolean;
+    openingHours?: string;
+  };
+  terrain: {
+    surface?: string;
+    difficulty?: string;
+    hazards?: string[];
+    lit?: boolean;
+    covered?: boolean;
+    width?: string;
+  };
+  legal: {
+    owner?: string;
+    operator?: string;
+    restrictions?: string[];
+    permits?: string[];
+  };
+  environmental: {
+    nesting?: boolean;
+    protected?: string;
+    leaveNoTrace?: boolean;
+  };
+  safety: {
+    surveillance?: boolean;
+    emergency?: string;
+    cellCoverage?: boolean;
+    lighting?: string;
+  };
+}
 
 // Restricted area types and their descriptions
 const RESTRICTED_AREAS = {

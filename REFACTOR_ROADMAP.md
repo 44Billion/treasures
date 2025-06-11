@@ -362,6 +362,37 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 ## Session Summary
 
 ### Completed in This Session:
+
+- ✅ **Final Cleanup Migration**: Migrated remaining deprecated files to proper feature-based locations
+  - **Shared Utilities Migrated** (4 files):
+    - `src/lib/naddr-utils.ts` → `src/shared/utils/naddr.ts` (Nostr address utilities)
+    - `src/lib/security.ts` → `src/shared/utils/security.ts` (Security validation utilities)
+    - `src/lib/networkUtils.ts` → `src/shared/utils/network.ts` (Network and timeout utilities)
+    - `src/lib/validation.ts` → `src/shared/utils/validation.ts` (Form validation utilities)
+  - **Geocache Feature Utilities Migrated** (3 files):
+    - `src/lib/nip-gc.ts` → `src/features/geocache/utils/nip-gc.ts` (NIP-GC protocol utilities)
+    - `src/lib/verification.ts` → `src/features/geocache/utils/verification.ts` (Geocache verification utilities)
+    - `src/lib/osmVerification.ts` → `src/features/geocache/utils/osmVerification.ts` (OSM location verification)
+  - **Shared Hooks Migrated** (1 file):
+    - `src/hooks/useNostrPublish.ts` → `src/shared/hooks/useNostrPublish.ts` (Nostr event publishing)
+  - **Configuration Migrated** (1 file):
+    - `src/lib/relayConfig.ts` → `src/shared/config/relays.ts` (Relay configuration with constants)
+  - **Backward Compatibility Maintained**:
+    - All original file locations now contain re-exports to new locations
+    - No breaking changes to existing imports
+    - Build system successfully compiles with new structure
+  - **Barrel Exports Updated**:
+    - Updated `src/shared/utils/index.ts` to export new utilities
+    - Updated `src/shared/hooks/index.ts` to export useNostrPublish
+    - Updated `src/features/geocache/utils/index.ts` to export new geocache utilities
+    - Updated `src/shared/config/index.ts` to include relay configuration
+  - **Import Path Fixes**:
+    - Fixed circular dependency in relay configuration
+    - Updated coordinate type imports to use proper feature types
+    - Resolved build errors with missing constants and utilities
+  - **Build Verification**: ✅ Build successful, all imports resolved correctly, no breaking changes
+
+### Previous Session Completions:
 - ✅ **Phase 4.1**: Audit Current Data Hooks
   - Mapped all 103 data-related hooks and their dependencies
   - Identified 5 major areas of overlapping functionality
@@ -508,6 +539,7 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 
 **Current Phase**: All Core Phases (1-4) - COMPLETE ✅
 **Logging Feature Migration**: COMPLETE ✅ (addressed missing gap)
+**Final Cleanup Migration**: COMPLETE ✅ (addressed remaining deprecated files)
 **Next Session Focus**: Phase 5 - Testing & Documentation
 
 ### Architecture Status:
