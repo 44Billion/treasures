@@ -16,10 +16,22 @@ This project is a Nostr client application built with React 18.x, TailwindCSS 3.
 ## Project Structure
 
 - `/src/components/`: UI components including NostrProvider for Nostr integration
-- `/src/hooks/`: Custom hooks including `useNostr` for Nostr operations
+- `/src/features/{feature}/hooks/`: Custom hooks including `useNostr` for Nostr operations, as categorized by feature (i.e., geocache, geocache found/comment logs, auth, etc.)
 - `/src/pages/`: Page components used by React Router
-- `/src/lib/`: Utility functions and shared logic
+- `/src/features/{feature}/lib/`: Utility functions and shared logic, as categorzied by feature
 - `/public/`: Static assets
+
+## Core data flow
+
+All operations within this application go through common, shared data stores within the following paths:
+
+ - `/src/shared/stores/` - The main store context path
+ - `/src/shared/stores/useAuthorStore.ts` - Geocache creator and log author storage
+ - `/src/shared/stores/useGeocacheStore.ts` - Core geocache information used for cards, details, listings, edits, etc
+ - `/src/shared/stores/useLogStore.ts` - Core geocachge log information for both found (including verified found logs) and other log types (dnf, note, maintenance, archived)
+ - `/src/shared/stores/useOfflineStore.ts` - All storage functions related to offline mode.
+
+ **IMPORTANT** - All core actions that involve presenting, creating, editing, reading, or deleting data related to any of these items (i.e., CRUD) should go through these paths. NEVER create an altherate route that serves or manipulates core data.
 
 ## UI Components
 
