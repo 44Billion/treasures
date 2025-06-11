@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCoordinate, autocorrectCoordinates } from '@/lib/coordinates';
+import { parseCoordinate, autocorrectCoordinates } from '../utils/coordinates';
 
 describe('parseCoordinate', () => {
   it('should parse integer coordinates', () => {

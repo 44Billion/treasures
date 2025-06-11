@@ -65,7 +65,7 @@ vi.mock('@/hooks/useReliableProximitySearch', () => ({
   useAdaptiveReliableGeocaches: () => mockProximitySearch,
 }));
 
-vi.mock('@/hooks/useGeolocation', () => ({
+vi.mock('../hooks/useGeolocation', () => ({
   useGeolocation: () => ({
     loading: false,
     coords: null,
@@ -73,7 +73,7 @@ vi.mock('@/hooks/useGeolocation', () => ({
   }),
 }));
 
-vi.mock('@/components/GeocacheMap', () => ({
+vi.mock('../components/GeocacheMap', () => ({
   GeocacheMap: ({ geocaches }: { geocaches: any[] }) => (
     <div data-testid="geocache-map">
       Map with {geocaches.length} geocaches

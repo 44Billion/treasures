@@ -6,7 +6,7 @@ import { NostrProvider } from '@nostrify/react';
 import Map from '@/pages/Map';
 
 // Mock the GeocacheMap component since we're testing layout, not map functionality
-vi.mock('@/components/GeocacheMap', () => ({
+vi.mock('../components/GeocacheMap', () => ({
   GeocacheMap: ({ ...props }) => (
     <div data-testid="geocache-map" style={{ height: '100%', width: '100%' }}>
       Mock Map Component
@@ -50,7 +50,7 @@ vi.mock('@/hooks/useOptimisticGeocaches', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useGeolocation', () => ({
+vi.mock('../hooks/useGeolocation', () => ({
   useGeolocation: () => ({
     loading: false,
     coords: null,

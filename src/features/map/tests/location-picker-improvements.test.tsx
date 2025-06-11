@@ -19,7 +19,7 @@ vi.mock('react-leaflet', () => ({
 }));
 
 // Mock geolocation hook
-vi.mock('@/hooks/useGeolocation', () => ({
+vi.mock('../hooks/useGeolocation', () => ({
   useGeolocation: () => ({
     loading: false,
     coords: null,

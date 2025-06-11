@@ -6,7 +6,7 @@ import { NostrProvider } from '@nostrify/react';
 import Map from '@/pages/Map';
 
 // Mock the hooks
-vi.mock('@/hooks/useGeolocation', () => ({
+vi.mock('../hooks/useGeolocation', () => ({
   useGeolocation: () => ({
     loading: false,
     coords: null,
@@ -83,7 +83,7 @@ vi.mock('react-leaflet', () => ({
 }));
 
 // Mock GeocacheMap component
-vi.mock('@/components/GeocacheMap', () => ({
+vi.mock('../components/GeocacheMap', () => ({
   GeocacheMap: ({ onMarkerClick }: { onMarkerClick?: (geocache: any) => void }) => (
     <div data-testid="geocache-map">
       <button 
@@ -207,7 +207,7 @@ describe('Map Fixes', () => {
     const mockGetLocation = vi.fn().mockResolvedValue(undefined);
     
     // Re-mock with our test function
-    vi.doMock('@/hooks/useGeolocation', () => ({
+    vi.doMock('../hooks/useGeolocation', () => ({
       useGeolocation: () => ({
         loading: false,
         coords: null,

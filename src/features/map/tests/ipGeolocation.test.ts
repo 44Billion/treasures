@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getIPLocation } from '@/lib/ipGeolocation';
+import { getIPLocation } from '../utils/ipGeolocation';
 
 // Mock fetch globally
 const mockFetch = vi.fn();

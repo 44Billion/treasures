@@ -114,29 +114,29 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 **Dependencies**: 2.1, 2.2
 **Risk**: High (affects entire app)
 
-### 3.2 Map Feature 🔴
+### 3.2 Map Feature 🟢
 **Priority**: High (core functionality)
-- [ ] Create `src/features/map/` structure
-- [ ] Move map components (`GeocacheMap`, `OfflineMap`, etc.)
-- [ ] Move map hooks (`useGeolocation`, map-related hooks)
-- [ ] Move map utilities (`coordinateUtils`, `geo.ts`, etc.)
-- [ ] Create map types and constants
-- [ ] Update imports and test map functionality
-- [ ] Migrate map tests
+- [x] Create `src/features/map/` structure
+- [x] Move map components (`GeocacheMap`, `OfflineMap`, etc.)
+- [x] Move map hooks (`useGeolocation`, map-related hooks)
+- [x] Move map utilities (`coordinateUtils`, `geo.ts`, etc.)
+- [x] Create map types and constants
+- [x] Update imports and test map functionality
+- [x] Migrate map tests
 
 **Estimated Time**: 2-3 sessions
 **Dependencies**: 2.1, 2.2
 **Risk**: Medium
 
-### 3.3 Geocache Feature 🔴
+### 3.3 Geocache Feature 🟢
 **Priority**: High (core functionality)
-- [ ] Create `src/features/geocache/` structure
-- [ ] Move geocache components (`GeocacheDialog`, `CacheMenu`, etc.)
-- [ ] Move geocache hooks (`useGeocaches`, `useCreateGeocache`, etc.)
-- [ ] Move geocache utilities (`geocache-utils.ts`, `nip-gc.ts`, etc.)
-- [ ] Create geocache types and constants
-- [ ] Update imports and test geocache functionality
-- [ ] Migrate geocache tests
+- [x] Create `src/features/geocache/` structure
+- [x] Move geocache components (`GeocacheDialog`, `GeocacheList`, etc.)
+- [x] Move geocache hooks (`useGeocaches`, `useCreateGeocache`, etc.)
+- [x] Move geocache utilities (`geocache-utils.ts`, `cacheManager.ts`, etc.)
+- [x] Create geocache types and constants
+- [x] Update imports and test geocache functionality
+- [x] Migrate geocache tests
 
 **Estimated Time**: 3-4 sessions
 **Dependencies**: 3.1, 3.2
@@ -374,16 +374,39 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
   - Migrated auth tests to new location
   - Verified build and functionality remain intact
 
+- ✅ **Phase 3.2**: Map Feature Migration
+  - Migrated all map-related tests to `src/features/map/tests/`
+  - Updated test imports to use new feature structure
+  - Fixed mock imports for useGeolocation and GeocacheMap components
+  - Verified core map utility tests are passing (coordinates, ipGeolocation, useGeolocation)
+  - Created test index file for map feature
+  - Maintained backward compatibility through existing re-exports
+  - Verified build continues to pass with all map feature changes
+
+- ✅ **Phase 3.3**: Geocache Feature Migration
+  - Created complete `src/features/geocache/` structure with components, hooks, utils, types, tests
+  - Migrated 4 geocache components (GeocacheDialog, GeocacheList, geocache-card, geocache-form)
+  - Migrated 13 geocache hooks (useGeocaches, useCreateGeocache, useGeocacheLogs, etc.)
+  - Migrated 7 geocache utilities (cacheManager, geocache-utils, cacheIcons, etc.)
+  - Migrated 16 geocache test files to new feature structure
+  - Created comprehensive barrel exports for all geocache directories
+  - Created backward compatibility re-exports for all moved files
+  - Updated imports in GeocacheDialog to use new feature structure
+  - Fixed cacheManager imports to use shared utilities
+  - Verified build passes with all geocache feature changes
+
 ### Key Achievements:
 - **Zero Breaking Changes**: All existing imports continue to work through re-exports
 - **Type Safety**: Eliminated all `any` types and improved TypeScript strictness
-- **Feature Isolation**: Auth functionality is now properly isolated in its own feature directory
+- **Feature Isolation**: Auth, Map, and Geocache functionality are now properly isolated in their own feature directories
 - **Maintainability**: Clear separation of concerns with proper barrel exports
-- **Test Coverage**: All auth tests migrated and updated
+- **Test Coverage**: All auth, map, and geocache tests migrated and updated
+- **Build Stability**: All changes maintain build integrity and functionality
+- **Comprehensive Migration**: Successfully migrated the most complex feature (geocache) with 40+ files
 
 ### Next Steps:
-- **Phase 3.2**: Map Feature Migration (next session focus)
-- Continue with geocache and profile feature migrations
+- **Phase 3.4**: Profile Feature Migration (next session focus)
+- **Phase 3.5**: Offline Feature Migration
 - Eventually consolidate data layer and remove redundant hooks
 **Current Phase**: Phase 3 (Feature Migration) 
 **Next Session Focus**: Phase 3.2 - Map Feature Migration

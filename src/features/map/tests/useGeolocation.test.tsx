@@ -1,7 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useGeolocation } from '@/hooks/useGeolocation';
-import { useToast } from '@/hooks/useToast';
+import { useGeolocation } from '../hooks/useGeolocation';
+import { useToast } from '@/shared/hooks/useToast';
 
 // Mock GeolocationPositionError
 global.GeolocationPositionError = {
@@ -11,14 +11,14 @@ global.GeolocationPositionError = {
 } as any;
 
 // Mock the toast hook
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: vi.fn(() => ({
     toast: vi.fn(),
   })),
 }));
 
 // Mock IP geolocation
-vi.mock('@/lib/ipGeolocation', () => ({
+vi.mock('../utils/ipGeolocation', () => ({
   getIPLocation: vi.fn(() => Promise.resolve({
     lat: 40.7128,
     lng: -74.0060,
@@ -32,7 +32,7 @@ describe('useGeolocation', () => {
   
   beforeEach(() => {
     vi.clearAllMocks();
-    (useToast as ReturnType<typeof vi.fn>).mockReturnValue({ toast: mockToast });
+    vi.mocked(useToast).mockReturnValue({ toast: mockToast });
     
     // Mock geolocation API
     Object.defineProperty(global.navigator, 'geolocation', {

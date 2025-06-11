@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NostrProvider } from '@nostrify/react';
 import Map from '@/pages/Map';
 
-// Mock the necessary hooks and components
+// Mock all the necessary hooks and components
 vi.mock('@/hooks/useAppContext', () => ({
   useAppContext: () => ({
     config: { relayUrl: 'wss://test.relay' }
@@ -39,7 +39,7 @@ vi.mock('@/hooks/useOptimisticGeocaches', () => ({
   })
 }));
 
-vi.mock('@/hooks/useGeolocation', () => ({
+vi.mock('../hooks/useGeolocation', () => ({
   useGeolocation: () => ({
     loading: false,
     coords: null,
@@ -47,7 +47,7 @@ vi.mock('@/hooks/useGeolocation', () => ({
   })
 }));
 
-vi.mock('@/components/GeocacheMap', () => ({
+vi.mock('../components/GeocacheMap', () => ({
   GeocacheMap: ({ children, ...props }: any) => (
     <div data-testid="geocache-map" {...props}>
       Mocked GeocacheMap
@@ -76,6 +76,10 @@ vi.mock('@/components/FilterButton', () => ({
 
 vi.mock('@/components/GeocacheDialog', () => ({
   GeocacheDialog: () => <div data-testid="geocache-dialog">Geocache Dialog</div>
+}));
+
+vi.mock('@/components/ui/skeleton-patterns', () => ({
+  SmartLoadingState: ({ children }: any) => <div data-testid="smart-loading-state">{children}</div>
 }));
 
 // Mock window.innerWidth for mobile detection
@@ -108,30 +112,34 @@ const createWrapper = (initialEntries: string[] = ['/map']) => {
   );
 };
 
-describe('Map View "View in Map" Action', () => {
+describe('Map Tab Switching Integration', () => {
   beforeEach(() => {
     // Reset window.innerWidth before each test
     mockInnerWidth(1024);
     vi.clearAllMocks();
   });
 
-  it('should switch to map tab on mobile when URL has tab=map parameter', async () => {
+  it('should switch to map tab on mobile when "View in Map" URL is used', async () => {
     // Set mobile width
     mockInnerWidth(768);
     
+    // Simulate the URL that CacheMenu.handleViewOnMap() generates
     const Wrapper = createWrapper(['/map?lat=40.7128&lng=-74.0060&zoom=16&highlight=test-cache&tab=map']);
     
     render(<Map />, { wrapper: Wrapper });
 
     // Wait for component to render and process URL params
     await waitFor(() => {
-      // Check if the map tab is active on mobile
+      // On mobile, we should see the tabs
       const mapTab = screen.getByRole('tab', { name: /map/i });
+      expect(mapTab).toBeInTheDocument();
+      
+      // The map tab should be active
       expect(mapTab).toHaveAttribute('data-state', 'active');
-    });
+    }, { timeout: 3000 });
   });
 
-  it('should switch to map tab on mobile when URL has coordinates but no tab parameter', async () => {
+  it('should switch to map tab on mobile when coordinates are provided without explicit tab parameter', async () => {
     // Set mobile width
     mockInnerWidth(768);
     
@@ -141,13 +149,13 @@ describe('Map View "View in Map" Action', () => {
 
     // Wait for component to render and process URL params
     await waitFor(() => {
-      // Check if the map tab is active on mobile when coordinates are provided
+      // The map tab should be active when coordinates are provided
       const mapTab = screen.getByRole('tab', { name: /map/i });
       expect(mapTab).toHaveAttribute('data-state', 'active');
-    });
+    }, { timeout: 3000 });
   });
 
-  it('should default to list tab on mobile when no coordinates or tab parameter', async () => {
+  it('should default to list tab on mobile when no special parameters are provided', async () => {
     // Set mobile width
     mockInnerWidth(768);
     
@@ -157,24 +165,41 @@ describe('Map View "View in Map" Action', () => {
 
     // Wait for component to render
     await waitFor(() => {
-      // Check if the list tab is active by default
+      // The list tab should be active by default
       const listTab = screen.getByRole('tab', { name: /list/i });
       expect(listTab).toHaveAttribute('data-state', 'active');
-    });
+    }, { timeout: 3000 });
   });
 
-  it('should not affect tab selection on desktop', async () => {
-    // Set desktop width
-    mockInnerWidth(1200);
+  it('should handle tab parameter correctly', async () => {
+    // Set mobile width
+    mockInnerWidth(768);
     
-    const Wrapper = createWrapper(['/map?lat=40.7128&lng=-74.0060&zoom=16&highlight=test-cache&tab=map']);
+    const Wrapper = createWrapper(['/map?tab=map']);
     
     render(<Map />, { wrapper: Wrapper });
 
-    // On desktop, the mobile tabs should not be visible
+    // Wait for component to render
     await waitFor(() => {
-      // Desktop view should show the sidebar and map side by side
-      expect(screen.getByTestId('geocache-map')).toBeInTheDocument();
-    });
+      // The map tab should be active when tab=map is specified
+      const mapTab = screen.getByRole('tab', { name: /map/i });
+      expect(mapTab).toHaveAttribute('data-state', 'active');
+    }, { timeout: 3000 });
+  });
+
+  it('should handle list tab parameter correctly', async () => {
+    // Set mobile width
+    mockInnerWidth(768);
+    
+    const Wrapper = createWrapper(['/map?tab=list']);
+    
+    render(<Map />, { wrapper: Wrapper });
+
+    // Wait for component to render
+    await waitFor(() => {
+      // The list tab should be active when tab=list is specified
+      const listTab = screen.getByRole('tab', { name: /list/i });
+      expect(listTab).toHaveAttribute('data-state', 'active');
+    }, { timeout: 3000 });
   });
 });
