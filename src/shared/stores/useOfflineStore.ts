@@ -3,7 +3,7 @@
  * Consolidates all offline data and sync operations
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { 
   useBaseStore, 
   createQueryKey, 
@@ -58,15 +58,16 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     syncStatus: baseStore.getSyncStatus(),
   }));
 
-  // Update state helper
-  const updateState = useCallback((updates: Partial<OfflineStoreState>) => {
+  // Update state helper - use useRef to make it stable
+  const updateStateRef = useRef((updates: Partial<OfflineStoreState>) => {
     setState(prev => ({ ...prev, ...updates }));
-  }, []);
+  });
+  const updateState = updateStateRef.current;
 
   // Update connectivity status
   useEffect(() => {
     updateState({ isOnline, isConnected });
-  }, [isOnline, isConnected, updateState]);
+  }, [isOnline, isConnected]); // Remove updateState dependency
 
   // Load offline data on mount
   useEffect(() => {
@@ -106,22 +107,22 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     };
 
     loadOfflineData();
-  }, [getAllGeocaches, getAllLogs, getStorageStats, baseStore, updateState]);
+  }, [getAllGeocaches, getAllLogs, getStorageStats, baseStore]); // Remove updateState dependency
 
   // Connectivity actions
   const setOnlineStatus = useCallback((online: boolean) => {
     updateState({ isOnline: online });
-  }, [updateState]);
+  }, []);
 
   const setConnectedStatus = useCallback((connected: boolean) => {
     updateState({ isConnected: connected });
-  }, [updateState]);
+  }, []);
 
   const checkConnectivityAction = useCallback(async (): Promise<boolean> => {
     const connected = await checkConnectivity();
     updateState({ isConnected: connected });
     return connected;
-  }, [checkConnectivity, updateState]);
+  }, [checkConnectivity]);
 
   // Offline data management
   const saveGeocacheOffline = useCallback(async (geocache: Geocache): Promise<StoreActionResult<void>> => {
@@ -137,7 +138,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         },
       });
     }, 'saveGeocacheOffline');
-  }, [baseStore, saveGeocache, state.offlineGeocaches, state.storageInfo, updateState]);
+  }, [baseStore, saveGeocache, state.offlineGeocaches, state.storageInfo]);
 
   const saveLogOffline = useCallback(async (log: GeocacheLog): Promise<StoreActionResult<void>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -159,7 +160,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         });
       }
     }, 'saveLogOffline');
-  }, [baseStore, saveLog, state.offlineLogs, state.storageInfo, updateState]);
+  }, [baseStore, saveLog, state.offlineLogs, state.storageInfo]);
 
   const removeOfflineGeocache = useCallback(async (id: string): Promise<StoreActionResult<void>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -174,7 +175,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         },
       });
     }, 'removeOfflineGeocache');
-  }, [baseStore, removeGeocache, state.offlineGeocaches, state.storageInfo, updateState]);
+  }, [baseStore, removeGeocache, state.offlineGeocaches, state.storageInfo]);
 
   const removeOfflineLog = useCallback(async (id: string): Promise<StoreActionResult<void>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -202,7 +203,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         });
       }
     }, 'removeOfflineLog');
-  }, [baseStore, removeLog, state.offlineLogs, state.storageInfo, updateState]);
+  }, [baseStore, removeLog, state.offlineLogs, state.storageInfo]);
 
   // Pending actions management
   const addPendingAction = useCallback((action: Omit<PendingAction, 'id' | 'timestamp' | 'retryCount'>) => {
@@ -216,13 +217,13 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     updateState({
       pendingActions: [...state.pendingActions, pendingAction],
     });
-  }, [state.pendingActions, updateState]);
+  }, [state.pendingActions]);
 
   const removePendingAction = useCallback((id: string) => {
     updateState({
       pendingActions: state.pendingActions.filter(action => action.id !== id),
     });
-  }, [state.pendingActions, updateState]);
+  }, [state.pendingActions]);
 
   const syncPendingActions = useCallback(async (): Promise<StoreActionResult<void>> => {
     if (!isOnline || !isConnected || state.pendingActions.length === 0) {
@@ -270,7 +271,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
 
       updateState({ pendingActions: remainingActions });
     }, 'syncPendingActions');
-  }, [isOnline, isConnected, state.pendingActions, baseStore, updateState]);
+  }, [isOnline, isConnected, state.pendingActions, baseStore]);
 
   // Storage management
   const getStorageInfoAction = useCallback(async (): Promise<StorageInfo> => {
@@ -290,7 +291,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
       baseStore.handleError(error, 'getStorageInfo');
       return state.storageInfo;
     }
-  }, [getStorageStats, state.offlineGeocaches, state.offlineLogs, state.storageInfo, baseStore, updateState]);
+  }, [getStorageStats, state.offlineGeocaches, state.offlineLogs, state.storageInfo, baseStore]);
 
   const cleanupStorage = useCallback(async (): Promise<StoreActionResult<void>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -324,7 +325,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         },
       });
     }, 'cleanupStorage');
-  }, [baseStore, state.offlineGeocaches, state.offlineLogs, state.storageInfo, updateState]);
+  }, [baseStore, state.offlineGeocaches, state.offlineLogs, state.storageInfo]);
 
   const clearOfflineData = useCallback(async (): Promise<StoreActionResult<void>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -343,7 +344,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         },
       });
     }, 'clearOfflineData');
-  }, [baseStore, clearAll, updateState]);
+  }, [baseStore, clearAll]);
 
   // Background sync
   const backgroundSyncFn = useCallback(async () => {
@@ -356,12 +357,12 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
   const startBackgroundSync = useCallback(() => {
     baseStore.startBackgroundSync(backgroundSyncFn);
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, backgroundSyncFn, updateState]);
+  }, [baseStore, backgroundSyncFn]);
 
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, updateState]);
+  }, [baseStore]);
 
   const triggerSync = useCallback(async (): Promise<StoreActionResult<void>> => {
     try {
@@ -390,7 +391,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync]);
 
   // Auto-sync when coming online
   useEffect(() => {

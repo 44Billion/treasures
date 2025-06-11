@@ -3,7 +3,7 @@
  * Consolidates all geocache-related data management
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   useBaseStore, 
@@ -12,7 +12,7 @@ import {
   batchOperations,
   createOptimisticUpdate 
 } from './baseStore';
-import { useMemoizedArray, useOptimizedCallback } from './memoization';
+import { useMemoizedArray } from './memoization';
 import { QueryOptimizer } from './performanceMonitor';
 import type { 
   GeocacheStore, 
@@ -56,10 +56,11 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     cacheStats: baseStore.getCacheStats(),
   }));
 
-  // Update state helper
-  const updateState = useCallback((updates: Partial<GeocacheStoreState>) => {
+  // Update state helper - use useRef to make it stable
+  const updateStateRef = useRef((updates: Partial<GeocacheStoreState>) => {
     setState(prev => ({ ...prev, ...updates }));
-  }, []);
+  });
+  const updateState = updateStateRef.current;
 
   // Main geocaches query with performance optimization
   const geocachesQuery = useQuery({
@@ -110,17 +111,17 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         lastUpdate: geocachesQuery.dataUpdatedAt ? new Date(geocachesQuery.dataUpdatedAt) : null,
       });
     }
-  }, [geocachesQuery.data, geocachesQuery.isLoading, geocachesQuery.isError, geocachesQuery.error, geocachesQuery.dataUpdatedAt, updateState]);
+  }, [geocachesQuery.data, geocachesQuery.isLoading, geocachesQuery.isError, geocachesQuery.error, geocachesQuery.dataUpdatedAt]);
 
   // Optimized data fetching actions
-  const fetchGeocaches = useOptimizedCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
+  const fetchGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
       await geocachesQuery.refetch();
       return state.geocaches;
     }, 'fetchGeocaches');
   }, [geocachesQuery, baseStore, state.geocaches]);
 
-  const fetchGeocache = useOptimizedCallback(async (id: string): Promise<StoreActionResult<Geocache>> => {
+  const fetchGeocache = useCallback(async (id: string): Promise<StoreActionResult<Geocache>> => {
     return baseStore.safeAsyncOperation(async () => {
       // Check if already in cache
       const cached = state.geocaches.find(g => g.id === id);
@@ -147,7 +148,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
       return geocache;
     }, 'fetchGeocache');
-  }, [baseStore, state.geocaches, state.lastUpdate, updateState]);
+  }, [baseStore, state.geocaches, state.lastUpdate]);
 
   const fetchUserGeocaches = useCallback(async (pubkey: string): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -166,7 +167,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       updateState({ userGeocaches });
       return userGeocaches;
     }, 'fetchUserGeocaches');
-  }, [baseStore, updateState]);
+  }, [baseStore]);
 
   const fetchNearbyGeocaches = useCallback(async (
     lat: number, 
@@ -184,7 +185,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       updateState({ nearbyGeocaches: nearby });
       return nearby;
     }, 'fetchNearbyGeocaches');
-  }, [baseStore, state.geocaches, updateState]);
+  }, [baseStore, state.geocaches]);
 
   // CRUD operations - Real implementations
   const createGeocacheMutation = useMutation({
@@ -556,7 +557,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   // Selection and navigation
   const selectGeocache = useCallback((geocache: Geocache | null) => {
     updateState({ selectedGeocache: geocache });
-  }, [updateState]);
+  }, []);
 
   const preloadGeocache = useCallback(async (id: string): Promise<void> => {
     await baseStore.prefetchQuery(
@@ -573,12 +574,12 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const startBackgroundSync = useCallback(() => {
     baseStore.startBackgroundSync(backgroundSyncFn);
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, backgroundSyncFn, updateState]);
+  }, [baseStore, backgroundSyncFn]);
 
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, updateState]);
+  }, [baseStore]);
 
   const triggerSync = useCallback(async (): Promise<StoreActionResult<void>> => {
     try {
@@ -607,7 +608,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync]);
 
   // Memoized geocaches array for performance
   const memoizedGeocaches = useMemoizedArray(state.geocaches, (geocache) => geocache.id);

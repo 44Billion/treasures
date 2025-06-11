@@ -3,7 +3,7 @@
  * Provides all stores through React context
  */
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useRef } from 'react';
 import type { 
   UnifiedStores, 
   StoreProviderProps, 
@@ -26,10 +26,13 @@ const AuthorStoreContext = createContext<AuthorStore | null>(null);
 const OfflineStoreContext = createContext<OfflineStore | null>(null);
 const UnifiedStoresContext = createContext<UnifiedStores | null>(null);
 
+// Stable empty config object to prevent re-renders
+const EMPTY_CONFIG = {};
+
 /**
  * Store Provider Component
  */
-export function StoreProvider({ children, config = {} }: StoreProviderProps) {
+export function StoreProvider({ children, config = EMPTY_CONFIG }: StoreProviderProps) {
   const storeConfig: StoreConfig = useMemo(() => ({
     ...DEFAULT_STORE_CONFIG,
     ...config,
