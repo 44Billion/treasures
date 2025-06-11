@@ -17,7 +17,7 @@ import { useGeocachePrefetch } from "@/hooks/usePrefetchManager";
 import { useDeleteWithConfirmation } from "@/hooks/useDeleteWithConfirmation";
 import { useEditGeocache } from "@/features/geocache/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
-import { LogsSection } from "@/components/LogsSection";
+import { LogsSection } from "@/features/logging/components/LogsSection";
 import { useAuthor } from "@/features/auth/hooks/useAuthor";
 import { useToast } from "@/shared/hooks/useToast";
 import { formatDistanceToNow } from "@/lib/date";

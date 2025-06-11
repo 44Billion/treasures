@@ -11,7 +11,7 @@ import { GeocacheMap } from "@/features/map/components/GeocacheMap";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
 
 import { useAuthor } from "@/features/auth/hooks/useAuthor";
-import { LogsSection } from "@/components/LogsSection";
+import { LogsSection } from "@/features/logging/components/LogsSection";
 import { formatDistanceToNow } from "@/lib/date";
 import { useNavigate } from "react-router-dom";
 import { geocacheToNaddr } from "@/lib/naddr-utils";
