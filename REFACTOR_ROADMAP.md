@@ -171,31 +171,31 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 
 ---
 
-## Phase 4: Data Layer Simplification 🔴
+## Phase 4: Data Layer Simplification 🟡
 **Goal**: Consolidate overlapping data management into unified system.
 
-### 4.1 Audit Current Data Hooks 🔴
-- [ ] Map all data-related hooks and their dependencies
-- [ ] Identify overlapping functionality
-- [ ] Document current data flow
-- [ ] Plan consolidation strategy
+### 4.1 Audit Current Data Hooks 🟢
+- [x] Map all data-related hooks and their dependencies
+- [x] Identify overlapping functionality
+- [x] Document current data flow
+- [x] Plan consolidation strategy
 
 **Estimated Time**: 1 session
 **Dependencies**: Phase 3 complete
 **Risk**: Medium
 
-### 4.2 Create Unified Data Stores 🔴
-- [ ] Design store interfaces for each feature
-- [ ] Implement `useGeocacheStore`
-- [ ] Implement `useLogStore`
-- [ ] Implement `useAuthorStore`
-- [ ] Implement `useOfflineStore`
+### 4.2 Create Unified Data Stores 🟢
+- [x] Design store interfaces for each feature
+- [x] Implement `useGeocacheStore`
+- [x] Implement `useLogStore`
+- [x] Implement `useAuthorStore`
+- [x] Implement `useOfflineStore`
 
 **Estimated Time**: 2-3 sessions
 **Dependencies**: 4.1
 **Risk**: High (complex refactoring)
 
-### 4.3 Migrate to New Data Layer 🔴
+### 4.3 Migrate to New Data Layer 🟡
 - [ ] Replace `useDataManager` with feature stores
 - [ ] Replace `usePrefetchManager` with store methods
 - [ ] Replace `useCacheInvalidation` with store methods
@@ -358,28 +358,35 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 ## Session Summary
 
 ### Completed in This Session:
-- ✅ **Phase 3.5**: Offline Feature Migration
-  - Created complete `src/features/offline/` structure with components, hooks, utils, types, tests
-  - Migrated 2 offline components (OfflineIndicator, OfflineSettings)
-  - Migrated 3 offline hooks (useOfflineStorage, useConnectivity, useOfflineStorageInfo)
-  - Migrated 3 offline utilities (offlineStorage, offlineSync, connectivityChecker)
-  - Created comprehensive offline type definitions
-  - Created backward compatibility re-exports for all moved files
-  - Moved shared cache utilities to `src/shared/utils/cacheUtils.ts`
-  - Moved storage configuration to `src/shared/config/storage.ts`
-  - Created comprehensive offline tests (storage and connectivity)
-  - Verified build passes with all offline feature changes
-  - Updated OfflineMap component to use new feature structure
+- ✅ **Phase 4.1**: Audit Current Data Hooks
+  - Mapped all 103 data-related hooks and their dependencies
+  - Identified 5 major areas of overlapping functionality
+  - Documented complex data flow through multiple abstraction layers
+  - Created comprehensive consolidation strategy in `PHASE_4_DATA_AUDIT.md`
+  - Planned unified store architecture with feature-based stores
+
+- ✅ **Phase 4.2**: Create Unified Data Stores
+  - Designed comprehensive store interfaces for all features in `src/shared/stores/types.ts`
+  - Implemented base store functionality with common patterns in `src/shared/stores/baseStore.ts`
+  - Created `useGeocacheStore` with full CRUD operations and background sync
+  - Created `useLogStore` with log management and prefetching capabilities
+  - Created `useAuthorStore` with profile management and NIP-05 verification
+  - Created `useOfflineStore` with offline data management and sync coordination
+  - Implemented `StoreProvider` with React context for unified store access
+  - Created migration helpers for backward compatibility with existing hooks
+  - Added comprehensive TypeScript types and error handling
 
 ### Key Achievements:
-- **Zero Breaking Changes**: All existing imports continue to work through re-exports
-- **Feature Isolation**: Offline functionality is now properly isolated in its own feature directory
-- **Shared Utilities**: Cache utilities and storage config moved to shared for reuse
-- **Type Safety**: Comprehensive type definitions for all offline-related interfaces
-- **Maintainability**: Clear separation of concerns with proper barrel exports
-- **Test Coverage**: Comprehensive offline tests for storage and connectivity
-- **Build Stability**: All changes maintain build integrity and functionality
-- **Import Consistency**: Updated to use new shared config and feature structure
+- **Comprehensive Data Audit**: Identified and documented all overlapping data management functionality
+- **Unified Store Architecture**: Created feature-based stores that consolidate related operations
+- **Type-Safe Interfaces**: Comprehensive TypeScript definitions for all store operations
+- **Background Sync**: Built-in background synchronization for all stores with configurable intervals
+- **Error Handling**: Robust error handling with automatic retry and fallback mechanisms
+- **Cache Management**: Intelligent caching with validation, invalidation, and cleanup
+- **Migration Compatibility**: Backward-compatible migration helpers for existing hooks
+- **Performance Optimization**: Batched operations, optimistic updates, and memory management
+- **Offline Support**: Integrated offline data management with automatic sync when online
+- **Developer Experience**: Clear APIs, debugging helpers, and comprehensive documentation
 
 ### Migration Progress:
 - ✅ **Phase 1**: Foundation & Planning (Complete)
@@ -389,13 +396,16 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 - ✅ **Phase 3.3**: Geocache Feature (Complete)
 - ✅ **Phase 3.4**: Profile Feature (Complete)
 - ✅ **Phase 3.5**: Offline Feature (Complete)
-- 🔴 **Phase 4**: Data Layer Simplification (Next)
+- ✅ **Phase 4.1**: Audit Current Data Hooks (Complete)
+- ✅ **Phase 4.2**: Create Unified Data Stores (Complete)
+- 🟡 **Phase 4.3**: Migrate to New Data Layer (Next)
 
 ### Next Steps:
-- **Phase 4**: Data Layer Simplification (next session focus)
-- Audit current data hooks and identify overlapping functionality
-- Create unified data stores for each feature
-- Eventually consolidate data layer and remove redundant hooks
+- **Phase 4.3**: Migrate to New Data Layer (next session focus)
+- Replace existing data management hooks with new unified stores
+- Update components to use new store context hooks
+- Create compatibility layer to prevent breaking changes
+- Remove redundant data management hooks after migration
 
-**Current Phase**: Phase 3 (Feature Migration) - COMPLETE!
-**Next Session Focus**: Phase 4.1 - Audit Current Data Hooks
+**Current Phase**: Phase 4 (Data Layer Simplification) - IN PROGRESS
+**Next Session Focus**: Phase 4.3 - Migrate to New Data Layer
