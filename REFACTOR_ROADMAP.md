@@ -61,11 +61,13 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 **Dependencies**: 1.1
 **Risk**: Medium (many import changes)
 
-### 2.2 Consolidate Constants 🔴
-- [ ] Split `src/lib/constants.ts` by feature
-- [ ] Create `src/shared/config/defaults.ts`
-- [ ] Create feature-specific config files
-- [ ] Update all constant imports
+### 2.2 Consolidate Constants 🟢
+- [x] Split `src/lib/constants.ts` by feature into logical config files
+- [x] Create `src/shared/config/` directory with feature-specific configs
+- [x] Move shared utilities to `src/shared/utils/`
+- [x] Create barrel exports for all shared config and utils
+- [x] Update imports to use new shared config location
+- [x] Maintain backward compatibility through re-exports
 
 **Estimated Time**: 1 session
 **Dependencies**: 1.2, 2.1
@@ -350,4 +352,4 @@ This roadmap outlines the step-by-step transformation of the Treasures project f
 
 **Last Updated**: Current Session
 **Current Phase**: Phase 2 (Core Infrastructure) 
-**Next Session Focus**: Phase 2.2 - Consolidate Constants
+**Next Session Focus**: Phase 2.3 - Establish Error Handling Pattern

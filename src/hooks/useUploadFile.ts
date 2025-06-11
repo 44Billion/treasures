@@ -1,26 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
-import { BlossomUploader } from '@nostrify/nostrify/uploaders';
+/**
+ * DEPRECATED: This file is maintained for backward compatibility.
+ * New code should import from @/shared/hooks directly.
+ */
 
-import { useCurrentUser } from "./useCurrentUser";
-
-export function useUploadFile() {
-  const { user } = useCurrentUser();
-
-  return useMutation({
-    mutationFn: async (file: File) => {
-      if (!user) {
-        throw new Error('Must be logged in to upload files');
-      }
-
-      const uploader = new BlossomUploader({
-        servers: [
-          'https://blossom.primal.net/',
-        ],
-        signer: user.signer,
-      });
-
-      const tags = await uploader.upload(file);
-      return tags;
-    },
-  });
-}
+export * from '@/shared/hooks/useUploadFile';
