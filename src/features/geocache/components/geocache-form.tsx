@@ -19,7 +19,8 @@ const SneakerIcon = ({ className, ...props }: { className?: string }) => (
   >
     {sneaker.map(([element, attrs], index) => {
       const Element = element as keyof JSX.IntrinsicElements;
-      return <Element key={index} {...attrs} />;
+      const { key, ...restAttrs } = attrs as any;
+      return <Element key={key || index} {...restAttrs} />;
     })}
   </svg>
 );
@@ -40,7 +41,8 @@ const TreesForestIcon = ({ className, ...props }: { className?: string }) => (
   >
     {treesForest.map(([element, attrs], index) => {
       const Element = element as keyof JSX.IntrinsicElements;
-      return <Element key={index} {...attrs} />;
+      const { key, ...restAttrs } = attrs as any;
+      return <Element key={key || index} {...restAttrs} />;
     })}
   </svg>
 );

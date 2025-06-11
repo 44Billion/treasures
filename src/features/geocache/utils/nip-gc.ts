@@ -134,8 +134,8 @@ export function validateCoordinates(lat: number, lng: number): boolean {
 
 export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
   try {
-    // Only process geocache events
-    if (event.kind !== NIP_GC_KINDS.GEOCACHE) {
+    // Only process geocache events - support both NIP-GC standard (37515) and legacy kind (30001)
+    if (event.kind !== NIP_GC_KINDS.GEOCACHE && event.kind !== 30001) {
       return null;
     }
 

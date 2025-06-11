@@ -25,8 +25,8 @@ export function parseNaddr(naddr: string): { pubkey: string; dTag: string; relay
     
     const data = decoded.data;
     
-    // Verify it's a geocache kind
-    if (data.kind !== 37515) {
+    // Accept both NIP-GC standard (37515) and legacy kind (30001) for backward compatibility
+    if (data.kind !== 37515 && data.kind !== 30001) {
       throw new Error('Not a geocache naddr');
     }
     

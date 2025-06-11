@@ -132,9 +132,9 @@ export function useGeocacheByNaddr(naddr: string) {
       // This ensures QR codes and bookmarks work even with poor connectivity detection
 
       try {
-        // Query by pubkey and d-tag
+        // Query by pubkey and d-tag - support both NIP-GC standard (37515) and legacy kind (30001)
         const filter: NostrFilter = {
-          kinds: [37515], // Geocache listing events
+          kinds: [37515, 30001], // Geocache listing events (both current and legacy)
           authors: [pubkey],
           '#d': [dTag],
           limit: 1,
