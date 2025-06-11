@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, X, Download, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Download, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Loader2 } from 'lucide-react';
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Button } from '@/components/ui/button';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { cn } from "@/lib/utils";
+import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
+import { useToast } from '@/hooks/useToast';
 
 interface ImageGalleryProps {
   images: string[];
@@ -11,6 +13,19 @@ interface ImageGalleryProps {
   onClose: () => void;
   initialIndex?: number;
 }
+
+/**
+ * ImageGallery component with pinch zoom functionality
+ * 
+ * Features:
+ * - Pinch to zoom on touch devices
+ * - Mouse wheel zoom on desktop
+ * - Double-click to toggle zoom
+ * - Pan when zoomed in
+ * - Zoom controls (desktop: top-right, mobile: bottom-center)
+ * - Zoom resets when changing images
+ * - Supports min/max zoom limits (0.5x to 5x)
+ */
 
 // Custom DialogContent without the automatic close button
 const ImageGalleryDialogContent = React.forwardRef<
@@ -34,8 +49,47 @@ const ImageGalleryDialogContent = React.forwardRef<
 ));
 ImageGalleryDialogContent.displayName = "ImageGalleryDialogContent";
 
+// Zoom controls component that uses the useControls hook
+function ZoomControls() {
+  const { zoomIn, zoomOut, resetTransform } = useControls();
+  
+  return (
+    <div className="flex gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-white hover:bg-white/20 bg-black/30"
+        onClick={() => zoomIn()}
+        title="Zoom in"
+      >
+        <ZoomIn className="h-4 w-4 md:h-5 md:w-5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-white hover:bg-white/20 bg-black/30"
+        onClick={() => zoomOut()}
+        title="Zoom out"
+      >
+        <ZoomOut className="h-4 w-4 md:h-5 md:w-5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-white hover:bg-white/20 bg-black/30"
+        onClick={() => resetTransform()}
+        title="Reset zoom"
+      >
+        <RotateCcw className="h-4 w-4 md:h-5 md:w-5" />
+      </Button>
+    </div>
+  );
+}
+
 export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: ImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -55,14 +109,81 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
     }
   };
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = images[currentIndex];
-    link.download = `cache-image-${currentIndex + 1}`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    if (isDownloading) return;
+    
+    setIsDownloading(true);
+    
+    try {
+      const imageUrl = images[currentIndex];
+      
+      // Extract filename from URL or create a default one
+      const urlParts = imageUrl.split('/');
+      const urlFilename = urlParts[urlParts.length - 1];
+      
+      // Remove query parameters first
+      const cleanFilename = urlFilename.split('?')[0];
+      
+      // Check if the clean filename has a valid image extension
+      const hasExtension = cleanFilename.includes('.') && cleanFilename.split('.').pop()?.match(/^(jpg|jpeg|png|gif|webp|svg)$/i);
+      
+      const filename = hasExtension 
+        ? cleanFilename 
+        : `cache-image-${currentIndex + 1}.jpg`;
+      
+      // Try to fetch the image and download it as a blob (handles CORS better)
+      try {
+        const response = await fetch(imageUrl);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the blob URL
+        URL.revokeObjectURL(blobUrl);
+        
+        toast({
+          title: 'Download started',
+          description: `Downloading ${filename}`,
+        });
+      } catch (fetchError) {
+        // Fallback: try direct download (may not work for CORS images)
+        console.warn('Fetch download failed, trying direct download:', fetchError);
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: 'Download started',
+          description: `Downloading ${filename} (fallback method)`,
+        });
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      
+      toast({
+        title: 'Download failed',
+        description: 'Opening image in new tab instead',
+        variant: 'destructive',
+      });
+      
+      // Final fallback: open in new tab
+      window.open(images[currentIndex], '_blank', 'noopener,noreferrer');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleOpenInNewTab = () => {
@@ -125,9 +246,14 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
               size="icon"
               className="text-white hover:bg-white/20 bg-black/30"
               onClick={handleDownload}
-              title="Download image"
+              disabled={isDownloading}
+              title={isDownloading ? "Downloading..." : "Download image"}
             >
-              <Download className="h-4 w-4 md:h-5 md:w-5" />
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 md:h-5 md:w-5" />
+              )}
             </Button>
             <Button
               variant="ghost"
@@ -162,7 +288,7 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
             </>
           )}
 
-          {/* Main image */}
+          {/* Main image with zoom functionality */}
           <div 
             className="w-full h-full flex items-center justify-center p-4 md:p-8"
             style={{
@@ -171,12 +297,59 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
               paddingBottom: 'max(6rem, calc(env(safe-area-inset-bottom, 0px) + 6rem))',
             }}
           >
-            <img
-              src={images[currentIndex]}
-              alt={`Cache image ${currentIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={5}
+              wheel={{ step: 0.1 }}
+              pinch={{ step: 5 }}
+              doubleClick={{ mode: "toggle", step: 0.7 }}
+              panning={{ 
+                velocityDisabled: true,
+                // Disable panning when not zoomed to allow navigation gestures
+                disabled: false
+              }}
+              // Reset transform when image changes
+              key={currentIndex}
+              centerOnInit={true}
+              limitToBounds={true}
+              centerZoomedOut={true}
+            >
+              {/* Desktop zoom controls positioned absolutely within the transform wrapper */}
+              <div 
+                className="absolute top-2 md:top-4 right-16 md:right-20 z-50 hidden md:flex gap-1"
+                style={{
+                  // Account for mobile safe area and navigation
+                  top: 'max(0.5rem, env(safe-area-inset-top, 0px))',
+                }}
+              >
+                <ZoomControls />
+              </div>
+
+              {/* Mobile zoom controls positioned at bottom */}
+              <div 
+                className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 md:hidden flex gap-1"
+                style={{
+                  // Account for mobile safe area
+                  bottom: 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 5rem))',
+                }}
+              >
+                <ZoomControls />
+              </div>
+              
+              <TransformComponent
+                wrapperClass="!w-full !h-full"
+                contentClass="!w-full !h-full flex items-center justify-center"
+              >
+                <img
+                  src={images[currentIndex]}
+                  alt={`Cache image ${currentIndex + 1}`}
+                  className="max-w-full max-h-full object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                  draggable={false}
+                />
+              </TransformComponent>
+            </TransformWrapper>
           </div>
 
           {/* Image counter and thumbnail navigation */}

@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { ImageGallery } from '@/components/ImageGallery';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock the useToast hook
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
 
 describe('ImageGallery z-index fix', () => {
   it('should have higher z-index than standard dialogs', () => {

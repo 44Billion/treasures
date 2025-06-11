@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { ImageGallery } from '@/components/ImageGallery';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock the useToast hook
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
 
 describe('ImageGallery mobile safe area handling', () => {
   it('should apply safe area styles to prevent clipping with mobile navigation', () => {
@@ -92,12 +99,18 @@ describe('ImageGallery mobile safe area handling', () => {
     const image = screen.getByAltText('Cache image 1');
     expect(image).toBeInTheDocument();
     
-    // Check that its container has safe area padding
-    const imageContainer = image.parentElement;
-    expect(imageContainer).toBeInTheDocument();
+    // The image is now wrapped in TransformWrapper/TransformComponent, 
+    // so we need to find the container with safe area padding by looking for elements with padding styles
+    const elementsWithPadding = document.querySelectorAll('[style*="padding"]');
+    const containerWithSafeArea = Array.from(elementsWithPadding).find(el => {
+      const style = el.getAttribute('style');
+      return style?.includes('padding-top: max(4rem') && style?.includes('safe-area-inset');
+    });
+    
+    expect(containerWithSafeArea).toBeInTheDocument();
     
     // Check that the style attribute contains safe area related padding
-    const style = imageContainer?.getAttribute('style');
+    const style = containerWithSafeArea?.getAttribute('style');
     expect(style).toContain('padding-top: max(4rem');
     expect(style).toContain('padding-bottom: max(6rem');
     expect(style).toContain('safe-area-inset');
