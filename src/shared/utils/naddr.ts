@@ -1,3 +1,4 @@
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 import { nip19 } from 'nostr-tools';
 
 /**
@@ -6,7 +7,7 @@ import { nip19 } from 'nostr-tools';
 export function geocacheToNaddr(pubkey: string, dTag: string, relays?: string[]): string {
   return nip19.naddrEncode({
     pubkey,
-    kind: 37515, // Geocache kind
+    kind: NIP_GC_KINDS.GEOCACHE, // Geocache kind
     identifier: dTag,
     relays: relays || []
   });
@@ -25,8 +26,8 @@ export function parseNaddr(naddr: string): { pubkey: string; dTag: string; relay
     
     const data = decoded.data;
     
-    // Accept both NIP-GC standard (37515) and legacy kind (30001) for backward compatibility
-    if (data.kind !== 37515 && data.kind !== 30001) {
+    // Accept NIP-GC standard (37515)
+    if (data.kind !== NIP_GC_KINDS.GEOCACHE) {
       throw new Error('Not a geocache naddr');
     }
     

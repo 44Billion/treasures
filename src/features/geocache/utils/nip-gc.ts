@@ -14,6 +14,7 @@ export const NIP_GC_KINDS = {
   FOUND_LOG: 7516,
   COMMENT_LOG: 1111,
   VERIFICATION: 7517,
+  BOOKMARK_LIST: 30001,
 } as const;
 
 export const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;
@@ -134,8 +135,8 @@ export function validateCoordinates(lat: number, lng: number): boolean {
 
 export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
   try {
-    // Only process geocache events - support both NIP-GC standard (37515) and legacy kind (30001)
-    if (event.kind !== NIP_GC_KINDS.GEOCACHE && event.kind !== 30001) {
+    // Only process geocache events - support NIP-GC standard (37515)
+    if (event.kind !== NIP_GC_KINDS.GEOCACHE) {
       return null;
     }
 

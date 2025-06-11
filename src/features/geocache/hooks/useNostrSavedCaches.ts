@@ -5,6 +5,7 @@ import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Geocache } from '@/types/geocache';
 import { 
+  NIP_GC_KINDS,
   parseGeocacheEvent 
 } from '@/features/geocache/utils/nip-gc';
 import { TIMEOUTS } from '@/shared/config';
@@ -64,7 +65,7 @@ export function useNostrSavedCaches() {
       const relevantEvents = events.filter(event => {
         if (event.kind === CACHE_BOOKMARK_KIND) {
           // Include bookmark events for caches
-          return event.tags.some(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
+          return event.tags.some(tag => tag[0] === 'a' && tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE}:`));
         } else if (event.kind === 5) {
           // Include deletion events that reference bookmark events
           return event.tags.some(tag => tag[0] === 'e');
@@ -105,7 +106,7 @@ export function useNostrSavedCaches() {
     // Extract coordinates from active bookmark events with 'save' action
     const savedCoords: string[] = [];
     activeBookmarks.forEach((event) => {
-      const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
+      const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE}:`));
       const actionTag = event.tags.find(tag => tag[0] === 'action');
       
       if (aTag && actionTag && actionTag[1] === 'save') {
@@ -177,7 +178,7 @@ export function useNostrSavedCaches() {
     if (!user) return false;
     
     if (dTag && pubkey) {
-      const coord = `37515:${pubkey}:${dTag}`;
+      const coord = `${NIP_GC_KINDS.GEOCACHE}:${pubkey}:${dTag}`;
       return savedCacheCoords.includes(coord);
     }
     
@@ -189,7 +190,7 @@ export function useNostrSavedCaches() {
   const saveCache = useCallback(async (geocache: Geocache) => {
     if (!user) throw new Error('User must be logged in to save caches');
 
-    const coord = `37515:${geocache.pubkey}:${geocache.dTag}`;
+    const coord = `${NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
     
     // Check if already saved
     if (savedCacheCoords.includes(coord)) {
@@ -220,7 +221,7 @@ export function useNostrSavedCaches() {
   const unsaveCache = useCallback(async (geocache: Geocache) => {
     if (!user) throw new Error('User must be logged in to unsave caches');
 
-    const coord = `37515:${geocache.pubkey}:${geocache.dTag}`;
+    const coord = `${NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
     
     // Find the bookmark event to delete
     const bookmarkEvent = bookmarkEvents?.find(event => {
@@ -294,7 +295,7 @@ export function useNostrSavedCaches() {
     // Find all bookmark events with 'save' action
     const saveBookmarkEvents = bookmarkEvents?.filter(event => {
       const actionTag = event.tags.find(tag => tag[0] === 'action' && tag[1] === 'save');
-      const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith('37515:'));
+      const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE}:`));
       return actionTag && aTag;
     }) || [];
 

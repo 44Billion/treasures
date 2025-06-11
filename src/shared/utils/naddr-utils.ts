@@ -1,3 +1,4 @@
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 import { nip19 } from 'nostr-tools';
 
 /**
@@ -6,7 +7,7 @@ import { nip19 } from 'nostr-tools';
 export function geocacheToNaddr(pubkey: string, dTag: string, relays: string[] = []): string {
   return nip19.naddrEncode({
     pubkey,
-    kind: 30001, // Geocache kind
+    kind: NIP_GC_KINDS.GEOCACHE, // Geocache kind
     identifier: dTag,
     relays,
   });
