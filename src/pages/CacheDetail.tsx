@@ -66,7 +66,7 @@ export default function CacheDetail() {
   }
   
   const { data: geocache, isLoading, error, isError, refetch } = useGeocacheByNaddr(naddr);
-  const typedGeocache = geocache as Geocache | null | undefined;
+  const typedGeocache = geocache as unknown as Geocache | null | undefined;
   const { data: logs = [], refetch: refetchLogs } = useGeocacheLogs(
     typedGeocache ? `${typedGeocache.pubkey}:${typedGeocache.dTag}` : '', 
     typedGeocache?.dTag, 

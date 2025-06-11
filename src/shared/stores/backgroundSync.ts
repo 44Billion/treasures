@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useRef, useEffect } from 'react';
-import { useDebounce, useThrottle } from './performanceMonitor';
+import { useThrottle } from './performanceMonitor';
 
 export interface SyncTask {
   id: string;

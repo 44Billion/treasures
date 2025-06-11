@@ -5,7 +5,6 @@ import { CompassSpinner } from "@/components/ui/loading";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -25,7 +24,6 @@ import { useToast } from "@/features/geocache/hooks/useToast";
 import { verifyLocation, getVerificationSummary, type LocationVerification } from "@/features/geocache/utils/osmVerification";
 import { LocationWarnings } from "@/components/LocationWarnings";
 import { 
-  GeocacheForm, 
   createDefaultGeocacheFormData, 
   type GeocacheFormData,
   CacheNameField,

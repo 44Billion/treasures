@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-import { useOfflineStorage, useOfflineSettings, useOfflineMode } from '../hooks/useOfflineStorage';
+import { useOfflineSettings, useOfflineMode } from '../hooks/useOfflineStorage';
 import { offlineStorage } from '../utils/offlineStorage';
 
 // Test wrapper with QueryClient

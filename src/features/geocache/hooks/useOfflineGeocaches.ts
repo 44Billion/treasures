@@ -7,7 +7,6 @@ import { useQuery } from '@tanstack/react-query';
 import type { Geocache } from '@/types/geocache';
 import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
-import { filterDeletedEvents } from '@/shared/utils/deletionFilter';
 import { offlineStorage, type CachedGeocache } from '@/features/offline/utils/offlineStorage';
 import { NIP_GC_KINDS, parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
 import { TIMEOUTS, QUERY_LIMITS } from '@/shared/config';

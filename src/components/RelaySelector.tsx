@@ -1,4 +1,4 @@
-import { Wifi, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {

@@ -97,7 +97,7 @@ export function useGeocacheByNaddr(naddr: string) {
         throw new Error('INVALID_CACHE_LINK');
       }
       
-      const { pubkey, dTag, relays } = parsed;
+      const { pubkey, dTag } = parsed;
 
       // Check if we have fresh data in cache first (avoid unnecessary network requests)
       const existingData = queryClient.getQueryData(['geocache-by-naddr', naddr]) as Geocache | undefined;
@@ -142,7 +142,7 @@ export function useGeocacheByNaddr(naddr: string) {
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
         const events = await nostr.query([filter], { signal });
 
-        if (events.length === 0) {
+        if (events.length === 0 || !events[0]) {
           // If no online data but we have offline data, return that
           if (offlineGeocache) {
             console.log('No online data found, using offline geocache');
@@ -184,8 +184,6 @@ export function useGeocacheByNaddr(naddr: string) {
         } catch (error) {
           console.warn('Failed to cache geocache offline:', error);
         }
-
-        // Quick log count fetch
         
         // Get logs for this specific geocache (both found and comment logs)
         const geocacheCoordinate = createGeocacheCoordinate(geocache.pubkey, geocache.dTag);

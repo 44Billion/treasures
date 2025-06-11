@@ -27,7 +27,7 @@ export interface OptimizationStrategy {
  * Query pattern analyzer and optimizer
  */
 export class QueryPatternAnalyzer {
-  private patterns = new Map<string, QueryPattern>();
+  public patterns = new Map<string, QueryPattern>();
   private maxPatterns = 500;
 
   recordQuery(
@@ -153,14 +153,12 @@ export function useOptimizedQuery<T>(
   const enhancedQueryFn = useCallback(async () => {
     const startTime = performance.now();
     let success = false;
-    let result: T;
+    let result: T | null = null;
     
     try {
       result = await queryFn();
       success = true;
       return result;
-    } catch (error) {
-      throw error;
     } finally {
       const duration = performance.now() - startTime;
       const dataSize = result ? JSON.stringify(result).length : 0;
@@ -247,7 +245,6 @@ export function useBatchQueryOptimizer() {
  * Hook for intelligent prefetching based on user behavior
  */
 export function useIntelligentPrefetch() {
-  const queryClient = useQueryClient();
   const userActionsRef = useRef<string[]>([]);
   const maxActions = 50;
 
@@ -304,7 +301,7 @@ function findActionPatterns(actions: string[]): Array<{
   
   for (let i = 0; i < actions.length - 2; i++) {
     const pattern = actions.slice(i, i + 2);
-    const nextAction = actions[i + 2];
+    const nextAction = actions[i + 2] || '';
     
     // Calculate confidence based on how often this pattern occurs
     let occurrences = 0;

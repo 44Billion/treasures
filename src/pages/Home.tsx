@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, QrCode, RefreshCw, Scroll, Crown, Shield, Users, Globe } from "lucide-react";
+import { MapPin, Plus, Search, Compass, QrCode, Scroll, Crown, Shield, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";

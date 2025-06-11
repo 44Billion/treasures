@@ -16,7 +16,6 @@ import {
 } from '@/features/geocache/utils/nip-gc';
 import { generateVerificationKeyPair } from '@/features/geocache/utils/verification';
 
-import type { VerificationKeyPair } from '@/features/geocache/utils/verification';
 
 export function useCreateGeocache() {
   const queryClient = useQueryClient();

@@ -363,7 +363,7 @@ export function useOfflineStorage() {
 
   const getAllLogs = useCallback(async () => {
     // Get all events that are logs (kind 1063 or similar)
-    const events = await offlineStorage.getEventsByKind(1063);
+    const events = await offlineStorage.getEventsByKind(1111);
     return events;
   }, []);
 

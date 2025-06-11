@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SignupDialog from '../components/SignupDialog';
-import { LoginArea } from '../components/LoginArea';
 
 // Mock the hooks and dependencies
 const mockNsecLogin = vi.fn();

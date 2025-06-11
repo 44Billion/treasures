@@ -5,7 +5,6 @@ import { MapPin, X, Locate, RefreshCw, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/features/geocache/hooks/useReliableProximitySearch";
@@ -23,7 +22,6 @@ import type { Geocache } from "@/types/geocache";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { QUERY_LIMITS } from "@/shared/config";
 import { useNavigate } from "react-router-dom";
 
 

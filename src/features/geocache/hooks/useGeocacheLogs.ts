@@ -5,7 +5,6 @@ import type { GeocacheLog } from '@/types/geocache';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/features/geocache/utils/nip-gc';
 import { verifyEmbeddedVerification, getEmbeddedVerification } from '@/features/geocache/utils/verification';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
-import { filterDeletedEvents } from '@/shared/utils/deletionFilter';
 import { cacheManager } from '@/features/geocache/utils/cacheManager';
 
 export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[], verificationPubkey?: string) {

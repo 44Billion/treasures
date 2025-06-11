@@ -29,7 +29,7 @@ export function useAuthor(pubkey: string | undefined) {
         const event = events[0];
 
         try {
-          const metadata = n.json().pipe(n.metadata()).parse(event.content);
+          const metadata = n.json().pipe(n.metadata()).parse(event?.content);
           return { metadata, event, hasProfile: true };
         } catch (parseError) {
           console.warn('Failed to parse metadata for pubkey', pubkey, parseError);

@@ -6,7 +6,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { 
   useBaseStore, 
-  createQueryKey, 
   batchOperations 
 } from './baseStore';
 import type { 
@@ -18,7 +17,7 @@ import type {
   StoreActionResult 
 } from './types';
 import type { Geocache } from '@/types/geocache';
-import type { GeocacheLog } from '@/types/geocache-log';
+import type { GeocacheLog } from '@/types/geocache';
 import { useConnectivity } from '@/features/offline/hooks/useConnectivity';
 import { useOfflineStorage } from '@/features/offline/hooks/useOfflineStorage';
 import { STORAGE_CONFIG } from '@/shared/config/storage';
@@ -362,9 +361,9 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore]);
+  }, [baseStore, updateState]);
 
-  const triggerSync = useCallback(async (): Promise<StoreActionResult<void>> => {
+  const triggerSync = useCallback(async (): Promise<StoreActionResult<void | unknown>> => {
     try {
       await backgroundSyncFn();
       return baseStore.createSuccessResult(undefined);

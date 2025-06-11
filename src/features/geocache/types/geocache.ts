@@ -61,6 +61,8 @@ export interface GeocacheLog {
   client?: string; // The client that created this event
   relays?: string[]; // Relay tags from the event
   isVerified?: boolean; // Whether this log has a valid embedded verification event
+  geocachePubkey?: string; // pubkey reference to the original Geocache listing
+  verificationEvent?: string;  // geocache verified found log data, embedded
 }
 
 export interface CreateGeocacheData {

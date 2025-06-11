@@ -109,7 +109,7 @@ export function useNostrSavedCaches() {
       const aTag = event.tags.find(tag => tag[0] === 'a' && tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE}:`));
       const actionTag = event.tags.find(tag => tag[0] === 'action');
       
-      if (aTag && actionTag && actionTag[1] === 'save') {
+      if (aTag && actionTag && aTag[1] && actionTag[1] === 'save') {
         savedCoords.push(aTag[1]);
       }
     });
@@ -129,7 +129,7 @@ export function useNostrSavedCaches() {
       const filters = savedCacheCoords.map(coord => {
         const [kind, pubkey, dTag] = coord.split(':');
         return {
-          kinds: [parseInt(kind)],
+          kinds: [parseInt(kind || '')],
           authors: [pubkey],
           '#d': [dTag],
           limit: 1

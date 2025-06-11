@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CacheMenu } from '@/components/CacheMenu';
 import type { Geocache } from '@/types/geocache';
 
 // Mock useNavigate

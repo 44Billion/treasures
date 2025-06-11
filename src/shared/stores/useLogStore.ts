@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { 
   useBaseStore, 
   createQueryKey, 
@@ -18,7 +18,7 @@ import type {
   StoreConfig, 
   StoreActionResult 
 } from './types';
-import type { GeocacheLog } from '@/types/geocache-log';
+import type { GeocacheLog } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
   parseLogEvent,
@@ -98,7 +98,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       const logs = allEvents
         .map(parseLogEvent)
         .filter((log): log is GeocacheLog => log !== null)
-        .sort((a, b) => b.createdAt - a.createdAt);
+        .sort((a, b) => b.created_at - a.created_at);
 
       // Update cache
       updateState({
@@ -144,7 +144,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       const recentLogs = allEvents
         .map(parseLogEvent)
         .filter((log): log is GeocacheLog => log !== null)
-        .sort((a, b) => b.createdAt - a.createdAt)
+        .sort((a, b) => b.created_at - a.created_at)
         .slice(0, limit);
 
       updateState({ recentLogs });
@@ -185,7 +185,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       const userLogs = allEvents
         .map(parseLogEvent)
         .filter((log): log is GeocacheLog => log !== null)
-        .sort((a, b) => b.createdAt - a.createdAt);
+        .sort((a, b) => b.created_at - a.created_at);
 
       if (pubkey === user?.pubkey) {
         updateState({ userLogs });
@@ -209,7 +209,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       if (!logData.text?.trim()) {
         throw new Error('Log text is required');
       }
-      if (!logData.geocachePubkey || !logData.geocacheDTag) {
+      if (!logData.geocachePubkey || !logData.geocacheId) {
         throw new Error('Geocache pubkey and dTag are required');
       }
       
@@ -222,20 +222,20 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
         eventKind = NIP_GC_KINDS.FOUND_LOG;
         tags = buildFoundLogTags({
           geocachePubkey: logData.geocachePubkey,
-          geocacheDTag: logData.geocacheDTag,
+          geocacheDTag: logData.geocacheId,
           images: logData.images,
           verificationEvent: logData.verificationEvent,
         });
       } else {
         // All other log types use kind 1111 (comment logs)
-        if (logData.type !== 'note' && !validateCommentLogType(logData.type)) {
+        if (logData.type !== 'note' && !validateCommentLogType(logData.type || '')) {
           throw new Error(`Invalid comment log type: ${logData.type}`);
         }
         
         eventKind = NIP_GC_KINDS.COMMENT_LOG;
         tags = buildCommentLogTags({
           geocachePubkey: logData.geocachePubkey,
-          geocacheDTag: logData.geocacheDTag,
+          geocacheDTag: logData.geocacheId,
           logType: logData.type as ValidCommentLogType | 'note',
           images: logData.images,
         });
@@ -423,7 +423,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
   }, [baseStore, state.logsByGeocache]);
 
   const invalidateAll = useCallback(() => {
-    baseStore.invalidateQueries(createQueryKey('log'));
+    baseStore.invalidateQueries(createQueryKey('log', 'list'));
     updateState({
       logsByGeocache: {},
       recentLogs: [],

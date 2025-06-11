@@ -10,11 +10,6 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModalProps) {
-  // Debug logging in development
-  if (process.env.NODE_ENV === 'development') {
-
-  }
-  
   return (
     <BaseDialog 
       isOpen={isOpen} 

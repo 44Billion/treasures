@@ -5,12 +5,11 @@ import { Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
 import { MapStyleSelector, MAP_STYLES } from "@/components/MapStyleSelector";
 import { useGeolocation } from "@/features/map/hooks/useGeolocation";
 import { useTheme } from "next-themes";
-import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels, parseCoordinate, formatCoordinateForInput } from "@/features/map/utils/coordinates";
+import { autocorrectCoordinates, parseCoordinate, formatCoordinateForInput } from "@/features/map/utils/coordinates";
 import { mapIcons } from "@/features/map/utils/mapIcons";
 
 import "leaflet/dist/leaflet.css";

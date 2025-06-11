@@ -3,7 +3,7 @@
  * Provides all stores through React context
  */
 
-import React, { createContext, useContext, useMemo, useRef } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { 
   UnifiedStores, 
   StoreProviderProps, 

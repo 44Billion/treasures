@@ -79,7 +79,7 @@ export function decodeGeohash(geohash: string): { lat: number; lng: number } {
   let lngMin = -180, lngMax = 180;
 
   for (let i = 0; i < geohash.length; i++) {
-    const c = geohash[i];
+    const c = geohash[i] || '';
     const idx = GEOHASH_BASE32.indexOf(c);
     if (idx === -1) throw new Error('Invalid geohash character');
 
@@ -149,7 +149,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const name = event.tags.find(t => t[0] === 'name')?.[1];
     // Get the most precise geohash (longest one) for location parsing
     const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]);
-    const geohash = geohashes.length > 0 ? geohashes.reduce((longest, current) => 
+    const geohash = geohashes.length > 0 ? geohashes.reduce((longest = '', current = '') => 
       current.length > longest.length ? current : longest
     ) : undefined;
     const difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
@@ -189,8 +189,8 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
 
     // Parse optional tags
     const hint = event.tags.find(t => t[0] === 'hint')?.[1];
-    const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
-    const relays = event.tags.filter(t => t[0] === 'r').map(t => t[1]);
+    const images = event.tags.filter(t => t[0] === 'image').map(t => t[1] || '');
+    const relays = event.tags.filter(t => t[0] === 'r').map(t => t[1] || '');
     const client = event.tags.find(t => t[0] === 'client')?.[1];
     const verificationPubkey = event.tags.find(t => t[0] === 'verification')?.[1];
     
@@ -265,7 +265,7 @@ function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
   const geocacheId = `${pubkey}:${dTag}`;
 
   // Parse optional tags
-  const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+  const images = event.tags.filter(t => t[0] === 'image').map(t => t[1] || '');
   const verificationTag = event.tags.find(t => t[0] === 'verification')?.[1];
   
   // Check if this log has embedded verification data (but don't mark as verified yet)
@@ -329,7 +329,7 @@ function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
   }
 
   // Parse optional tags
-  const images = event.tags.filter(t => t[0] === 'image').map(t => t[1]);
+  const images = event.tags.filter(t => t[0] === 'image').map(t => t[1] || '');
 
   return {
     id: event.id,

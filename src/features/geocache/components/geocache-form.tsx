@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, X, Compass, HelpCircle, Dot, Square, Package, Archive, Accessibility, User, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, StepBack } from 'lucide-react';
+import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu } from 'lucide-react';
 import { sneaker, treesForest } from '@lucide/lab';
 
 // Create React components from Lucide Lab icons
@@ -50,7 +50,6 @@ import { getCacheIcon } from '@/features/geocache/utils/cacheIcons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BlurredImage } from '@/components/BlurredImage';
@@ -58,7 +57,7 @@ import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rati
 import { useUploadFile } from '@/shared/hooks/useUploadFile';
 import { useToast } from '@/shared/hooks/useToast';
 import { cn } from '@/shared/utils/utils';
-import { DIFFICULTY_TERRAIN_OPTIONS, CACHE_SIZE_OPTIONS, CACHE_TYPE_OPTIONS, getDefaultCacheValues } from '@/features/geocache/utils/geocache-constants';
+import { getDefaultCacheValues } from '@/features/geocache/utils/geocache-constants';
 
 // === GEOCACHE FORM TYPES ===
 
@@ -189,27 +188,7 @@ interface CacheSelectFieldProps {
   options: Array<{ value: string; label: string }>;
 }
 
-function CacheSelectField({ value, onChange, label, fieldId, options }: CacheSelectFieldProps) {
-  return (
-    <div>
-      <Label htmlFor={fieldId}>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id={fieldId}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
-export function CacheTypeField({ value, onChange, fieldId = "type" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
   const typeOptions = [
     { 
       value: "traditional", 
@@ -271,7 +250,7 @@ export function CacheTypeField({ value, onChange, fieldId = "type" }: Omit<Cache
   );
 }
 
-export function CacheSizeField({ value, onChange, fieldId = "size" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+export function CacheSizeField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
   const sizeOptions = [
     { 
       value: "micro", 
@@ -355,7 +334,7 @@ export function CacheSizeField({ value, onChange, fieldId = "size" }: Omit<Cache
   );
 }
 
-export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
   const numericValue = parseInt(value) || 1;
   
   const difficultyLevels = [
@@ -513,7 +492,7 @@ export function CacheDifficultyField({ value, onChange, fieldId = "difficulty" }
   );
 }
 
-export function CacheTerrainField({ value, onChange, fieldId = "terrain" }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
   const numericValue = parseInt(value) || 1;
   
   const terrainLevels = [

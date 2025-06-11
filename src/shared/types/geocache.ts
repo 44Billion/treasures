@@ -2,7 +2,6 @@
  * Geocache-specific type definitions
  */
 
-import type { NostrEvent } from '@nostrify/nostrify';
 import type { Coordinates, EntityId, Timestamp } from './common';
 
 /** Geocache difficulty levels (1-5) */
