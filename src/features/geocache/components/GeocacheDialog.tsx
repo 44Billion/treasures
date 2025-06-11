@@ -14,7 +14,7 @@ import { useAuthor } from "@/features/auth/hooks/useAuthor";
 import { LogsSection } from "@/features/logging/components/LogsSection";
 import { formatDistanceToNow } from "@/shared/utils/date";
 import { useNavigate } from "react-router-dom";
-import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
+import { geocacheToNaddr } from "@/shared/utils/naddr";
 import { getTypeLabel, getSizeLabel } from "../utils/geocache-utils";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import type { Geocache, GeocacheLog } from "@/shared/types";

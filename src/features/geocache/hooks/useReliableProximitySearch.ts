@@ -17,7 +17,7 @@ import {
   parseGeocacheEvent,
   encodeGeohash
 } from '@/features/geocache/utils/nip-gc';
-import { calculateDistance as calculateGeoDistance } from '@/shared/utils/naddrgeo';
+import { calculateDistance as calculateGeoDistance } from '@/features/map/utils/geo';
 
 interface UseReliableProximitySearchOptions {
   limit?: number;
