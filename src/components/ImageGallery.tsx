@@ -79,8 +79,18 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={onClose}>
       <ImageGalleryDialogContent 
-        className="max-w-[100vw] max-h-[100vh] w-[100vw] h-[100vh] p-0 bg-black/95 border-0"
+        className="max-w-[100vw] max-h-[100vh] w-[100vw] h-[100vh] p-0 bg-black/95 border-0 md:max-w-[100vw] md:max-h-[100vh]"
         onKeyDown={handleKeyDown}
+        style={{
+          // Ensure the gallery covers the full viewport including safe areas on mobile
+          top: '0',
+          left: '0',
+          transform: 'none',
+          width: '100vw',
+          height: '100vh',
+          maxWidth: '100vw',
+          maxHeight: '100vh',
+        }}
       >
         <VisuallyHidden.Root>
           <DialogPrimitive.Title>
@@ -93,13 +103,23 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
             variant="ghost"
             size="icon"
             className="absolute top-2 md:top-4 right-2 md:right-4 z-50 text-white hover:bg-white/20 bg-black/30"
+            style={{
+              // Account for mobile safe area and navigation
+              top: 'max(0.5rem, env(safe-area-inset-top, 0px))',
+            }}
             onClick={onClose}
           >
             <X className="h-5 w-5 md:h-6 md:w-6" />
           </Button>
 
           {/* Action buttons */}
-          <div className="absolute top-2 md:top-4 left-2 md:left-4 z-50 flex gap-2">
+          <div 
+            className="absolute top-2 md:top-4 left-2 md:left-4 z-50 flex gap-2"
+            style={{
+              // Account for mobile safe area and navigation
+              top: 'max(0.5rem, env(safe-area-inset-top, 0px))',
+            }}
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -143,18 +163,31 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
           )}
 
           {/* Main image */}
-          <div className="w-full h-full flex items-center justify-center p-4 md:p-8">
+          <div 
+            className="w-full h-full flex items-center justify-center p-4 md:p-8"
+            style={{
+              // Account for mobile safe areas and navigation buttons
+              paddingTop: 'max(4rem, calc(env(safe-area-inset-top, 0px) + 3rem))',
+              paddingBottom: 'max(6rem, calc(env(safe-area-inset-bottom, 0px) + 6rem))',
+            }}
+          >
             <img
               src={images[currentIndex]}
               alt={`Cache image ${currentIndex + 1}`}
-              className="max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] md:max-w-[calc(100vw-4rem)] md:max-h-[calc(100vh-8rem)] object-contain"
+              className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
 
           {/* Image counter and thumbnail navigation */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+            <div 
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2"
+              style={{
+                // Account for mobile safe area
+                bottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))',
+              }}
+            >
               {/* Image counter */}
               <div className="bg-black/50 text-white px-3 py-1 rounded-full text-sm">
                 {currentIndex + 1} of {images.length}

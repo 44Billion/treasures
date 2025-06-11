@@ -192,11 +192,55 @@
   .icon-responsive {
     @apply h-4 w-4 xs:h-5 xs:w-5;
   }
+
+  /* Safe area utilities for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  /* Combined safe area utilities */
+  .safe-area-x {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  .safe-area-y {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-area-all {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
 }
 
-/* Prevent scroll locking issues with dropdown menus on mobile */
+/* Mobile layout and safe area fixes */
 @layer base {
-  /* Ensure body scroll is not locked when dropdown is open */
+  /* Ensure proper safe area handling on mobile devices */
+  @supports (padding: env(safe-area-inset-top)) {
+    body {
+      /* Ensure the body respects safe areas */
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+  }
+
+  /* Prevent scroll locking issues with dropdown menus on mobile */
   body[data-scroll-locked] {
     overflow: auto !important;
     padding-right: 0 !important;

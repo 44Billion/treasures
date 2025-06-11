@@ -40,6 +40,10 @@ export default {
 				'nav-safe-inset': 'calc(4rem + env(safe-area-inset-bottom, 0px))',
 				'header-safe': 'calc(4rem + env(safe-area-inset-top, 0px))',
 				'mobile-header': 'calc(4rem + env(safe-area-inset-top, 0px))',
+				'safe-top': 'env(safe-area-inset-top, 0px)',
+				'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+				'safe-left': 'env(safe-area-inset-left, 0px)',
+				'safe-right': 'env(safe-area-inset-right, 0px)',
 			},
 			height: {
 				'mobile-map': 'calc(100dvh - 8rem)',
@@ -181,6 +185,35 @@ export default {
 		// Add adventure theme selector support
 		function({ addVariant }: any) {
 			addVariant('adventure', '.adventure &')
+		},
+		// Add safe area utilities
+		function({ addUtilities }: any) {
+			addUtilities({
+				'.pt-safe-top': {
+					'padding-top': 'env(safe-area-inset-top, 0px)'
+				},
+				'.pb-safe-bottom': {
+					'padding-bottom': 'env(safe-area-inset-bottom, 0px)'
+				},
+				'.pl-safe-left': {
+					'padding-left': 'env(safe-area-inset-left, 0px)'
+				},
+				'.pr-safe-right': {
+					'padding-right': 'env(safe-area-inset-right, 0px)'
+				},
+				'.mt-safe-top': {
+					'margin-top': 'env(safe-area-inset-top, 0px)'
+				},
+				'.mb-safe-bottom': {
+					'margin-bottom': 'env(safe-area-inset-bottom, 0px)'
+				},
+				'.ml-safe-left': {
+					'margin-left': 'env(safe-area-inset-left, 0px)'
+				},
+				'.mr-safe-right': {
+					'margin-right': 'env(safe-area-inset-right, 0px)'
+				}
+			})
 		}
 	],
 } satisfies Config;
