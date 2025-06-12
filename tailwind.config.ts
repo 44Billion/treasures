@@ -100,9 +100,7 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				'adventure-nav': 'rgb(var(--adventure-nav-bg))',
-				'adventure-nav-border': 'rgb(var(--adventure-nav-border))'
+				}
 			},
 			fontFamily: {
 				'pirata': ['Pirata One', 'cursive'],

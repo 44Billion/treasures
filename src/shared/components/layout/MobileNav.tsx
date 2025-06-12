@@ -13,39 +13,24 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
 import { cn } from '@/shared/utils/utils';
 
-// Navigation items with theme-aware labels
-function getNavigationItems(isAdventureTheme: boolean) {
-  return [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Map', href: '/map', icon: Map },
-    { 
-      name: isAdventureTheme ? 'Claim' : 'Claim', 
-      href: '/claim', 
-      icon: QrCode 
-    },
-    { 
-      name: isAdventureTheme ? 'Hide' : 'New', 
-      href: '/create', 
-      icon: Plus 
-    },
-  ];
-}
+const navigation = [
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Map', href: '/map', icon: Map },
+  { name: 'Claim', href: '/claim', icon: QrCode },
+  { name: 'New', href: '/create', icon: Plus },
+];
 
 // Helper function for consistent theme-aware styling
 function getThemeClasses(isAdventureTheme: boolean) {
   return {
     header: isAdventureTheme 
-      ? 'bg-adventure-nav border-adventure-nav-border' 
-      : 'bg-background border-border',
+      ? 'bg-adventure-nav border-adventure-nav' 
+      : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
     text: isAdventureTheme ? 'text-stone-200' : 'text-foreground',
     textMuted: isAdventureTheme ? 'text-stone-400' : 'text-muted-foreground',
-    textActive: isAdventureTheme ? 'text-stone-100' : 'text-green-600',
-    button: isAdventureTheme ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100' : 'text-foreground hover:bg-accent hover:text-accent-foreground',
+    textActive: isAdventureTheme ? 'text-stone-200' : 'text-green-600',
+    button: isAdventureTheme ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100' : '',
     icon: isAdventureTheme ? 'sepia' : '',
-    // Navigation specific colors - fixed for better contrast
-    navText: isAdventureTheme ? 'text-stone-200' : 'text-foreground',
-    navTextMuted: isAdventureTheme ? 'text-stone-300' : 'text-muted-foreground',
-    navTextActive: isAdventureTheme ? 'text-amber-200' : 'text-primary',
   };
 }
 
@@ -55,15 +40,13 @@ function NavLink({
   icon: Icon, 
   children, 
   isActive, 
-  onClick,
-  themeClasses 
+  onClick 
 }: { 
   to: string; 
   icon: React.ComponentType<{ className?: string }>; 
   children: React.ReactNode; 
   isActive: boolean; 
   onClick: () => void; 
-  themeClasses: ReturnType<typeof getThemeClasses>;
 }) {
   return (
     <Link
@@ -72,8 +55,8 @@ function NavLink({
       className={cn(
         "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground min-h-[40px]",
         isActive 
-          ? cn("bg-accent", themeClasses.navTextActive)
-          : themeClasses.navTextMuted
+          ? "bg-accent text-accent-foreground" 
+          : "text-muted-foreground"
       )}
     >
       <Icon className="h-4 w-4 shrink-0" />
@@ -90,13 +73,12 @@ export function MobileHeader() {
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
   const themeClasses = getThemeClasses(isAdventureTheme);
-  const navigation = getNavigationItems(isAdventureTheme);
 
   const closeSheet = () => setIsOpen(false);
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full border-b md:hidden pt-safe-top mobile-nav-header",
+      "sticky top-0 z-40 w-full border-b md:hidden pt-safe-top",
       themeClasses.header
     )}>
       <div className="container flex h-16 items-center justify-between px-3 xs:px-4">
@@ -137,7 +119,6 @@ export function MobileHeader() {
                       icon={item.icon}
                       isActive={location.pathname === item.href}
                       onClick={closeSheet}
-                      themeClasses={themeClasses}
                     >
                       {item.name}
                     </NavLink>
@@ -148,7 +129,6 @@ export function MobileHeader() {
                     icon={Bookmark}
                     isActive={location.pathname === '/saved'}
                     onClick={closeSheet}
-                    themeClasses={themeClasses}
                   >
                     Saved Caches
                   </NavLink>
@@ -158,7 +138,6 @@ export function MobileHeader() {
                     icon={Info}
                     isActive={location.pathname === '/about'}
                     onClick={closeSheet}
-                    themeClasses={themeClasses}
                   >
                     About
                   </NavLink>
@@ -170,7 +149,6 @@ export function MobileHeader() {
                         icon={User}
                         isActive={location.pathname === '/profile'}
                         onClick={closeSheet}
-                        themeClasses={themeClasses}
                       >
                         My Profile
                       </NavLink>
@@ -179,7 +157,6 @@ export function MobileHeader() {
                         icon={Settings}
                         isActive={location.pathname === '/settings'}
                         onClick={closeSheet}
-                        themeClasses={themeClasses}
                       >
                         App Settings
                       </NavLink>
@@ -282,19 +259,16 @@ function BottomNavItem({
       className={cn(
         "flex flex-col items-center justify-center gap-0.5 xs:gap-1 px-1 xs:px-2 py-1 text-[10px] xs:text-xs transition-colors min-h-[44px]",
         isActive 
-          ? themeClasses.navTextActive 
-          : cn(themeClasses.navTextMuted, "hover:text-foreground")
+          ? themeClasses.textActive 
+          : cn(themeClasses.textMuted, "hover:text-foreground")
       )}
     >
       <div className="flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6">
-        <Icon className={cn(
-          "h-4 w-4 xs:h-5 xs:w-5", 
-          isActive ? themeClasses.navTextActive : themeClasses.navTextMuted
-        )} />
+        <Icon className={cn("h-4 w-4 xs:h-5 xs:w-5", isActive && themeClasses.textActive)} />
       </div>
       <span className={cn(
         "text-center leading-tight max-w-[60px] xs:max-w-none truncate",
-        isActive ? cn(themeClasses.navTextActive, "font-medium") : themeClasses.navTextMuted
+        isActive && cn(themeClasses.textActive, "font-medium")
       )}>
         {children}
       </span>
@@ -307,11 +281,10 @@ export function MobileBottomNav() {
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
   const themeClasses = getThemeClasses(isAdventureTheme);
-  const navigation = getNavigationItems(isAdventureTheme);
 
   return (
     <nav className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 border-t md:hidden pb-safe-bottom mobile-nav-bottom",
+      "fixed bottom-0 left-0 right-0 z-40 border-t md:hidden pb-safe-bottom",
       themeClasses.header
     )}>
       <div className="grid grid-cols-4 h-16 items-center">
