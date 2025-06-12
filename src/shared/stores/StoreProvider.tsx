@@ -19,6 +19,11 @@ import { useAuthorStore } from './useAuthorStore';
 import { useOfflineStore } from './useOfflineStore';
 import { DEFAULT_STORE_CONFIG } from './baseStore';
 
+// Ensure React is available before creating contexts
+if (typeof createContext !== 'function') {
+  throw new Error('React is not properly loaded. Please ensure React is available before importing this module.');
+}
+
 // Create contexts for each store
 const GeocacheStoreContext = createContext<GeocacheStore | null>(null);
 const LogStoreContext = createContext<LogStore | null>(null);

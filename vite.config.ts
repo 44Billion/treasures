@@ -16,31 +16,38 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunks - separate large dependencies
+          // Critical: Keep React and all React-dependent libraries together
+          // This prevents timing issues with React context creation
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
+            // PRIORITY 1: React core and anything that creates contexts
+            // These MUST be in the main vendor chunk to prevent timing issues
+            const reactCoreLibraries = [
+              'react', 'react-dom', 'react-router', 'react-hook-form', 
+              'react-day-picker', 'react-leaflet', 'react-zoom-pan-pinch',
+              '@radix-ui', '@tanstack', '@hookform', '@nostrify/react', 
+              'next-themes', 'class-variance-authority', 'clsx', 'tailwind-merge'
+            ];
+            
+            if (reactCoreLibraries.some(lib => id.includes(lib))) {
+              return 'vendor';
             }
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query';
-            }
-            if (id.includes('@nostrify') || id.includes('nostr-tools')) {
+            
+            // PRIORITY 2: Separate large non-React dependencies that don't create contexts
+            if (id.includes('@nostrify/nostrify') || id.includes('nostr-tools')) {
               return 'vendor-nostr';
             }
-            if (id.includes('leaflet')) {
+            if (id.includes('leaflet') && !id.includes('react-leaflet')) {
               return 'vendor-map';
             }
-            if (id.includes('date-fns') || id.includes('qrcode') || id.includes('clsx') || id.includes('tailwind-merge')) {
+            if (id.includes('date-fns') || id.includes('qrcode')) {
               return 'vendor-utils';
             }
-            // All other node_modules go to vendor
-            return 'vendor';
+            
+            // PRIORITY 3: All other node_modules (utilities, etc.)
+            return 'vendor-misc';
           }
           
-          // Feature-based chunks
+          // Feature-based chunks for application code only
           if (id.includes('src/features/auth')) {
             return 'feature-auth';
           }

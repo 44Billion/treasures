@@ -148,9 +148,9 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     // Parse required tags according to NIP-GC
     const name = event.tags.find(t => t[0] === 'name')?.[1];
     // Get the most precise geohash (longest one) for location parsing
-    const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]);
-    const geohash = geohashes.length > 0 ? geohashes.reduce((longest = '', current = '') => 
-      current.length > longest.length ? current : longest
+    const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]).filter(Boolean);
+    const geohash = geohashes.length > 0 ? geohashes.reduce((longest, current) => 
+      (current && current.length > longest.length) ? current : longest
     ) : undefined;
     const difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
     const terrain = event.tags.find(t => t[0] === 'terrain')?.[1];

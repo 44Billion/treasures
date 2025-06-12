@@ -1,6 +1,11 @@
 import * as React from "react"
 import { cva } from "class-variance-authority"
 
+// Ensure React is available before creating contexts
+if (typeof React.createContext !== 'function') {
+  throw new Error('React is not properly loaded. Please ensure React is available before importing sidebar utilities.');
+}
+
 export const SIDEBAR_COOKIE_NAME = "sidebar:state"
 export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 export const SIDEBAR_WIDTH = "16rem"

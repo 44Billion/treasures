@@ -5,6 +5,11 @@ import {
   useFormContext,
 } from "react-hook-form"
 
+// Ensure React is available before creating contexts
+if (typeof React.createContext !== 'function') {
+  throw new Error('React is not properly loaded. Please ensure React is available before importing form utilities.');
+}
+
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
