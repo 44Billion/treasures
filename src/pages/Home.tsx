@@ -131,7 +131,7 @@ export default function Home() {
             {/* Globe-style curved grid lines */}
             <div className="absolute inset-0 pointer-events-none opacity-60">
               {/* Horizontal latitude lines - curved to appear like globe */}
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 100 100" preserveAspectRatio="none">
                 {/* Top latitude line */}
                 <path 
                   d="M 10,25 Q 50,22 90,25" 

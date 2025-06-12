@@ -298,17 +298,6 @@ export default function CacheDetail() {
     setProfileDialogOpen(true);
   };
 
-  // Only show loading spinner for initial load when we have no data at all
-  // Don't show loading if we have cached/placeholder data, even if a background refetch is happening
-  if (isLoading && !typedGeocache && !error) {
-    return (
-      <FullPageLoading 
-        title="Loading geocache..."
-        description="Checking multiple relays for the best connection..."
-      />
-    );
-  }
-
   // Show error with retry option if there was an error and no cached data
   if (isError && !typedGeocache) {
     // Check if this is an invalid cache link error
@@ -356,7 +345,7 @@ export default function CacheDetail() {
 
   if (!isLoading && !isError && !typedGeocache) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/30 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -389,7 +378,7 @@ export default function CacheDetail() {
   const profilePicture = author.data?.metadata?.picture;
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted">
       <DesktopHeader />
 
       <div className="container mx-auto px-2 sm:px-4 py-8">

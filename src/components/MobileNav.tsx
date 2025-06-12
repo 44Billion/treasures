@@ -25,7 +25,7 @@ function getThemeClasses(isAdventureTheme: boolean) {
   return {
     header: isAdventureTheme 
       ? 'bg-adventure-nav border-adventure-nav' 
-      : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
+      : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:supports-[backdrop-filter]:bg-muted ',
     text: isAdventureTheme ? 'text-stone-200' : 'text-foreground',
     textMuted: isAdventureTheme ? 'text-stone-400' : 'text-muted-foreground',
     textActive: isAdventureTheme ? 'text-stone-200' : 'text-green-600',

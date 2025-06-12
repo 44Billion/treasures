@@ -24,9 +24,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
   
   const adventureClasses = isAdventureTheme 
     ? "bg-adventure-nav border-adventure-nav text-stone-200" 
-    : variant === 'map' 
-      ? "bg-background" 
-      : "bg-background/80 backdrop-blur-sm";
+    : "bg-primary/80 backdrop-blur-sm md:bg-primary md:backdrop-blur-none border-border";
   
   const headerClasses = `${baseClasses} ${adventureClasses}`;
 
