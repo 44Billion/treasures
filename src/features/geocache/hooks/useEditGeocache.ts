@@ -88,72 +88,210 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
 
       return event;
     },
-    onSuccess: (event) => {
+    onMutate: async (data: EditGeocacheData) => {
+      if (!originalGeocache) return;
+
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['geocache', originalGeocache.id] });
+      await queryClient.cancelQueries({ queryKey: ['geocache-by-dtag', originalGeocache.dTag] });
+      await queryClient.cancelQueries({ queryKey: ['geocaches'] });
+      await queryClient.cancelQueries({ queryKey: ['geocache-by-naddr'] });
+
+      // Snapshot the previous values
+      const previousGeocache = queryClient.getQueryData(['geocache', originalGeocache.id]);
+      const previousGeocacheByDtag = queryClient.getQueryData(['geocache-by-dtag', originalGeocache.dTag]);
+      const previousGeocaches = queryClient.getQueryData(['geocaches']);
+      
+      // Also snapshot naddr-based queries (we'll update all that match this geocache)
+      const previousNaddrQueries = new Map();
+      queryClient.getQueryCache().getAll().forEach(query => {
+        if (query.queryKey[0] === 'geocache-by-naddr') {
+          const data = query.state.data as Geocache | undefined;
+          if (data && data.id === originalGeocache.id) {
+            previousNaddrQueries.set(query.queryKey[1], data);
+          }
+        }
+      });
+
+      // Create optimistic update data
+      const optimisticUpdate: Partial<Geocache> = {
+        ...originalGeocache,
+        name: data.name.trim(),
+        description: data.description.trim(),
+        hint: data.hint,
+        difficulty: data.difficulty,
+        terrain: data.terrain,
+        size: data.size,
+        type: data.type,
+        images: data.images || [],
+        hidden: data.hidden,
+        location: data.location || originalGeocache.location,
+        // Keep the same IDs and metadata
+        id: originalGeocache.id,
+        dTag: originalGeocache.dTag,
+        pubkey: originalGeocache.pubkey,
+        created_at: originalGeocache.created_at,
+        foundCount: originalGeocache.foundCount,
+        logCount: originalGeocache.logCount,
+        relays: originalGeocache.relays,
+        verificationPubkey: originalGeocache.verificationPubkey,
+      };
+
+      // Optimistically update individual geocache queries
+      queryClient.setQueryData(['geocache', originalGeocache.id], optimisticUpdate);
+      queryClient.setQueryData(['geocache-by-dtag', originalGeocache.dTag], optimisticUpdate);
+
+      // Optimistically update geocaches list
+      queryClient.setQueryData(['geocaches'], (old: unknown) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((cache: Geocache) => 
+          cache.id === originalGeocache.id ? optimisticUpdate : cache
+        );
+      });
+
+      // Optimistically update user geocaches lists
+      queryClient.setQueryData(['user-geocaches', originalGeocache.pubkey], (old: unknown) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((cache: Geocache) => 
+          cache.id === originalGeocache.id ? optimisticUpdate : cache
+        );
+      });
+
+      // Optimistically update nearby geocaches if they exist
+      queryClient.setQueryData(['nearby-geocaches'], (old: unknown) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((cache: Geocache) => 
+          cache.id === originalGeocache.id ? optimisticUpdate : cache
+        );
+      });
+
+      // Optimistically update geocache by coordinate
+      const coordinate = `${NIP_GC_KINDS.GEOCACHE}:${originalGeocache.pubkey}:${originalGeocache.dTag}`;
+      queryClient.setQueryData(['geocache-by-coordinate', coordinate], (old: unknown) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((event: any) => {
+          // For coordinate queries, we need to update the event data
+          if (event.pubkey === originalGeocache.pubkey) {
+            // Create a new event with updated content and tags
+            return {
+              ...event,
+              content: data.description.trim(),
+              // Note: We'd need to rebuild tags here, but for simplicity we'll let the onSuccess handle this
+            };
+          }
+          return event;
+        });
+      });
+
+      // Optimistically update all naddr-based queries for this geocache
+      previousNaddrQueries.forEach((_, naddr) => {
+        queryClient.setQueryData(['geocache-by-naddr', naddr], optimisticUpdate);
+      });
+
+      // Return context for rollback
+      return { 
+        previousGeocache, 
+        previousGeocacheByDtag, 
+        previousGeocaches,
+        previousNaddrQueries,
+        geocacheId: originalGeocache.id,
+        dTag: originalGeocache.dTag,
+        pubkey: originalGeocache.pubkey
+      };
+    },
+
+    onSuccess: (event, data, context) => {
       toast({
         title: "Geocache updated!",
         description: "Your geocache has been successfully updated.",
       });
       
-      // Update the specific geocache in cache using both old and new keys
-      const eventId = originalGeocache?.id;
-      const dTag = originalGeocache?.dTag;
-      
-      if (eventId) {
-        queryClient.setQueryData(['geocache', eventId], (oldData: unknown) => {
-          if (!oldData || !originalGeocache) return oldData;
-          
-          // Use consolidated parsing utility
-          const parsed = parseGeocacheEvent(event);
-          if (!parsed) {
-            return oldData;
-          }
-          
-          return {
-            ...oldData,
-            ...parsed,
-            // Preserve original foundCount and logCount
-            foundCount: (oldData as Geocache).foundCount,
-            logCount: (oldData as Geocache).logCount,
-          };
-        });
-      }
+      // Parse the actual event data
+      const parsed = parseGeocacheEvent(event);
+      if (parsed && originalGeocache) {
+        const finalUpdate: Geocache = {
+          ...parsed,
+          // Preserve counts and other metadata
+          foundCount: originalGeocache.foundCount,
+          logCount: originalGeocache.logCount,
+        };
 
-      if (dTag) {
-        queryClient.setQueryData(['geocache-by-dtag', dTag], (oldData: unknown) => {
-          if (!oldData || !originalGeocache) return oldData;
-          
-          // Use consolidated parsing utility
-          const parsed = parseGeocacheEvent(event);
-          if (!parsed) {
-            return oldData;
+        // Update with the actual event data
+        queryClient.setQueryData(['geocache', originalGeocache.id], finalUpdate);
+        queryClient.setQueryData(['geocache-by-dtag', originalGeocache.dTag], finalUpdate);
+        
+        // Update geocaches list with actual data
+        queryClient.setQueryData(['geocaches'], (old: unknown) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((cache: Geocache) => 
+            cache.id === originalGeocache.id ? finalUpdate : cache
+          );
+        });
+
+        // Update user geocaches list with actual data
+        queryClient.setQueryData(['user-geocaches', originalGeocache.pubkey], (old: unknown) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((cache: Geocache) => 
+            cache.id === originalGeocache.id ? finalUpdate : cache
+          );
+        });
+
+        // Update nearby geocaches list with actual data
+        queryClient.setQueryData(['nearby-geocaches'], (old: unknown) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((cache: Geocache) => 
+            cache.id === originalGeocache.id ? finalUpdate : cache
+          );
+        });
+
+        // Update geocache by coordinate with actual event data
+        const coordinate = `${NIP_GC_KINDS.GEOCACHE}:${originalGeocache.pubkey}:${originalGeocache.dTag}`;
+        queryClient.setQueryData(['geocache-by-coordinate', coordinate], [event]);
+
+        // Update all naddr-based queries with actual data
+        queryClient.getQueryCache().getAll().forEach(query => {
+          if (query.queryKey[0] === 'geocache-by-naddr') {
+            const data = query.state.data as Geocache | undefined;
+            if (data && data.id === originalGeocache.id) {
+              queryClient.setQueryData(query.queryKey, finalUpdate);
+            }
           }
-          
-          return {
-            ...oldData,
-            ...parsed,
-            // Preserve original foundCount and logCount
-            foundCount: (oldData as Geocache).foundCount,
-            logCount: (oldData as Geocache).logCount,
-          };
         });
       }
       
-      // Also update the geocaches list
-      queryClient.invalidateQueries({ queryKey: ['geocaches'] });
-      
-      // Background refresh after a short delay for both cache keys
+      // Background refresh after a short delay to ensure consistency
       setTimeout(() => {
-        if (eventId) {
-          queryClient.invalidateQueries({ queryKey: ['geocache', eventId] });
-          // Also refresh with new event ID
-          queryClient.invalidateQueries({ queryKey: ['geocache', event.id] });
+        if (originalGeocache) {
+          queryClient.invalidateQueries({ queryKey: ['geocache', originalGeocache.id] });
+          queryClient.invalidateQueries({ queryKey: ['geocache-by-dtag', originalGeocache.dTag] });
+          queryClient.invalidateQueries({ queryKey: ['geocaches'] });
+          queryClient.invalidateQueries({ queryKey: ['user-geocaches', originalGeocache.pubkey] });
+          queryClient.invalidateQueries({ queryKey: ['nearby-geocaches'] });
+          queryClient.invalidateQueries({ queryKey: ['geocache-by-coordinate'] });
+          queryClient.invalidateQueries({ queryKey: ['geocache-by-naddr'] });
         }
-        if (dTag) {
-          queryClient.invalidateQueries({ queryKey: ['geocache-by-dtag', dTag] });
-        }
-      }, 2000);
+      }, 3000);
     },
-    onError: (error: unknown) => {
+
+    onError: (error: unknown, data, context) => {
+      // Rollback optimistic updates on error
+      if (context) {
+        if (context.previousGeocache !== undefined) {
+          queryClient.setQueryData(['geocache', context.geocacheId], context.previousGeocache);
+        }
+        if (context.previousGeocacheByDtag !== undefined) {
+          queryClient.setQueryData(['geocache-by-dtag', context.dTag], context.previousGeocacheByDtag);
+        }
+        if (context.previousGeocaches !== undefined) {
+          queryClient.setQueryData(['geocaches'], context.previousGeocaches);
+        }
+        // Rollback naddr-based queries
+        if (context.previousNaddrQueries) {
+          context.previousNaddrQueries.forEach((data, naddr) => {
+            queryClient.setQueryData(['geocache-by-naddr', naddr], data);
+          });
+        }
+      }
       
       let errorMessage = "Please try again later.";
       
