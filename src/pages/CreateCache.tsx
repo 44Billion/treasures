@@ -254,7 +254,7 @@ export default function CreateCache() {
   }
 
   return (
-    <PageLayout maxWidth="2xl" background="muted" className="pb-4 md:pb-0">
+    <PageLayout maxWidth="2xl" background="default" className="pb-4 md:pb-0">
       {/* Mobile: No card wrapper, desktop: Card wrapper */}
       <div className="max-w-2xl mx-auto create-cache-container">
         {/* Header - mobile only */}
@@ -507,7 +507,7 @@ export default function CreateCache() {
         </Card>
         
         {/* Mobile Form - no card wrapper */}
-        <div className="md:hidden px-4 pb-4">
+        <div className="md:hidden px-4 pb-4 bg-background">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-4 px-2 overflow-hidden create-cache-progress">

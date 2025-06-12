@@ -101,7 +101,7 @@ export function CacheNameField({ value, onChange, required = false, fieldId = "n
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 text-foreground">
       <Label htmlFor={fieldId}>
         Cache Name{required && ' *'}
       </Label>
@@ -142,7 +142,7 @@ interface CacheDescriptionFieldProps {
 
 export function CacheDescriptionField({ value, onChange, required = false, fieldId = "description" }: CacheDescriptionFieldProps) {
   return (
-    <div>
+    <div className="text-foreground">
       <Label htmlFor={fieldId}>
         Description{required && ' *'}
       </Label>
@@ -166,7 +166,7 @@ interface CacheHintFieldProps {
 
 export function CacheHintField({ value, onChange, fieldId = "hint" }: CacheHintFieldProps) {
   return (
-    <div>
+    <div className="text-foreground">
       <Label htmlFor={fieldId}>Hint (Optional)</Label>
       <Input
         id={fieldId}
@@ -211,7 +211,7 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
   ];
   
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-foreground">
       <Label>
         What type of cache?
         <span className="text-xs text-muted-foreground block mt-1">Choose the cache style</span>
@@ -233,7 +233,7 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
               <div className="h-5 w-5 mx-auto mb-1">
                 {getCacheIcon(type.value, 'md')}
               </div>
-              <span className="font-medium text-xs">{type.name}</span>
+              <span className="font-medium text-xs text-foreground">{type.name}</span>
             </button>
           );
         })}
@@ -290,7 +290,7 @@ export function CacheSizeField({ value, onChange }: Omit<CacheSelectFieldProps, 
   ];
   
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-foreground">
       <Label>
         Container size
         <span className="text-xs text-muted-foreground block mt-1">Choose the container size</span>
@@ -376,7 +376,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
   ];
   
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-foreground">
       <Label>
         How hard is it to solve?
         <span className="text-xs text-muted-foreground block mt-1">Mental challenge level</span>
@@ -534,7 +534,7 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
   ];
   
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-foreground">
       <Label>
         How hard is it to reach?
         <span className="text-xs text-muted-foreground block mt-1">Physical challenge level</span>
@@ -667,7 +667,7 @@ export function CacheHiddenField({ checked, onChange, fieldId = "hidden" }: Cach
           checked={checked}
           onCheckedChange={onChange}
         />
-        <Label htmlFor={fieldId} className="text-sm font-medium cursor-pointer">
+        <Label htmlFor={fieldId} className="text-sm font-medium cursor-pointer text-foreground">
           Hidden from public listings
         </Label>
       </div>
@@ -721,7 +721,7 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2 text-foreground", className)}>
       <Label>Images</Label>
       
       {/* Image List */}
@@ -751,7 +751,7 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
       ))}
       
       {/* Upload Button */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 text-foreground">
         <Input
           type="file"
           accept="image/*"

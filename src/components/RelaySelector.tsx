@@ -99,7 +99,7 @@ export function RelaySelector(props: RelaySelectorProps) {
           >
             <SelectTrigger 
               className={cn(
-                "flex-1",
+                "flex-1 text-foreground",
                 isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600 hover:!text-stone-100"
               )}
             >

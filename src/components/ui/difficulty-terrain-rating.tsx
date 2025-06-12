@@ -43,7 +43,7 @@ export function DifficultyTerrainRating({
               />
             ))}
           </div>
-          {showLabels && <span className={textSize}>{getDifficultyLabel(difficulty)}</span>}
+          {showLabels && <span className={`${textSize} text-foreground`}>{getDifficultyLabel(difficulty)}</span>}
         </div>
       </div>
       
@@ -60,7 +60,7 @@ export function DifficultyTerrainRating({
               />
             ))}
           </div>
-          {showLabels && <span className={textSize}>{getDifficultyLabel(terrain)}</span>}
+          {showLabels && <span className={`${textSize} text-foreground`}>{getDifficultyLabel(terrain)}</span>}
         </div>
       </div>
       
@@ -84,7 +84,7 @@ export function DifficultyTerrainRating({
                 />
               ))}
             </div>
-            {showLabels && <span className={textSize}>{getSizeLabel(cacheSize)}</span>}
+            {showLabels && <span className={`${textSize} text-foreground`}>{getSizeLabel(cacheSize)}</span>}
           </div>
         </div>
       )}
