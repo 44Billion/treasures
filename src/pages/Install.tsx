@@ -4,8 +4,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Download, MapPin, Smartphone, Wifi, Zap, CheckCircle } from 'lucide-react';
 import { DesktopHeader } from '@/components/DesktopHeader';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
+import { usePWAInstall } from '@/shared/hooks/usePWAInstall';
 
 export default function Install() {
   const { installable, installing, installed, install } = usePWAInstall();

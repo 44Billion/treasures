@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, Download, Check, Smartphone } from 'lucide-react';
-import { usePWAUpdate } from '@/hooks/usePWAUpdate';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePWAUpdate } from '@/shared/hooks/usePWAUpdate';
+import { usePWAInstall } from '@/shared/hooks/usePWAInstall';
 
 export function PWASettings() {
   const { 

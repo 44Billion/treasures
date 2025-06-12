@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComparisonFilter, type ComparisonOperator } from "@/components/ui/comparison-filter";
-import { DIFFICULTY_TERRAIN_OPTIONS, CACHE_TYPE_OPTIONS } from "@/lib/geocache-constants";
+import { DIFFICULTY_TERRAIN_OPTIONS, CACHE_TYPE_OPTIONS } from "@/features/geocache/utils/geocache-constants";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 

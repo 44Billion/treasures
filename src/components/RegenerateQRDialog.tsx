@@ -4,10 +4,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { VerificationQRDialog } from '@/components/VerificationQRDialog';
-import { useRegenerateVerificationKey } from '@/hooks/useRegenerateVerificationKey';
-import { geocacheToNaddr } from '@/lib/naddr-utils';
+import { useRegenerateVerificationKey } from '@/features/geocache/hooks/useRegenerateVerificationKey';
+import { geocacheToNaddr } from '@/shared/utils/naddr';
 import type { Geocache } from '@/types/geocache';
-import type { VerificationKeyPair } from '@/lib/verification';
+import type { VerificationKeyPair } from '@/features/geocache/utils/verification';
 
 interface RegenerateQRDialogProps {
   isOpen: boolean;

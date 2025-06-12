@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { LRUCache, GeocacheCache, LogCache } from '@/lib/lruCache';
+import { LRUCache, GeocacheCache, LogCache } from '@/shared/utils/lruCache';
 
 describe('LRUCache', () => {
   let cache: LRUCache<string>;

@@ -5,9 +5,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useReliableProximitySearch } from '@/hooks/useReliableProximitySearch';
-import { useDataManager } from '@/hooks/useDataManager';
-import { NIP_GC_KINDS } from '@/lib/nip-gc';
+import { useReliableProximitySearch } from '@/features/geocache/hooks/useReliableProximitySearch';
+import { useDataManager } from '@/shared/stores/simpleStores';
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 
 // Mock geocache events with new multi-precision geohash tags
 const mockGeocacheEvents = [
@@ -111,7 +111,7 @@ vi.mock('@nostrify/react', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ user: { pubkey: 'current-user-pubkey' } }),
 }));
 

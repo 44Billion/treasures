@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RelayErrorFallback } from '@/components/RelayErrorFallback';
 import { AppProvider } from '@/components/AppProvider';
-import { DEFAULT_RELAY, PRESET_RELAYS } from '@/lib/constants';
+import { DEFAULT_RELAY, PRESET_RELAYS } from '@/shared/config';
 import { vi } from 'vitest';
 
 // Mock the RelaySelector component

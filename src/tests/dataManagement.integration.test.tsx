@@ -8,7 +8,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-import { useDataManager } from '@/hooks/useDataManager';
+import { useDataManager } from '@/shared/stores/simpleStores';
 import type { Geocache } from '@/types/geocache';
 
 // Mock data
@@ -71,7 +71,7 @@ vi.mock('@nostrify/react', () => ({
   useNostr: () => ({ nostr: mockNostr }),
 }));
 
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ 
     user: { 
       pubkey: 'test-user-pubkey',
@@ -84,7 +84,7 @@ vi.mock('@/hooks/useConnectivity', () => ({
   useOnlineStatus: () => ({ isOnline: true, isConnected: true }),
 }));
 
-vi.mock('@/lib/offlineStorage', () => ({
+vi.mock('@/features/offline/utils/offlineStorage', () => ({
   offlineStorage: {
     getStoredGeocaches: vi.fn().mockResolvedValue(mockGeocaches),
     removeGeocache: vi.fn().mockResolvedValue(undefined),
@@ -93,7 +93,7 @@ vi.mock('@/lib/offlineStorage', () => ({
   },
 }));
 
-vi.mock('@/lib/constants', () => ({
+vi.mock('@/shared/config', () => ({
   TIMEOUTS: {
     QUERY: 8000,
     FAST_QUERY: 3000,
@@ -113,7 +113,7 @@ vi.mock('@/lib/constants', () => ({
   },
 }));
 
-vi.mock('@/lib/nip-gc', () => ({
+vi.mock('@/features/geocache/utils/nip-gc', () => ({
   NIP_GC_KINDS: {
     GEOCACHE: 37515,
     FOUND_LOG: 3753515,
@@ -430,7 +430,7 @@ describe('Data Management System Integration', () => {
       { wrapper: createWrapper(queryClient) }
     );
 
-    const { offlineStorage } = await import('@/lib/offlineStorage');
+    const { offlineStorage } = await import('@/features/offline/utils/offlineStorage');
 
     // Wait for deletion event processing
     await waitFor(() => {

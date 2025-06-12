@@ -5,9 +5,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useDataManager } from '@/hooks/useDataManager';
-import { useAdaptiveReliableGeocaches } from '@/hooks/useReliableProximitySearch';
-import { POLLING_INTERVALS } from '@/lib/constants';
+import { useDataManager } from '@/shared/stores/simpleStores';
+import { useAdaptiveReliableGeocaches } from '@/features/geocache/hooks/useReliableProximitySearch';
+import { POLLING_INTERVALS } from '@/shared/config';
 
 // Mock the Nostr hook
 vi.mock('@nostrify/react', () => ({
@@ -19,7 +19,7 @@ vi.mock('@nostrify/react', () => ({
 }));
 
 // Mock other dependencies
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ user: null }),
 }));
 

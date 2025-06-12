@@ -9,8 +9,8 @@ import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { OfflineSettings } from "@/components/OfflineSettings";
 import { RelaySelector } from "@/components/RelaySelector";
 import { PWASettings } from "@/components/PWASettings";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useRelayConfig } from "@/hooks/useRelayConfig";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { useRelayConfig } from "@/features/geocache/hooks/useRelayConfig";
 
 export default function Settings() {
   const { user } = useCurrentUser();

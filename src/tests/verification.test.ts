@@ -9,8 +9,8 @@ import {
   verifyEmbeddedVerification,
   isCurrentVerificationKey,
   isOutdatedVerificationKey
-} from '@/lib/verification';
-import { NIP_GC_KINDS } from '@/lib/nip-gc';
+} from '@/features/geocache/utils/verification';
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 // Mock nostr-tools
@@ -39,7 +39,7 @@ vi.mock('@nostrify/nostrify', () => ({
 }));
 
 // Mock naddr utils
-vi.mock('@/lib/naddr-utils', () => ({
+vi.mock('@/shared/utils/naddr-utils', () => ({
   geocacheToNaddr: vi.fn().mockReturnValue('naddr1test'),
   parseNaddr: vi.fn().mockReturnValue({
     kind: 37515,

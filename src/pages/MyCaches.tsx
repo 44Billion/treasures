@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
-import { useSavedCaches } from '@/hooks/useSavedCaches';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { formatDistanceToNow } from '@/lib/date';
-import { useGeolocation } from '@/hooks/useGeolocation';
+import { useSavedCaches } from '@/features/geocache/hooks/useSavedCaches';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { formatDistanceToNow } from '@/shared/utils/date';
+import { useGeolocation } from '@/features/map/hooks/useGeolocation';
 import { ComponentLoading } from '@/components/ui/loading';
-import { useOfflineMode } from '@/hooks/useOfflineStorage';
+import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
 
 export default function MyCaches() {
   const { user } = useCurrentUser();

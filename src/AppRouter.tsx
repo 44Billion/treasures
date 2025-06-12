@@ -4,16 +4,19 @@ import { FullPageLoading } from "@/components/ui/loading";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
-// Import core/frequently used pages directly for instant navigation (no lazy loading)
+// Import only the most critical page for instant navigation
 import Home from "./pages/Home";
 import Map from "./pages/Map";
-import MyCaches from "./pages/MyCaches";
-import CreateCache from "./pages/CreateCache";
-import Settings from "./pages/Settings";
+import CacheDetail from "./pages/CacheDetail";
 
-// Lazy load less frequently used pages (Profile typically accessed once, Install rarely used)
-const CacheDetail = lazy(() => import("./pages/CacheDetail"));
+// Lazy load all other pages for optimal code splitting - except for Map and Details
+// Group by feature for better chunk organization
+const MyCaches = lazy(() => import("./pages/MyCaches"));
+const CreateCache = lazy(() => import("./pages/CreateCache"));
+
 const Profile = lazy(() => import("./pages/Profile"));
+const Settings = lazy(() => import("./pages/Settings"));
+
 const Install = lazy(() => import("./pages/Install"));
 const Claim = lazy(() => import("./pages/Claim"));
 const About = lazy(() => import("./pages/About"));
@@ -29,7 +32,7 @@ export function AppRouter() {
       <MobileHeader />
       
       {/* Main Content Area - with bottom padding for mobile nav */}
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className="flex-1 pb-16 md:pb-0 bg-muted">
         <Suspense fallback={
           <FullPageLoading 
             title="Loading..."

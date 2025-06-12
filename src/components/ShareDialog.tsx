@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { geocacheToNaddr } from '@/lib/naddr-utils';
+import { geocacheToNaddr } from '@/shared/utils/naddr';
 import type { Geocache } from '@/types/geocache';
 
 interface ShareDialogProps {

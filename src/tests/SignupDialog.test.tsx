@@ -12,7 +12,7 @@ vi.mock('@/hooks/useLoginActions', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useToast.ts', () => ({
+vi.mock('@/shared/hooks/useToast.ts', () => ({
   toast: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ vi.mock('@/hooks/useLoggedInAccounts', () => ({
 const mockPublishEvent = vi.fn().mockResolvedValue({});
 const mockIsPublishing = vi.fn().mockReturnValue(false);
 
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: mockPublishEvent,
     isPending: mockIsPublishing(),
@@ -39,7 +39,7 @@ vi.mock('@/hooks/useUploadFile', () => ({
   }),
 }));
 
-vi.mock('@/lib/security', () => ({
+vi.mock('@/shared/utils/naddrsecurity', () => ({
   sanitizeFilename: (filename: string) => filename,
 }));
 

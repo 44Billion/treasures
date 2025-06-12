@@ -17,11 +17,11 @@ vi.mock('@/hooks/useLoginActions', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useToast.ts', () => ({
+vi.mock('@/shared/hooks/useToast.ts', () => ({
   toast: vi.fn(),
 }));
 
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: vi.fn().mockResolvedValue({}),
   }),
@@ -34,7 +34,7 @@ vi.mock('@/hooks/useUploadFile', () => ({
   }),
 }));
 
-vi.mock('@/lib/security', () => ({
+vi.mock('@/shared/utils/naddrsecurity', () => ({
   sanitizeFilename: (filename: string) => filename,
 }));
 

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
 import { AppContext, type AppConfig, type AppContextType } from '@/contexts/AppContext';
 
 interface AppProviderProps {

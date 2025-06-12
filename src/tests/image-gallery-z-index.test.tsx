@@ -3,7 +3,7 @@ import { ImageGallery } from '@/components/ImageGallery';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock the useToast hook
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { NostrEvent, NPool, NRelay1 } from '@nostrify/nostrify';
 import { NostrContext } from '@nostrify/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAppContext } from '@/hooks/useAppContext';
+import { useAppContext } from '@/shared/hooks/useAppContext';
 
 interface NostrProviderProps {
   children: React.ReactNode;

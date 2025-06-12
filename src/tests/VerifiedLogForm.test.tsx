@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VerifiedLogForm } from '@/components/VerifiedLogForm';
-import { useCreateVerifiedLog } from '@/hooks/useCreateVerifiedLog';
+import { useCreateVerifiedLog } from '@/features/logging/hooks/useCreateVerifiedLog';
 
 // Mock dependencies
 vi.mock('@/hooks/useCreateVerifiedLog');

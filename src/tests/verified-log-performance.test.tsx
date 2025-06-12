@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useCreateVerifiedLog } from '@/hooks/useCreateVerifiedLog';
-import { TIMEOUTS } from '@/lib/constants';
+import { useCreateVerifiedLog } from '@/features/logging/hooks/useCreateVerifiedLog';
+import { TIMEOUTS } from '@/shared/config';
 
 // Mock the dependencies
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({
     user: {
       pubkey: 'test-pubkey',
@@ -24,13 +24,13 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
 
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: vi.fn().mockResolvedValue({
       id: 'published-event-id',
@@ -45,7 +45,7 @@ vi.mock('@/hooks/useNostrPublish', () => ({
   }),
 }));
 
-vi.mock('@/lib/verification', () => ({
+vi.mock('@/features/geocache/utils/verification', () => ({
   createVerificationEvent: vi.fn().mockResolvedValue({
     id: 'verification-event-id',
     pubkey: 'verification-pubkey',
@@ -57,7 +57,7 @@ vi.mock('@/lib/verification', () => ({
   }),
 }));
 
-vi.mock('@/lib/nip-gc', () => ({
+vi.mock('@/features/geocache/utils/nip-gc', () => ({
   NIP_GC_KINDS: {
     FOUND_LOG: 7516,
     VERIFICATION: 7517,
@@ -140,13 +140,13 @@ describe('useCreateVerifiedLog Performance', () => {
     });
 
     // Should have used the unified publishing hook
-    const { useNostrPublish } = await import('@/hooks/useNostrPublish');
+    const { useNostrPublish } = await import('@/shared/hooks/useNostrPublish');
     const publishHook = useNostrPublish();
     expect(publishHook.mutateAsync).toHaveBeenCalledTimes(1);
   });
 
   it('should handle verification event creation efficiently', async () => {
-    const { createVerificationEvent } = await import('@/lib/verification');
+    const { createVerificationEvent } = await import('@/features/geocache/utils/verification');
     
     const { result } = renderHook(() => useCreateVerifiedLog(), { wrapper });
 

@@ -12,10 +12,11 @@ import { PWAUpdateNotification } from '@/components/PWAUpdateNotification';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
-import { offlineStorage } from '@/lib/offlineStorage';
-import { connectivityChecker } from '@/lib/connectivityChecker';
-import { initializeCacheCleanup } from '@/lib/cacheCleanup';
-import { DEFAULT_RELAY, PRESET_RELAYS } from '@/lib/constants';
+import { StoreProvider } from '@/shared/stores/StoreProvider';
+import { offlineStorage } from '@/features/offline/utils/offlineStorage';
+import { connectivityChecker } from '@/shared/utils/connectivityChecker';
+import { initializeCacheCleanup } from '@/features/geocache/utils/cacheCleanup';
+import { DEFAULT_RELAY, PRESET_RELAYS } from '@/shared/config/relays';
 import { useEffect } from 'react';
 import './styles/leaflet-overrides.css';
 
@@ -35,7 +36,7 @@ const queryClient = new QueryClient({
 });
 
 const defaultConfig: AppConfig = {
-  relayUrl: DEFAULT_RELAY,
+  relayUrl: DEFAULT_RELAY || 'wss://relay.primal.net',
 };
 
 export function App() {
@@ -77,14 +78,16 @@ export function App() {
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
-              <TooltipProvider>
-                <div className="min-h-screen flex flex-col">
-                  <AppRouter />
-                </div>
-                <PWAUpdateNotification />
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
+              <StoreProvider>
+                <TooltipProvider>
+                  <div className="min-h-screen flex flex-col">
+                    <AppRouter />
+                  </div>
+                  <PWAUpdateNotification />
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </StoreProvider>
             </NostrProvider>
           </NostrLoginProvider>
         </QueryClientProvider>

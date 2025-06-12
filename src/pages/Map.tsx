@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { useAppContext } from "@/hooks/useAppContext";
+import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useSearchParams } from "react-router-dom";
 import { MapPin, X, Locate, RefreshCw, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/hooks/useReliableProximitySearch";
-import { useMapPageGeocaches } from "@/hooks/useOptimisticGeocaches";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/features/geocache/hooks/useReliableProximitySearch";
+import { useMapPageGeocaches } from "@/features/geocache/hooks/useOptimisticGeocaches";
+import { useGeolocation } from "@/features/map/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
@@ -23,7 +22,6 @@ import type { Geocache } from "@/types/geocache";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { QUERY_LIMITS } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 
 
@@ -536,7 +534,7 @@ export default function Map() {
                       variant="outline" 
                       size="sm"
                       onClick={handleRetry}
-                      className={`h-8 px-3 hover:bg-muted/50 border-muted-foreground/20 transition-all duration-200 ${
+                      className={`h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200 ${
                         optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
                           ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
                           : ''
@@ -792,7 +790,7 @@ export default function Map() {
                         variant="outline" 
                         size="sm"
                         onClick={handleRetry}
-                        className={`h-8 px-3 hover:bg-muted/50 border-muted-foreground/20 transition-all duration-200 ${
+                        className={`h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200 ${
                           optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
                             ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
                             : ''

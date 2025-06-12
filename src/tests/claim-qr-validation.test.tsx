@@ -5,13 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Claim from '@/pages/Claim';
 
 // Mock the hooks
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
 
-vi.mock('@/hooks/useOfflineStorage', () => ({
+vi.mock('@/features/offline/hooks/useOfflineStorage', () => ({
   useOfflineMode: () => ({
     isOfflineMode: false,
   }),

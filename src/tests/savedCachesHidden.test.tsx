@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useNostrSavedCaches } from '@/hooks/useNostrSavedCaches';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useNostrSavedCaches } from '@/features/geocache/hooks/useNostrSavedCaches';
+import { useCurrentUser } from '@/shared/stores/simpleStores';
 import { useNostr } from '@nostrify/react';
 import { NostrEvent } from '@nostrify/nostrify';
 
 // Mock dependencies
 vi.mock('@nostrify/react');
-vi.mock('@/hooks/useCurrentUser');
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/stores/simpleStores');
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: vi.fn(),
   }),

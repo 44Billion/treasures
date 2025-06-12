@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { verifyLocation } from '@/lib/osmVerification';
+import { verifyLocation } from '@/features/geocache/utils/osmVerification';
 
 // Mock fetch for testing
 const mockFetch = vi.fn();

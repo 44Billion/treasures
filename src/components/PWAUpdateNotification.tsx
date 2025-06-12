@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, X, Download } from 'lucide-react';
-import { usePWAUpdate } from '@/hooks/usePWAUpdate';
+import { usePWAUpdate } from '@/shared/hooks/usePWAUpdate';
 
 export function PWAUpdateNotification() {
   const [dismissed, setDismissed] = useState(false);

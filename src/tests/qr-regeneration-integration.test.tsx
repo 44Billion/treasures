@@ -45,7 +45,7 @@ vi.mock('@/components/VerificationQRDialog', () => ({
   )
 }));
 
-vi.mock('@/lib/naddr-utils', () => ({
+vi.mock('@/shared/utils/naddr-utils', () => ({
   geocacheToNaddr: () => 'naddr1test'
 }));
 

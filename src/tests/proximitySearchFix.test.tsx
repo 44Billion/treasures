@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { encodeGeohash } from '@/lib/nip-gc';
+import { encodeGeohash } from '@/features/geocache/utils/nip-gc';
 
 // Copy the new function for testing
 function generateGeohashPatterns(

@@ -17,7 +17,9 @@
     "docker:stop": "./docker/test-docker.sh --stop",
     "generate-icons": "node scripts/generate-icons.js",
     "process-icon": "node scripts/process-icon.js",
-    "create-og-image": "node scripts/create-og-image.js"
+    "create-og-image": "node scripts/create-og-image.js",
+    "analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "build:analyze": "npm i && vite build --mode analyze && cp dist/index.html dist/404.html"
   },
   "dependencies": {
     "@fontsource/pirata-one": "^5.2.6",
@@ -102,6 +104,7 @@
     "globals": "^15.9.0",
     "jsdom": "^26.1.0",
     "postcss": "^8.4.47",
+    "rollup-plugin-visualizer": "^6.0.3",
     "sharp": "^0.34.2",
     "svg2png": "^4.1.1",
     "tailwindcss": "^3.4.11",

@@ -7,14 +7,19 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/shared/*": ["./src/shared/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/app/*": ["./src/app/*"]
     },
-    "noImplicitAny": false,
-    "noUnusedParameters": false,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true,
-    "allowJs": true,
-    "noUnusedLocals": false,
+    "allowJs": false,
+    "noUnusedLocals": true,
     "strictNullChecks": true,
-    "allowUnreachableCode": false
+    "allowUnreachableCode": false,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true
   }
 }

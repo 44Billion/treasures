@@ -7,10 +7,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-import { useDataManager } from '@/hooks/useDataManager';
+import { useDataManager } from '@/shared/stores/simpleStores';
 
 // Mock dependencies
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ user: { pubkey: 'test-pubkey' } }),
 }));
 

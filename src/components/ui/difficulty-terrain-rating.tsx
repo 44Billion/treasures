@@ -1,4 +1,4 @@
-import { getDifficultyLabel, getSizeLabel, getSizeLevel } from '@/lib/geocache-utils';
+import { getDifficultyLabel, getSizeLabel, getSizeLevel } from '@/features/geocache/utils/geocache-utils';
 import { useTheme } from 'next-themes';
 
 // Difficulty/terrain/size rating display component

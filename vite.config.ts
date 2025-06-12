@@ -3,16 +3,57 @@ import path from "node:path";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vitest/config";
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
     https: false, // Set to true for production testing
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Simplified chunking: Only separate truly large, independent libraries
+          if (id.includes('node_modules')) {
+            // Only separate the largest libraries that are completely independent
+            if (id.includes('leaflet') && !id.includes('react-leaflet')) {
+              return 'vendor-map';
+            }
+            
+            // Everything else goes in the main vendor chunk
+            // This prevents all module loading order issues
+            return 'vendor';
+          }
+          
+          // No application code chunking - keep everything together
+          // This eliminates internal module dependency issues
+          return undefined;
+        }
+      }
+    },
+    // Increase chunk size warning limit since we're optimizing
+    chunkSizeWarningLimit: 1000,
+    // Enable source maps for better debugging
+    sourcemap: false, // Disable in production for smaller builds
+    // Optimize dependencies
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
+  },
   plugins: [
     react(),
+    // Add bundle analyzer in analyze mode
+    ...(mode === 'analyze' ? [
+      visualizer({
+        filename: 'dist/stats.html',
+        open: false,
+        gzipSize: true,
+        brotliSize: true,
+      })
+    ] : []),
     VitePWA({
       registerType: 'prompt',
       workbox: {
@@ -112,6 +153,9 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@/shared": path.resolve(__dirname, "./src/shared"),
+      "@/features": path.resolve(__dirname, "./src/features"),
+      "@/app": path.resolve(__dirname, "./src/app"),
     },
   },
 }));

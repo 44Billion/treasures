@@ -5,19 +5,15 @@ import { BrowserRouter } from 'react-router-dom';
 import { LoginArea } from '@/components/auth/LoginArea';
 
 // Mock the hooks
-vi.mock('@/hooks/useLoggedInAccounts', () => ({
+vi.mock('@/features/geocache/hooks/useLoggedInAccounts', () => ({
   useLoggedInAccounts: vi.fn(() => ({
     currentUser: null,
   })),
 }));
 
-vi.mock('@/hooks/useCurrentUser', () => ({
-  useCurrentUser: vi.fn(() => ({
-    user: null,
-  })),
-}));
+// Note: simpleStores removed - using direct mocks instead
 
-vi.mock('@/hooks/useLoginActions', () => ({
+vi.mock('@/features/auth/hooks/useLoginActions', () => ({
   useLoginActions: vi.fn(() => ({
     nsec: vi.fn(),
     extension: vi.fn(),
@@ -26,7 +22,7 @@ vi.mock('@/hooks/useLoginActions', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: vi.fn(() => ({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -112,8 +108,7 @@ describe('Welcome Modal', () => {
     localStorage.setItem('treasures_last_signup', Date.now().toString());
     
     // Mock a logged in user appearing after some time
-    const { useLoggedInAccounts } = await import('@/hooks/useLoggedInAccounts');
-    const { useCurrentUser } = await import('@/hooks/useCurrentUser');
+    const { useLoggedInAccounts } = await import('@/features/geocache/hooks/useLoggedInAccounts');
     
     // Initially no user
     vi.mocked(useLoggedInAccounts).mockReturnValue({
@@ -124,10 +119,7 @@ describe('Welcome Modal', () => {
       removeLogin: vi.fn(),
     });
     
-    vi.mocked(useCurrentUser).mockReturnValue({
-      user: null,
-      users: [],
-    });
+
 
     const { rerender } = renderWithProviders(<LoginArea />);
 
@@ -143,10 +135,7 @@ describe('Welcome Modal', () => {
       removeLogin: vi.fn(),
     });
     
-    vi.mocked(useCurrentUser).mockReturnValue({
-      user: { pubkey: 'testpubkey' } as any,
-      users: [{ pubkey: 'testpubkey' } as any],
-    });
+
 
     // Re-render with the new user state
     rerender(
@@ -166,7 +155,7 @@ describe('Welcome Modal', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       // Use getAllByText since "Welcome, Adventurer!" appears in both title and content
       expect(screen.getAllByText('Welcome, Adventurer!')).toHaveLength(2);
-      expect(screen.getByText('Your adventure begins now!')).toBeInTheDocument();
+      expect(screen.getByText('Your quest begins now!')).toBeInTheDocument();
     }, { timeout: 3000 });
   });
 
@@ -188,8 +177,7 @@ describe('Welcome Modal', () => {
 
   it('should handle signup completion timing correctly', async () => {
     // Test the primary mechanism (not fallback)
-    const { useLoggedInAccounts } = await import('@/hooks/useLoggedInAccounts');
-    const { useCurrentUser } = await import('@/hooks/useCurrentUser');
+    const { useLoggedInAccounts } = await import('@/features/geocache/hooks/useLoggedInAccounts');
     
     // Start with no user
     vi.mocked(useLoggedInAccounts).mockReturnValue({
@@ -200,10 +188,7 @@ describe('Welcome Modal', () => {
       removeLogin: vi.fn(),
     });
     
-    vi.mocked(useCurrentUser).mockReturnValue({
-      user: null,
-      users: [],
-    });
+
 
     const { rerender } = renderWithProviders(<LoginArea />);
 
@@ -216,10 +201,7 @@ describe('Welcome Modal', () => {
       removeLogin: vi.fn(),
     });
     
-    vi.mocked(useCurrentUser).mockReturnValue({
-      user: { pubkey: 'testpubkey' } as any,
-      users: [{ pubkey: 'testpubkey' } as any],
-    });
+
 
     // Re-render to trigger the user detection
     rerender(

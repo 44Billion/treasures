@@ -9,8 +9,8 @@ import { BaseDialog } from '@/components/ui/base-dialog';
 import { TabsContent } from '@/components/ui/tabs';
 import { LoginMethodTabs } from '@/components/ui/mobile-button-patterns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useLoginActions } from '@/hooks/useLoginActions';
-import { validateNsec, validateBunkerUri, validateFileContent } from '@/lib/security';
+import { useLoginActions } from '@/features/auth/hooks/useLoginActions';
+import { validateNsec, validateBunkerUri, validateFileContent } from '@/shared/utils/security';
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -198,7 +198,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       onOpenChange={onClose}
       size="auth"
       title={<span className='font-semibold text-center'>Welcome, Traveler!</span>}
-      description={<div className='text-center text-muted-foreground'>Start your quest, or login to return to your adventure</div>}
+      description="Start your quest, or login to return to your adventure"
       headerClassName='px-6 pt-6 pb-1 relative'
       contentClassName='flex flex-col max-h-[90vh]'
     >

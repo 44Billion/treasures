@@ -8,8 +8,8 @@ vi.mock('qrcode', () => ({
 }));
 
 // Mock the verification module to test just the QR generation logic
-vi.mock('@/lib/verification', async () => {
-  const actual = await vi.importActual('@/lib/verification');
+vi.mock('@/features/geocache/utils/verification', async () => {
+  const actual = await vi.importActual('@/features/geocache/utils/verification');
   return {
     ...actual,
     generateVerificationQR: vi.fn().mockImplementation(async (naddr: string, nsec: string) => {
@@ -40,7 +40,7 @@ describe('QR Code Generation with Maximized Icon and Prettier Styling', () => {
   });
 
   it('should generate prettier QR code with maximized icon overlay (30% size) and better formatted text', async () => {
-    const { generateVerificationQR } = await import('@/lib/verification');
+    const { generateVerificationQR } = await import('@/features/geocache/utils/verification');
     const naddr = 'naddr1test';
     const nsec = 'nsec1test';
 
@@ -53,7 +53,7 @@ describe('QR Code Generation with Maximized Icon and Prettier Styling', () => {
   });
 
   it('should use improved styling and high error correction level for QR code', async () => {
-    const { generateVerificationQR } = await import('@/lib/verification');
+    const { generateVerificationQR } = await import('@/features/geocache/utils/verification');
     const QRCode = await import('qrcode');
     
     await generateVerificationQR('naddr1test', 'nsec1test');
@@ -73,7 +73,7 @@ describe('QR Code Generation with Maximized Icon and Prettier Styling', () => {
   });
 
   it('should create proper verification URL', async () => {
-    const { generateVerificationQR } = await import('@/lib/verification');
+    const { generateVerificationQR } = await import('@/features/geocache/utils/verification');
     const naddr = 'naddr1qqxnzd3cxqmrzv3exgmr2wfeqgsxu35yyt0mwjjh8pcz4zprhxegz69t7jdqhyqk9lqhck3fvehcgurqsqqqa28pccpzu';
     const nsec = 'nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5';
 
@@ -89,7 +89,7 @@ describe('QR Code Generation with Maximized Icon and Prettier Styling', () => {
   });
 
   it('should handle different naddr and nsec combinations', async () => {
-    const { generateVerificationQR } = await import('@/lib/verification');
+    const { generateVerificationQR } = await import('@/features/geocache/utils/verification');
     
     const testCases = [
       { naddr: 'naddr1test1', nsec: 'nsec1test1' },

@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/useToast';
-import { parseVerificationFromHash } from '@/lib/verification';
+import { useToast } from '@/shared/hooks/useToast';
+import { parseVerificationFromHash } from '@/features/geocache/utils/verification';
 import { DesktopHeader } from '@/components/DesktopHeader';
 
 export default function Claim() {
@@ -283,7 +283,7 @@ export default function Claim() {
             </form>
             
             {/* Helpful example */}
-            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+            <div className="mt-4 p-3 bg-muted/50 dark:bg-muted rounded-lg">
               <p className="text-xs font-medium text-muted-foreground mb-1">
                 The link should look like this:
               </p>

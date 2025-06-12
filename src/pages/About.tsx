@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageLayout } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCacheIcon } from "@/lib/cacheIcons";
+import { getCacheIcon } from "@/features/geocache/utils/cacheIcons";
+import { NIP_GC_KINDS } from "@/features/geocache/utils/nip-gc";
 
 export default function About() {
   return (
@@ -258,25 +259,25 @@ export default function About() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind 37515</h4>
+                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.GEOCACHE}</h4>
                 <p className="text-sm text-muted-foreground">
                   Geocache listings with location, difficulty, terrain, and cache details
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind 7516</h4>
+                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.FOUND_LOG}</h4>
                 <p className="text-sm text-muted-foreground">
                   Found logs recording successful geocache visits
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind 7517</h4>
+                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.VERIFICATION}</h4>
                 <p className="text-sm text-muted-foreground">
                   Verification events providing cryptographic proof of cache finds
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind 1111</h4>
+                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.COMMENT_LOG}</h4>
                 <p className="text-sm text-muted-foreground">
                   Comment logs for DNF, notes, and maintenance reports
                 </p>

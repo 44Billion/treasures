@@ -16,7 +16,7 @@ vi.mock('react-zoom-pan-pinch', () => ({
 
 // Mock the useToast hook
 const mockToast = vi.fn();
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: mockToast,
   }),

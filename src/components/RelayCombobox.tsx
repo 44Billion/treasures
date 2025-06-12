@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { useAppContext } from "@/hooks/useAppContext";
+import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useTheme } from "next-themes";
 
 interface RelayComboboxProps {

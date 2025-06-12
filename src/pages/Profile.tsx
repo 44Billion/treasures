@@ -17,17 +17,17 @@ import { FullPageLoading, ComponentLoading } from '@/components/ui/loading';
 
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
 import { DetailedGeocacheCard } from '@/components/ui/geocache-card';
-import { EditProfileForm } from '@/components/EditProfileForm';
-import { ProfileHeader } from '@/components/ProfileHeader';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useAuthor } from '@/hooks/useAuthor';
-import { useUserGeocaches } from '@/hooks/useUserGeocaches';
-import { useUserFoundCaches } from '@/hooks/useUserFoundCaches';
-import { useSavedCaches } from '@/hooks/useSavedCaches';
-import { useNip05Status } from '@/hooks/useNip05Verification';
-import { formatDistanceToNow } from '@/lib/date';
-import { useGeolocation } from '@/hooks/useGeolocation';
-import { useToast } from '@/hooks/useToast';
+import { EditProfileForm } from '@/features/profile/components/EditProfileForm';
+import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { useAuthor } from '@/features/auth/hooks/useAuthor';
+import { useUserGeocaches } from '@/features/geocache/hooks/useUserGeocaches';
+import { useUserFoundCaches } from '@/features/profile/hooks/useUserFoundCaches';
+import { useSavedCaches } from '@/features/geocache/hooks/useSavedCaches';
+import { useNip05Status } from '@/features/profile/hooks/useNip05Verification';
+import { formatDistanceToNow } from '@/shared/utils/date';
+import { useGeolocation } from '@/features/map/hooks/useGeolocation';
+import { useToast } from '@/shared/hooks/useToast';
 
 export default function Profile() {
   const { pubkey } = useParams<{ pubkey: string }>();

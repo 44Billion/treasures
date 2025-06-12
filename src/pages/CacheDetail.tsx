@@ -10,22 +10,22 @@ import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog"
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { FullPageLoading, ErrorState } from "@/components/ui/loading";
 import { SaveButton } from "@/components/SaveButton";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useGeocacheByNaddr } from "@/hooks/useGeocacheByNaddr";
-import { useGeocacheLogs } from "@/hooks/useGeocacheLogs";
-import { useGeocachePrefetch } from "@/hooks/usePrefetchManager";
-import { useDeleteWithConfirmation } from "@/hooks/useDeleteWithConfirmation";
-import { useEditGeocache } from "@/hooks/useEditGeocache";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { useGeocacheByNaddr } from "@/features/geocache/hooks/useGeocacheByNaddr";
+import { useGeocacheLogs } from "@/features/geocache/hooks/useGeocacheLogs";
+// Note: useGeocachePrefetch has been removed as part of the data layer migration
+import { useDeleteWithConfirmation } from "@/shared/hooks/useDeleteWithConfirmation";
+import { useEditGeocache } from "@/features/geocache/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
-import { LogsSection } from "@/components/LogsSection";
-import { useAuthor } from "@/hooks/useAuthor";
-import { useToast } from "@/hooks/useToast";
-import { formatDistanceToNow } from "@/lib/date";
+import { LogsSection } from "@/features/logging/components/LogsSection";
+import { useAuthor } from "@/features/auth/hooks/useAuthor";
+import { useToast } from "@/shared/hooks/useToast";
+import { formatDistanceToNow } from "@/shared/utils/date";
 
 import { LocationWarnings } from "@/components/LocationWarnings";
-import { verifyLocation, type LocationVerification } from "@/lib/osmVerification";
-import { getTypeLabel, getSizeLabel } from "@/lib/geocache-utils";
-import { getDefaultCacheValues } from "@/lib/geocache-constants";
+import { verifyLocation, type LocationVerification } from "@/features/geocache/utils/osmVerification";
+import { getTypeLabel, getSizeLabel } from "@/features/geocache/utils/geocache-utils";
+import { getDefaultCacheValues } from "@/features/geocache/utils/geocache-constants";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import { GeocacheForm, type GeocacheFormData } from "@/components/ui/geocache-form";
 import { LocationPicker } from "@/components/LocationPicker";
@@ -36,7 +36,7 @@ import { BlurredImage } from "@/components/BlurredImage";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
-import { parseVerificationFromHash, verifyKeyPair } from "@/lib/verification";
+import { parseVerificationFromHash, verifyKeyPair } from "@/features/geocache/utils/verification";
 import type { Geocache } from "@/types/geocache";
 
 export default function CacheDetail() {
@@ -48,7 +48,7 @@ export default function CacheDetail() {
   // Early validation of naddr parameter
   if (!naddr) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/50 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -66,7 +66,7 @@ export default function CacheDetail() {
   }
   
   const { data: geocache, isLoading, error, isError, refetch } = useGeocacheByNaddr(naddr);
-  const typedGeocache = geocache as Geocache | null | undefined;
+  const typedGeocache = geocache as unknown as Geocache | null | undefined;
   const { data: logs = [], refetch: refetchLogs } = useGeocacheLogs(
     typedGeocache ? `${typedGeocache.pubkey}:${typedGeocache.dTag}` : '', 
     typedGeocache?.dTag, 
@@ -85,7 +85,7 @@ export default function CacheDetail() {
   } = useDeleteWithConfirmation();
   const { mutate: editGeocache, isPending: isEditingGeocache } = useEditGeocache(typedGeocache || null);
   const { toast } = useToast();
-  const { prefetchGeocache } = useGeocachePrefetch();
+  // Note: prefetchGeocache functionality has been integrated into the new store system
   
   const author = useAuthor(typedGeocache?.pubkey || "");
   
@@ -143,10 +143,9 @@ export default function CacheDetail() {
       setEditImages(typedGeocache.images || []);
       setEditLocation(typedGeocache.location);
       
-      // Prefetch logs for this geocache
-      prefetchGeocache(typedGeocache);
+      // Note: Prefetching is now handled automatically by the store system
     }
-  }, [typedGeocache, prefetchGeocache]);
+  }, [typedGeocache]);
 
   // Verify location when geocache loads
   useEffect(() => {
@@ -317,7 +316,7 @@ export default function CacheDetail() {
     const isOfflineError = error && (error as Error).message === 'Geocache not available offline';
     
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/50 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -494,7 +493,7 @@ export default function CacheDetail() {
 
                     {/* Location Verification for Edit */}
                     {editLocationVerification && (
-                      <div className="border rounded-lg p-4 bg-muted/50">
+                      <div className="border rounded-lg p-4 bg-muted/50 dark:bg-muted">
                         <h4 className="font-medium mb-2">Location Information</h4>
                         <LocationWarnings 
                           verification={editLocationVerification} 

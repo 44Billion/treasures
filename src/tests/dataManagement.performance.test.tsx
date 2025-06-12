@@ -8,8 +8,8 @@ import { renderHook, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-import { useDataManager } from '@/hooks/useDataManager';
-import { usePrefetchManager } from '@/hooks/usePrefetchManager';
+import { useDataManager } from '@/shared/stores/simpleStores';
+import { usePrefetchManager } from '@/shared/stores/simpleStores';
 import { createTestQueryClient, createMockNostr, mockGeocaches } from './testUtils';
 
 describe('Data Management Performance', () => {

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useNostrPublish } from '@/hooks/useNostrPublish';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
+import { useCurrentUser } from '@/shared/stores/simpleStores';
 import { useNostr } from '@nostrify/react';
 
 // Mock dependencies
-vi.mock('@/hooks/useCurrentUser');
+vi.mock('@/shared/stores/simpleStores');
 vi.mock('@nostrify/react');
-vi.mock('@/lib/networkUtils');
+vi.mock('@/shared/utils/naddrnetworkUtils');
 
 const mockUser = {
   pubkey: 'test-pubkey',
@@ -47,7 +47,7 @@ describe('useNostrPublish', () => {
     (useNostr as any).mockReturnValue({ nostr: mockNostr });
 
     // Mock getAdaptiveTimeout
-    const { getAdaptiveTimeout } = require('@/lib/networkUtils');
+    const { getAdaptiveTimeout } = require('@/shared/utils/naddrnetworkUtils');
     getAdaptiveTimeout.mockImplementation((timeout: number) => timeout);
 
     // Mock successful publishing and verification by default
@@ -408,7 +408,7 @@ describe('useNostrPublish', () => {
   });
 
   it('should use adaptive timeout', async () => {
-    const { getAdaptiveTimeout } = require('@/lib/networkUtils');
+    const { getAdaptiveTimeout } = require('@/shared/utils/naddrnetworkUtils');
     getAdaptiveTimeout.mockReturnValue(15000);
 
     const { result } = renderHook(() => useNostrPublish(), { wrapper });

@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { BaseDialog } from '@/components/ui/base-dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/hooks/useToast.ts';
-import { useLoginActions } from '@/hooks/useLoginActions';
-import { useNostrPublish } from '@/hooks/useNostrPublish';
-import { useUploadFile } from '@/hooks/useUploadFile';
+import { toast } from '@/shared/hooks/useToast';
+import { useLoginActions } from '@/features/auth/hooks/useLoginActions';
+import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
+import { useUploadFile } from '@/shared/hooks/useUploadFile';
 import { generateSecretKey, nip19 } from 'nostr-tools';
-import { sanitizeFilename } from '@/lib/security';
+import { sanitizeFilename } from '@/shared/utils/security';
 
 interface SignupDialogProps {
   isOpen: boolean;
@@ -537,7 +537,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Card className={`cursor-pointer transition-all duration-200 ${
                   keySecured === 'copied' 
                     ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20' 
-                    : 'hover:bg-muted/50'
+                    : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
                     <Button
@@ -579,7 +579,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Card className={`cursor-pointer transition-all duration-200 ${
                   keySecured === 'downloaded' 
                     ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20' 
-                    : 'hover:bg-muted/50'
+                    : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
                     <Button

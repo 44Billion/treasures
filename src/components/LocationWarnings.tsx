@@ -1,6 +1,6 @@
-import { AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { LocationVerification, getVerificationSummary } from "@/lib/osmVerification";
+import { LocationVerification, getVerificationSummary } from "@/features/geocache/utils/osmVerification";
 import { useState } from "react";
 
 interface LocationWarningsProps {

@@ -5,8 +5,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useReliableProximitySearch, useAdaptiveReliableGeocaches } from '@/hooks/useReliableProximitySearch';
-import { NIP_GC_KINDS } from '@/lib/nip-gc';
+import { useReliableProximitySearch, useAdaptiveReliableGeocaches } from '@/features/geocache/hooks/useReliableProximitySearch';
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 
 // Mock Nostr events for testing
 const mockGeocacheEvents = [
@@ -68,7 +68,7 @@ vi.mock('@nostrify/react', () => ({
 }));
 
 // Mock other dependencies
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ user: null }),
 }));
 

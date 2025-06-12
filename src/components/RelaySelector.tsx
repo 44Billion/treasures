@@ -1,4 +1,4 @@
-import { Wifi, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useAppContext } from "@/hooks/useAppContext";
+import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useTheme } from "next-themes";
 import { RelayCombobox } from "@/components/RelayCombobox";
 

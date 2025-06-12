@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VerifiedLogForm } from '@/components/VerifiedLogForm';
-import { useCreateVerifiedLog } from '@/hooks/useCreateVerifiedLog';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useNostrPublish } from '@/hooks/useNostrPublish';
-import { useToast } from '@/hooks/useToast';
-import { createVerificationEvent } from '@/lib/verification';
+import { useCreateVerifiedLog } from '@/features/logging/hooks/useCreateVerifiedLog';
+import { useCurrentUser } from '@/shared/stores/simpleStores';
+import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
+import { useToast } from '@/shared/hooks/useToast';
+import { createVerificationEvent } from '@/features/geocache/utils/verification';
 
 // Mock all dependencies
-vi.mock('@/hooks/useCurrentUser');
-vi.mock('@/hooks/useNostrPublish');
+vi.mock('@/shared/stores/simpleStores');
+vi.mock('@/shared/hooks/useNostrPublish');
 vi.mock('@/hooks/useCreateVerifiedLog');
-vi.mock('@/hooks/useToast');
-vi.mock('@/lib/verification');
+vi.mock('@/shared/hooks/useToast');
+vi.mock('@/features/geocache/utils/verification');
 
 const mockUser = {
   pubkey: 'test-user-pubkey',

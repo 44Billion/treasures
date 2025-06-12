@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useRegenerateVerificationKey } from '@/hooks/useRegenerateVerificationKey';
+import { useRegenerateVerificationKey } from '@/features/geocache/hooks/useRegenerateVerificationKey';
 import type { Geocache } from '@/types/geocache';
-import { NIP_GC_KINDS } from '@/lib/nip-gc';
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 
 // Create a mock function that we can track
 const mockPublishEvent = vi.fn().mockImplementation(async (eventTemplate) => {
@@ -22,19 +22,19 @@ const mockPublishEvent = vi.fn().mockImplementation(async (eventTemplate) => {
 const mockToast = vi.fn();
 
 // Mock the dependencies
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: mockPublishEvent,
   }),
 }));
 
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: mockToast,
   }),
 }));
 
-vi.mock('@/lib/verification', () => ({
+vi.mock('@/features/geocache/utils/verification', () => ({
   generateVerificationKeyPair: vi.fn().mockResolvedValue({
     privateKey: new Uint8Array(32),
     publicKey: 'new-verification-pubkey',
@@ -50,7 +50,7 @@ vi.mock('@/lib/verification', () => ({
 }));
 
 // Mock the naddr utils
-vi.mock('@/lib/naddr-utils', () => ({
+vi.mock('@/shared/utils/naddr-utils', () => ({
   geocacheToNaddr: vi.fn().mockReturnValue('naddr1test-naddr'),
 }));
 
@@ -133,7 +133,7 @@ describe('QR Code Regeneration - New Event Creation', () => {
       expect(result.current.isSuccess).toBe(true);
     }, { timeout: 5000 });
 
-    const { generateVerificationKeyPair } = await import('@/lib/verification');
+    const { generateVerificationKeyPair } = await import('@/features/geocache/utils/verification');
     expect(generateVerificationKeyPair).toHaveBeenCalled();
   });
 
@@ -261,7 +261,7 @@ describe('QR Code Regeneration - New Event Creation', () => {
 
   it('should validate verification keys correctly', async () => {
     // Import verification utilities
-    const { isCurrentVerificationKey, isOutdatedVerificationKey } = await import('@/lib/verification');
+    const { isCurrentVerificationKey, isOutdatedVerificationKey } = await import('@/features/geocache/utils/verification');
 
     const currentKey = 'new-verification-pubkey';
     const oldKey = 'old-verification-pubkey';

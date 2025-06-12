@@ -1,15 +1,15 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useCreateVerifiedLog } from '@/hooks/useCreateVerifiedLog';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useToast } from '@/hooks/useToast';
-import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useCreateVerifiedLog } from '@/features/logging/hooks/useCreateVerifiedLog';
+import { useCurrentUser } from '@/shared/stores/simpleStores';
+import { useToast } from '@/shared/hooks/useToast';
+import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
 
 // Mock dependencies
-vi.mock('@/hooks/useCurrentUser');
-vi.mock('@/hooks/useToast');
-vi.mock('@/hooks/useNostrPublish');
-vi.mock('@/lib/verification');
+vi.mock('@/shared/stores/simpleStores');
+vi.mock('@/shared/hooks/useToast');
+vi.mock('@/shared/hooks/useNostrPublish');
+vi.mock('@/features/geocache/utils/verification');
 
 const mockUser = {
   pubkey: 'test-pubkey',
@@ -50,7 +50,7 @@ describe('useCreateVerifiedLog', () => {
     });
     
     // Mock createVerificationEvent
-    const { createVerificationEvent } = require('@/lib/verification');
+    const { createVerificationEvent } = require('@/features/geocache/utils/verification');
     createVerificationEvent.mockResolvedValue({
       id: 'verification-event-id',
       pubkey: 'verification-pubkey',
@@ -98,7 +98,7 @@ describe('useCreateVerifiedLog', () => {
     });
 
     // Should have called createVerificationEvent
-    const { createVerificationEvent } = require('@/lib/verification');
+    const { createVerificationEvent } = require('@/features/geocache/utils/verification');
     expect(createVerificationEvent).toHaveBeenCalledWith(
       'nsec1test',
       'test-pubkey',
@@ -118,7 +118,7 @@ describe('useCreateVerifiedLog', () => {
   });
 
   it('should handle verification event creation failure', async () => {
-    const { createVerificationEvent } = require('@/lib/verification');
+    const { createVerificationEvent } = require('@/features/geocache/utils/verification');
     createVerificationEvent.mockRejectedValue(new Error('Invalid verification key format'));
 
     const { result } = renderHook(() => useCreateVerifiedLog(), { wrapper });

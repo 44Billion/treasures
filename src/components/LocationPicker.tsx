@@ -5,13 +5,12 @@ import { Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { LocationSearch } from "@/components/LocationSearch";
 import { MapStyleSelector, MAP_STYLES } from "@/components/MapStyleSelector";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useGeolocation } from "@/features/map/hooks/useGeolocation";
 import { useTheme } from "next-themes";
-import { autocorrectCoordinates, getCoordinatePrecision, getGeohashPrecisionLevels, parseCoordinate, formatCoordinateForInput } from "@/lib/coordinates";
-import { mapIcons } from "@/lib/mapIcons";
+import { autocorrectCoordinates, parseCoordinate, formatCoordinateForInput } from "@/features/map/utils/coordinates";
+import { mapIcons } from "@/features/map/utils/mapIcons";
 
 import "leaflet/dist/leaflet.css";
 
@@ -367,7 +366,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
         {/* Selected location display */}
         {value && (
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
+          <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
             <p className="text-sm font-medium text-foreground">
               Selected: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
             </p>

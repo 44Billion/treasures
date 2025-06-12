@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useRegenerateVerificationKey } from '@/hooks/useRegenerateVerificationKey';
+import { useRegenerateVerificationKey } from '@/features/geocache/hooks/useRegenerateVerificationKey';
 import type { Geocache } from '@/types/geocache';
 
 // Mock the dependencies
-vi.mock('@/hooks/useNostrPublish', () => ({
+vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: vi.fn().mockResolvedValue({
       id: 'test-event-id',
@@ -19,13 +19,13 @@ vi.mock('@/hooks/useNostrPublish', () => ({
   })
 }));
 
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: vi.fn()
   })
 }));
 
-vi.mock('@/lib/verification', () => ({
+vi.mock('@/features/geocache/utils/verification', () => ({
   generateVerificationKeyPair: vi.fn().mockResolvedValue({
     privateKey: new Uint8Array(32),
     publicKey: 'new-verification-pubkey',
@@ -34,7 +34,7 @@ vi.mock('@/lib/verification', () => ({
   })
 }));
 
-vi.mock('@/lib/nip-gc', () => ({
+vi.mock('@/features/geocache/utils/nip-gc', () => ({
   NIP_GC_KINDS: {
     GEOCACHE: 30001
   },

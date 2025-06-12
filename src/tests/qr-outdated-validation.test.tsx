@@ -6,7 +6,7 @@ import CacheDetail from '@/pages/CacheDetail';
 import type { Geocache } from '@/types/geocache';
 
 // Mock the hooks and utilities
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ user: null }),
 }));
 
@@ -49,7 +49,7 @@ vi.mock('@/hooks/useAuthor', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useToast', () => ({
+vi.mock('@/shared/hooks/useToast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
@@ -80,12 +80,12 @@ vi.mock('@/hooks/usePrefetchManager', () => ({
   }),
 }));
 
-vi.mock('@/lib/osmVerification', () => ({
+vi.mock('@/features/geocache/utils/osmVerification', () => ({
   verifyLocation: () => Promise.resolve(null),
 }));
 
 // Mock verification utilities
-vi.mock('@/lib/verification', () => {
+vi.mock('@/features/geocache/utils/verification', () => {
   const mockVerifyKeyPair = vi.fn();
   return {
     parseVerificationFromHash: (hash: string) => {
@@ -133,14 +133,14 @@ describe('QR Code Outdated Validation', () => {
     window.location.hash = '#verify=nsec1old-verification-key';
     
     // Get the mocked function
-    const { verifyKeyPair } = await import('@/lib/verification');
+    const { verifyKeyPair } = await import('@/features/geocache/utils/verification');
     const mockVerifyKeyPair = vi.mocked(verifyKeyPair);
     
     // Mock verifyKeyPair to return false for old key
     mockVerifyKeyPair.mockResolvedValue(false);
     
     const mockToast = vi.fn();
-    const { useToast } = await import('@/hooks/useToast');
+    const { useToast } = await import('@/shared/hooks/useToast');
     vi.mocked(useToast).mockReturnValue({
       toast: mockToast,
       dismiss: vi.fn(),
@@ -171,14 +171,14 @@ describe('QR Code Outdated Validation', () => {
     window.location.hash = '#verify=nsec1current-verification-key';
     
     // Get the mocked function
-    const { verifyKeyPair } = await import('@/lib/verification');
+    const { verifyKeyPair } = await import('@/features/geocache/utils/verification');
     const mockVerifyKeyPair = vi.mocked(verifyKeyPair);
     
     // Mock verifyKeyPair to return true for current key
     mockVerifyKeyPair.mockResolvedValue(true);
     
     const mockToast = vi.fn();
-    const { useToast } = await import('@/hooks/useToast');
+    const { useToast } = await import('@/shared/hooks/useToast');
     vi.mocked(useToast).mockReturnValue({
       toast: mockToast,
       dismiss: vi.fn(),
@@ -208,11 +208,11 @@ describe('QR Code Outdated Validation', () => {
     window.location.hash = '';
     
     // Get the mocked function
-    const { verifyKeyPair } = await import('@/lib/verification');
+    const { verifyKeyPair } = await import('@/features/geocache/utils/verification');
     const mockVerifyKeyPair = vi.mocked(verifyKeyPair);
     
     const mockToast = vi.fn();
-    const { useToast } = await import('@/hooks/useToast');
+    const { useToast } = await import('@/shared/hooks/useToast');
     vi.mocked(useToast).mockReturnValue({
       toast: mockToast,
       dismiss: vi.fn(),
@@ -241,11 +241,11 @@ describe('QR Code Outdated Validation', () => {
     window.location.hash = '#verify=invalid-key-format';
     
     // Get the mocked function
-    const { verifyKeyPair } = await import('@/lib/verification');
+    const { verifyKeyPair } = await import('@/features/geocache/utils/verification');
     const mockVerifyKeyPair = vi.mocked(verifyKeyPair);
     
     const mockToast = vi.fn();
-    const { useToast } = await import('@/hooks/useToast');
+    const { useToast } = await import('@/shared/hooks/useToast');
     vi.mocked(useToast).mockReturnValue({
       toast: mockToast,
     });

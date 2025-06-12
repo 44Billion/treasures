@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createSafeContext } from "@/utils/safeContext";
 
 export interface AppConfig {
   /** Selected relay URL */
@@ -14,4 +14,4 @@ export interface AppContextType {
   presetRelays?: { name: string; url: string }[];
 }
 
-export const AppContext = createContext<AppContextType | undefined>(undefined);
+export const AppContext = createSafeContext<AppContextType | undefined>(undefined, 'AppContext');

@@ -53,7 +53,7 @@ export function BaseDialog({
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription>
+              <DialogDescription className="text-center">
                 {description}
               </DialogDescription>
             )}

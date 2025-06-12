@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useOptimisticGeocaches } from '@/hooks/useOptimisticGeocaches';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { useOptimisticGeocaches } from '@/features/geocache/hooks/useOptimisticGeocaches';
+import { QUERY_LIMITS } from '@/shared/config';
 
 // Mock the dependencies
 vi.mock('@nostrify/react', () => ({
@@ -54,7 +54,7 @@ vi.mock('@nostrify/react', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useCurrentUser', () => ({
+vi.mock('@/shared/stores/simpleStores', () => ({
   useCurrentUser: () => ({ user: null }),
 }));
 

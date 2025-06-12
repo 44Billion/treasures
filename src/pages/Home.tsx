@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { useAppContext } from "@/hooks/useAppContext";
+import { useAppContext } from "@/shared/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, QrCode, RefreshCw, Scroll, Crown, Shield, Users, Globe } from "lucide-react";
+import { MapPin, Plus, Search, Compass, QrCode, Scroll, Crown, Shield, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useHomePageGeocaches } from "@/hooks/useOptimisticGeocaches";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { useHomePageGeocaches } from "@/features/geocache/hooks/useOptimisticGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 
@@ -92,105 +92,103 @@ export default function Home() {
   }, [config.relayUrl]); // Remove refresh from dependencies to prevent infinite loop
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-teal-950/20 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">
-      <DesktopHeader />
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-green-950 dark:to-emerald-950 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">      <DesktopHeader />
 
       {/* Hero Section */}
       <section className="relative min-h-[calc(100vh-8rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
         {/* Parchment background for adventure mode only - behind everything */}
-        <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
+        <div className="absolute inset-0 hidden adventure:block" style={{
           backgroundImage: 'url(/parchment-300.jpg)',
           backgroundRepeat: 'repeat',
           backgroundSize: '300px 300px',
-          opacity: 0.6
+          opacity: 0.4
         }}></div>
         
         {/* Full-width top depth shadow with better fade - adventure mode only */}
-        <div className="absolute top-0 left-0 right-0 h-16 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+        <div className="absolute top-0 left-0 right-0 h-16 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
         {/* Full-width bottom depth shadow with better fade - adventure mode only */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none z-20"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
         {/* Modern background elements (default and dark themes) */}
-        <div className="absolute inset-0 -z-10 flex justify-center adventure:hidden">
+        <div className="absolute inset-0 flex justify-center adventure:hidden">
           <div className="relative w-full max-w-screen-2xl h-full">
             {/* Map markers - replacing dots */}
             <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
-              <MapPin className="w-6 h-6 text-green-500 opacity-70 drop-shadow-sm" />
+              <MapPin className="w-6 h-6 text-green-500 dark:text-emerald-400 opacity-70 drop-shadow-sm" />
             </div>
             <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '1s'}}>
-              <MapPin className="w-5 h-5 text-green-600 opacity-65 drop-shadow-sm" />
+              <MapPin className="w-5 h-5 text-green-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
             </div>
             <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '2s'}}>
-              <MapPin className="w-6 h-6 text-emerald-500 opacity-60 drop-shadow-sm" />
+              <MapPin className="w-6 h-6 text-emerald-500 dark:text-emerald-400 opacity-60 drop-shadow-sm" />
             </div>
             <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '0.5s'}}>
-              <MapPin className="w-4 h-4 text-green-700 opacity-55 drop-shadow-sm" />
+              <MapPin className="w-4 h-4 text-green-700 dark:text-emerald-500 opacity-55 drop-shadow-sm" />
             </div>
             <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '1.5s'}}>
-              <MapPin className="w-5 h-5 text-emerald-600 opacity-65 drop-shadow-sm" />
+              <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
             </div>
             
             {/* Globe-style curved grid lines */}
-            <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 pointer-events-none opacity-60">
               {/* Horizontal latitude lines - curved to appear like globe */}
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 {/* Top latitude line */}
                 <path 
                   d="M 10,25 Q 50,22 90,25" 
                   stroke="currentColor" 
-                  strokeWidth="0.3" 
+                  strokeWidth="0.4" 
                   fill="none"
-                  className="text-green-200 dark:text-green-800"
+                  className="text-green-400/70 dark:text-emerald-400/90"
                 />
                 {/* Middle latitude line */}
                 <path 
                   d="M 5,50 Q 50,48 95,50" 
                   stroke="currentColor" 
-                  strokeWidth="0.3" 
+                  strokeWidth="0.5" 
                   fill="none"
-                  className="text-green-300 dark:text-green-700"
+                  className="text-green-500/80 dark:text-emerald-300"
                 />
                 {/* Bottom latitude line */}
                 <path 
                   d="M 10,75 Q 50,78 90,75" 
                   stroke="currentColor" 
-                  strokeWidth="0.3" 
+                  strokeWidth="0.4" 
                   fill="none"
-                  className="text-green-200 dark:text-green-800"
+                  className="text-green-400/70 dark:text-emerald-400/90"
                 />
                 
                 {/* Vertical longitude lines - curved to show globe curvature */}
                 <path 
                   d="M 25,10 Q 22,50 25,90" 
                   stroke="currentColor" 
-                  strokeWidth="0.2" 
+                  strokeWidth="0.3" 
                   fill="none"
-                  className="text-green-100 dark:text-green-900"
+                  className="text-green-300/60 dark:text-emerald-500/80"
                 />
                 <path 
                   d="M 50,5 Q 48,50 50,95" 
                   stroke="currentColor" 
-                  strokeWidth="0.2" 
+                  strokeWidth="0.3" 
                   fill="none"
-                  className="text-green-200 dark:text-green-800"
+                  className="text-green-400/70 dark:text-emerald-400/90"
                 />
                 <path 
                   d="M 75,10 Q 78,50 75,90" 
                   stroke="currentColor" 
-                  strokeWidth="0.2" 
+                  strokeWidth="0.3" 
                   fill="none"
-                  className="text-green-100 dark:text-green-900"
+                  className="text-green-300/60 dark:text-emerald-500/80"
                 />
               </svg>
             </div>
 
-            {/* Subtle background texture - much less opaque */}
-            <div className="absolute inset-0 bg-gradient-to-br from-green-50/20 to-emerald-50/10 dark:from-green-950/20 dark:to-emerald-950/10"></div>
+            {/* Subtle background texture - properly themed */}
           </div>
         </div>
 
         {/* Adventure theme background - quest-style treasure map elements */}
-        <div className="absolute inset-0 -z-10 hidden adventure:flex justify-center">
-          <div className="relative w-full max-w-screen-2xl h-full">
+        <div className="absolute inset-0 hidden adventure:flex justify-center">
+          <div className="relative w-full max-w-screen-2xl h-full" style={{ opacity: 0.4 }}>
             {/* Vintage compass roses - with darker parchment colors */}
             <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
               <Compass className="w-8 h-8 text-stone-700/80 opacity-85 drop-shadow-sm transform rotate-12" />
@@ -310,22 +308,22 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
             <Link to="/map" className="flex-1 sm:flex-initial group">
               <Button size="lg" className="bg-green-600 hover:bg-green-700 adventure:bg-stone-700 adventure:hover:bg-stone-800 adventure:text-stone-100 w-full sm:w-auto transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
-                <Search className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
-                <Compass className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
+                <Search className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
+                <Compass className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
                   <span className="hidden xs:inline">Start Exploring</span>
                   <span className="xs:hidden">Explore</span>
                 </span>
                 <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">Begin Your Quest</span>
-                  <span className="xs:hidden">Quest</span>
+                  <span className="hidden xs:inline">Find Artifacts</span>
+                  <span className="xs:hidden">Find</span>
                 </span>
               </Button>
             </Link>
             <Link to="/claim" className="flex-1 sm:flex-initial group">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
-                <QrCode className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
-                <Scroll className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
+                <QrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
+                <Scroll className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
                   <span className="hidden xs:inline">Claim Treasure</span>
                   <span className="xs:hidden">Claim</span>
@@ -339,8 +337,8 @@ export default function Home() {
             {user ? (
               <Link to="/create" className="flex-1 sm:flex-initial group">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-green-200 dark:border-green-800 adventure:border-stone-400 hover:border-green-300 dark:hover:border-green-700 adventure:hover:border-stone-500 hover:bg-green-50 dark:hover:bg-green-950 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
-                  <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
-                  <Crown className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
+                  <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
+                  <Crown className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
                   <span className="adventure:hidden">
                     <span className="hidden xs:inline">Hide a Treasure</span>
                     <span className="xs:hidden">Hide</span>
@@ -438,16 +436,10 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="py-8 xs:py-12 md:py-16 px-3 xs:px-4 bg-gradient-to-b from-background to-muted/30">
+      <section className="py-6 xs:py-12 md:py-16 px-3 xs:px-4 bg-gradient-to-b from-background to-muted/30">
         <div className="container mx-auto">
           {/* Section Header */}
           <div className="text-center mb-8 md:mb-12">
-            <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 adventure:bg-stone-200 text-green-700 dark:text-green-300 adventure:text-stone-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <MapPin className="w-4 h-4 adventure:hidden" />
-              <Scroll className="w-4 h-4 hidden adventure:inline" />
-              <span className="adventure:hidden">Latest Adventures</span>
-              <span className="hidden adventure:inline">Recent Discoveries</span>
-            </div>
             <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-foreground mb-3">
               <span className="adventure:hidden">Recently Hidden Treasures</span>
               <span className="hidden adventure:inline">Newly Concealed Artifacts</span>

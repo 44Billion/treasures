@@ -3,8 +3,8 @@ import { Download, Copy, Check, QrCode } from 'lucide-react';
 import { ComponentLoading } from '@/components/ui/loading';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/useToast';
-import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/lib/verification';
+import { useToast } from '@/shared/hooks/useToast';
+import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/features/geocache/utils/verification';
 
 interface VerificationQRDialogProps {
   isOpen: boolean;

@@ -1,0 +1,43 @@
+// Shared UI Components - Barrel export for migrated components
+// This file re-exports all shared UI components for easy importing
+
+export * from './accordion';
+export * from './alert';
+export * from './alert-dialog';
+export * from './avatar';
+export * from './badge';
+export * from './badge-variants';
+export * from './base-dialog';
+export * from './button';
+export * from './button-extensions';
+export * from './button-variants';
+export * from './card';
+export * from './card-patterns';
+export * from './checkbox';
+export * from './command';
+export * from './dialog';
+export * from './dropdown-menu';
+export * from './form';
+export * from './form-fields';
+export * from './form-utils';
+export * from './input';
+export * from './label';
+export * from './loading';
+export * from './mobile-button-patterns';
+export * from './popover';
+export * from './progress';
+export * from './select';
+export * from './separator';
+export * from './sheet';
+export * from './sidebar';
+export * from './sidebar-utils';
+export * from './skeleton';
+export * from './skeleton-patterns';
+export { Toaster as SonnerToaster } from './sonner';
+export * from './switch';
+export * from './table';
+export * from './tabs';
+export * from './textarea';
+export * from './toast';
+export { Toaster } from './toaster';
+export * from './tooltip';

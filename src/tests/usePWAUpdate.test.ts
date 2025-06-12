@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { usePWAUpdate } from '@/hooks/usePWAUpdate';
+import { usePWAUpdate } from '@/shared/hooks/usePWAUpdate';
 
 // Mock service worker
 const mockServiceWorker = {
