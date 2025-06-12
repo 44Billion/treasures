@@ -277,7 +277,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         </MapContainer>
         
         {/* Map Style Selector - floating over the map */}
-        <div className="absolute top-2 right-2 z-[1000]">
+        <div className="absolute top-2 right-2 z-[3]">
           <MapStyleSelector
             currentStyle={currentMapStyle}
             onStyleChange={handleStyleChange}
@@ -285,7 +285,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground text-center">
+      <p className="text-sm text-gray-600 dark:text-muted-foreground text-center">
         {beaconLocation ? (
           <>Tap the map to set your cache location<br />
           <span className="text-blue-600">Blue beacon shows your current/searched location</span></>
@@ -298,7 +298,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       <div className="space-y-4">
         {/* Location Search */}
         <div>
-          <Label className="text-sm font-medium">Search for a location</Label>
+          <Label className="text-sm font-medium text-foreground">Search for a location</Label>
           <div className="mt-1">
             <LocationSearch 
               onLocationSelect={handleLocationSearch}

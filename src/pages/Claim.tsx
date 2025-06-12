@@ -128,7 +128,7 @@ export default function Claim() {
       
       <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Claim Treasure</h1>
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Claim Treasure</h1>
         <p className="text-muted-foreground">
           {isMobile 
             ? "Use your camera to scan the QR code - it will automatically detect it!"

@@ -83,7 +83,7 @@ export default function MyCaches() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
               <Bookmark className="h-6 w-6" />
               Saved Caches
             </h1>

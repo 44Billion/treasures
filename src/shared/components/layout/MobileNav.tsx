@@ -25,11 +25,13 @@ function getThemeClasses(isAdventureTheme: boolean) {
   return {
     header: isAdventureTheme 
       ? 'bg-adventure-nav border-adventure-nav' 
-      : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
-    text: isAdventureTheme ? 'text-stone-200' : 'text-foreground',
-    textMuted: isAdventureTheme ? 'text-stone-400' : 'text-muted-foreground',
-    textActive: isAdventureTheme ? 'text-stone-200' : 'text-green-600',
-    button: isAdventureTheme ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100' : '',
+      : 'bg-white dark:bg-background/95 border-gray-300 dark:border-border',
+    text: isAdventureTheme ? 'text-stone-200' : 'text-gray-900 dark:text-foreground',
+    textMuted: isAdventureTheme ? 'text-stone-400' : 'text-gray-700 dark:text-muted-foreground',
+    textActive: isAdventureTheme ? 'text-stone-200' : 'text-green-600 dark:text-green-400',
+    button: isAdventureTheme 
+      ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100' 
+      : 'text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground border-gray-300 dark:border-border',
     icon: isAdventureTheme ? 'sepia' : '',
   };
 }
@@ -260,7 +262,7 @@ function BottomNavItem({
         "flex flex-col items-center justify-center gap-0.5 xs:gap-1 px-1 xs:px-2 py-1 text-[10px] xs:text-xs transition-colors min-h-[44px]",
         isActive 
           ? themeClasses.textActive 
-          : cn(themeClasses.textMuted, "hover:text-foreground")
+          : cn(themeClasses.textMuted, "hover:text-gray-900 dark:hover:text-foreground")
       )}
     >
       <div className="flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6">

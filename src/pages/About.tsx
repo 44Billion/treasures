@@ -20,7 +20,7 @@ export default function About() {
                 className="w-48 h-48" 
               />
             </div>
-            <CardTitle className="text-4xl font-bold mb-4">
+            <CardTitle className="text-4xl font-bold mb-4 text-foreground">
               About Treasures
             </CardTitle>
             <CardDescription className="text-xl max-w-2xl mx-auto">

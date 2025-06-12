@@ -72,7 +72,7 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
   // Get theme icon
   const getThemeIcon = () => {
     switch (theme) {
-      case 'light': return <Sun className="h-4 w-4" />;
+      case 'light': return <Sun className="h-4 w-4 text-black" />;
       case 'dark': return <Moon className="h-4 w-4" />;
       case 'adventure': return <Sword className="h-4 w-4" />;
       case 'system': return <Monitor className="h-4 w-4" />;
@@ -138,7 +138,12 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
           <Button 
             variant="outline" 
             size="icon"
-            className={cn(getAdventureClasses(), "h-6 w-6 p-0")}
+            className={cn(
+              getAdventureClasses(), 
+              "h-6 w-6 p-0",
+              // Ensure proper contrast in light mode - stronger borders and text
+              "border-gray-400 dark:border-border text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground bg-white dark:bg-background"
+            )}
             title={`Theme: ${getThemeDisplayName()}`}
           >
             {mounted ? (

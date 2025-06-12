@@ -70,7 +70,7 @@ export function CenteredLayout({ children, title, description, className }: Cent
       <div className="w-full space-y-6">
         {(title || description) && (
           <div className="text-center space-y-2">
-            {title && <h1 className="text-2xl font-bold">{title}</h1>}
+            {title && <h1 className="text-2xl font-bold text-foreground">{title}</h1>}
             {description && <p className="text-muted-foreground">{description}</p>}
           </div>
         )}

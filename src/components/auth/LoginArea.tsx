@@ -91,7 +91,7 @@ export function LoginArea({ compact = false }: LoginAreaProps) {
       ) : (
         <Button
           onClick={() => setLoginDialogOpen(true)}
-          className={`flex items-center gap-1 xs:gap-2 rounded-full bg-primary text-primary-foreground font-medium transition-all hover:bg-primary/90 animate-scale-in ${
+          className={`flex items-center gap-1 xs:gap-2 rounded-full bg-primary text-primary-foreground font-medium transition-all hover:bg-primary/90 animate-scale-in border border-primary/20 ${
             compact ? 'px-2 xs:px-3 py-2' : 'px-3 xs:px-4 py-2'
           }`}
           size={compact ? "sm" : "default"}

@@ -238,7 +238,7 @@ export default function CreateCache() {
                 <WifiOff className="h-6 w-6 text-gray-500" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Offline Mode</h3>
+                <h3 className="text-lg font-semibold text-foreground">Offline Mode</h3>
                 <p className="text-sm text-muted-foreground mt-2">
                   Creating geocaches requires an internet connection. Please check your connection and try again.
                 </p>
@@ -259,7 +259,7 @@ export default function CreateCache() {
       <div className="max-w-2xl mx-auto create-cache-container">
         {/* Header - mobile only */}
         <div className="md:hidden px-4 py-6">
-          <h1 className="text-2xl font-bold">Hide a New Treasure</h1>
+          <h1 className="text-2xl font-bold text-foreground">Hide a New Treasure</h1>
           <p className="text-muted-foreground mt-2">
             Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully - 
             they help seekers know what to expect and prepare appropriately.
@@ -269,7 +269,7 @@ export default function CreateCache() {
         {/* Desktop Card Header */}
         <Card className="hidden md:block">
           <CardHeader>
-            <CardTitle>Hide a New Treasure</CardTitle>
+            <CardTitle className="text-foreground">Hide a New Treasure</CardTitle>
             <CardDescription>
               Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully - 
               they help seekers know what to expect and prepare appropriately.
@@ -303,8 +303,8 @@ export default function CreateCache() {
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1">Choose the location</h3>
-                    <p className="text-sm text-muted-foreground">Where will seekers find your treasure?</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">Choose the location</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Where will seekers find your treasure?</p>
                   </div>
                   
                   <LocationPicker
@@ -337,8 +337,8 @@ export default function CreateCache() {
               {currentStep === 2 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1">Tell us about your cache</h3>
-                    <p className="text-sm text-muted-foreground">Give your treasure a name and description</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">Tell us about your cache</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Give your treasure a name and description</p>
                   </div>
                   
                   <CacheNameField
@@ -363,8 +363,8 @@ export default function CreateCache() {
               {currentStep === 3 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1">Set the challenge level</h3>
-                    <p className="text-sm text-muted-foreground">Help seekers know what to expect</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">Set the challenge level</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers know what to expect</p>
                   </div>
                   
                   <CacheTypeField
@@ -392,8 +392,8 @@ export default function CreateCache() {
               {currentStep === 4 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1">Add photos & final touches</h3>
-                    <p className="text-sm text-muted-foreground">Help seekers identify the area</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">Add photos & final touches</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers identify the area</p>
                   </div>
                   
                   <CacheImageManager
@@ -411,7 +411,7 @@ export default function CreateCache() {
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
                     <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview: How your cache will appear</h4>
                     <div className="space-y-2">
-                      <h5 className="font-medium">{formData.name || "Your Cache Name"}</h5>
+                      <h5 className="font-medium text-foreground">{formData.name || "Your Cache Name"}</h5>
                       <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
                       <DifficultyTerrainRating
                         difficulty={parseInt(formData.difficulty) || 1}
@@ -535,8 +535,8 @@ export default function CreateCache() {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1">Choose the location</h3>
-                  <p className="text-sm text-muted-foreground">Where will seekers find your treasure?</p>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">Choose the location</h3>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Where will seekers find your treasure?</p>
                 </div>
                 
                 <LocationPicker
@@ -569,8 +569,8 @@ export default function CreateCache() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1">Tell us about your cache</h3>
-                  <p className="text-sm text-muted-foreground">Give your treasure a name and description</p>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">Tell us about your cache</h3>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Give your treasure a name and description</p>
                 </div>
                 
                 <CacheNameField
@@ -595,8 +595,8 @@ export default function CreateCache() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1">Set the challenge level</h3>
-                  <p className="text-sm text-muted-foreground">Help seekers know what to expect</p>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">Set the challenge level</h3>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers know what to expect</p>
                 </div>
                 
                 <CacheTypeField
@@ -624,8 +624,8 @@ export default function CreateCache() {
             {currentStep === 4 && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1">Add photos & final touches</h3>
-                  <p className="text-sm text-muted-foreground">Help seekers identify the area</p>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">Add photos & final touches</h3>
+                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers identify the area</p>
                 </div>
                 
                 <CacheImageManager
@@ -643,7 +643,7 @@ export default function CreateCache() {
                 <div className="bg-muted/20 border border-muted rounded-lg p-4">
                   <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview: How your cache will appear</h4>
                   <div className="space-y-2">
-                    <h5 className="font-medium">{formData.name || "Your Cache Name"}</h5>
+                    <h5 className="font-medium text-foreground">{formData.name || "Your Cache Name"}</h5>
                     <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
                     <DifficultyTerrainRating
                       difficulty={parseInt(formData.difficulty) || 1}
