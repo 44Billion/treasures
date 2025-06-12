@@ -32,7 +32,7 @@ export function AppRouter() {
       <MobileHeader />
       
       {/* Main Content Area - with bottom padding for mobile nav */}
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className="flex-1 pb-16 md:pb-0 bg-muted">
         <Suspense fallback={
           <FullPageLoading 
             title="Loading..."

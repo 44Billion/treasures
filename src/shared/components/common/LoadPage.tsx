@@ -45,7 +45,7 @@ export function LoadPage({
   // Show error with retry option if there was an error and no cached data
   if (isError && !hasData) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/50 dark:bg-muted dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -74,7 +74,7 @@ export function LoadPage({
   // Show not found state if no loading, no error, but also no data
   if (!isLoading && !isError && !hasData) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/50 dark:bg-muted dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState

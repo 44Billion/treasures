@@ -98,7 +98,7 @@ export function MobileHeader() {
           {/* Side Sheet Content - Optimized for limited vertical space */}
           <SheetContent side="left" className="mobile-nav-sheet flex flex-col w-[280px] xs:w-[320px] sm:w-[400px] p-0">
             {/* Compact Header */}
-            <div className="mobile-nav-header flex items-center gap-2 px-3 py-4 pr-10 border-b bg-muted/30 shrink-0">
+            <div className="mobile-nav-header flex items-center gap-2 px-3 py-4 pr-10 border-b bg-muted/50 dark:bg-muted shrink-0">
               <img 
                 src="/icon.png" 
                 alt="Treasures" 
@@ -167,7 +167,7 @@ export function MobileHeader() {
             </div>
             
             {/* Compact Footer - Always Visible */}
-            <div className="mobile-nav-footer border-t bg-muted/30 p-2 xs:p-3 shrink-0">
+            <div className="mobile-nav-footer border-t bg-muted/50 dark:bg-muted p-2 xs:p-3 shrink-0">
               {/* User Section */}
               {currentUser ? (
                 <div className="space-y-2 mb-2 xs:mb-3">

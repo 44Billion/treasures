@@ -313,7 +313,7 @@ export default function CreateCache() {
                   />
                   
                   {isVerifying && (
-                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 dark:bg-muted rounded-lg p-3">
                       <CompassSpinner size={16} variant="component" />
                       Checking location restrictions...
                     </div>
@@ -545,7 +545,7 @@ export default function CreateCache() {
                 />
                 
                 {isVerifying && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 dark:bg-muted rounded-lg p-3">
                     <CompassSpinner size={16} variant="component" />
                     Checking location restrictions...
                   </div>
@@ -774,7 +774,7 @@ export default function CreateCache() {
                         </MapContainer>
                         </div>
                       </div>
-                      <div className="bg-muted/50 p-2 rounded text-center">
+                      <div className="bg-muted/50 dark:bg-muted p-2 rounded text-center">
                         <div className="font-mono text-xs">
                           {location.lat}, {location.lng}
                         </div>

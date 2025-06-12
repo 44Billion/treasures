@@ -48,7 +48,7 @@ export default function CacheDetail() {
   // Early validation of naddr parameter
   if (!naddr) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/50 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -316,7 +316,7 @@ export default function CacheDetail() {
     const isOfflineError = error && (error as Error).message === 'Geocache not available offline';
     
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-muted/50 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
@@ -493,7 +493,7 @@ export default function CacheDetail() {
 
                     {/* Location Verification for Edit */}
                     {editLocationVerification && (
-                      <div className="border rounded-lg p-4 bg-muted/50">
+                      <div className="border rounded-lg p-4 bg-muted/50 dark:bg-muted">
                         <h4 className="font-medium mb-2">Location Information</h4>
                         <LocationWarnings 
                           verification={editLocationVerification} 

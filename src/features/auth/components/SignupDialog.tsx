@@ -537,7 +537,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Card className={`cursor-pointer transition-all duration-200 ${
                   keySecured === 'copied' 
                     ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20' 
-                    : 'hover:bg-muted/50'
+                    : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
                     <Button
@@ -579,7 +579,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Card className={`cursor-pointer transition-all duration-200 ${
                   keySecured === 'downloaded' 
                     ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20' 
-                    : 'hover:bg-muted/50'
+                    : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
                     <Button

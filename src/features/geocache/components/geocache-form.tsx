@@ -121,7 +121,7 @@ export function CacheNameField({ value, onChange, required = false, fieldId = "n
                 key={i}
                 type="button"
                 onClick={() => onChange(suggestion)}
-                className="px-2 py-1 bg-muted/50 hover:bg-muted rounded text-xs transition-colors"
+                className="px-2 py-1 bg-muted/50 dark:bg-muted hover:bg-muted rounded text-xs transition-colors"
               >
                 {suggestion}
               </button>

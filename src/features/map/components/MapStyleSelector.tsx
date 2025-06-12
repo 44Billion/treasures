@@ -126,7 +126,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                     ${!isAdventureTheme && isActive 
                       ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-sm' 
                       : !isAdventureTheme 
-                        ? 'border hover:border-muted-foreground hover:bg-muted/50'
+                        ? 'border hover:border-muted-foreground hover:bg-muted/50 dark:bg-muted'
                         : ''
                     }
                   `}

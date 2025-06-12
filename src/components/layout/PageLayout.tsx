@@ -39,7 +39,7 @@ export function PageLayout({
 
   const backgroundClasses = {
     default: '',
-    muted: 'bg-muted/30',
+    muted: 'bg-muted/50 dark:bg-muted',
   };
 
   return (
@@ -103,7 +103,7 @@ export function TwoColumnLayout({
     <PageLayout maxWidth="full" padding="none" className={className}>
       <div className="flex h-full">
         <aside className={cn(
-          'hidden lg:block border-r bg-muted/30',
+          'hidden lg:block border-r bg-muted/50 dark:bg-muted',
           sidebarWidthClasses[sidebarWidth]
         )}>
           <div className="p-4">

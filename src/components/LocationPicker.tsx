@@ -366,7 +366,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
         {/* Selected location display */}
         {value && (
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
+          <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
             <p className="text-sm font-medium text-foreground">
               Selected: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
             </p>

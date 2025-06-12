@@ -534,7 +534,7 @@ export default function Map() {
                       variant="outline" 
                       size="sm"
                       onClick={handleRetry}
-                      className={`h-8 px-3 hover:bg-muted/50 border-muted-foreground/20 transition-all duration-200 ${
+                      className={`h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200 ${
                         optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
                           ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
                           : ''
@@ -790,7 +790,7 @@ export default function Map() {
                         variant="outline" 
                         size="sm"
                         onClick={handleRetry}
-                        className={`h-8 px-3 hover:bg-muted/50 border-muted-foreground/20 transition-all duration-200 ${
+                        className={`h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200 ${
                           optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
                             ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
                             : ''
