@@ -130,7 +130,7 @@ export default function Claim() {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2 text-foreground">Claim Treasure</h1>
         <p className="text-muted-foreground">
-          To claim a treasure (log a verified find), you can use the QR code that may exist within the geocache.
+          To claim a treasure (log a verified find), use the QR code within the geocache.
         </p>
         <p className="text-muted-foreground">
           {isMobile 

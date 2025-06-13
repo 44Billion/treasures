@@ -331,7 +331,7 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
                 className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 md:hidden flex gap-1"
                 style={{
                   // Account for mobile safe area
-                  bottom: 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 5rem))',
+                  bottom: 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 7rem))',
                 }}
               >
                 <ZoomControls />

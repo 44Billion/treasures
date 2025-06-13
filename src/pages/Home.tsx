@@ -370,7 +370,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-8 xs:py-12 md:py-16 px-3 xs:px-4 bg-background border-t">
+      <section className="py-8 xs:py-14 md:py-16 px-3 xs:px-4 bg-background border-t">
         <div className="container mx-auto">
           <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-center mb-8 md:mb-12 text-foreground">
             <span className="adventure:hidden">Why Treasures?</span>
