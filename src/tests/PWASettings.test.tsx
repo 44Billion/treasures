@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PWASettings } from '@/components/PWASettings';
 
 // Mock the hooks
@@ -20,11 +20,11 @@ const mockUsePWAInstall = {
   install: vi.fn(),
 };
 
-vi.mock('@/hooks/usePWAUpdate', () => ({
+vi.mock('@/shared/hooks/usePWAUpdate', () => ({
   usePWAUpdate: () => mockUsePWAUpdate,
 }));
 
-vi.mock('@/hooks/usePWAInstall', () => ({
+vi.mock('@/shared/hooks/usePWAInstall', () => ({
   usePWAInstall: () => mockUsePWAInstall,
 }));
 
@@ -56,105 +56,127 @@ describe('PWASettings', () => {
     expect(screen.getByText('Check for Updates')).toBeInTheDocument();
   });
 
-  it('should show install button when app is installable', () => {
+  it('should show install button when app is installable', async () => {
     mockUsePWAInstall.installable = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Install the app for a better experience')).toBeInTheDocument();
-    expect(screen.getByText('Install App')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Install the app for a better experience')).toBeInTheDocument();
+      expect(screen.getByText('Install App')).toBeInTheDocument();
+    });
   });
 
-  it('should show installed badge when app is installed', () => {
+  it('should show installed badge when app is installed', async () => {
     mockUsePWAInstall.installed = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Installed')).toBeInTheDocument();
-    expect(screen.getByText('App is installed on your device')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Installed')).toBeInTheDocument();
+      expect(screen.getByText('App is installed on your device')).toBeInTheDocument();
+    });
   });
 
-  it('should handle install app click', () => {
+  it('should handle install app click', async () => {
     mockUsePWAInstall.installable = true;
     
     render(<PWASettings />);
     
-    fireEvent.click(screen.getByText('Install App'));
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Install App'));
+    });
     
     expect(mockUsePWAInstall.install).toHaveBeenCalled();
   });
 
-  it('should show installing state', () => {
+  it('should show installing state', async () => {
     mockUsePWAInstall.installable = true;
     mockUsePWAInstall.installing = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Installing...')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Installing...')).toBeInTheDocument();
+    });
   });
 
-  it('should show update available state', () => {
+  it('should show update available state', async () => {
     mockUsePWAUpdate.updateAvailable = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Update Available')).toBeInTheDocument();
-    expect(screen.getByText('A new version is available for download')).toBeInTheDocument();
-    expect(screen.getByText('Install Update')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Update Available')).toBeInTheDocument();
+      expect(screen.getByText('A new version is available for download')).toBeInTheDocument();
+      expect(screen.getByText('Install Update')).toBeInTheDocument();
+    });
   });
 
-  it('should show needs refresh state', () => {
+  it('should show needs refresh state', async () => {
     mockUsePWAUpdate.needsRefresh = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Ready to Reload')).toBeInTheDocument();
-    expect(screen.getByText('Update installed, reload to apply changes')).toBeInTheDocument();
-    expect(screen.getByText('Reload App')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Ready to Reload')).toBeInTheDocument();
+      expect(screen.getByText('Update installed, reload to apply changes')).toBeInTheDocument();
+      expect(screen.getByText('Reload App')).toBeInTheDocument();
+    });
   });
 
-  it('should handle check for updates click', () => {
+  it('should handle check for updates click', async () => {
     render(<PWASettings />);
     
-    fireEvent.click(screen.getByText('Check for Updates'));
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Check for Updates'));
+    });
     
     expect(mockUsePWAUpdate.checkForUpdate).toHaveBeenCalled();
   });
 
-  it('should handle install update click', () => {
+  it('should handle install update click', async () => {
     mockUsePWAUpdate.updateAvailable = true;
     
     render(<PWASettings />);
     
-    fireEvent.click(screen.getByText('Install Update'));
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Install Update'));
+    });
     
     expect(mockUsePWAUpdate.applyUpdate).toHaveBeenCalled();
   });
 
-  it('should handle reload app click', () => {
+  it('should handle reload app click', async () => {
     mockUsePWAUpdate.needsRefresh = true;
     
     render(<PWASettings />);
     
-    fireEvent.click(screen.getByText('Reload App'));
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Reload App'));
+    });
     
     expect(mockUsePWAUpdate.reloadApp).toHaveBeenCalled();
   });
 
-  it('should show checking for updates state', () => {
+  it('should show checking for updates state', async () => {
     mockUsePWAUpdate.checkingForUpdate = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Checking...')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Checking...')).toBeInTheDocument();
+    });
   });
 
-  it('should show updating state', () => {
+  it('should show updating state', async () => {
     mockUsePWAUpdate.updateAvailable = true;
     mockUsePWAUpdate.isUpdating = true;
     
     render(<PWASettings />);
     
-    expect(screen.getByText('Installing...')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Installing...')).toBeInTheDocument();
+    });
   });
 });

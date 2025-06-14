@@ -36,11 +36,11 @@ export function PWASettings() {
   return (
     <div className="space-y-4">
       {/* App Installation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-center text-center md:flex-row md:items-center md:text-left md:justify-between">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-center md:justify-start">
             <Smartphone className="h-4 w-4" />
-            <span className="font-medium">App Installation</span>
+            <span className="font-medium text-center md:text-left">App Installation</span>
             {installed && (
               <Badge variant="secondary" className="text-xs">
                 <Check className="h-3 w-3 mr-1" />
@@ -48,7 +48,7 @@ export function PWASettings() {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-center md:text-left">
             {installed 
               ? "App is installed on your device" 
               : installable 
@@ -74,8 +74,8 @@ export function PWASettings() {
       </div>
 
       {/* App Updates */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
+      <div className="flex flex-col items-center text-center md:flex-row md:items-center md:text-left md:justify-between">
+        <div className="flex flex-col items-center md:items-start space-y-1">
           <div className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4" />
             <span className="font-medium">App Updates</span>
@@ -100,7 +100,7 @@ export function PWASettings() {
             }
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full justify-center md:w-auto md:justify-end">
           {needsRefresh ? (
             <Button onClick={handleReload} size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
