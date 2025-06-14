@@ -54,6 +54,23 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     }
   };
 
+  const executeLogin = (key: string) => {
+    setIsLoading(true);
+    setErrors({});
+
+    // Use a timeout to allow the UI to update before the synchronous login call
+    setTimeout(() => {
+      try {
+        login.nsec(key);
+        onLogin();
+        onClose();
+      } catch (error) {
+        setErrors({ nsec: "Failed to login with this key. Please check that it's correct." });
+        setIsLoading(false);
+      }
+    }, 50);
+  };
+
   const handleKeyLogin = () => {
     if (!nsec.trim()) {
       setErrors(prev => ({ ...prev, nsec: 'Please enter your secret key' }));
@@ -64,24 +81,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       setErrors(prev => ({ ...prev, nsec: 'Invalid secret key format. Must be a valid nsec starting with nsec1.' }));
       return;
     }
-
-    setIsLoading(true);
-    setErrors(prev => ({ ...prev, nsec: undefined }));
-    
-    try {
-      login.nsec(nsec);
-      onLogin();
-      onClose();
-      // Clear the key from memory
-      setNsec('');
-    } catch (error) {
-      setErrors(prev => ({ 
-        ...prev, 
-        nsec: 'Failed to login with this key. Please check that it\'s correct.' 
-      }));
-    } finally {
-      setIsLoading(false);
-    }
+    executeLogin(nsec);
   };
 
   const handleBunkerLogin = async () => {
@@ -116,163 +116,31 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {
-      console.log('No file selected');
-      return;
-    }
+    if (!file) return;
 
-    console.log('File selected:', {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      userAgent: navigator.userAgent
-    });
-
-    // Reset file input to allow re-uploading the same file
-    e.target.value = '';
-    
-    // Validate file type - be more permissive for mobile devices
-    const isValidFileType = file.type.startsWith('text/') || 
-                           file.type === 'application/octet-stream' || 
-                           file.type === '' || // Some systems don't set MIME type for .txt files
-                           file.type === 'text/plain' ||
-                           file.name.toLowerCase().endsWith('.txt') ||
-                           file.name.toLowerCase().endsWith('.text');
-    
-    if (!isValidFileType) {
-      console.log('Invalid file type:', file.type, 'for file:', file.name);
-      setErrors(prev => ({ 
-        ...prev, 
-        file: `Please select a text file (.txt) containing your secret key. File type detected: ${file.type || 'unknown'}` 
-      }));
-      return;
-    }
-
-    // Validate file size (max 10KB)
-    if (file.size > 10 * 1024) {
-      console.log('File too large:', file.size);
-      setErrors(prev => ({ 
-        ...prev, 
-        file: 'File too large. Secret key files should be small text files.' 
-      }));
-      return;
-    }
-
-    setErrors(prev => ({ ...prev, file: undefined }));
     setIsFileLoading(true);
-    console.log('Starting file read...');
+    setErrors({});
 
     const reader = new FileReader();
-    
-    // Add timeout for mobile devices that might have slower file reading
-    const timeoutId = setTimeout(() => {
-      console.log('File read timeout');
-      setErrors(prev => ({ 
-        ...prev, 
-        file: 'File reading timed out. Please try again with a smaller file.' 
-      }));
-      setIsFileLoading(false);
-    }, 10000); // 10 second timeout
-
     reader.onload = (event) => {
-      clearTimeout(timeoutId);
+      setIsFileLoading(false);
       const content = event.target?.result as string;
-      console.log('File read complete, content length:', content?.length);
-      
-      if (!content) {
-        console.log('No content read from file');
-        setErrors(prev => ({ 
-          ...prev, 
-          file: 'Could not read file content.' 
-        }));
-        setIsFileLoading(false);
-        return;
-      }
-
-      // Validate file content
-      const isValidContent = validateFileContent(content);
-      console.log('File content validation result:', isValidContent);
-      if (!isValidContent) {
-        setErrors(prev => ({ 
-          ...prev, 
-          file: 'File content appears to be invalid or unsafe.' 
-        }));
-        setIsFileLoading(false);
-        return;
-      }
-
-      const trimmedContent = content.trim();
-      console.log('Trimmed content preview:', trimmedContent.substring(0, 20) + '...');
-      
-      // Validate the nsec from file
-      const isValidNsec = validateNsec(trimmedContent);
-      console.log('Nsec validation result:', isValidNsec);
-      if (!isValidNsec) {
-        setErrors(prev => ({ 
-          ...prev, 
-          file: 'File does not contain a valid secret key. Expected format: nsec1...' 
-        }));
-        setIsFileLoading(false);
-        return;
-      }
-
-      console.log('Setting nsec from file upload and auto-logging in');
-      setNsec(trimmedContent);
-      setErrors(prev => ({ ...prev, file: undefined }));
-      
-      // Auto-login with the valid nsec from file - add delay for mobile
-      setTimeout(() => {
-        try {
-          console.log('Attempting login with nsec from file');
-          login.nsec(trimmedContent);
-          console.log('Login successful, calling onLogin and onClose');
-          onLogin();
-          onClose();
-          // Clear the key from memory
-          setNsec('');
-        } catch (error) {
-          console.error('Login error:', error);
-          setErrors(prev => ({ 
-            ...prev, 
-            file: 'Failed to login with the key from file. Please try again.' 
-          }));
-        } finally {
-          setIsFileLoading(false);
+      if (content) {
+        const trimmedContent = content.trim();
+        if (validateNsec(trimmedContent)) {
+          executeLogin(trimmedContent);
+        } else {
+          setErrors({ file: 'File does not contain a valid secret key.' });
         }
-      }, 100); // Small delay to ensure state updates
+      } else {
+        setErrors({ file: 'Could not read file content.' });
+      }
     };
-
-    reader.onerror = (error) => {
-      clearTimeout(timeoutId);
-      console.error('FileReader error:', error);
-      setErrors(prev => ({ 
-        ...prev, 
-        file: 'Failed to read file. Please try again.' 
-      }));
+    reader.onerror = () => {
       setIsFileLoading(false);
+      setErrors({ file: 'Failed to read file.' });
     };
-
-    reader.onabort = () => {
-      clearTimeout(timeoutId);
-      console.log('File read aborted');
-      setErrors(prev => ({ 
-        ...prev, 
-        file: 'File reading was cancelled. Please try again.' 
-      }));
-      setIsFileLoading(false);
-    };
-
-    try {
-      reader.readAsText(file);
-    } catch (error) {
-      clearTimeout(timeoutId);
-      console.error('Error starting file read:', error);
-      setErrors(prev => ({ 
-        ...prev, 
-        file: 'Failed to start reading file. Please try again.' 
-      }));
-      setIsFileLoading(false);
-    }
+    reader.readAsText(file);
   };
 
   const handleSignupClick = () => {
@@ -416,20 +284,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                 <div className='text-center'>
                   <input
                     type='file'
-                    accept='.txt,.text,text/plain,application/octet-stream'
+                    accept='.txt'
                     className='hidden'
                     ref={fileInputRef}
                     onChange={handleFileUpload}
-                    capture={false}
-                    multiple={false}
                   />
                   <Button
                     variant='outline'
-                    className='w-full touch-manipulation'
-                    onClick={() => {
-                      console.log('File upload button clicked');
-                      fileInputRef.current?.click();
-                    }}
+                    className='w-full'
+                    onClick={() => fileInputRef.current?.click()}
                     disabled={isLoading || isFileLoading}
                   >
                     <Upload className='w-4 h-4 mr-2' />
