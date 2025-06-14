@@ -16,7 +16,7 @@ describe('Saved Caches Functionality - Verification', () => {
     });
 
     it('should export useNostrSavedCaches hook', async () => {
-      const { useNostrSavedCaches } = await import('@/hooks/useNostrSavedCaches');
+      const { useNostrSavedCaches } = await import('@/features/geocache/hooks/useNostrSavedCaches');
       expect(useNostrSavedCaches).toBeDefined();
       expect(typeof useNostrSavedCaches).toBe('function');
     });
@@ -46,7 +46,7 @@ describe('Saved Caches Functionality - Verification', () => {
       expect(hookModule).toHaveProperty('useSavedCaches');
       
       // Verify it re-exports from useNostrSavedCaches
-      const nostrModule = await import('@/hooks/useNostrSavedCaches');
+      const nostrModule = await import('@/features/geocache/hooks/useNostrSavedCaches');
       expect(nostrModule).toHaveProperty('useNostrSavedCaches');
     });
   });
@@ -99,7 +99,7 @@ describe('Saved Caches Functionality - Verification', () => {
 
   describe('Saved Caches Implementation Details', () => {
     it('should use correct Nostr event kinds', async () => {
-      const { useNostrSavedCaches } = await import('@/hooks/useNostrSavedCaches');
+      const { useNostrSavedCaches } = await import('@/features/geocache/hooks/useNostrSavedCaches');
       
       // Check that the hook file contains the expected constants
       const hookSource = useNostrSavedCaches.toString();

@@ -2,13 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useNostrSavedCaches } from '@/features/geocache/hooks/useNostrSavedCaches';
-import { useCurrentUser } from '@/shared/stores/simpleStores';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useNostr } from '@nostrify/react';
 import { NostrEvent } from '@nostrify/nostrify';
 
 // Mock dependencies
 vi.mock('@nostrify/react');
-vi.mock('@/shared/stores/simpleStores');
+vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: vi.fn(),
+}));
 vi.mock('@/shared/hooks/useNostrPublish', () => ({
   useNostrPublish: () => ({
     mutateAsync: vi.fn(),
@@ -51,14 +53,12 @@ describe('useNostrSavedCaches - Hidden Property', () => {
         id: 'bookmark-1',
         pubkey: mockUser.pubkey,
         created_at: 1000000000,
-        kind: 1985,
-        content: 'Saved cache: Hidden Test Cache',
+        kind: 10003, // Changed to 10003
+        content: '', // Changed to empty content
         tags: [
-          ['L', 'treasures/cache-bookmark'],
-          ['l', 'treasures/cache-bookmark'],
+          ['d', 'geocache-bookmarks'], // Changed to 'd' tag
           ['a', '37515:cache-owner-pubkey:hidden-cache-dtag'],
           ['name', 'Hidden Test Cache'],
-          ['action', 'save'],
           ['client', 'treasures']
         ],
         sig: 'test-sig'
@@ -113,14 +113,12 @@ describe('useNostrSavedCaches - Hidden Property', () => {
         id: 'bookmark-2',
         pubkey: mockUser.pubkey,
         created_at: 1000000000,
-        kind: 1985,
-        content: 'Saved cache: Regular Test Cache',
+        kind: 10003, // Changed to 10003
+        content: '', // Changed to empty content
         tags: [
-          ['L', 'treasures/cache-bookmark'],
-          ['l', 'treasures/cache-bookmark'],
+          ['d', 'geocache-bookmarks'], // Changed to 'd' tag
           ['a', '37515:cache-owner-pubkey:regular-cache-dtag'],
           ['name', 'Regular Test Cache'],
-          ['action', 'save'],
           ['client', 'treasures']
         ],
         sig: 'test-sig'
