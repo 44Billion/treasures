@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, Plus, Info, ChevronDown, Compass, QrCode, Scroll, Crown, Settings } from 'lucide-react';
+import { Search, Plus, Info, ChevronDown, Compass, QrCode, Scroll, Crown, Settings, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -76,6 +77,14 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <a href="https://blog.treasures.to" target="_blank" rel="noopener noreferrer">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Blog
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/settings">
                     <Settings className="h-4 w-4 mr-2" />
