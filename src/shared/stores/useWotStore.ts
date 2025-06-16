@@ -123,16 +123,15 @@ export const useWotStore = create<WotStore>()(
             currentPubkeys = new Set();
 
             for (const event of contactLists) {
-              if (followLimit > 0 && event.tags.length > followLimit) {
+              const pTags = event.tags.filter(tag => tag[0] === 'p');
+              if (i > 0 && followLimit > 0 && pTags.length > followLimit) {
                 continue;
               }
-              for (const tag of event.tags) {
-                if (tag[0] === 'p') {
-                  const pubkey = tag[1];
-                  if (!allWotPubkeys.has(pubkey)) {
-                    currentPubkeys.add(pubkey);
-                    allWotPubkeys.add(pubkey);
-                  }
+              for (const tag of pTags) {
+                const pubkey = tag[1];
+                if (!allWotPubkeys.has(pubkey)) {
+                  currentPubkeys.add(pubkey);
+                  allWotPubkeys.add(pubkey);
                 }
               }
             }
