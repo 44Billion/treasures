@@ -154,13 +154,13 @@ export function WotSettings() {
         <div className="space-y-2">
           <Label htmlFor="starting-point">Starting Point (pubkey or hex)</Label>
           <p className="text-sm text-muted-foreground">
-            The center of your trust network. Leave blank to use your own profile.
+            The center of your trust network. Use your own profile by default.
           </p>
-          {(startingPoint || user?.pubkey) && <WotAuthorCard pubkey={startingPoint || user?.pubkey} />}
+          {(startingPoint || user?.pubkey) && <WotAuthorCard pubkey={startingPoint || user?.pubkey || ""} />}
           <div className="flex gap-2">
             <Input
               id="starting-point"
-              placeholder={user?.npub || 'Defaults to your pubkey'}
+              placeholder={user?.pubkey || 'Defaults to your pubkey'}
               value={startingPoint}
               onChange={handleStartingPointChange}
               disabled={!isWotEnabled || isLoading}
