@@ -195,8 +195,8 @@ export function useOfflineSettings() {
         
         // Set default for autoCacheMaps if not set
         if (settingsData.autoCacheMaps === undefined) {
-          settingsData.autoCacheMaps = true;
-          setSetting.mutate({ key: 'autoCacheMaps', value: true });
+          settingsData.autoCacheMaps = false;
+          setSetting.mutate({ key: 'autoCacheMaps', value: false });
         }
         
         setSettings(settingsData);

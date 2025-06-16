@@ -184,6 +184,7 @@ export interface OfflineBookmark {
 export interface OfflineStoreState extends BaseStoreState {
   isOnline: boolean;
   isConnected: boolean;
+  autoCacheMapAreas: boolean;
   offlineGeocaches: Geocache[];
   offlineLogs: Record<string, GeocacheLog[]>;
   offlineBookmarks: OfflineBookmark[];
@@ -211,6 +212,7 @@ export interface StorageInfo {
 
 export interface OfflineStoreActions {
   // Connectivity
+  setAutoCacheMapAreas: (autoCache: boolean) => void;
   setOnlineStatus: (isOnline: boolean) => void;
   setConnectedStatus: (isConnected: boolean) => void;
   checkConnectivity: () => Promise<boolean>;

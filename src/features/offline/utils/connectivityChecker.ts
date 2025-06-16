@@ -38,10 +38,7 @@ class ConnectivityChecker {
     timeout: 3000, // Reduced timeout for faster initial check
     checkInterval: 30000, // Check every 30 seconds
     testUrls: [
-      // Use reliable, fast endpoints for connectivity testing
-      'https://www.google.com/favicon.ico',
-      'https://cloudflare.com/favicon.ico',
-      'https://httpbin.org/status/200',
+      'https://treasures.to/favicon.ico',
     ],
     maxRetries: 1, // Reduced retries for faster initial check
   };

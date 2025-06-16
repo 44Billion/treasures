@@ -48,6 +48,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     ...baseStore.createBaseState(),
     isOnline: false,
     isConnected: false,
+    autoCacheMapAreas: false,
     offlineGeocaches: [],
     offlineLogs: {},
     offlineBookmarks: [],
@@ -107,6 +108,10 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
 
     loadOfflineData();
   }, [getAllGeocaches, getAllLogs, getStorageStats, getAllBookmarks, baseStore]);
+
+  const setAutoCacheMapAreas = useCallback((autoCache: boolean) => {
+    setState(prev => ({ ...prev, autoCacheMapAreas: autoCache }));
+  }, []);
 
   const setOnlineStatus = useCallback((online: boolean) => {
     setState(prev => ({ ...prev, isOnline: online }));
@@ -422,6 +427,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
 
   const store = useMemo((): OfflineStore => ({
     ...state,
+    setAutoCacheMapAreas,
     setOnlineStatus,
     setConnectedStatus,
     checkConnectivity: checkConnectivityAction,
@@ -445,6 +451,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     getStats,
   }), [
     state,
+    setAutoCacheMapAreas,
     setOnlineStatus,
     setConnectedStatus,
     checkConnectivityAction,

@@ -627,7 +627,7 @@ function AutoOfflineTileManager({
   const [, setIsDownloading] = useState(false);
   const [lastCachedLocation, setLastCachedLocation] = useState<string | null>(null);
 
-  const autoCacheMaps = (settings.autoCacheMaps as boolean) ?? true;
+  const autoCacheMaps = (settings.autoCacheMaps as boolean) ?? false;
 
   // Check storage limits before caching
   const checkStorageBeforeCaching = async (): Promise<boolean> => {
