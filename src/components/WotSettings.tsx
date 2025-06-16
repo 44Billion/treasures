@@ -26,6 +26,8 @@ export function WotSettings() {
     setStartingPoint,
     calculateWot,
     cancelCalculation,
+    followLimit,
+    setFollowLimit,
   } = useWotStore();
 
   const handleCalculate = () => {
@@ -89,6 +91,63 @@ export function WotSettings() {
             {degrees === 1 && "Strict: Only show content from people you directly follow."}
             {degrees === 2 && "Normal: Include content from people your follows follow (recommended)."}
             {degrees === 3 && "Lax: Include content from two degrees of separation."}
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Follow Limit</Label>
+          <div className="flex gap-2">
+            <Button
+              variant={followLimit === 150 ? 'secondary' : 'outline'}
+              onClick={() => setFollowLimit(150)}
+              disabled={!isWotEnabled || isLoading}
+              className="flex-1"
+            >
+              150
+            </Button>
+            <Button
+              variant={followLimit === 250 ? 'secondary' : 'outline'}
+              onClick={() => setFollowLimit(250)}
+              disabled={!isWotEnabled || isLoading}
+              className="flex-1"
+            >
+              250
+            </Button>
+            <Button
+              variant={followLimit === 500 ? 'secondary' : 'outline'}
+              onClick={() => setFollowLimit(500)}
+              disabled={!isWotEnabled || isLoading}
+              className="flex-1"
+            >
+              500
+            </Button>
+            <Button
+              variant={followLimit === 1000 ? 'secondary' : 'outline'}
+              onClick={() => setFollowLimit(1000)}
+              disabled={!isWotEnabled || isLoading}
+              className="flex-1"
+            >
+              1000
+            </Button>
+            <Button
+              variant={followLimit === 2500 ? 'secondary' : 'outline'}
+              onClick={() => setFollowLimit(2500)}
+              disabled={!isWotEnabled || isLoading}
+              className="flex-1"
+            >
+              2500
+            </Button>
+            <Button
+              variant={followLimit === 0 ? 'secondary' : 'outline'}
+              onClick={() => setFollowLimit(0)}
+              disabled={!isWotEnabled || isLoading}
+              className="flex-1 text-lg"
+            >
+              &infin;
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Ignore users with more than this many follows.
           </p>
         </div>
 

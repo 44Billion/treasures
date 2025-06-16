@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nip19 } from 'nostr-tools';
 import { NostrClient } from '@nostrify/react';
+import { QUERY_LIMITS } from '../config/limits';
 
 // --- Types ---
 interface WotState {
@@ -13,6 +14,7 @@ interface WotState {
   lastCalculated: number | null;
   progress: number; // 0-100
   abortController: AbortController | null;
+  followLimit: number;
 }
 
 interface WotActions {
@@ -22,6 +24,7 @@ interface WotActions {
   calculateWot: (nostr: NostrClient, currentUserPubkey?: string) => Promise<void>;
   cancelCalculation: () => void;
   clearWot: () => void;
+  setFollowLimit: (followLimit: number) => void;
 }
 
 type WotStore = WotState & WotActions;
@@ -53,6 +56,7 @@ export const useWotStore = create<WotStore>()(
       lastCalculated: null,
       progress: 0,
       abortController: null,
+            followLimit: 250,
 
       // --- Actions ---
       setEnabled: (enabled) => set({ isWotEnabled: enabled }),
@@ -68,9 +72,10 @@ export const useWotStore = create<WotStore>()(
         get().abortController?.abort();
         set({ isLoading: false, progress: 0, abortController: null });
       },
+      setFollowLimit: (followLimit) => set({ followLimit }),
 
       calculateWot: async (nostr, currentUserPubkey) => {
-        const { degrees, startingPoint, abortController: existingAc } = get();
+        const { degrees, startingPoint, abortController: existingAc, followLimit } = get();
         if (existingAc) {
           existingAc.abort();
         }
@@ -118,6 +123,9 @@ export const useWotStore = create<WotStore>()(
             currentPubkeys = new Set();
 
             for (const event of contactLists) {
+              if (followLimit > 0 && event.tags.length > followLimit) {
+                continue;
+              }
               for (const tag of event.tags) {
                 if (tag[0] === 'p') {
                   const pubkey = tag[1];

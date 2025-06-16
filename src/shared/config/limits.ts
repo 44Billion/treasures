@@ -12,6 +12,7 @@ export const QUERY_LIMITS = {
   HOME_PAGE_LIMIT: 6,
   FAST_LOAD_LIMIT: 6, // Load 6 geocaches quickly for immediate display
   SKELETON_COUNT: 6, // Number of skeleton cards to show
+  WOT_MAX_FOLLOWS: 500, // Sensible default for WoT
 } as const;
 
 // Validation limits
