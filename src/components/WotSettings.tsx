@@ -97,7 +97,7 @@ export function WotSettings() {
           <p className="text-sm text-muted-foreground">
             The center of your trust network. Leave blank to use your own profile.
           </p>
-          <WotAuthorCard pubkey={startingPoint || user?.pubkey || ""} />
+          {(startingPoint || user?.pubkey) && <WotAuthorCard pubkey={startingPoint || user?.pubkey} />}
           <div className="flex gap-2">
             <Input
               id="starting-point"

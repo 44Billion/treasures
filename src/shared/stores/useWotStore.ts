@@ -169,6 +169,12 @@ export const useWotStore = create<WotStore>()(
         },
         removeItem: (name) => localStorage.removeItem(name),
       },
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(
+            ([key]) => !['isLoading', 'progress', 'abortController'].includes(key)
+          )
+        ),
     }
   )
 );
