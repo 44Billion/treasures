@@ -4,6 +4,7 @@ import { NostrEvent } from '@nostrify/nostrify';
 import type { GeocacheLog } from '@/types/geocache';
 import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/features/geocache/utils/nip-gc';
 import { verifyEmbeddedVerification, getEmbeddedVerification } from '@/features/geocache/utils/verification';
+import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
 import { Filter as NostrFilter } from 'nostr-tools';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
@@ -11,7 +12,8 @@ import { cacheManager } from '@/features/geocache/utils/cacheManager';
 
 export function useGeocacheLogs(geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, preferredRelays?: string[], verificationPubkey?: string) {
   const { nostr } = useNostr();
-  const { isWotEnabled, wotPubkeys } = useWotStore();
+  const isWotEnabled = useIsWotEnabled();
+  const { wotPubkeys } = useWotStore();
   
   // Note: Deletion filtering is now handled using utility functions
   

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { NIP_GC_KINDS, createGeocacheCoordinate } from '@/features/geocache/utils/nip-gc';
+import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
 import { Filter as NostrFilter } from 'nostr-tools';
 import { TIMEOUTS, POLLING_INTERVALS } from '@/shared/config';
@@ -13,7 +14,8 @@ export interface GeocacheStats {
 
 export function useGeocacheStats(geocacheDTag?: string, geocachePubkey?: string): GeocacheStats {
   const { nostr } = useNostr();
-  const { isWotEnabled, wotPubkeys } = useWotStore();
+  const isWotEnabled = useIsWotEnabled();
+  const { wotPubkeys } = useWotStore();
   // Note: Deletion filtering has been simplified for now
   
   const query = useQuery({

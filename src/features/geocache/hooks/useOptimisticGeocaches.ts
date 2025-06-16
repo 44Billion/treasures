@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { NIP_GC_KINDS, parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 // Note: Performance optimization functionality has been integrated into the new store system
+import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
 import { Filter as NostrFilter } from 'nostr-tools';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
@@ -44,7 +45,8 @@ export function useOptimisticGeocaches(
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
-  const { isWotEnabled, wotPubkeys } = useWotStore();
+  const isWotEnabled = useIsWotEnabled();
+  const { wotPubkeys } = useWotStore();
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
   // Note: Performance optimizations are now handled by the store system

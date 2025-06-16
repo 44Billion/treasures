@@ -6,6 +6,7 @@ import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '../../../shared/confi
 import { getAdaptiveTimeout } from '../../../shared/utils/network';
 import { cacheManager } from '@/features/geocache/utils/cacheManager';
 import { useEffect } from 'react';
+import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '../../../shared/stores/useWotStore';
 import { Filter as NostrFilter } from 'nostr-tools';
 
@@ -13,7 +14,8 @@ export function useGeocaches() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
-  const { isWotEnabled, wotPubkeys } = useWotStore();
+  const isWotEnabled = useIsWotEnabled();
+  const { wotPubkeys } = useWotStore();
 
   const queryKey = ['geocaches', isWotEnabled, Array.from(wotPubkeys).sort().join(',')];
 
