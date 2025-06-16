@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Smartphone } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageLayout } from "@/components/layout";
-import { Label } from "@/components/ui/label";
-import { OfflineSettings } from "@/components/OfflineSettings";
-import { RelaySelector } from "@/components/RelaySelector";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { PageLayout } from "../components/layout";
+import { Label } from "../components/ui/label";
+import { OfflineSettings } from "../components/OfflineSettings";
+import { RelaySelector } from "../components/RelaySelector";
+import { WotSettings } from "../components/WotSettings";
 
 import { useRelayConfig } from "@/features/geocache/hooks/useRelayConfig";
 
@@ -137,6 +138,9 @@ export default function Settings() {
         </Card>
 
 
+
+        {/* Web of Trust Settings */}
+        <WotSettings />
 
         {/* Offline & Sync Settings */}
         <Card>

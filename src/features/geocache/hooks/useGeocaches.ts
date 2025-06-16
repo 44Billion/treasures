@@ -1,19 +1,24 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { NIP_GC_KINDS, parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
-import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
-import { getAdaptiveTimeout } from '@/shared/utils/network';
+import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
+import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '../../../shared/config';
+import { getAdaptiveTimeout } from '../../../shared/utils/network';
 import { cacheManager } from '@/features/geocache/utils/cacheManager';
 import { useEffect } from 'react';
+import { useWotStore } from '../../../shared/stores/useWotStore';
+import { Filter as NostrFilter } from 'nostr-tools';
 
 export function useGeocaches() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
+  const { isWotEnabled, wotPubkeys } = useWotStore();
+
+  const queryKey = ['geocaches', isWotEnabled, Array.from(wotPubkeys).sort().join(',')];
 
   const query = useQuery({
-    queryKey: ['geocaches'],
+    queryKey,
     queryFn: async (c) => {
       // Check LRU cache first - if we have fresh data, use it
       const cached = cacheManager.getAllGeocaches();
@@ -29,10 +34,18 @@ export function useGeocaches() {
         const baseTimeout = c.meta?.isBackground ? TIMEOUTS.QUERY * 1.5 : TIMEOUTS.QUERY;
         const timeout = getAdaptiveTimeout(baseTimeout);
         const signal = AbortSignal.any([c.signal, AbortSignal.timeout(timeout)]);
-        const events = await nostr.query([{
-          kinds: [NIP_GC_KINDS.GEOCACHE], 
+
+        const filter: NostrFilter = {
+          kinds: [NIP_GC_KINDS.GEOCACHE],
           limit: QUERY_LIMITS.GEOCACHES
-        }], { signal });
+        };
+
+        // Apply Web of Trust filter if enabled
+        if (isWotEnabled && wotPubkeys.size > 0) {
+          filter.authors = Array.from(wotPubkeys);
+        }
+
+        const events = await nostr.query([filter], { signal });
 
         const geocaches = events.map(event => {
           const parsed = parseGeocacheEvent(event);
@@ -136,15 +149,26 @@ export function useGeocaches() {
 export function useNearbyGeocaches(lat?: number, lon?: number, radiusKm = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const { isWotEnabled, wotPubkeys } = useWotStore();
+
+  const queryKey = ['nearby-geocaches', lat, lon, radiusKm, isWotEnabled, Array.from(wotPubkeys).sort().join(',')];
 
   return useQuery({
-    queryKey: ['nearby-geocaches', lat, lon, radiusKm],
+    queryKey,
     queryFn: async (c) => {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
-      const events = await nostr.query([{
-        kinds: [NIP_GC_KINDS.GEOCACHE], 
-        limit: 500 
-      }], { signal });
+      
+      const filter: NostrFilter = {
+        kinds: [NIP_GC_KINDS.GEOCACHE],
+        limit: 500
+      };
+
+      // Apply Web of Trust filter if enabled
+      if (isWotEnabled && wotPubkeys.size > 0) {
+        filter.authors = Array.from(wotPubkeys);
+      }
+
+      const events = await nostr.query([filter], { signal });
 
       return events.map(event => {
         const parsed = parseGeocacheEvent(event);
