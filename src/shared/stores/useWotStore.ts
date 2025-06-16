@@ -55,7 +55,7 @@ export const useWotStore = create<WotStore>()(
       lastCalculated: null,
       progress: 0,
       abortController: null,
-      followLimit: 250,
+      followLimit: 0,
 
       // --- Actions ---
       setTrustLevel: (level) => set({ trustLevel: level }),
