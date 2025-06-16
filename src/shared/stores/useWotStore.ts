@@ -8,8 +8,7 @@ const MAX_WOT_PUBKEYS = 100000;
 
 // --- Types ---
 interface WotState {
-  isWotEnabled: boolean;
-  degrees: number;
+  trustLevel: number; // 0: disabled, 1: Strict, 2: Normal, 3: Lax
   startingPoint: string; // hex pubkey
   wotPubkeys: Set<string>;
   isLoading: boolean;
@@ -20,8 +19,7 @@ interface WotState {
 }
 
 interface WotActions {
-  setEnabled: (enabled: boolean) => void;
-  setDegrees: (degrees: number) => void;
+  setTrustLevel: (level: number) => void;
   setStartingPoint: (npubOrHex: string) => void;
   calculateWot: (nostr: NostrClient, currentUserPubkey?: string) => Promise<void>;
   cancelCalculation: () => void;
@@ -50,19 +48,17 @@ export const useWotStore = create<WotStore>()(
   persist(
     (set, get) => ({
       // --- State ---
-      isWotEnabled: false,
-      degrees: 2, // Default to "Normal"
+      trustLevel: 0, // Default to "disabled"
       startingPoint: '',
       wotPubkeys: new Set<string>(),
       isLoading: false,
       lastCalculated: null,
       progress: 0,
       abortController: null,
-            followLimit: 250,
+      followLimit: 250,
 
       // --- Actions ---
-      setEnabled: (enabled) => set({ isWotEnabled: enabled }),
-      setDegrees: (degrees) => set({ degrees }),
+      setTrustLevel: (level) => set({ trustLevel: level }),
       setStartingPoint: (npubOrHex) => {
         const hex = getHexPubkey(npubOrHex);
         if (hex) {
@@ -77,7 +73,7 @@ export const useWotStore = create<WotStore>()(
       setFollowLimit: (followLimit) => set({ followLimit }),
 
       calculateWot: async (nostr, currentUserPubkey) => {
-        const { degrees, startingPoint, abortController: existingAc, followLimit } = get();
+        const { trustLevel, startingPoint, abortController: existingAc, followLimit } = get();
         if (existingAc) {
           existingAc.abort();
         }
@@ -89,6 +85,12 @@ export const useWotStore = create<WotStore>()(
           console.warn('WoT calculation skipped: No starting point or current user.');
           return;
         }
+        
+        if (trustLevel === 0) {
+          console.warn('WoT calculation skipped: filter is disabled.');
+          set({ wotPubkeys: new Set(), lastCalculated: null, progress: 0 });
+          return;
+        }
 
         set({ isLoading: true, progress: 0, abortController: ac });
 
@@ -97,7 +99,7 @@ export const useWotStore = create<WotStore>()(
           const allWotPubkeys = new Set([rootPubkey]);
           const BATCH_SIZE = 100;
 
-          for (let i = 0; i < degrees; i++) {
+          for (let i = 0; i < trustLevel; i++) {
             if (ac.signal.aborted) throw new Error('Aborted');
             if (currentPubkeys.size === 0) {
               set({ progress: 100 });
@@ -107,7 +109,9 @@ export const useWotStore = create<WotStore>()(
             const pubkeyBatch = Array.from(currentPubkeys);
             const promises = [];
             
-            set({ progress: (i / degrees) * 100 });
+            if (trustLevel > 0) {
+              set({ progress: (i / trustLevel) * 100 });
+            }
 
             for (let j = 0; j < pubkeyBatch.length; j += BATCH_SIZE) {
               if (ac.signal.aborted) throw new Error('Aborted');

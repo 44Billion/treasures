@@ -1,4 +1,4 @@
-import { UserCheck, Users, Globe } from 'lucide-react';
+import { UserCheck, Users, Globe, XCircle, Swords } from 'lucide-react';
 import { useWotStore } from '../shared/stores/useWotStore';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '../features/auth/hooks/useCurrentUser';
@@ -6,7 +6,6 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
-import { Switch } from './ui/switch';
 import { Progress } from './ui/progress';
 import { WotAuthorCard } from './WotAuthorCard';
 
@@ -14,15 +13,13 @@ export function WotSettings() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const {
-    isWotEnabled,
-    degrees,
+    trustLevel,
     startingPoint,
     wotPubkeys,
     isLoading,
     lastCalculated,
     progress,
-    setEnabled,
-    setDegrees,
+    setTrustLevel,
     setStartingPoint,
     calculateWot,
     cancelCalculation,
@@ -37,6 +34,8 @@ export function WotSettings() {
   const handleStartingPointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setStartingPoint(e.target.value);
   };
+  
+  const isFilterEnabled = trustLevel > 0;
 
   return (
     <Card>
@@ -47,50 +46,51 @@ export function WotSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="wot-enabled">Enable Web of Trust Filter</Label>
-          <Switch
-            id="wot-enabled"
-            checked={isWotEnabled}
-            onCheckedChange={setEnabled}
-          />
-        </div>
-
         <div className="space-y-2">
           <Label>Trust Level</Label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Button
-              variant={degrees === 1 ? 'secondary' : 'outline'}
-              onClick={() => setDegrees(1)}
-              disabled={!isWotEnabled || isLoading}
+              variant={trustLevel === 1 ? 'secondary' : 'outline'}
+              onClick={() => setTrustLevel(1)}
+              disabled={isLoading}
               className="flex-1 flex-col h-auto py-2"
             >
               <UserCheck className="h-6 w-6 mb-1" />
               <span className="text-base">Strict</span>
             </Button>
             <Button
-              variant={degrees === 2 ? 'secondary' : 'outline'}
-              onClick={() => setDegrees(2)}
-              disabled={!isWotEnabled || isLoading}
+              variant={trustLevel === 2 ? 'secondary' : 'outline'}
+              onClick={() => setTrustLevel(2)}
+              disabled={isLoading}
               className="flex-1 flex-col h-auto py-2"
             >
               <Users className="h-6 w-6 mb-1" />
               <span className="text-base">Normal</span>
             </Button>
             <Button
-              variant={degrees === 3 ? 'secondary' : 'outline'}
-              onClick={() => setDegrees(3)}
-              disabled={!isWotEnabled || isLoading}
+              variant={trustLevel === 3 ? 'secondary' : 'outline'}
+              onClick={() => setTrustLevel(3)}
+              disabled={isLoading}
               className="flex-1 flex-col h-auto py-2"
             >
               <Globe className="h-6 w-6 mb-1" />
               <span className="text-base">Lax</span>
             </Button>
+            <Button
+              variant={trustLevel === 0 ? 'secondary' : 'outline'}
+              onClick={() => setTrustLevel(0)}
+              disabled={isLoading}
+              className="flex-1 flex-col h-auto py-2"
+            >
+              <Swords className="h-6 w-6 mb-1" />
+              <span className="text-base">All</span>
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            {degrees === 1 && "Strict: Only show content from people you directly follow."}
-            {degrees === 2 && "Normal: Include content from people your follows follow (recommended)."}
-            {degrees === 3 && "Lax: Include content from two degrees of separation."}
+            {trustLevel === 1 && "Strict: Only show content from people you directly follow."}
+            {trustLevel === 2 && "Normal: Include content from people your follows follow (recommended)."}
+            {trustLevel === 3 && "Lax: Include content from two degrees of separation."}
+            {trustLevel === 0 && "All: Show content from everyone (filter disabled)."}
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export function WotSettings() {
             <Button
               variant={followLimit === 150 ? 'secondary' : 'outline'}
               onClick={() => setFollowLimit(150)}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1"
             >
               150
@@ -108,7 +108,7 @@ export function WotSettings() {
             <Button
               variant={followLimit === 250 ? 'secondary' : 'outline'}
               onClick={() => setFollowLimit(250)}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1"
             >
               250
@@ -116,7 +116,7 @@ export function WotSettings() {
             <Button
               variant={followLimit === 500 ? 'secondary' : 'outline'}
               onClick={() => setFollowLimit(500)}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1"
             >
               500
@@ -124,7 +124,7 @@ export function WotSettings() {
             <Button
               variant={followLimit === 1000 ? 'secondary' : 'outline'}
               onClick={() => setFollowLimit(1000)}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1"
             >
               1000
@@ -132,7 +132,7 @@ export function WotSettings() {
             <Button
               variant={followLimit === 2500 ? 'secondary' : 'outline'}
               onClick={() => setFollowLimit(2500)}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1"
             >
               2500
@@ -140,7 +140,7 @@ export function WotSettings() {
             <Button
               variant={followLimit === 0 ? 'secondary' : 'outline'}
               onClick={() => setFollowLimit(0)}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1 text-lg"
             >
               &infin;
@@ -163,12 +163,12 @@ export function WotSettings() {
               placeholder={user?.pubkey || 'Defaults to your pubkey'}
               value={startingPoint}
               onChange={handleStartingPointChange}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               className="flex-1"
             />
             <Button
               onClick={() => setStartingPoint(user?.pubkey || '')}
-              disabled={!isWotEnabled || isLoading}
+              disabled={!isFilterEnabled || isLoading}
               variant="ghost"
             >
               Reset
@@ -201,7 +201,7 @@ export function WotSettings() {
                 Cancel
               </Button>
             )}
-            <Button onClick={handleCalculate} disabled={!isWotEnabled || isLoading}>
+            <Button onClick={handleCalculate} disabled={!isFilterEnabled || isLoading}>
               {isLoading ? 'Calculating...' : 'Recalculate Now'}
             </Button>
           </div>
