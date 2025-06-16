@@ -1,4 +1,4 @@
-import { UserCheck, Users, Globe, Swords, ChevronDown } from 'lucide-react';
+import { UserCheck, Users, Globe, Swords, ChevronDown, Info } from 'lucide-react';
 import { useWotStore } from '../shared/stores/useWotStore';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '../features/auth/hooks/useCurrentUser';
@@ -53,7 +53,7 @@ export function WotSettings() {
       <CardHeader>
         <CardTitle>Web of Trust Filter</CardTitle>
         <CardDescription>
-          Filter content based on your social network to reduce spam and discover relevant notes.
+          Filter geocache listings and logs based on your social network to reduce spam.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -107,6 +107,14 @@ export function WotSettings() {
             {trustLevel === 3 && "Lax: Include content from two degrees of separation."}
             {trustLevel === 0 && "All: Show content from everyone (filter disabled)."}
           </p>
+          {trustLevel === 3 && (
+            <div className="flex items-center gap-2 text-sm text-foreground bg-background border rounded-lg p-3 mt-2">
+              <Info className="h-5 w-5 flex-shrink-0" />
+              <p>
+                Lax mode may be slow to calculate depending on the following count.
+              </p>
+            </div>
+          )}
         </div>
 
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
@@ -140,7 +148,7 @@ export function WotSettings() {
                       key={peg}
                       className="text-xs text-muted-foreground"
                     >
-                      {peg === 0 ? <span className="text-lg">&infin;</span> : peg}
+                      {peg === 0 ? <span>&infin;</span> : peg}
                     </span>
                   ))}
                 </div>
@@ -151,15 +159,15 @@ export function WotSettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="starting-point">Starting Point (pubkey or hex)</Label>
+              <Label htmlFor="starting-point">Starting User (npub or hex)</Label>
               <p className="text-sm text-muted-foreground">
-                The center of your trust network. Use your own profile by default.
+                The center of your trust network. Use a valid public key, or your own by default.
               </p>
               {(startingPoint || user?.pubkey) && <WotAuthorCard pubkey={startingPoint || user?.pubkey || ""} />}
               <div className="flex gap-2">
                 <Input
                   id="starting-point"
-                  placeholder={user?.pubkey || 'Defaults to your pubkey'}
+                  placeholder='Enter a valid pubkey (npub or hex)'
                   value={startingPoint}
                   onChange={handleStartingPointChange}
                   disabled={!isFilterEnabled || isLoading}
@@ -203,7 +211,7 @@ export function WotSettings() {
               </Button>
             )}
             <Button onClick={handleCalculate} disabled={!isFilterEnabled || isLoading}>
-              {isLoading ? 'Calculating...' : 'Recalculate Now'}
+              {isLoading ? 'Updating...' : 'Update'}
             </Button>
           </div>
         </div>

@@ -62,9 +62,9 @@ export function WotAuthorCard({ pubkey }: WotAuthorCardProps) {
           <AvatarFallback>{metadata?.name?.charAt(0) || '?'}</AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-semibold">{metadata?.name || 'Unknown User'}</p>
+          <p className="font-semibold">{metadata?.name || 'Unknown User'} {metadata?.nip05 && `(${metadata.nip05})`}</p>
           <p className="text-sm text-muted-foreground">
-            {author.pubkey ? nip19.npubEncode(author.pubkey).slice(0, 12) + '...' : ''}
+            {authorPubkey ? nip19.npubEncode(authorPubkey).slice(0, 20) + '...' : ''}
           </p>
         </div>
       </CardContent>
