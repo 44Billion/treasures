@@ -198,13 +198,13 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{invoice ? 'Manual Zap' : 'Send a Zap'}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription asChild>
             {invoice ? (
-              <p>Scan the QR code with a lightning-enabled wallet or copy the invoice below.</p>
+              <div>Scan the QR code with a lightning-enabled wallet or copy the invoice below.</div>
             ) : (
               <>
-                <p>Zaps are small Bitcoin payments that support the creator of this geocache.</p>
-                <p className="mt-2">If you enjoyed this treasure, consider sending a zap!</p>
+                <div>Zaps are small Bitcoin payments that support the creator of this geocache.</div>
+                <div className="mt-2">If you enjoyed this treasure, consider sending a zap!</div>
               </>
             )}
           </DialogDescription>
