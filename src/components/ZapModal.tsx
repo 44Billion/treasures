@@ -2,7 +2,6 @@ import { useToast } from '@/shared/hooks/useToast';
 import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
-import { requestProvider } from 'webln';
 import type { WebLNProvider } from 'webln';
 import type { Geocache } from '@/types/geocache';
 import { nip57, Event } from 'nostr-tools';
@@ -66,13 +65,13 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
   const { user } = useCurrentUser();
   const { mutate: publishEvent } = useNostrPublish();
   const author = useAuthor(geocache.pubkey);
-    const [amount, setAmount] = useState<number | string>('');
+  const [amount, setAmount] = useState<number | string>(100);
   const [isZapping, setIsZapping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
-      setAmount('');
+      setAmount(100);
     }
   }, [open]);
 
@@ -189,7 +188,8 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
         <DialogHeader>
           <DialogTitle>Send a Zap</DialogTitle>
           <DialogDescription>
-            Choose an amount or enter a custom value to send to the geocache owner.
+            <p>Zaps are small Bitcoin payments that support the creator of this geocache.</p>
+            <p className="mt-2">If you enjoyed this treasure, consider sending a zap!</p>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

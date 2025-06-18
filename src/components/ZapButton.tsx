@@ -30,7 +30,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)} disabled={!webln || !user}>
+      <Button size="sm" onClick={() => setIsModalOpen(true)} disabled={!webln || !user} className="bg-black text-white hover:bg-gray-800">
         <Zap className="h-4 w-4" />
       </Button>
       <ZapModal open={isModalOpen} onOpenChange={setIsModalOpen} geocache={geocache} webln={webln} />
