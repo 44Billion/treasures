@@ -100,7 +100,7 @@ These events capture failures, notes, and status-related information about the c
 
 Comment log types include `dnf` (did not find), `note` (helpful or neutral context), and `maintenance` (cache needs attention). If no `t` tag is present, the comment is assumed to be a general note.
 
-Owners of the cache can officially retire caches using an `archived` tag, thus allowing the cache's history to be preserved without fully deleting it.
+Owners of the cache can officially retire caches using an `archived` tag value in the tag `t`, thus allowing the cache's history to be preserved without fully deleting it.
 
 ### Tags
 
