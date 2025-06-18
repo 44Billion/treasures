@@ -143,7 +143,7 @@ The content field must follow the static format: `"Geocache verification for <fi
 
 Verification events are created when a finder obtains access to the cache's verification private key (typically via QR code at the cache location). The event must be signed by the cache's verification private key and can be:
 
-1. Embedded in the log event's `verification` tag as a JSON string
+1. Embedded in the `verification` tag as a JSON string in the Verified Found Log event (kind 7516).
 2. Published to relays as standalone events
 3. Both embedded and published for redundancy
 
