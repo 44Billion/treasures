@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { nip57 } from "nostr-tools";
 import { ZapButton } from "@/components/ZapButton";
 import { useZaps } from "@/features/zaps/hooks/useZaps";
 import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap } from "lucide-react";
@@ -376,6 +377,15 @@ export default function CacheDetail() {
     return null;
   }
 
+
+  const totalZapAmount = zaps.reduce((total, zap) => {
+    const bolt11 = zap.tags.find((t) => t[0] === 'bolt11')?.[1];
+    if (bolt11) {
+      return total + nip57.getSatoshisAmountFromBolt11(bolt11);
+    }
+    return total;
+  }, 0);
+
   const isOwner = user && user.pubkey === typedGeocache.pubkey;
   const authorName = author.data?.metadata?.name || typedGeocache.pubkey.slice(0, 8);
   const profilePicture = author.data?.metadata?.picture;
@@ -421,7 +431,7 @@ export default function CacheDetail() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Zap className="h-4 w-4" />
-                          {zaps.length}
+                          {totalZapAmount.toLocaleString()} sats
                         </span>
                       </div>
                     </div>

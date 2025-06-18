@@ -100,7 +100,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
             await webln.sendPayment(invoice);
             toast({
               title: 'Zap successful!',
-              description: `You sent 21 sats to the cache owner.`,
+              description: `You sent ${amount / 1000} sats to the cache owner.`,
             });
           } catch (err) {
             console.error('Zap error:', err);
