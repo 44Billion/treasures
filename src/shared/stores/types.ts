@@ -96,6 +96,7 @@ export interface LogStoreState extends BaseStoreState {
   logsByGeocache: Record<string, GeocacheLog[]>;
   recentLogs: GeocacheLog[];
   userLogs: GeocacheLog[];
+  zapsByLogId: Record<string, NostrEvent[]>;
   syncStatus: SyncStatus;
   cacheStats: CacheStats;
 }
@@ -105,6 +106,7 @@ export interface LogStoreActions {
   fetchLogs: (geocacheId: string) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchRecentLogs: (limit?: number) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchUserLogs: (pubkey: string) => Promise<StoreActionResult<GeocacheLog[]>>;
+  fetchZapsForLog: (logId: string) => Promise<StoreActionResult<NostrEvent[]>>;
   
   // CRUD operations
   createLog: (log: Partial<GeocacheLog>) => Promise<StoreActionResult<GeocacheLog>>;

@@ -3,7 +3,7 @@ import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
 import type { WebLNProvider } from 'webln';
-import type { Geocache } from '@/types/geocache';
+import type { ZapTarget } from '@/types/zaps';
 import { nip57, Event } from 'nostr-tools';
 import QRCode from 'qrcode';
 import { Zap, BadgeCent, Coins, HandCoins, Gem, Copy } from 'lucide-react';
@@ -24,7 +24,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 interface ZapModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  geocache: Geocache;
+  target: ZapTarget;
   webln: WebLNProvider | null;
 }
 
@@ -61,11 +61,11 @@ const presetAmounts = [
   { amount: 1000, icon: Chest },
 ];
 
-export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps) {
+export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
   const { toast } = useToast();
   const { user } = useCurrentUser();
   const { mutate: publishEvent } = useNostrPublish();
-  const author = useAuthor(geocache.pubkey);
+  const author = useAuthor(target?.pubkey);
   const [amount, setAmount] = useState<number | string>(100);
   const [isZapping, setIsZapping] = useState(false);
   const [invoice, setInvoice] = useState<string | null>(null);
@@ -95,6 +95,7 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
   }, [open]);
 
     const handleZap = async () => {
+    if (!target) return;
     const finalAmount = typeof amount === 'string' ? parseInt(amount, 10) : amount;
     if (finalAmount <= 0) {
       return;
@@ -117,7 +118,7 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
       if (!lud16) {
         toast({
           title: 'Lightning address not found',
-          description: 'The geocache owner does not have a lightning address configured.',
+          description: 'The author does not have a lightning address configured.',
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -127,7 +128,7 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
       if (!author.data) {
         toast({
           title: 'Author not found',
-          description: 'Could not find the author of this geocache.',
+          description: 'Could not find the author of this item.',
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -138,7 +139,7 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
       if (!zapEndpoint) {
         toast({
           title: 'Zap endpoint not found',
-          description: 'Could not find a zap endpoint for the geocache owner.',
+          description: 'Could not find a zap endpoint for the author.',
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -148,8 +149,8 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
       const zapAmount = finalAmount * 1000; // convert to millisats
       const relays = ['wss://relay.damus.io', 'wss://relay.primal.net', 'wss://relay.snort.social'];
       const zapRequest = nip57.makeZapRequest({
-        profile: geocache.pubkey,
-        event: geocache.id,
+        profile: target.pubkey,
+        event: target.id,
         amount: zapAmount,
         relays,
         comment: 'Zap for a geocache!',
@@ -165,7 +166,7 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
               await webln.sendPayment(invoice);
               toast({
                 title: 'Zap successful!',
-                description: `You sent ${finalAmount} sats to the cache owner.`,
+                description: `You sent ${finalAmount} sats to the author.`,
               });
               onOpenChange(false);
             } else {
@@ -203,8 +204,8 @@ export function ZapModal({ open, onOpenChange, geocache, webln }: ZapModalProps)
               <div>Scan the QR code with a lightning-enabled wallet or copy the invoice below.</div>
             ) : (
               <>
-                <div>Zaps are small Bitcoin payments that support the creator of this geocache.</div>
-                <div className="mt-2">If you enjoyed this treasure, consider sending a zap!</div>
+                <div>Zaps are small Bitcoin payments that support the creator of this item.</div>
+                <div className="mt-2">If you enjoyed this, consider sending a zap!</div>
               </>
             )}
           </DialogDescription>

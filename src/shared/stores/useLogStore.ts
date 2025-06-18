@@ -43,6 +43,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     logsByGeocache: {},
     recentLogs: [],
     userLogs: [],
+    zapsByLogId: {},
     syncStatus: baseStore.getSyncStatus(),
     cacheStats: baseStore.getCacheStats(),
   }));
@@ -194,6 +195,29 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       return userLogs;
     }, 'fetchUserLogs');
   }, [baseStore, user?.pubkey]);
+
+  const fetchZapsForLog = useCallback(async (logId: string): Promise<StoreActionResult<NostrEvent[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
+      const events = await baseStore.nostr.query(
+        [
+          {
+            kinds: [9735],
+            '#e': [logId],
+          },
+        ],
+        { signal }
+      );
+      updateState({
+        zapsByLogId: {
+          ...state.zapsByLogId,
+          [logId]: events,
+        },
+      });
+      return events;
+    }, 'fetchZapsForLog');
+  }, [baseStore, state.zapsByLogId]);
+
 
   // CRUD operations - Real implementations
   const createLogMutation = useMutation({
@@ -510,6 +534,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     fetchLogs,
     fetchRecentLogs,
     fetchUserLogs,
+    fetchZapsForLog,
     
     // CRUD operations
     createLog,
@@ -537,6 +562,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     fetchLogs,
     fetchRecentLogs,
     fetchUserLogs,
+    fetchZapsForLog,
     createLog,
     createVerifiedLog,
     deleteLog,

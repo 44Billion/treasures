@@ -1,4 +1,4 @@
-import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck } from "lucide-react";
+import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck, Zap } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -25,8 +25,13 @@ import { useDeleteLog } from "@/features/logging/hooks/useDeleteLog";
 import { useToast } from "@/shared/hooks/useToast";
 import { formatDistanceToNow } from "@/shared/utils/date";
 import { BlurredImage } from "@/components/BlurredImage";
+import { useLogStore } from "@/shared/stores/useLogStore";
+import { ZapButton } from "@/components/ZapButton";
+import { useEffect, useMemo } from "react";
+import { nip57 } from "nostr-tools";
 
 import type { GeocacheLog } from "@/types/geocache";
+
 
 interface LogListProps {
   logs: GeocacheLog[];
@@ -56,6 +61,28 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
   const { user } = useCurrentUser();
   const { mutate: deleteLog, isPending: isDeleting } = useDeleteLog();
   const { toast } = useToast();
+  const { zapsByLogId, fetchZapsForLog } = useLogStore();
+
+  useEffect(() => {
+    if (log.id) {
+      fetchZapsForLog(log.id);
+    }
+  }, [log.id, fetchZapsForLog]);
+
+  const zaps = useMemo(() => zapsByLogId[log.id] || [], [zapsByLogId, log.id]);
+  const totalZapAmount = useMemo(() => {
+    return zaps.reduce((total, zap) => {
+      try {
+        const zapRequest = nip57.parseZapRequest(zap);
+        if (zapRequest && zapRequest.amount) {
+          return total + zapRequest.amount;
+        }
+      } catch (e) {
+        // ignore invalid zap requests
+      }
+      return total;
+    }, 0);
+  }, [zaps]);
   
   // Graceful handling of author data loading
   const isLoadingAuthor = author.isLoading;
@@ -212,62 +239,71 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
 
               </div>
               
-              <AlertDialog>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size={compact ? "sm" : "sm"}
-                      className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus:shadow-none focus-visible:shadow-none active:outline-none"
-                      disabled={isDeleting}
-                      style={{ outline: 'none', boxShadow: 'none' }}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end"
-                    side="bottom"
-                    sideOffset={8}
-                    avoidCollisions={true}
-                    collisionPadding={{ bottom: 80 }} // Account for mobile nav bar
-                  >
-                    <DropdownMenuItem onClick={handleCopyEventId} className="focus:outline-none">
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Event ID
-                    </DropdownMenuItem>
-                    {isOwnLog && (
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem className="text-red-600 focus:text-red-600">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete log
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                {isOwnLog && (
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete log?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete your log. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeleteLog}
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
+              <div className="flex items-center gap-2">
+                {totalZapAmount > 0 && (
+                  <div className="flex items-center text-xs text-gray-600">
+                    <Zap className="h-4 w-4 mr-1 text-yellow-500" />
+                    {totalZapAmount.toLocaleString()} sats
+                  </div>
                 )}
-              </AlertDialog>
+                <ZapButton target={log} />
+                <AlertDialog>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size={compact ? "sm" : "sm"}
+                        className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus:shadow-none focus-visible:shadow-none active:outline-none"
+                        disabled={isDeleting}
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end"
+                      side="bottom"
+                      sideOffset={8}
+                      avoidCollisions={true}
+                      collisionPadding={{ bottom: 80 }} // Account for mobile nav bar
+                    >
+                      <DropdownMenuItem onClick={handleCopyEventId} className="focus:outline-none">
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Event ID
+                      </DropdownMenuItem>
+                      {isOwnLog && (
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete log
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {isOwnLog && (
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete log?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete your log. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handleDeleteLog}
+                          className="bg-red-600 hover:bg-red-700"
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  )}
+                </AlertDialog>
+              </div>
             </div>
             
             <p className={`whitespace-pre-wrap ${compact ? "text-xs" : "text-sm"}`}>{log.text}</p>

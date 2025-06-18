@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { requestProvider } from 'webln';
 import type { WebLNProvider } from 'webln';
-import type { Geocache } from '@/types/geocache';
+import type { ZapTarget } from '@/types/zaps';
 import { ZapModal } from './ZapModal';
 
 interface ZapButtonProps {
-  geocache: Geocache;
+  target: ZapTarget;
 }
 
-export function ZapButton({ geocache }: ZapButtonProps) {
+export function ZapButton({ target }: ZapButtonProps) {
   const [webln, setWebln] = useState<WebLNProvider | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useCurrentUser();
@@ -33,7 +33,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
       <Button size="sm" onClick={() => setIsModalOpen(true)} disabled={!user} className="bg-black text-white hover:bg-gray-800">
         <Zap className="h-4 w-4" />
       </Button>
-      <ZapModal open={isModalOpen} onOpenChange={setIsModalOpen} geocache={geocache} webln={webln} />
+      {isModalOpen && <ZapModal open={isModalOpen} onOpenChange={setIsModalOpen} target={target} webln={webln} />}
     </>
   );
 }
