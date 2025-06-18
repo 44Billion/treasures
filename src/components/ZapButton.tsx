@@ -9,6 +9,7 @@ import { requestProvider } from 'webln';
 import type { WebLNProvider } from 'webln';
 import type { Geocache } from '@/types/geocache';
 import { nip57, Event } from 'nostr-tools';
+import { ZapModal } from './ZapModal';
 
 interface ZapButtonProps {
   geocache: Geocache;
@@ -19,6 +20,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
   const { user } = useCurrentUser();
   const { mutate: publishEvent } = useNostrPublish();
   const [webln, setWebln] = useState<WebLNProvider | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const author = useAuthor(geocache.pubkey);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
     getWeblnProvider();
   }, []);
 
-  const handleZap = async () => {
+  const handleZap = async (sats: number) => {
     if (!webln) {
       toast({
         title: 'WebLN not found',
@@ -82,7 +84,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
         return;
       }
 
-      const amount = 21000; // 21 sats in millisats
+      const amount = sats * 1000; // convert to millisats
       const relays = ['wss://relay.damus.io', 'wss://relay.primal.net', 'wss://relay.snort.social'];
       const zapRequest = nip57.makeZapRequest({
         profile: geocache.pubkey,
@@ -100,7 +102,7 @@ export function ZapButton({ geocache }: ZapButtonProps) {
             await webln.sendPayment(invoice);
             toast({
               title: 'Zap successful!',
-              description: `You sent ${amount / 1000} sats to the cache owner.`,
+              description: `You sent ${sats} sats to the cache owner.`,
             });
           } catch (err) {
             console.error('Zap error:', err);
@@ -122,8 +124,11 @@ export function ZapButton({ geocache }: ZapButtonProps) {
   };
 
   return (
-    <Button variant="outline" size="sm" onClick={handleZap} disabled={!webln || !user}>
-      <Zap className="h-4 w-4" />
-    </Button>
+    <>
+      <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)} disabled={!webln || !user}>
+        <Zap className="h-4 w-4" />
+      </Button>
+      <ZapModal open={isModalOpen} onOpenChange={setIsModalOpen} onZap={handleZap} />
+    </>
   );
 }
