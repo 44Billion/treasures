@@ -28,6 +28,7 @@ interface BaseGeocacheCardProps {
   cache: {
     id: string;
     dTag: string;
+    naddr?: string;
     pubkey: string;
     name: string;
     location: {
@@ -113,7 +114,7 @@ export function GeocacheCard({
   const { theme } = useTheme();
   const { navigateToGeocache } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
-  const { data: zaps = [] } = useZaps(cache.id);
+  const { data: zaps = [] } = useZaps(cache.id, cache.naddr);
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
   const profilePicture = author.data?.metadata?.picture;
 

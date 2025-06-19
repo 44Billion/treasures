@@ -3,6 +3,7 @@ export interface Geocache {
   pubkey: string;
   created_at: number;
   dTag: string; // Store the d-tag for proper replacement
+  naddr?: string; // The naddr of the geocache
   name: string;
   description: string;
   hint?: string;

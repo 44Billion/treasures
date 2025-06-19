@@ -77,7 +77,7 @@ export default function CacheDetail() {
     typedGeocache?.relays,
     typedGeocache?.verificationPubkey
   );
-  const { data: zaps = [] } = useZaps(typedGeocache?.id || "");
+  const { data: zaps = [] } = useZaps(typedGeocache?.id || "", typedGeocache?.naddr);
   const {
     confirmSingleDeletion,
     isConfirmDialogOpen,
@@ -438,7 +438,7 @@ export default function CacheDetail() {
 
                   </div>
                   <div className="flex gap-1 sm:gap-2 flex-shrink-0 ml-2">
-                    <ZapButton target={{ id: typedGeocache.id, pubkey: typedGeocache.pubkey }} />
+                    <ZapButton target={typedGeocache} />
                     {!isOwner && <SaveButton geocache={typedGeocache} />}
                     {isOwner && (
                       <>

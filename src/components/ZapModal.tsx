@@ -4,7 +4,7 @@ import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
 import type { WebLNProvider } from 'webln';
 import type { ZapTarget } from '@/types/zaps';
-import { nip57, Event } from 'nostr-tools';
+import { nip57, nip19, Event } from 'nostr-tools';
 import QRCode from 'qrcode';
 import { Zap, BadgeCent, Coins, HandCoins, Gem, Copy } from 'lucide-react';
 import { chest as chestPaths } from '@lucide/lab';
@@ -155,6 +155,13 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
         relays,
         comment: 'Zap for a geocache!',
       });
+
+      if ('naddr' in target && target.naddr) {
+        const naddr = nip19.decode(target.naddr).data as nip19.AddressPointer;
+        zapRequest.tags.push(["a", `${naddr.kind}:${naddr.pubkey}:${naddr.identifier}`]);
+        // remove the e tag
+        zapRequest.tags = zapRequest.tags.filter(t => t[0] !== 'e');
+      }
 
       publishEvent(zapRequest, {
         onSuccess: async (event) => {

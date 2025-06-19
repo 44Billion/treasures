@@ -225,6 +225,7 @@ export function useGeocacheByNaddr(naddr: string) {
 
         const result = {
           ...geocache,
+          naddr,
           foundCount,
           logCount,
         };
