@@ -38,7 +38,6 @@ export function useOptimisticGeocaches(
   const {
     enablePolling = true,
     enablePrefetching = true,
-    fastInitialLoad = true,
     staleWhileRevalidate = true,
   } = options;
 
@@ -50,46 +49,6 @@ export function useOptimisticGeocaches(
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
   // Note: Performance optimizations are now handled by the store system
-
-  // Fast initial load with smaller limit - prioritize speed over completeness
-  const fastQuery = useQuery({
-    queryKey: ['geocaches-fast', isWotEnabled, Array.from(wotPubkeys).sort().join(',')],
-    queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.OPTIMISTIC_LOAD)]);
-      
-      const events = await nostr.query([{
-        kinds: [NIP_GC_KINDS.GEOCACHE], 
-        limit: QUERY_LIMITS.FAST_LOAD_LIMIT // Load first 6 quickly
-      }], { signal });
-
-      const geocaches = events.map(event => {
-        const parsed = parseGeocacheEvent(event);
-        if (!parsed) return null;
-        if (parsed.hidden && parsed.pubkey !== user?.pubkey) return null;
-        return {
-          ...parsed,
-          foundCount: 0,
-          logCount: 0,
-        };
-      }).filter(Boolean);
-
-      if (isWotEnabled && wotPubkeys.size > 0) {
-        return geocaches.filter(geocache => wotPubkeys.has(geocache.pubkey));
-      }
-
-
-      // Note: Cache warming is now handled automatically by the store system
-
-      return geocaches;
-    },
-    enabled: fastInitialLoad,
-    staleTime: 180000, // 3 minutes - longer for stability
-    gcTime: 900000, // 15 minutes
-    refetchOnWindowFocus: false,
-    // Keep data stable
-    placeholderData: (previousData) => previousData,
-    networkMode: 'online',
-  });
 
   // Full query with all geocaches - run in parallel with fast query
   const fullQuery = useQuery({
@@ -134,18 +93,17 @@ export function useOptimisticGeocaches(
 
   // Track when data was last updated
   useEffect(() => {
-    const query = fullQuery.data ? fullQuery : fastQuery;
-    if (query.dataUpdatedAt) {
-      setLastUpdated(new Date(query.dataUpdatedAt));
+    if (fullQuery.dataUpdatedAt) {
+      setLastUpdated(new Date(fullQuery.dataUpdatedAt));
     }
-  }, [fullQuery.dataUpdatedAt, fastQuery.dataUpdatedAt, fullQuery.data, fastQuery.data]);
+  }, [fullQuery.dataUpdatedAt]);
 
   // Prefetch logs for visible geocaches
   const prefetchLogs = useCallback((geocacheIds: string[]) => {
     if (!enablePrefetching) return;
 
     geocacheIds.slice(0, 5).forEach(geocacheId => {
-      const geocache = (fullQuery.data || fastQuery.data)?.find((g: any) => g.id === geocacheId);
+      const geocache = (fullQuery.data)?.find((g: any) => g.id === geocacheId);
       if (!geocache?.dTag || !geocache?.pubkey) return;
 
       queryClient.prefetchQuery({
@@ -178,51 +136,41 @@ export function useOptimisticGeocaches(
         staleTime: 60000,
       });
     });
-  }, [enablePrefetching, queryClient, nostr, fullQuery.data, fastQuery.data]);
+  }, [enablePrefetching, queryClient, nostr, fullQuery.data]);
 
   // Auto-prefetch for top geocaches
   useEffect(() => {
-    const geocaches = fullQuery.data || fastQuery.data;
+    const geocaches = fullQuery.data;
     if (geocaches && geocaches.length > 0) {
       const topGeocacheIds = geocaches.slice(0, 3).map((g: any) => g.id);
       prefetchLogs(topGeocacheIds);
     }
-  }, [fullQuery.data, fastQuery.data, prefetchLogs]);
+  }, [fullQuery.data, prefetchLogs]);
 
   // Manual refresh function
   const refresh = useCallback(async () => {
     // Force immediate refetch of both queries
-    await Promise.all([
-      fastQuery.refetch(),
-      fullQuery.refetch(),
-    ]);
-  }, [fastQuery, fullQuery]);
+    await fullQuery.refetch();
+  }, [fullQuery]);
 
   // Determine which data to use
-  const primaryQuery = fullQuery.data ? fullQuery : fastQuery;
-  const geocaches = primaryQuery.data || [];
+  const geocaches = fullQuery.data || [];
   
   // Ensure we always have an array and track if we have attempted to load data
-  const hasAttemptedLoad = fastQuery.isFetched || fullQuery.isFetched;
+  const hasAttemptedLoad = fullQuery.isFetched;
   
   // Smart loading states
-  const isInitialLoading = fastInitialLoad 
-    ? (fastQuery.isLoading && !fastQuery.data)
-    : (fullQuery.isLoading && !fullQuery.data);
+  const isInitialLoading = (fullQuery.isLoading && !fullQuery.data);
   
   // Only show fetching for manual refreshes, not background polling
-  const isFetching = (fastQuery.isFetching && !fastQuery.isRefetching) || 
-                     (fullQuery.isFetching && !fullQuery.isRefetching);
-  const isError = primaryQuery.isError;
-  const error = primaryQuery.error as Error | null;
+  const isFetching = (fullQuery.isFetching && !fullQuery.isRefetching);
+  const isError = fullQuery.isError;
+  const error = fullQuery.error as Error | null;
   const hasInitialData = hasAttemptedLoad; // True if we've attempted to load data, regardless of results
   
   // Data is stale only if we're showing fast data while full data loads
   // Don't show stale state for background polling/refetching
-  const isStale = staleWhileRevalidate && (
-    (fastQuery.data && fullQuery.isLoading && !fullQuery.data) ||
-    (primaryQuery.isStale && !primaryQuery.isFetching && !primaryQuery.isRefetching)
-  );
+  const isStale = staleWhileRevalidate && (fullQuery.isStale && !fullQuery.isFetching && !fullQuery.isRefetching);
 
   return {
     geocaches,
