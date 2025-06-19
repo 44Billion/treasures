@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface ZapModalProps {
@@ -67,6 +68,21 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
   const { mutate: publishEvent } = useNostrPublish();
   const author = useAuthor(target?.pubkey);
   const [amount, setAmount] = useState<number | string>(100);
+  const [comment, setComment] = useState<string>('');
+
+  useEffect(() => {
+    if (target) {
+      if ('geocacheId' in target) {
+        // This is a GeocacheLog
+        setComment(`Zap for Log on ${target.geocacheId}`);
+      } else if ('name' in target) {
+        // This is a Geocache
+        setComment(`Zap for Geocache - ${target.name}`);
+      } else {
+        setComment('Zap for a geocache!');
+      }
+    }
+  }, [target]);
   const [isZapping, setIsZapping] = useState(false);
   const [invoice, setInvoice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -153,7 +169,7 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
         event: target.id,
         amount: zapAmount,
         relays,
-        comment: 'Zap for a geocache!',
+        comment: comment,
       });
 
       if ('naddr' in target && target.naddr) {
@@ -263,6 +279,12 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
                 placeholder="Custom amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+              />
+              <Textarea
+                id="custom-comment"
+                placeholder="Custom comment"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
               />
             </div>
             <DialogFooter>
