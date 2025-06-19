@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useStore } from 'zustand';
 import { HintDisplay } from "@/components/ui/hint-display";
-import { Navigation, Calendar, User, ExternalLink } from "lucide-react";
+import { Navigation, Calendar, User, ExternalLink, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BaseDialog } from "@/components/ui/base-dialog";
@@ -9,6 +10,9 @@ import { TabsContent } from "@/components/ui/tabs";
 import { CacheDetailTabs } from "@/components/ui/mobile-button-patterns";
 import { GeocacheMap } from "@/features/map/components/GeocacheMap";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
+import { useZapStore } from "@/shared/stores/useZapStore";
+import { ZapButton } from "@/components/ZapButton";
+import { ZapModal } from "@/components/ZapModal";
 
 import { useAuthor } from "@/features/auth/hooks/useAuthor";
 import { LogsSection } from "@/features/logging/components/LogsSection";
@@ -43,6 +47,10 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
   // Safely handle logs data
   const logs: GeocacheLog[] = Array.isArray(logsData) ? logsData : [];
   const author = useAuthor(geocache?.pubkey || "");
+  const getZapTotal = useStore(useZapStore, (state) => state.getZapTotal);
+  const naddr = geocache ? geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays) : "";
+  const totalSats = getZapTotal(naddr ? `naddr:${naddr}` : `event:${geocache?.id}`);
+  const [zapModalOpen, setZapModalOpen] = useState(false);
   
   // Image gallery state
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -104,6 +112,10 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
           <span className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
             {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
+          </span>
+          <span className="flex items-center gap-1">
+            <Zap className="h-4 w-4" />
+            {totalSats.toLocaleString()} sats
           </span>
         </div>
 
@@ -229,6 +241,12 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 <Navigation className="h-4 w-4 mr-2" />
                 Get Directions
               </Button>
+              <ZapButton
+                size="sm"
+                className="w-full"
+                onClick={() => setZapModalOpen(true)}
+                totalSats={totalSats}
+              />
             </div>
           </div>
         </div>
@@ -249,6 +267,12 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         pubkey={selectedProfilePubkey}
         isOpen={profileDialogOpen}
         onOpenChange={setProfileDialogOpen}
+      />
+      <ZapModal
+        isOpen={zapModalOpen}
+        onOpenChange={setZapModalOpen}
+        geocache={geocache}
+        author={author.data}
       />
     </>
   );
