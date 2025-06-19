@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { FullPageLoading, ComponentLoading } from '@/components/ui/loading';
 
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
-import { DetailedGeocacheCard } from '@/components/ui/geocache-card';
+import { GeocacheCard, DetailedGeocacheCard } from '@/components/ui/geocache-card';
 import { EditProfileForm } from '@/features/profile/components/EditProfileForm';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
@@ -253,20 +253,15 @@ export default function Profile() {
                 }
               />
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {userCachesWithDistance
                   .filter(cache => cache.id && cache.dTag && cache.pubkey && cache.name && cache.location)
                   .map((cache) => (
-                    <DetailedGeocacheCard
+                    <GeocacheCard
                       key={cache.id}
                       cache={cache}
                       distance={cache.distance}
-                      metadata={
-                        <>
-                          Created {formatDistanceToNow(new Date((cache.created_at || 0) * 1000), { addSuffix: true })}
-                        </>
-                      }
-                      showAuthor={!isOwnProfile}
+                      variant="featured"
                     />
                   ))}
               </div>
@@ -301,17 +296,13 @@ export default function Profile() {
                 }
               />
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {foundCachesWithDistance.map((cache) => (
-                  <DetailedGeocacheCard
+                  <GeocacheCard
                     key={cache.logId}
                     cache={cache}
                     distance={cache.distance}
-                    metadata={
-                      <>
-                        Found {formatDistanceToNow(new Date(cache.foundAt * 1000), { addSuffix: true })}
-                      </>
-                    }
+                    variant="featured"
                   />
                 ))}
               </div>
@@ -345,18 +336,13 @@ export default function Profile() {
                   }
                 />
               ) : (
-                <div className="space-y-4">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {savedCachesWithDistance.map((cache) => (
-                    <DetailedGeocacheCard
+                    <GeocacheCard
                       key={cache.id}
                       cache={cache}
                       distance={cache.distance}
-                      metadata={
-                        <>
-                          Saved {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
-                        </>
-                      }
-                      showAuthor={true}
+                      variant="featured"
                     />
                   ))}
                 </div>

@@ -204,24 +204,24 @@ export function GeocacheCard({
           </Badge>
         )}
       </div>
-
-      {/* Stats */}
-      {showStats && (
-        <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground shrink-0">
-          <span className="flex items-center gap-1">
-            <Zap className="h-3 w-3" />
-            <span>{totalZapAmount.toLocaleString()}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <Trophy className="h-3 w-3" />
-            <span>{stats.foundCount}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageSquare className="h-3 w-3" />
-            <span>{stats.logCount}</span>
-          </span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground shrink-0">
+        {showStats && (
+          <>
+            <span className="flex items-center gap-1">
+              <Zap className="h-3 w-3" />
+              <span>{totalZapAmount.toLocaleString()}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <Trophy className="h-3 w-3" />
+              <span>{stats.foundCount}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+              <span>{stats.logCount}</span>
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 

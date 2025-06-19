@@ -14,7 +14,12 @@ import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 // Mock the hooks
 vi.mock('@/features/geocache/hooks/useGeocacheByNaddr');
 vi.mock('@/features/geocache/hooks/useGeocacheLogs');
-vi.mock('@/features/zaps/hooks/useZaps');
+vi.mock('@/features/zaps/hooks/useZaps', () => ({
+  useZaps: () => ({ data: [] }),
+}));
+vi.mock('@/shared/stores/useZapStore', () => ({
+  useZapStore: () => ({ getZapTotal: () => 42 }),
+}));
 vi.mock('@/features/auth/hooks/useAuthor');
 vi.mock('@/features/auth/hooks/useCurrentUser');
 
