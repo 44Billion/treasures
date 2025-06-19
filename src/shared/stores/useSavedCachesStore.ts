@@ -124,7 +124,7 @@ export function useSavedCachesStore() {
         return {
           id: parsed.id,
           dTag: parsed.dTag,
-          pubkey: parsed.pubkey,
+          pubkey: event.pubkey,
           name: event.tags.find(tag => tag[0] === 'title')?.[1] || parsed.name,
           savedAt: parsed.created_at * 1000,
           location: parsed.location,

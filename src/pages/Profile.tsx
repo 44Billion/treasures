@@ -297,7 +297,9 @@ export default function Profile() {
               />
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {foundCachesWithDistance.map((cache, index) => (
+                {foundCachesWithDistance
+                  .filter(cache => cache.id && cache.dTag && cache.pubkey && cache.name && cache.location)
+                  .map((cache, index) => (
                   <GeocacheCard
                     key={`${cache.id}-${index}`}
                     cache={cache}
@@ -337,7 +339,9 @@ export default function Profile() {
                 />
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {savedCachesWithDistance.map((cache, index) => (
+                  {savedCachesWithDistance
+                    .filter(cache => cache.id && cache.dTag && cache.pubkey && cache.name && cache.location)
+                    .map((cache, index) => (
                     <GeocacheCard
                       key={`${cache.id}-${index}`}
                       cache={cache}
