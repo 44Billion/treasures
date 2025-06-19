@@ -26,6 +26,7 @@ interface LogsSectionProps {
   className?: string;
   verificationKey?: string;
   isVerificationValid?: boolean;
+  hideForm?: boolean;
 }
 
 export function LogsSection({ 
@@ -36,7 +37,8 @@ export function LogsSection({
   isOwner = false,
   className,
   verificationKey,
-  isVerificationValid = false
+  isVerificationValid = false,
+  hideForm = false
 }: LogsSectionProps) {
   const { user } = useCurrentUser();
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
@@ -79,7 +81,7 @@ export function LogsSection({
   return (
     <div className={`space-y-4 ${className || ''}`}>
       {/* Show verified form if verification key is valid */}
-      {verificationKey && isVerificationValid && (
+      {verificationKey && isVerificationValid && !hideForm && (
         <VerifiedLogForm
           geocache={geocache}
           verificationKey={verificationKey}
@@ -88,7 +90,7 @@ export function LogsSection({
       )}
       
       {/* Show regular form for logged-in users (unless they have verification) */}
-      {user && !(verificationKey && isVerificationValid) && (
+      {user && !(verificationKey && isVerificationValid) && !hideForm && (
         <Card>
           {!compact && (
             <CardHeader>
