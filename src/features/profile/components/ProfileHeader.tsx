@@ -1,4 +1,4 @@
-import { MapPin, User, CheckCircle, ShieldCheck, Copy, Check, AlertCircle, Clock, Bookmark } from "lucide-react";
+import { MapPin, User, CheckCircle, ShieldCheck, Copy, Check, AlertCircle, Clock, Bookmark, Zap } from "lucide-react";
 import { CompassSpinner } from "@/shared/components/ui/loading";
 
 import { useNip05Status } from "../hooks/useNip05Verification";
@@ -23,7 +23,6 @@ export function ProfileHeader({
   const displayName = metadata?.display_name || metadata?.name || pubkey.slice(0, 8);
   const profilePicture = metadata?.picture;
   const nip05 = metadata?.nip05;
-  const website = metadata?.website;
   
   const { 
     isVerified, 
@@ -118,6 +117,21 @@ export function ProfileHeader({
                 )}
               </button>
               )}
+              {(metadata?.lud16 || metadata?.lud06) && (
+                <button
+                  onClick={() => handleCopy(metadata.lud16 || metadata.lud06 || '', 'lud')}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group"
+                  title="Click to copy Lightning address"
+                >
+                  <Zap className="h-3 w-3 text-yellow-500" />
+                  <span className="font-mono">{metadata.lud16 || metadata.lud06}</span>
+                  {copiedField === 'lud' ? (
+                    <Check className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
           {children && (
@@ -145,31 +159,12 @@ export function ProfileHeader({
           )}
         </div>
 
-        {/* Extended details section for page variant */}
-        {showExtendedDetails && (
+        {showExtendedDetails && metadata?.about && (
           <div className="mt-4 space-y-2">
             {/* Bio */}
-            {metadata?.about && (
-              <p className="text-sm text-foreground line-clamp-2">
-                {metadata.about}
-              </p>
-            )}
-
-
-
-            {/* Additional profile details - Lightning address hidden for now */}
-            {/* <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-              {(metadata?.lud16 || metadata?.lud06) && (
-                <button
-                  onClick={() => handleCopy(metadata.lud16 || metadata.lud06 || '', 'Lightning Address')}
-                  className="flex items-center gap-1 hover:text-gray-800 transition-colors"
-                  title="Click to copy Lightning address"
-                >
-                  <span className="text-yellow-500">⚡</span>
-                  <span className="font-mono">{metadata.lud16 || metadata.lud06}</span>
-                </button>
-              )}
-            </div> */}
+            <p className="text-sm text-foreground line-clamp-2">
+              {metadata.about}
+            </p>
           </div>
         )}
 
