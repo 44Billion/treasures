@@ -50,6 +50,11 @@ export default function MyCaches() {
     setShowClearDialog(false);
   };
 
+  const validCaches = savedCachesWithDistance.filter(cache => cache.id && cache.pubkey);
+  const uniqueCaches = validCaches.filter(
+    (cache, index, self) => index === self.findIndex((c) => c.id === cache.id)
+  );
+
   if (!user) {
     return (
       <div className="h-mobile-page md:min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-green-950 dark:to-emerald-950 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 flex flex-col relative">
@@ -211,7 +216,7 @@ export default function MyCaches() {
           />
         ) : (
           <div className="space-y-4">
-            {savedCachesWithDistance.map((cache) => (
+            {uniqueCaches.map((cache) => (
               <DetailedGeocacheCard
                 key={cache.id}
                 cache={cache}

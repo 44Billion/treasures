@@ -19,6 +19,7 @@ interface SavedCache {
   dTag: string;
   pubkey: string;
   name: string;
+  description: string;
   savedAt: number;
   location: {
     lat: number;
@@ -126,6 +127,7 @@ export function useSavedCachesStore() {
           dTag: parsed.dTag,
           pubkey: event.pubkey,
           name: event.tags.find(tag => tag[0] === 'title')?.[1] || parsed.name,
+          description: parsed.description,
           savedAt: parsed.created_at * 1000,
           location: parsed.location,
           difficulty: parsed.difficulty,
@@ -147,6 +149,7 @@ export function useSavedCachesStore() {
       dTag: geocache.dTag,
       pubkey: geocache.pubkey,
       name: geocache.name,
+      description: geocache.description,
       savedAt: Date.now(),
       location: geocache.location,
       difficulty: geocache.difficulty,
