@@ -91,7 +91,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         title={geocache.name}
       >
         {/* Author and date info below title */}
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 -mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-600 mb-6 -mt-2">
           <span className="flex items-center gap-1">
             <User className="h-4 w-4" />
             Hidden by{' '}
@@ -109,14 +109,16 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
               />
             )}
           </span>
-          <span className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
-          </span>
-          <span className="flex items-center gap-1">
-            <Zap className="h-4 w-4" />
-            {totalSats.toLocaleString()} sats
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}
+            </span>
+            <span className="flex items-center gap-1">
+              <Zap className="h-4 w-4" />
+              {totalSats.toLocaleString()} sats
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
