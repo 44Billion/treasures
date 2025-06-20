@@ -4,13 +4,15 @@ import { LatLngExpression, LatLngBounds } from "leaflet";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
 import { useTheme } from "next-themes";
-import { Navigation, Trophy, MessageSquare, Bookmark, BookmarkCheck } from "lucide-react";
+import { GeocachePopupStats } from "./GeocachePopupStats";
+import { Navigation, Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { MapStyleSelector, MAP_STYLES, type MapStyle } from "./MapStyleSelector";
 import { useSavedCaches } from "@/features/geocache/hooks/useSavedCaches";
 import { useToast } from "@/shared/hooks/useToast";
-
+import { useGeocacheStore } from "@/shared/stores/useGeocacheStore";
+import { useLogStore } from "@/shared/stores/useLogStore";
 import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavigation";
 import type { Geocache } from "@/shared/types";
 import { getTypeLabel, getSizeLabel } from "@/features/geocache/utils/geocache-utils";
@@ -1160,16 +1162,7 @@ export function GeocacheMap({
                 {geocache.description}
               </p>
               
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                <span className="flex items-center gap-1">
-                  <Trophy className="h-3 w-3" />
-                  {geocache.foundCount || 0}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="h-3 w-3" />
-                  {geocache.logCount || 0}
-                </span>
-              </div>
+              <GeocachePopupStats geocache={geocache} />
               
               <div className="flex gap-2">
                 <Button
