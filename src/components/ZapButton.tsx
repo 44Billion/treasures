@@ -32,9 +32,13 @@ export function ZapButton({ target, children, className }: ZapButtonProps) {
     setIsModalOpen(true);
   };
 
+  if (!user || user.pubkey === target.pubkey) {
+    return null;
+  }
+
   return (
     <>
-      <Button size="sm" onClick={handleOpenModal} disabled={!user} className={className}>
+      <Button size="sm" onClick={handleOpenModal} className={className}>
         <Zap className={`h-4 w-4 ${children ? 'mr-2' : ''}`} />
         {children}
       </Button>
