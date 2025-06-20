@@ -6,7 +6,7 @@ import { requestProvider } from 'webln';
 import type { WebLNProvider } from 'webln';
 import type { ZapTarget } from '@/types/zaps';
 import { ZapModal } from './ZapModal';
-import { useTheme } from 'next-themes';
+import { useAuthor } from '@/features/auth/hooks/useAuthor';
 
 interface ZapButtonProps {
   target: ZapTarget;
@@ -18,7 +18,7 @@ export function ZapButton({ target, children, className }: ZapButtonProps) {
   const [webln, setWebln] = useState<WebLNProvider | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useCurrentUser();
-  const { theme } = useTheme();
+  const { data: author } = useAuthor(target.pubkey);
 
   const handleOpenModal = async () => {
     if (!webln) {
@@ -32,7 +32,7 @@ export function ZapButton({ target, children, className }: ZapButtonProps) {
     setIsModalOpen(true);
   };
 
-  if (!user || user.pubkey === target.pubkey) {
+  if (!user || user.pubkey === target.pubkey || !author?.metadata?.lud16) {
     return null;
   }
 
