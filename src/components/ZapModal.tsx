@@ -1,3 +1,4 @@
+import { useAppContext } from '@/shared/hooks/useAppContext';
 import { geocacheToNaddr } from '@/shared/utils/naddr';
 import { useToast } from '@/shared/hooks/useToast';
 import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
@@ -66,6 +67,7 @@ const presetAmounts = [
 export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
   const { toast } = useToast();
   const { user } = useCurrentUser();
+  const { config } = useAppContext();
   const { mutate: publishEvent } = useNostrPublish();
   const author = useAuthor(target?.pubkey);
   const [amount, setAmount] = useState<number | string>(100);
@@ -164,7 +166,7 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
       }
 
       const zapAmount = finalAmount * 1000; // convert to millisats
-      const relays = ['wss://relay.damus.io', 'wss://relay.primal.net', 'wss://relay.snort.social'];
+      const relays = [config.relayUrl];
       const zapRequest = nip57.makeZapRequest({
         profile: target.pubkey,
         event: target.id,
