@@ -984,7 +984,7 @@ export function GeocacheMap({
               backgroundColor: '#d2b48c',
               mixBlendMode: 'color',
               opacity: 0.5,
-              zIndex: 200
+              zIndex: 1
             }}
           />
           
@@ -995,7 +995,7 @@ export function GeocacheMap({
               backgroundColor: 'slategray',
               mixBlendMode: 'color-burn',
               opacity: 0.6,
-              zIndex: 201
+              zIndex: 2
             }}
           />
         </>
