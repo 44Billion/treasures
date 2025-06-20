@@ -91,7 +91,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         title={geocache.name}
       >
         {/* Author and date info below title */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-600 mb-6 -mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-600 mb-2 -mt-2">
           <span className="flex items-center gap-1">
             <User className="h-4 w-4" />
             Hidden by{' '}
@@ -109,7 +109,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
               />
             )}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               {formatDistanceToNow(new Date(geocache.created_at * 1000), { addSuffix: true })}

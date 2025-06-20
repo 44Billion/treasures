@@ -443,7 +443,7 @@ export default function CacheDetail() {
                 </div>
 
                 {/* Author and date info below title */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-600 mt-4 space-y-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-600 pt-2">
                   <span className="flex items-center gap-1">
                     <User className="h-4 w-4" />
                     Hidden by{' '}
@@ -461,7 +461,7 @@ export default function CacheDetail() {
                       />
                     )}
                   </span>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {formatDistanceToNow(new Date(typedGeocache.created_at * 1000), { addSuffix: true })}
