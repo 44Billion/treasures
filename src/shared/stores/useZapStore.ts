@@ -13,6 +13,12 @@ export const useZapStore = create<ZapStore>((set, get) => ({
   getZapTotal: (key) => {
     const zaps = get().zaps[key] || [];
     return zaps.reduce((total, zap) => {
+      const pTag = zap.tags.find((t) => t[0] === 'p')?.[1];
+      const PTag = zap.tags.find((t) => t[0] === 'P')?.[1];
+      if (pTag && PTag && pTag === PTag) {
+        return total;
+      }
+      
       const bolt11 = zap.tags.find((t) => t[0] === 'bolt11')?.[1];
       if (bolt11) {
         try {
