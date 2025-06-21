@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Download, Copy, Check, QrCode } from 'lucide-react';
+import { Download, Copy, Check, QrCode, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ComponentLoading } from '@/components/ui/loading';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,6 +28,7 @@ export function VerificationQRDialog({
   cacheName
 }: VerificationQRDialogProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [qrType, setQrType] = useState<'full' | 'cutout' | 'micro'>('full');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -31,7 +38,7 @@ export function VerificationQRDialog({
       setIsGenerating(true);
       setQrDataUrl(''); // Clear previous QR code
       
-      generateVerificationQR(naddr, verificationKeyPair.nsec)
+      generateVerificationQR(naddr, verificationKeyPair.nsec, qrType)
         .then((dataUrl) => {
           setQrDataUrl(dataUrl);
         })
@@ -44,12 +51,16 @@ export function VerificationQRDialog({
         })
         .finally(() => setIsGenerating(false));
     }
-  }, [isOpen, naddr, verificationKeyPair.nsec, toast]);
+  }, [isOpen, naddr, verificationKeyPair.nsec, toast, qrType]);
+
+  const handleQrTypeChange = (type: 'full' | 'cutout' | 'micro') => {
+    setQrType(type);
+  };
 
   const handleDownload = () => {
     if (qrDataUrl) {
       const safeCacheName = cacheName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const filename = `${safeCacheName}-${naddr}-verification-qr.png`;
+      const filename = `${safeCacheName}-${naddr}-verification-qr-${qrType}.png`;
       downloadQRCode(qrDataUrl, filename);
       toast({
         title: 'QR Code Downloaded',
@@ -116,15 +127,30 @@ export function VerificationQRDialog({
             )}
           </div>
 
-          {/* Download QR Code Button - directly below QR code */}
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="text-sm"
+                >
+                  {qrType.charAt(0).toUpperCase() + qrType.slice(1)}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleQrTypeChange('full')}>Full</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQrTypeChange('cutout')}>Cutout</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQrTypeChange('micro')}>Micro</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               onClick={handleDownload}
               disabled={!qrDataUrl}
               className="text-sm"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download QR Code
+              Download
             </Button>
           </div>
 
