@@ -151,7 +151,7 @@ export async function generateVerificationQR(
 async function generateFullQR(verificationUrl: string): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 4;
-  const cardHeightInches = 6;
+  const cardHeightInches = 4;
   const cardWidth = cardWidthInches * dpi;
   const cardHeight = cardHeightInches * dpi;
 
@@ -169,7 +169,7 @@ async function generateFullQR(verificationUrl: string): Promise<string> {
 async function generateCutoutQR(verificationUrl: string): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 4;
-  const cardHeightInches = 6;
+  const cardHeightInches = 4;
   const cardWidth = cardWidthInches * dpi;
   const cardHeight = cardHeightInches * dpi;
 
@@ -293,9 +293,9 @@ async function drawCardContent(
     console.warn('Failed to load icon for QR code:', iconError);
   }
 
+  const textStartY = topPadding + qrWidth + 40;
   const line1 = 'You found a treasure!';
   const line2 = 'Scan this QR code to log your adventure.';
-  const textStartY = topPadding + qrWidth + 70;
 
   ctx.fillStyle = '#1a1a1a';
   ctx.textAlign = 'center';
@@ -306,13 +306,13 @@ async function drawCardContent(
   ctx.fillText(line1, cardWidth / 2, textStartY);
 
   const fontSize2 = Math.floor(qrWidth * 0.04);
-  const lineSpacing = fontSize1 + 20;
+  const lineSpacing = fontSize1 * 1.2; // Reduced line spacing
   ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
   ctx.fillText(line2, cardWidth / 2, textStartY + lineSpacing);
 
   if (isMicro) {
-    const logLineStartY = textStartY + lineSpacing + 50;
-    const logLineHeight = 100;
+    const logLineStartY = textStartY + lineSpacing + 30; // Reduced spacing
+    const logLineHeight = 80; // Reduced line height
     const logLineCount = Math.floor((cardHeight - logLineStartY) / logLineHeight);
     ctx.strokeStyle = '#AAAAAA';
     ctx.lineWidth = 2;
