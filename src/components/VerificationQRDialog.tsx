@@ -134,14 +134,23 @@ export function VerificationQRDialog({
                   variant="outline"
                   className="text-sm"
                 >
-                  {qrType.charAt(0).toUpperCase() + qrType.slice(1)}
+                  Style
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleQrTypeChange('full')}>Full</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQrTypeChange('cutout')}>Cutout</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQrTypeChange('micro')}>Micro</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQrTypeChange('full')}>
+                  Full
+                  <span className="text-xs text-muted-foreground ml-2">(Default) Full size QR code</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQrTypeChange('cutout')}>
+                  Cutout
+                  <span className="text-xs text-muted-foreground ml-2">Smaller QR code with cut lines</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQrTypeChange('micro')}>
+                  Micro
+                  <span className="text-xs text-muted-foreground ml-2">Log entry list for micro caches</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
@@ -150,33 +159,12 @@ export function VerificationQRDialog({
               className="text-sm"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download
+              Download QR Code
             </Button>
+            
           </div>
 
-          {/* Verification Key */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Verification Key (Keep Private)</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={verificationKeyPair.nsec}
-                readOnly
-                className="flex-1 px-2 sm:px-3 py-2 text-xs font-mono bg-muted border rounded-md min-w-0 break-all"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyKey}
-                className="flex-shrink-0 px-2"
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Store this key securely. Anyone with this key can create verified logs for your cache.
-            </p>
-          </div>
+          
 
           {/* Verification URL */}
           <div className="space-y-2">
@@ -212,7 +200,7 @@ export function VerificationQRDialog({
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Direct link to the verification form for this cache.
+              Direct link to the verification form for this cache. This URL contains the private verification key. Do not share it publicly.
             </p>
           </div>
 
