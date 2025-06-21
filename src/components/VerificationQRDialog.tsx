@@ -118,7 +118,7 @@ export function VerificationQRDialog({
               <img 
                 src={qrDataUrl} 
                 alt="Verification QR Code" 
-                className="w-48 h-48 m:w-64 sm:h-64 rounded max-w-full max-h-[200px] object-contain"
+                className="w-48 h-48 m:w-64 sm:h-64 rounded max-w-full max-h-[400px] object-contain"
               />
             ) : (
               <div className="w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center bg-muted rounded">

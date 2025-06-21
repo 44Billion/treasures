@@ -206,15 +206,30 @@ async function generateMicroQR(verificationUrl: string): Promise<string> {
   const cardWidth = cardWidthInches * dpi;
   const cardHeight = cardHeightInches * dpi;
 
-  const canvas = document.createElement('canvas');
-  canvas.width = cardWidth;
-  canvas.height = cardHeight;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+  const pageCanvas = document.createElement('canvas');
+  const pageWidth = 8.5 * dpi;
+  const pageHeight = 11 * dpi;
+  pageCanvas.width = pageWidth;
+  pageCanvas.height = pageHeight;
+  const pageCtx = pageCanvas.getContext('2d');
+  if (!pageCtx) throw new Error('Could not get canvas context');
 
-  await drawCardContent(ctx, cardWidth, cardHeight, verificationUrl, false, true);
+  pageCtx.fillStyle = '#FFFFFF';
+  pageCtx.fillRect(0, 0, pageWidth, pageHeight);
 
-  return canvas.toDataURL('image/png', 1.0);
+  const cardCanvas = document.createElement('canvas');
+  cardCanvas.width = cardWidth;
+  cardCanvas.height = cardHeight;
+  const cardCtx = cardCanvas.getContext('2d');
+  if (!cardCtx) throw new Error('Could not get canvas context');
+
+  await drawCardContent(cardCtx, cardWidth, cardHeight, verificationUrl, false, true);
+
+  const cardX = (pageWidth - cardWidth) / 2;
+  const cardY = (pageHeight - cardHeight) / 2;
+  pageCtx.drawImage(cardCanvas, cardX, cardY);
+
+  return pageCanvas.toDataURL('image/png', 1.0);
 }
 
 async function drawCardContent(
