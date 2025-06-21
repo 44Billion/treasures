@@ -150,8 +150,8 @@ export async function generateVerificationQR(
 
 async function generateFullQR(verificationUrl: string): Promise<string> {
   const dpi = 300;
-  const cardWidthInches = 4;
-  const cardHeightInches = 4;
+  const cardWidthInches = 3.5;
+  const cardHeightInches = 3.5;
   const cardWidth = cardWidthInches * dpi;
   const cardHeight = cardHeightInches * dpi;
 
@@ -201,7 +201,7 @@ async function generateCutoutQR(verificationUrl: string): Promise<string> {
 
 async function generateMicroQR(verificationUrl: string): Promise<string> {
   const dpi = 300;
-  const cardWidthInches = 2.5;
+  const cardWidthInches = 1.5;
   const cardHeightInches = 11;
   const cardWidth = cardWidthInches * dpi;
   const cardHeight = cardHeightInches * dpi;
@@ -274,7 +274,7 @@ async function drawCardContent(
   });
 
   const qrX = (cardWidth - qrWidth) / 2;
-  const topPadding = 30;
+  const topPadding = 60;
   ctx.drawImage(qrImg, qrX, topPadding, qrWidth, qrWidth);
 
   try {
@@ -327,7 +327,7 @@ async function drawCardContent(
 
   if (isMicro) {
     const logLineStartY = textStartY + lineSpacing + 30; // Reduced spacing
-    const logLineHeight = 80; // Reduced line height
+    const logLineHeight = 60; // Reduced line height
     const logLineCount = Math.floor((cardHeight - logLineStartY) / logLineHeight);
     ctx.strokeStyle = '#AAAAAA';
     ctx.lineWidth = 2;
