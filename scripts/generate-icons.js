@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Generate PWA icons from your original icon.png file
+ * Generate PWA icons from your original icon.svg file
  * 
  * This script creates:
  * - Regular icons for general use (favicon, apple-touch-icon, etc.)
@@ -15,24 +15,12 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Check if sharp is available, install temporarily if needed
-let sharpInstalled = false;
-try {
-  await import('sharp');
-} catch (error) {
-  console.log('Installing sharp temporarily...');
-  execSync('npm install --save-dev sharp', { stdio: 'inherit' });
-  sharpInstalled = true;
-}
-
-const sharp = (await import('sharp')).default;
-
-const inputFile = path.join(__dirname, '../public/icon.png');
+const inputFile = path.join(__dirname, '../public/icon.svg');
 const outputDir = path.join(__dirname, '../public');
 
 // Icon sizes needed
@@ -51,11 +39,11 @@ const maskableIconSizes = [
 ];
 
 async function generateIcons() {
-  console.log('Generating icons from icon.png...');
+  console.log('Generating icons from icon.svg...');
   
   // Check if input file exists
   if (!fs.existsSync(inputFile)) {
-    console.error('Error: icon.png not found in public directory');
+    console.error('Error: icon.svg not found in public directory');
     process.exit(1);
   }
 
@@ -130,24 +118,8 @@ async function generateIcons() {
 
     console.log('✓ Generated all icon sizes successfully!');
     
-    // Clean up sharp if we installed it
-    if (sharpInstalled) {
-      console.log('Removing temporary sharp installation...');
-      execSync('npm uninstall sharp', { stdio: 'inherit' });
-    }
-    
   } catch (error) {
     console.error('Error generating icons:', error);
-    
-    // Clean up sharp if we installed it and there was an error
-    if (sharpInstalled) {
-      try {
-        execSync('npm uninstall sharp', { stdio: 'inherit' });
-      } catch (cleanupError) {
-        console.error('Error cleaning up sharp:', cleanupError);
-      }
-    }
-    
     process.exit(1);
   }
 }

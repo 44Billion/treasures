@@ -102,7 +102,7 @@ export function MobileHeader() {
             {/* Compact Header */}
             <div className="mobile-nav-header flex items-center gap-2 px-3 py-4 pr-10 border-b bg-muted/50 dark:bg-muted shrink-0">
               <img 
-                src="/icon.png" 
+                src="/icon.svg" 
                 alt="Treasures" 
                 className={cn("h-6 w-6 xs:h-7 xs:w-7 transition-all duration-200", themeClasses.icon)} 
               />
@@ -222,7 +222,7 @@ export function MobileHeader() {
         {/* Center Logo */}
         <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-0.5 xs:gap-1">
           <img 
-            src="/icon.png" 
+            src="/icon.svg" 
             alt="Treasures" 
             className={cn("h-6 w-6 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)} 
           />

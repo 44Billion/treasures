@@ -25,7 +25,7 @@ async function createOgImage() {
     
     // Load and resize the icon
     const iconSize = 400; // Even bigger prominent icon
-    const icon = await sharp('public/icon.png')
+    const icon = await sharp('public/icon.svg')
       .resize(iconSize, iconSize)
       .png()
       .toBuffer();

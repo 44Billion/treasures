@@ -41,7 +41,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img 
-              src="/icon.png" 
+              src="/icon.svg" 
               alt="Treasures" 
               className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme ? 'sepia' : ''}`} 
             />

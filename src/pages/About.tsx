@@ -15,7 +15,7 @@ export default function About() {
           <CardHeader className="text-center py-12">
             <div className="flex justify-center mb-8">
               <img 
-                src="/icon.png" 
+                src="/icon.svg" 
                 alt="Treasures" 
                 className="w-48 h-48" 
               />

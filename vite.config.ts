@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         clientsClaim: true,
       },
-      includeAssets: ['favicon.ico', 'icon.png', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png', 'icon-144x144.png', 'icon-192x192.png', 'icon-192x192-maskable.png', 'icon-512x512.png', 'icon-512x512-maskable.png'],
+      includeAssets: ['favicon.ico', 'icon.svg', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png', 'icon-192x192.png', 'icon-192x192-maskable.png', 'icon-512x512.png', 'icon-512x512-maskable.png'],
       manifest: {
         name: 'Treasures - Decentralized Geocaching',
         short_name: 'Treasures',
@@ -78,9 +78,9 @@ export default defineConfig(({ mode }) => ({
         permissions: ['geolocation', 'device-orientation'],
         icons: [
           {
-            src: 'icon-144x144.png',
-            sizes: '144x144',
-            type: 'image/png',
+            src: 'icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
             purpose: 'any'
           },
           {
@@ -106,12 +106,6 @@ export default defineConfig(({ mode }) => ({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
-          },
-          {
-            src: 'icon.png',
-            sizes: '1024x1024',
-            type: 'image/png',
-            purpose: 'any'
           },
           {
             src: 'apple-touch-icon.png',
