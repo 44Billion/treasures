@@ -7,7 +7,7 @@ import { useZapStore } from '@/shared/stores/useZapStore';
 import { useZaps } from '@/features/zaps/hooks/useZaps';
 import { ZapButton } from "@/components/ZapButton";
 
-import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus } from "lucide-react";
+import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -184,6 +184,17 @@ export default function CacheDetail() {
   }, [editLocation, isEditing]);
 
 
+
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopyNaddr = () => {
+    if (naddr) {
+      navigator.clipboard.writeText(naddr);
+      toast({ title: "Copied!", description: "Geocache naddr copied to clipboard." });
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
 
   // Check for verification key in URL hash
   useEffect(() => {
@@ -737,6 +748,22 @@ export default function CacheDetail() {
                       `${typedGeocache.location.lat.toFixed(6)}, ${typedGeocache.location.lng.toFixed(6)}`
                     }
                   </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-full"
+                    onClick={handleCopyNaddr}
+                    disabled={isCopied}
+                  >
+                    {isCopied ? (
+                      "Copied!"
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy naddr
+                      </>
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"

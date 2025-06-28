@@ -44,6 +44,8 @@ import { mapIcons } from "@/features/map/utils/mapIcons";
 
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
+import { nip19 } from "nostr-tools";
+import { getPublicKey } from "nostr-tools";
 import { VerificationQRDialog } from "@/components/VerificationQRDialog";
 import type { VerificationKeyPair } from "@/features/geocache/utils/verification";
 import { parseVerificationFromHash } from "@/features/geocache/utils/verification";
@@ -88,6 +90,10 @@ interface PreGeneratedCache {
   naddr: string;
   timestamp: number;
 }
+
+// Helper function to convert Uint8Array to hex string
+const toHexString = (bytes: Uint8Array) =>
+  bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
 
 export default function CreateCache() {
   const navigate = useNavigate();
@@ -137,22 +143,26 @@ export default function CreateCache() {
       try {
         const claimUrl = new URL(claimUrlParam);
         const naddr = claimUrl.pathname.slice(1); // Remove leading slash
-        const verificationKey = parseVerificationFromHash(claimUrl.hash);
+        const nsec = parseVerificationFromHash(claimUrl.hash);
         
-        if (naddr && verificationKey) {
+        if (naddr && nsec) {
           try {
-            const decoded = naddrToGeocache(naddr);
+            const decodedNaddr = naddrToGeocache(naddr);
             
-            if (decoded.pubkey === user.pubkey) {
-              // Extract the dTag and create verification keypair from the nsec
-              setImportedDTag(decoded.identifier);
+            if (decodedNaddr.pubkey === user.pubkey) {
+              // Decode the nsec to get the private key bytes
+              const { data: privateKeyBytes } = nip19.decode(nsec);
+              // Derive the public key (getPublicKey expects a hex string)
+              const privateKeyHex = toHexString(privateKeyBytes as Uint8Array);
+              const publicKey = getPublicKey(privateKeyHex);
               
-              // For now, we'll create a simple verification keypair object
-              // The actual public key derivation will happen in the create hook
+              // Store the complete, valid keypair
               setImportedVerificationKeyPair({
-                nsec: verificationKey,
-                publicKey: '', // Will be derived when needed
+                nsec: nsec,
+                publicKey: publicKey,
               });
+              
+              setImportedDTag(decodedNaddr.identifier);
               
               toast({
                 title: "Claim URL Imported",
