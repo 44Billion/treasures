@@ -27,7 +27,13 @@ import { buildGeocacheTags, NIP_GC_KINDS } from "@/features/geocache/utils/nip-g
 import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
 import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
 import { ComponentLoading } from "@/components/ui/loading";
+import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 
+const customConfig: Config = {
+  dictionaries: [adjectives, colors, animals],
+  separator: '-',
+  length: 3,
+};
 
 interface PreGeneratedCache {
   name: string;
@@ -81,7 +87,9 @@ export default function GenerateQR() {
   }, [searchParams]);
 
   const generateMockEvent = async () => {
-    if (!cacheName.trim() || !user) return;
+    if (!user) return;
+
+    const finalCacheName = cacheName.trim() || uniqueNamesGenerator(customConfig);
 
     try {
       // Generate verification keypair
@@ -90,7 +98,7 @@ export default function GenerateQR() {
 
       // Create a deterministic dTag based on cache name and user pubkey
       // This ensures the same naddr will be generated when the actual cache is created
-      const dTag = generateDeterministicDTag(cacheName, user.pubkey);
+      const dTag = generateDeterministicDTag(finalCacheName, user.pubkey);
 
       // Generic location (center of US)
       const genericLocation = { lat: 39.8283, lng: -98.5795 };
@@ -98,7 +106,7 @@ export default function GenerateQR() {
       // Build tags for the mock event with generic data
       const tags = buildGeocacheTags({
         dTag,
-        name: cacheName,
+        name: finalCacheName,
         location: genericLocation,
         difficulty: 2, // Generic difficulty
         terrain: 2,    // Generic terrain
@@ -117,7 +125,7 @@ export default function GenerateQR() {
         created_at: Math.floor(Date.now() / 1000),
         kind: NIP_GC_KINDS.GEOCACHE,
         tags,
-        content: `A geocache named "${cacheName}". This is a mock event for QR code generation.`,
+        content: `A geocache named "${finalCacheName}". This is a mock event for QR code generation.`,
       };
 
       setMockEvent(mockEventData);
@@ -128,7 +136,7 @@ export default function GenerateQR() {
 
       // Generate export data
       const exportableData: PreGeneratedCache = {
-        name: cacheName,
+        name: finalCacheName,
         dTag: dTag,
         verificationKeyPair: keyPair,
         mockEvent: mockEventData,
@@ -317,69 +325,35 @@ export default function GenerateQR() {
         </Card>
 
         {!showGenerated ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="gap-6">
             {/* Create New Cache */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Create New QR Code</CardTitle>
                 <CardDescription>
-                  Just enter a name to generate a QR code with verification key
+                  Generate a QR code with verification key
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="cache-name">Cache Name</Label>
+                  <Label htmlFor="cache-name">Cache Name (Optional)</Label>
                   <Input
                     id="cache-name"
                     value={cacheName}
                     onChange={(e) => setCacheName(e.target.value)}
-                    placeholder="Enter your geocache name"
+                    placeholder="My cool treasure!"
                     className="mt-2"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    This will be used for the QR code filename and export data
+                    This will be used for the QR code filename. Uses a random name by default.
                   </p>
                 </div>
 
                 <Button 
                   onClick={generateMockEvent}
-                  disabled={!cacheName.trim()}
                   className="w-full"
                 >
                   Generate QR Code
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Import Existing */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Import Existing Cache</CardTitle>
-                <CardDescription>
-                  Load a previously generated cache from JSON data
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="import-data">Cache Data (JSON)</Label>
-                  <Textarea
-                    id="import-data"
-                    value={importData}
-                    onChange={(e) => setImportData(e.target.value)}
-                    placeholder="Paste your exported cache JSON data here..."
-                    rows={6}
-                    className="font-mono text-xs mt-2"
-                  />
-                </div>
-
-                <Button 
-                  onClick={() => handleImportData(importData)}
-                  disabled={!importData.trim()}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import Cache Data
                 </Button>
               </CardContent>
             </Card>
