@@ -68,6 +68,7 @@ export default function GenerateQR() {
   const [exportData, setExportData] = useState<string>('');
   const [importData, setImportData] = useState<string>('');
   const [showGenerated, setShowGenerated] = useState(false);
+  const [existingLink, setExistingLink] = useState<string>('');
 
   // Check if we're importing from URL params
   useEffect(() => {
@@ -192,6 +193,38 @@ export default function GenerateQR() {
     }
   };
 
+  const handleGenerateFromLink = () => {
+    try {
+      const url = new URL(existingLink);
+      const { pathname, hash } = url;
+
+      const naddrFromLink = pathname.substring(1); // Remove leading '/'
+      const nsecFromLink = hash.substring(hash.indexOf('=') + 1);
+
+      if (!naddrFromLink || !nsecFromLink) {
+        throw new Error("Invalid link format. Could not find naddr or nsec.");
+      }
+
+      // We don't have a full 'mock event' here, but we have what we need for the QR
+      setNaddr(naddrFromLink);
+      setVerificationKeyPair({ nsec: nsecFromLink, publicKey: '' }); // publicKey is not needed for QR generation
+      setCacheName('existing-cache'); // Generic name
+      setShowGenerated(true);
+
+      toast({
+        title: "Link Parsed",
+        description: "QR code is being generated from the provided link.",
+      });
+    } catch (error) {
+      toast({
+        title: "Link Parsing Failed",
+        description: error instanceof Error ? error.message : "Please check the link format.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   const generateQR = async () => {
     if (!naddr || !verificationKeyPair) return;
 
@@ -286,6 +319,7 @@ export default function GenerateQR() {
     setExportData('');
     setImportData('');
     setShowGenerated(false);
+    setExistingLink('');
   };
 
   // Generate QR when data is ready
@@ -325,7 +359,7 @@ export default function GenerateQR() {
         </Card>
 
         {!showGenerated ? (
-          <div className="gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
             {/* Create New Cache */}
             <Card>
               <CardHeader>
@@ -354,6 +388,35 @@ export default function GenerateQR() {
                   className="w-full"
                 >
                   Generate QR Code
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Generate from existing link */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Generate from Existing Link</CardTitle>
+                <CardDescription>
+                  Paste a verification link to generate a new QR code.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="existing-link">Verification Link</Label>
+                  <Input
+                    id="existing-link"
+                    value={existingLink}
+                    onChange={(e) => setExistingLink(e.target.value)}
+                    placeholder="https://treasures.to/naddr...#verify=nsec..."
+                    className="mt-2"
+                  />
+                </div>
+                <Button 
+                  onClick={handleGenerateFromLink}
+                  className="w-full"
+                  disabled={!existingLink}
+                >
+                  Generate from Link
                 </Button>
               </CardContent>
             </Card>
