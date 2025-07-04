@@ -603,14 +603,16 @@ export default function CacheDetail() {
                         />
                       </div>
                     )}
-                    
+
                     {/* QR Code Management Section */}
-                    {typedGeocache.verificationPubkey && (
-                      <div className="border-t pt-6">
-                        <div className="space-y-3">
-                          <h3 className="text-lg font-medium">QR Code Management</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Manage the verification QR code for this geocache. Regenerating will invalidate the previous QR code.
+                    {isOwner && typedGeocache && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>QR Code Management</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            This is a creator-only tool to manage the verification QR code for this geocache. Regenerating will invalidate the previous QR code.
                           </p>
                           <Button
                             type="button"
@@ -622,8 +624,8 @@ export default function CacheDetail() {
                             <QrCode className="h-4 w-4 mr-2" />
                             Regenerate QR Code
                           </Button>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                     )}
                   </div>
                 ) : (
@@ -858,11 +860,17 @@ export default function CacheDetail() {
       />
       
       {/* Regenerate QR Dialog */}
-      <RegenerateQRDialog
-        isOpen={regenerateQRDialogOpen}
-        onOpenChange={setRegenerateQRDialogOpen}
-        geocache={typedGeocache}
-      />
+      {typedGeocache && (
+        <RegenerateQRDialog
+          isOpen={regenerateQRDialogOpen}
+          onOpenChange={setRegenerateQRDialogOpen}
+          naddr={naddr}
+          pubkey={typedGeocache.pubkey}
+          dTag={typedGeocache.dTag}
+          relays={typedGeocache.relays}
+          name={typedGeocache.name}
+        />
+      )}
     </div>
   );
 }

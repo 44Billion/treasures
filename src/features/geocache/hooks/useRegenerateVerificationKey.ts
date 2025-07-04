@@ -12,17 +12,31 @@ import {
   type ValidCacheSize
 } from '@/features/geocache/utils/nip-gc';
 
-export function useRegenerateVerificationKey(geocache: Geocache | null) {
+import { useGeocacheByNaddr } from './useGeocacheByNaddr';
+
+interface RegenerateVerificationKeyParams {
+  pubkey: string;
+  dTag: string;
+  relays?: string[];
+}
+
+export function useRegenerateVerificationKey({ pubkey, dTag, relays }: RegenerateVerificationKeyParams) {
   const queryClient = useQueryClient();
   const { mutateAsync: publishEvent } = useNostrPublish();
   const { toast } = useToast();
 
+  const naddr = geocacheToNaddr(pubkey, dTag, relays);
+  const { data: geocache, isLoading: isLoadingGeocache } = useGeocacheByNaddr(naddr);
+
   return useMutation({
-    // Add a timeout for the entire mutation
-    mutationKey: ['regenerate-verification-key', geocache?.id],
+    mutationKey: ['regenerate-verification-key', naddr],
     mutationFn: async () => {
+      if (isLoadingGeocache) {
+        throw new Error("Geocache data is still loading");
+      }
+
       if (!geocache) {
-        throw new Error("No geocache provided");
+        throw new Error("Could not load geocache data. The cache may not exist or there might be a network issue.");
       }
 
       // Generate new verification key pair

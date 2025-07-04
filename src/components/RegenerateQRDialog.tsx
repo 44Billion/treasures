@@ -12,19 +12,27 @@ import type { VerificationKeyPair } from '@/features/geocache/utils/verification
 interface RegenerateQRDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  geocache: Geocache;
+  naddr: string;
+  pubkey: string;
+  dTag: string;
+  relays?: string[];
+  name: string;
 }
 
 export function RegenerateQRDialog({
   isOpen,
   onOpenChange,
-  geocache
+  naddr,
+  pubkey,
+  dTag,
+  relays,
+  name,
 }: RegenerateQRDialogProps) {
   const [showNewQR, setShowNewQR] = useState(false);
   const [newVerificationKeyPair, setNewVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
   const [operationTimeout, setOperationTimeout] = useState<NodeJS.Timeout | null>(null);
   
-  const { mutate: regenerateKey, isPending, reset } = useRegenerateVerificationKey(geocache);
+  const { mutate: regenerateKey, isPending, reset } = useRegenerateVerificationKey({ pubkey, dTag, relays });
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -100,7 +108,7 @@ export function RegenerateQRDialog({
     }
   };
 
-  const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays);
+  
 
   return (
     <>
@@ -176,7 +184,7 @@ export function RegenerateQRDialog({
           onOpenChange={handleQRDialogClose}
           naddr={naddr}
           verificationKeyPair={newVerificationKeyPair}
-          cacheName={geocache.name}
+          cacheName={name}
         />
       )}
     </>
