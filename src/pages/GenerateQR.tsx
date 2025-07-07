@@ -1,16 +1,13 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { QrCode, Download, Upload, CheckCircle, Copy, Trash2, ChevronDown } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { QrCode, Download, Copy, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PageLayout } from "@/components/layout";
@@ -23,7 +20,6 @@ import {
   generateVerificationQR,
   type VerificationKeyPair 
 } from "@/features/geocache/utils/verification";
-import { buildGeocacheTags, NIP_GC_KINDS } from "@/features/geocache/utils/nip-gc";
 import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
 import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
 import { ComponentLoading } from "@/components/ui/loading";
@@ -35,57 +31,19 @@ const customConfig: Config = {
   length: 3,
 };
 
-interface PreGeneratedCache {
-  name: string;
-  dTag: string;
-  verificationKeyPair: VerificationKeyPair;
-  mockEvent: {
-    id: string;
-    pubkey: string;
-    created_at: number;
-    kind: number;
-    tags: string[][];
-    content: string;
-  };
-  naddr: string;
-  timestamp: number;
-}
-
 export default function GenerateQR() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { user } = useCurrentUser();
   const { toast } = useToast();
 
   const [cacheName, setCacheName] = useState<string>('');
   const [verificationKeyPair, setVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
-  const [mockEvent, setMockEvent] = useState<PreGeneratedCache['mockEvent'] | null>(null);
   const [naddr, setNaddr] = useState<string>('');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrType, setQrType] = useState<'full' | 'cutout' | 'micro'>('full');
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [exportData, setExportData] = useState<string>('');
-  const [importData, setImportData] = useState<string>('');
   const [showGenerated, setShowGenerated] = useState(false);
   const [existingLink, setExistingLink] = useState<string>('');
-
-  // Check if we're importing from URL params
-  useEffect(() => {
-    const importParam = searchParams.get('import');
-    if (importParam) {
-      try {
-        const decoded = atob(importParam);
-        handleImportData(decoded);
-      } catch (error) {
-        toast({
-          title: "Import Failed",
-          description: "Invalid import data in URL",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [searchParams]);
 
   const generateMockEvent = async () => {
     if (!user) return;
@@ -101,93 +59,20 @@ export default function GenerateQR() {
       // This ensures the same naddr will be generated when the actual cache is created
       const dTag = generateDeterministicDTag(finalCacheName, user.pubkey);
 
-      // Generic location (center of US)
-      const genericLocation = { lat: 39.8283, lng: -98.5795 };
-
-      // Build tags for the mock event with generic data
-      const tags = buildGeocacheTags({
-        dTag,
-        name: finalCacheName,
-        location: genericLocation,
-        difficulty: 2, // Generic difficulty
-        terrain: 2,    // Generic terrain
-        size: 'regular' as any,
-        type: 'traditional' as any,
-        hint: 'Look carefully around the area',
-        images: [],
-        verificationPubkey: keyPair.publicKey,
-        hidden: false,
-      });
-
-      // Create mock event structure
-      const mockEventData = {
-        id: `mock-${Date.now()}`, // Mock event ID
-        pubkey: user.pubkey,
-        created_at: Math.floor(Date.now() / 1000),
-        kind: NIP_GC_KINDS.GEOCACHE,
-        tags,
-        content: `A geocache named "${finalCacheName}". This is a mock event for QR code generation.`,
-      };
-
-      setMockEvent(mockEventData);
-
       // Generate naddr for the mock event
       const mockNaddr = geocacheToNaddr(user.pubkey, dTag);
       setNaddr(mockNaddr);
-
-      // Generate export data
-      const exportableData: PreGeneratedCache = {
-        name: finalCacheName,
-        dTag: dTag,
-        verificationKeyPair: keyPair,
-        mockEvent: mockEventData,
-        naddr: mockNaddr,
-        timestamp: Date.now(),
-      };
-
-      setExportData(JSON.stringify(exportableData, null, 2));
+      setCacheName(finalCacheName);
       setShowGenerated(true);
 
       toast({
-        title: "Mock Cache Generated",
-        description: "Your pre-generated cache is ready. You can now generate QR codes and export the data.",
+        title: "QR Code Generated",
+        description: "Your QR code is ready for download.",
       });
     } catch (error) {
       toast({
         title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Failed to generate mock cache",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleImportData = (data: string) => {
-    try {
-      const parsed: PreGeneratedCache = JSON.parse(data);
-      
-      // Validate the structure
-      if (!parsed.name || !parsed.verificationKeyPair || !parsed.naddr) {
-        throw new Error("Invalid cache data structure");
-      }
-
-      // Import the data
-      setCacheName(parsed.name);
-      setVerificationKeyPair(parsed.verificationKeyPair);
-      setMockEvent(parsed.mockEvent);
-      setNaddr(parsed.naddr);
-      setExportData(JSON.stringify(parsed, null, 2));
-      setShowGenerated(true);
-
-      toast({
-        title: "Cache Data Imported",
-        description: "Your pre-generated cache data has been loaded successfully.",
-      });
-
-      setImportData('');
-    } catch (error) {
-      toast({
-        title: "Import Failed",
-        description: error instanceof Error ? error.message : "Invalid JSON data",
+        description: error instanceof Error ? error.message : "Failed to generate QR code",
         variant: "destructive",
       });
     }
@@ -225,7 +110,7 @@ export default function GenerateQR() {
   };
 
 
-  const generateQR = async () => {
+  const generateQR = useCallback(async () => {
     if (!naddr || !verificationKeyPair) return;
 
     setIsGenerating(true);
@@ -241,7 +126,7 @@ export default function GenerateQR() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [naddr, verificationKeyPair, qrType, toast]);
 
   const handleDownloadQR = () => {
     if (qrDataUrl) {
@@ -255,79 +140,12 @@ export default function GenerateQR() {
     }
   };
 
-  const handleExport = () => {
-    if (!exportData) return;
-
-    const blob = new Blob([exportData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `geocache-${cacheName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Data Exported",
-      description: "Your pre-generated cache data has been downloaded.",
-    });
-  };
-
-  const handleCopyExportData = async () => {
-    try {
-      await navigator.clipboard.writeText(exportData);
-      toast({
-        title: "Data Copied",
-        description: "Export data copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Copy Failed",
-        description: "Unable to copy to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCopyShareableLink = async () => {
-    if (!exportData) return;
-
-    try {
-      const encoded = btoa(exportData);
-      const shareableUrl = `${window.location.origin}/generate-qr?import=${encoded}`;
-      await navigator.clipboard.writeText(shareableUrl);
-      toast({
-        title: "Shareable Link Copied",
-        description: "Link with embedded cache data copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Copy Failed",
-        description: "Unable to copy to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReset = () => {
-    setCacheName('');
-    setVerificationKeyPair(null);
-    setMockEvent(null);
-    setNaddr('');
-    setQrDataUrl('');
-    setExportData('');
-    setImportData('');
-    setShowGenerated(false);
-    setExistingLink('');
-  };
-
   // Generate QR when data is ready
   useEffect(() => {
     if (naddr && verificationKeyPair) {
       generateQR();
     }
-  }, [naddr, verificationKeyPair, qrType]);
+  }, [naddr, verificationKeyPair, generateQR]);
 
   if (!user) {
     return (
@@ -428,7 +246,7 @@ export default function GenerateQR() {
               <CardHeader>
                 <CardTitle className="text-lg">Generated Cache: {cacheName}</CardTitle>
                 <CardDescription>
-                  Your QR code is ready. This data can be used to pre-fill the create form later.
+                  Your QR code is ready for download and placement with your physical cache.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -539,63 +357,6 @@ export default function GenerateQR() {
                     Download QR Code
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Export/Share */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Export & Share</CardTitle>
-                <CardDescription>
-                  Save or share your cache data to use later in the create form
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Button onClick={handleExport} variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download JSON
-                  </Button>
-                  <Button onClick={handleCopyExportData} variant="outline">
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Data
-                  </Button>
-                  <Button onClick={handleCopyShareableLink} variant="outline">
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Shareable Link
-                  </Button>
-                </div>
-
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Next steps:</strong> Save this data and use it to pre-fill the create form when you're ready to publish your cache.
-                    You can import this data on the create page or use the shareable link.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Button 
-                    onClick={() => navigate('/create')} 
-                    className="flex-1"
-                  >
-                    Go to Create Page
-                  </Button>
-                  <Button 
-                    onClick={handleReset} 
-                    variant="outline"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Reset
-                  </Button>
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowGenerated(false)}
-                  className="w-full bg-white text-black hover:bg-gray-100 border"
-                >
-                  Done
-                </Button>
               </CardContent>
             </Card>
           </div>
