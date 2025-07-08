@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, Info, BookOpen, FileText } from 'lucide-react';
+import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -16,7 +16,7 @@ import { cn } from '@/shared/utils/utils';
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Map', href: '/map', icon: Map },
-  { name: 'Claim', href: '/claim', icon: QrCode },
+  { name: 'Claim', href: '/claim', icon: ScanQrCode },
   { name: 'New', href: '/create', icon: Plus },
 ];
 
@@ -128,7 +128,7 @@ export function MobileHeader() {
                   
                   <NavLink
                     to="/generate-qr"
-                    icon={FileText}
+                    icon={ScanQrCode}
                     isActive={location.pathname === '/generate-qr'}
                     onClick={closeSheet}
                   >

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, Plus, Info, ChevronDown, Compass, QrCode, Scroll, Crown, Settings, BookOpen } from 'lucide-react';
+import { Search, Plus, Info, ChevronDown, Compass, QrCode, ScanQrCode, Scroll, Crown, Settings, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -65,8 +65,14 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/claim">
-                    {isAdventureTheme ? <Scroll className="h-4 w-4 mr-2" /> : <QrCode className="h-4 w-4 mr-2" />}
+                    {isAdventureTheme ? <Scroll className="h-4 w-4 mr-2" /> : <ScanQrCode className="h-4 w-4 mr-2" />}
                     Claim {isAdventureTheme ? "Artifact" : "Treasure"}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/generate-qr">
+                    <ScanQrCode className="h-4 w-4 mr-2" />
+                    Generate QR Code
                   </Link>
                 </DropdownMenuItem>
                 {user && (
