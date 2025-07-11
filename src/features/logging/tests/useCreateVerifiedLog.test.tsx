@@ -9,7 +9,7 @@ import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
 vi.mock('@/features/auth/hooks/useCurrentUser');
 vi.mock('@/shared/hooks/useToast');
 vi.mock('@/shared/hooks/useNostrPublish');
-vi.mock('@/shared/utils/verification');
+vi.mock('@/features/geocache/utils/verification');
 
 const mockUser = {
   pubkey: 'test-pubkey',
@@ -50,7 +50,7 @@ describe('useCreateVerifiedLog', () => {
     });
     
     // Mock createVerificationEvent
-    const { createVerificationEvent } = require('@/shared/utils/verification');
+    const { createVerificationEvent } = require('src/features/geocache/utils/verification');
     createVerificationEvent.mockResolvedValue({
       id: 'verification-event-id',
       pubkey: 'verification-pubkey',

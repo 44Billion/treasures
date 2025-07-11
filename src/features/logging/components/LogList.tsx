@@ -1,3 +1,4 @@
+import { LogText } from "./LogText";
 import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck, Zap } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -200,7 +201,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
     <Card className="mobile-card-spacing">
       <CardContent className={compact ? "p-3" : "p-3 md:p-4"}>
         {/* Mobile layout (md:hidden) */}
-        <div className="space-y-3 md:hidden">
+        <div className="space-y-3 md:hidden overflow-hidden">
           {/* Header row with avatar, name, and actions */}
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
@@ -322,34 +323,9 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
           </div>
           
           {/* Log text - mobile */}
-          <div className={`whitespace-pre-wrap break-words leading-relaxed ${compact ? "text-sm" : "text-sm"}`}>
-            {log.text}
-          </div>
+          <LogText text={log.text} />
           
-          {/* Images - mobile */}
-          {log.images && log.images.length > 0 && (
-            <div className={`grid gap-2 mt-3 ${
-              log.images.length === 1 ? 'grid-cols-1 max-w-xs' :
-              log.images.length === 2 ? 'grid-cols-2' :
-              'grid-cols-2'
-            }`}>
-              {log.images.map((url, index) => (
-                <BlurredImage
-                  key={index}
-                  src={url}
-                  alt={`Log image ${index + 1}`}
-                  className={`rounded w-full object-cover ${
-                    compact ? "h-20" : 
-                    log.images.length === 1 ? "h-32" :
-                    "h-20"
-                  }`}
-                  onClick={() => window.open(url, "_blank")}
-                  blurIntensity="medium"
-                  defaultBlurred={true}
-                />
-              ))}
-            </div>
-          )}
+          
         </div>
 
         {/* Desktop layout (hidden md:block) - original design */}
@@ -369,7 +345,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
               )}
             </div>
             
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 overflow-hidden">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -468,23 +444,9 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
                 </div>
               </div>
               
-              <p className={`whitespace-pre-wrap ${compact ? "text-xs" : "text-sm"}`}>{log.text}</p>
+              <LogText text={log.text} />
               
-              {log.images && log.images.length > 0 && (
-                <div className={`grid grid-cols-3 gap-2 mt-3`}>
-                  {log.images.map((url, index) => (
-                    <BlurredImage
-                      key={index}
-                      src={url}
-                      alt={`Log image ${index + 1}`}
-                      className={`rounded w-full ${compact ? "h-16" : "h-24"}`}
-                      onClick={() => window.open(url, "_blank")}
-                      blurIntensity="medium"
-                      defaultBlurred={true}
-                    />
-                  ))}
-                </div>
-              )}
+              
             </div>
           </div>
         </div>
