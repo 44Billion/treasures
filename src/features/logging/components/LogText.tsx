@@ -1,18 +1,22 @@
 import { BlurredImage } from "@/components/BlurredImage";
+import { NostrEventCard } from "./NostrEvent";
 
 interface LogTextProps {
   text: string;
 }
 
-const IMAGE_REGEX = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/gi;
+const URL_REGEX = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)|nostr:nevent\w+)/gi;
 
 export function LogText({ text }: LogTextProps) {
-  const parts = text.split(IMAGE_REGEX);
+  const parts = text.split(URL_REGEX).filter(Boolean);
 
   return (
-    <p className="whitespace-pre-wrap break-words">
+    <div className="whitespace-pre-wrap break-words">
       {parts.map((part, index) => {
-        if (part.match(IMAGE_REGEX)) {
+        if (part.match(/^nostr:nevent/)) {
+          return <NostrEventCard key={index} nevent={part.replace('nostr:', '')} />;
+        }
+        if (part.match(/^https?/)) {
           return (
             <BlurredImage
               key={index}
@@ -25,8 +29,8 @@ export function LogText({ text }: LogTextProps) {
             />
           );
         }
-        return part;
+        return <p key={index}>{part}</p>;
       })}
-    </p>
+    </div>
   );
 }
