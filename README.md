@@ -2,7 +2,7 @@
 
 Treasures.to is a decentralized geocaching platform built on the Nostr protocol. Discover hidden geocaches, share locations, and connect with explorers worldwide through a censorship-resistant, open network.
 
-## Live at: [treasures.to](https://treasures.to)
+## Join the adventure now at [treasures.to](https://treasures.to)!
 
 ![Treasures.to](./public/og-image.png)
 
