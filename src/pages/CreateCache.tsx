@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, WifiOff, QrCode } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, WifiOff, QrCode, Zap, Edit3 } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
@@ -104,6 +104,7 @@ export default function CreateCache() {
   const [verificationKeyPair, setVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
+  const [showQROverlay, setShowQROverlay] = useState(true);
 
   // Check for claim URL in params (from pre-generated QR code)
   useEffect(() => {
@@ -334,33 +335,83 @@ export default function CreateCache() {
   }
 
   return (
-    <PageLayout maxWidth="2xl" background="default" className="pb-4 md:pb-0">
-      {/* Mobile: No card wrapper, desktop: Card wrapper */}
-      <div className="max-w-2xl mx-auto create-cache-container">
-        {/* Header - mobile only */}
-        <div className="md:hidden px-4 py-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground">Hide a New Geocache</h1>
-            </div>
-            <div className="flex gap-2 ml-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/generate-qr')}
-              >
-                <QrCode className="h-4 w-4" />
-              </Button>
-            </div>
+    <PageLayout maxWidth="2xl" background="default" className={showQROverlay ? "h-screen" : "pb-4 md:pb-0"}>
+      {/* QR Code Choice - Bigger prettier buttons */}
+      {showQROverlay ? (
+        <div className="h-full flex items-center justify-center">
+          <div className="max-w-lg mx-auto space-y-4 px-4">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">Create a Geocache</h2>
+                <p className="text-sm text-muted-foreground">Choose how you'd like to get started. Create a QR code that you can scan to create your geocache later, or create your full listing now.</p>
+              </div>
+              
+              <div className="space-y-4">
+                <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+                  <CardContent 
+                    className="p-6"
+                    onClick={() => navigate('/generate-qr')}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+                        <QrCode className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-1">QR code now!</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Quick and easy - get a Treasures Claim QR code instantly. Scan your QR code later to create your geocache.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+                  <CardContent 
+                    className="p-6"
+                    onClick={() => setShowQROverlay(false)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <Edit3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-1">I'll fill it out here.</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Already set? Create and publish your geocache listing for the world to find.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
           </div>
-          <p className="text-muted-foreground">
-            Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully - 
-            they help seekers know what to expect and prepare appropriately.
-          </p>
         </div>
-        
-        {/* Desktop Card Header */}
-        <Card className="hidden md:block">
+      ) : (
+        <div className="max-w-2xl mx-auto create-cache-container">
+          {/* Header - mobile only */}
+            <div className="md:hidden px-4 py-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-foreground">Hide a New Geocache</h1>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/generate-qr')}
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-muted-foreground">
+                Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully - 
+                they help seekers know what to expect and prepare appropriately.
+              </p>
+            </div>
+            
+            {/* Desktop Card Header */}
+            <Card className="hidden md:block">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -613,8 +664,8 @@ export default function CreateCache() {
           </CardContent>
         </Card>
         
-        {/* Mobile Form - no card wrapper */}
-        <div className="md:hidden px-4 pb-4 bg-background">
+            {/* Mobile Form - no card wrapper */}
+            <div className="md:hidden px-4 pb-4 bg-background">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-4 px-2 overflow-hidden create-cache-progress">
@@ -842,10 +893,9 @@ export default function CreateCache() {
               </Button>
             </div>
           </form>
-        </div>
-      </div>
+            </div>
 
-      {/* Location Confirmation Dialog */}
+          {/* Location Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
@@ -971,6 +1021,8 @@ export default function CreateCache() {
           verificationKeyPair={verificationKeyPair}
           cacheName={formData.name}
         />
+      )}
+        </div>
       )}
     </PageLayout>
   );
