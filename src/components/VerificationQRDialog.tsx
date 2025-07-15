@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Copy, Check, QrCode, ChevronDown } from 'lucide-react';
+import { Download, Copy, Check, QrCode, ChevronDown, Printer } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,6 +87,36 @@ export function VerificationQRDialog({
     }
   };
 
+  const handlePrint = () => {
+    if (qrDataUrl) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print QR Code</title>
+              <style>
+                @page { size: auto;  margin: 0mm; }
+                body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+                img { max-width: 100%; max-height: 100%; object-fit: contain; }
+              </style>
+            </head>
+            <body onload="window.print(); setTimeout(function() { window.close(); }, 100);">
+              <img src="${qrDataUrl}" alt="Verification QR Code" />
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+      } else {
+        toast({
+          title: 'Print Failed',
+          description: 'Could not open print window. Please check your browser settings.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
   const verificationUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair.nsec}`;
 
   // Verification QR dialog rendering
@@ -108,7 +138,7 @@ export function VerificationQRDialog({
           {/* QR Code Display */}
           <div className="flex justify-center p-3 sm:p-4 bg-white rounded-lg border">
             {isGenerating ? (
-              <div className="w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center bg-muted rounded">
+              <div className="w-full flex items-center justify-center bg-muted rounded">
                 <ComponentLoading 
                   size="sm" 
                   title="Generating QR code..." 
@@ -118,7 +148,7 @@ export function VerificationQRDialog({
               <img 
                 src={qrDataUrl} 
                 alt="Verification QR Code" 
-                className="w-48 h-48 m:w-64 sm:h-64 rounded max-w-full max-h-[400px] object-contain"
+                className="rounded max-w-full overflow-hidden h-[150px] xs:h-full object-contain"
               />
             ) : (
               <div className="w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center bg-muted rounded">
@@ -159,7 +189,16 @@ export function VerificationQRDialog({
               className="text-sm"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download QR Code
+              Download
+            </Button>
+            <Button
+              onClick={handlePrint}
+              disabled={!qrDataUrl}
+              variant="outline"
+              className="text-sm"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print
             </Button>
             
           </div>
