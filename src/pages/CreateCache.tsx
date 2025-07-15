@@ -341,7 +341,7 @@ export default function CreateCache() {
         <div className="h-full flex items-center justify-center">
           <div className="max-w-lg mx-auto space-y-4 px-4">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">Create a Geocache</h2>
+                <h2 className="text-2xl text-foreground font-bold mb-2">Create a Geocache</h2>
                 <p className="text-sm text-muted-foreground">Choose how you'd like to get started. Create a QR code that you can scan to create your geocache later, or create your full listing now.</p>
               </div>
               

@@ -141,8 +141,8 @@ export default function GenerateQR() {
     <PageLayout maxWidth="lg" background="default" className="pb-4">
       <div className="max-w-md mx-auto text-center space-y-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
-            <QrCode className="h-8 w-8" />
+          <h1 className="text-foreground text-2xl font-bold flex items-center justify-center gap-2">
+            <QrCode className="text-foreground h-8 w-8" />
             Generate QR Code
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
@@ -198,12 +198,12 @@ export default function GenerateQR() {
         <div className="space-y-4 text-left">
           {qrType === 'sheet' ? (
             <div>
-              <h2 className="text-lg font-semibold">Generated Caches (Sheet)</h2>
+              <h2 className="text-foreground text-lg font-semibold">Generated Caches (Sheet)</h2>
               <p className="text-sm text-muted-foreground mb-4">A 3x3 grid of unique QR codes has been generated.</p>
               <ul className="space-y-2">
                 {sheetData.map((data, index) => (
                   <li key={index} className="flex items-center justify-between gap-2 p-2 border rounded-md bg-muted/50">
-                    <span className="font-mono text-sm">{data.name}</span>
+                    <span className="text-foreground font-mono text-sm">{data.name}</span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -226,17 +226,17 @@ export default function GenerateQR() {
           ) : (
             <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold">Generated Cache Details</h2>
+                <h2 className="text-foreground text-lg font-semibold">Generated Cache Details</h2>
                 <p className="text-sm text-muted-foreground">This is the information for the generated QR code.</p>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Cache Name</label>
-                <p className="font-mono p-2 border rounded-md text-sm bg-muted/50">{cacheName}</p>
+                <p className="text-foreground font-mono p-2 border rounded-md text-sm bg-muted/50">{cacheName}</p>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Claim URL</label>
                 <div className="flex items-center gap-2">
-                  <code className="bg-muted/50 px-2 py-1 rounded-md text-xs break-all flex-1 overflow-x-auto whitespace-nowrap">
+                  <code className="text-foreground bg-muted/50 px-2 py-1 rounded-md text-xs break-all flex-1 overflow-x-auto whitespace-nowrap">
                     https://treasures.to/{naddr}#verify={verificationKeyPair?.nsec}
                   </code>
                   <Button
