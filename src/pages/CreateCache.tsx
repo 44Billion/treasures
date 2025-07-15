@@ -43,8 +43,6 @@ import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
 import { getPublicKey } from "nostr-tools";
-import { VerificationQRDialog } from "@/components/VerificationQRDialog";
-import type { VerificationKeyPair } from "@/features/geocache/utils/verification";
 import { parseVerificationFromHash } from "@/features/geocache/utils/verification";
 import { naddrToGeocache } from "@/shared/utils/naddr-utils";
 import { useOfflineMode } from "@/features/geocache/hooks/useOfflineStorage";
@@ -99,12 +97,10 @@ export default function CreateCache() {
   const totalSteps = 4;
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [showQRDialog, setShowQRDialog] = useState(false);
-  const [createdNaddr, setCreatedNaddr] = useState<string>('');
-  const [verificationKeyPair, setVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
+
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
-  const [showQROverlay, setShowQROverlay] = useState(true);
+  const [showQROverlay, setShowQROverlay] = useState(false);
 
   // Check for claim URL in params (from pre-generated QR code)
   useEffect(() => {
@@ -265,20 +261,11 @@ export default function CreateCache() {
         const { geocacheToNaddr } = await import('@/shared/utils/naddr-utils');
         const naddr = geocacheToNaddr(event.pubkey, dTag, relays);
         
-        // Only show the QR dialog if we didn't import pre-generated data
-        // (since the user already has the QR code from the pre-generation)
-        if (!importedDTag) {
-          setCreatedNaddr(naddr);
-          setVerificationKeyPair(verificationKeyPair);
-          setShowQRDialog(true);
-        } else {
-          // For imported caches, just navigate directly to the cache page
           toast({
             title: "Cache Published Successfully!",
-            description: "Your pre-generated cache is now live. The QR code you generated earlier will work perfectly.",
+            description: "Your geocache is now live.",
           });
           navigate(`/${naddr}`);
-        }
       }
     } catch (error) {
       // Error handling is already done in the mutation
@@ -1003,25 +990,6 @@ export default function CreateCache() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Verification QR Dialog */}
-      {verificationKeyPair && (
-        <VerificationQRDialog
-          isOpen={showQRDialog}
-          onOpenChange={(open) => {
-            setShowQRDialog(open);
-            if (!open) {
-              // Navigate to the cache after closing the QR dialog
-              if (createdNaddr) {
-                navigate(`/${createdNaddr}`);
-              }
-            }
-          }}
-          naddr={createdNaddr}
-          verificationKeyPair={verificationKeyPair}
-          cacheName={formData.name}
-        />
-      )}
         </div>
       )}
     </PageLayout>

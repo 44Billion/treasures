@@ -116,6 +116,13 @@ export default function CreateCacheLanding() {
     }
   };
 
+  const handleFillOutNow = () => {
+    if (verificationKeyPair) {
+      const claimUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair.nsec}`;
+      navigate(`/create-cache?claimUrl=${encodeURIComponent(claimUrl)}`);
+    }
+  };
+
   if (!user) {
     return (
       <PageLayout maxWidth="md" className="py-16">
@@ -194,11 +201,7 @@ export default function CreateCacheLanding() {
             Create the online listing for your geocache now, or scan the QR code later to finish.
           </p>
           <Button
-            onClick={() =>
-              navigate(
-                `/create-cache?claimUrl=https://treasures.to/${naddr}#verify=${verificationKeyPair?.nsec}`
-              )
-            }
+            onClick={handleFillOutNow}
             disabled={!qrDataUrl}
             className="w-full"
           >
