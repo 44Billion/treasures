@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, Plus, Info, ChevronDown, Compass, QrCode, Scroll, Crown, Settings } from 'lucide-react';
+import { Search, Plus, Info, ChevronDown, Compass, QrCode, Scroll, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ThemeToggle } from '@/components/ThemeToggle';

@@ -6,7 +6,6 @@ import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/feature
 import { verifyEmbeddedVerification, getEmbeddedVerification } from '@/features/geocache/utils/verification';
 import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
-import { Filter as NostrFilter } from 'nostr-tools';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
 import { cacheManager } from '@/features/geocache/utils/cacheManager';
 

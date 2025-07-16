@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { 
   User, 
@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { FullPageLoading, ComponentLoading } from '@/components/ui/loading';
 
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
-import { GeocacheCard, DetailedGeocacheCard } from '@/components/ui/geocache-card';
+import { GeocacheCard } from '@/components/ui/geocache-card';
 import { EditProfileForm } from '@/features/profile/components/EditProfileForm';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';

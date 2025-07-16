@@ -5,7 +5,6 @@ import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 // Note: Performance optimization functionality has been integrated into the new store system
 import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
-import { Filter as NostrFilter } from 'nostr-tools';
 import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
 import { useEffect, useState, useCallback } from 'react';
 

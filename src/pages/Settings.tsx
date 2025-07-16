@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Smartphone } from "lucide-react";
+import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";

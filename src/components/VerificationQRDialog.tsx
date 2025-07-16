@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Copy, Check, QrCode, ChevronDown, Printer } from 'lucide-react';
+import { Download, Copy, QrCode, ChevronDown, Printer } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

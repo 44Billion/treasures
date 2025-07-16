@@ -8,7 +8,6 @@ import { cacheManager } from '@/features/geocache/utils/cacheManager';
 import { useEffect } from 'react';
 import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '../../../shared/stores/useWotStore';
-import { Filter as NostrFilter } from 'nostr-tools';
 
 export function useGeocaches() {
   const { nostr } = useNostr();

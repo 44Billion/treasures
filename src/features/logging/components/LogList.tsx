@@ -25,7 +25,6 @@ import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useDeleteLog } from "@/features/logging/hooks/useDeleteLog";
 import { useToast } from "@/shared/hooks/useToast";
 import { formatDistanceToNow } from "@/shared/utils/date";
-import { BlurredImage } from "@/components/BlurredImage";
 import { useLogStore } from "@/shared/stores/useLogStore";
 import { ZapButton } from "@/components/ZapButton";
 import { useEffect, useMemo } from "react";

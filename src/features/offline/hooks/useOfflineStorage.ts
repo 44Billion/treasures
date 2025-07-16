@@ -208,7 +208,7 @@ export function useOfflineSettings() {
     };
 
     loadSettings();
-  }, [getSetting]);
+  }, [getSetting, setSetting]);
 
   return {
     settings,

@@ -3,7 +3,6 @@ import { useNostr } from '@nostrify/react';
 import { NIP_GC_KINDS, createGeocacheCoordinate } from '@/features/geocache/utils/nip-gc';
 import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
-import { Filter as NostrFilter } from 'nostr-tools';
 import { TIMEOUTS, POLLING_INTERVALS } from '@/shared/config';
 // Note: Deletion filtering functionality has been simplified
 

@@ -11,8 +11,6 @@ import { Badge } from "@/shared/components/ui/badge";
 import { MapStyleSelector, MAP_STYLES, type MapStyle } from "./MapStyleSelector";
 import { useSavedCaches } from "@/features/geocache/hooks/useSavedCaches";
 import { useToast } from "@/shared/hooks/useToast";
-import { useGeocacheStore } from "@/shared/stores/useGeocacheStore";
-import { useLogStore } from "@/shared/stores/useLogStore";
 import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavigation";
 import type { Geocache } from "@/shared/types";
 import { getTypeLabel, getSizeLabel } from "@/features/geocache/utils/geocache-utils";

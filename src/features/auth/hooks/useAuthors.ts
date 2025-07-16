@@ -1,4 +1,4 @@
-import { type NostrEvent, type NostrMetadata, NSchema as n } from '@nostrify/nostrify';
+import { NSchema as n } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 import { useQueries } from '@tanstack/react-query';
 import { TIMEOUTS } from '@/shared/config/timeouts';

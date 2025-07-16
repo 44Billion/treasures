@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
