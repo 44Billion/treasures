@@ -222,7 +222,7 @@ export default function Map() {
     setMapZoom(12); // Slightly more zoomed in for city searches
     setShowNearMe(false);
     setSearchInView(false); // Clear search in view
-    setViewBounds(null); // Clear view bounds
+
     setSearchLocation(newCenter);
     setHighlightedGeocache(null); // Clear any highlighted geocache
     setMapUpdateKey(prev => prev + 1); // Force map update
@@ -235,7 +235,7 @@ export default function Map() {
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
     setSearchInView(false); // Clear search in view
-    setViewBounds(null); // Clear view bounds
+
     setHighlightedGeocache(null); // Clear any highlighted geocache
     
     // Start location request
@@ -270,12 +270,7 @@ export default function Map() {
       setShowNearMe(false); // Clear near me
       setSearchLocation({ lat: center.lat, lng: center.lng });
       setSearchRadius(Math.ceil(radiusKm));
-      setViewBounds({
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest()
-      });
+
       setHighlightedGeocache(null); // Clear any highlighted geocache
     }
   };
@@ -314,7 +309,7 @@ export default function Map() {
     setShowNearMe(false);
     setSearchLocation(null);
     setSearchInView(false);
-    setViewBounds(null);
+
   };
 
   const handleRetry = async () => {
@@ -457,7 +452,7 @@ export default function Map() {
                           setShowNearMe(false);
                           setSearchLocation(null);
                           setSearchInView(false);
-                          setViewBounds(null);
+
                         }}
                         title="Clear location filter"
                       >
@@ -682,7 +677,7 @@ export default function Map() {
                           setShowNearMe(false);
                           setSearchLocation(null);
                           setSearchInView(false);
-                          setViewBounds(null);
+
                         }}
                         title="Clear location filter"
                       >

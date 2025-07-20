@@ -76,7 +76,7 @@ class ConnectivityChecker {
       this.status.connectionQuality = 'offline';
       this.status.lastChecked = Date.now();
       this.status.isInitialCheck = false;
-      this._hasCompletedInitialCheck = true;
+      this.status.isInitialCheck = false;
       this.notifyListeners();
     });
 
@@ -114,7 +114,7 @@ class ConnectivityChecker {
           lastChecked: Date.now(),
           isInitialCheck: false,
         };
-        this._hasCompletedInitialCheck = true;
+        this.status.isInitialCheck = false;
         this.notifyListeners();
         return this.status;
       }
@@ -144,7 +144,7 @@ class ConnectivityChecker {
       };
     } finally {
       this.isChecking = false;
-      this._hasCompletedInitialCheck = true;
+      this.status.isInitialCheck = false;
       this.notifyListeners();
     }
 
@@ -240,7 +240,7 @@ class ConnectivityChecker {
         lastChecked: Date.now(),
         isInitialCheck: false,
       };
-      this._hasCompletedInitialCheck = true;
+      this.status.isInitialCheck = false;
       this.notifyListeners();
       return;
     }
@@ -254,7 +254,7 @@ class ConnectivityChecker {
       lastChecked: Date.now(),
       isInitialCheck: false,
     };
-    this._hasCompletedInitialCheck = true;
+    this.status.isInitialCheck = false;
     this.notifyListeners();
 
     // Then perform the full check in the background

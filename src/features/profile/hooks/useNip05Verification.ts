@@ -24,13 +24,13 @@ export function useNip05Verification(nip05: string | undefined, pubkey: string |
       const [localPart, domain] = parts;
       
       // Validate local part (should only contain a-z0-9-_.)
-      if (!/^[a-z0-9\-_.]+$/i.test(localPart)) {
+      if (!/^[a-z0-9\-_.]+$/i.test(localPart || '')) {
         return { isVerified: false, error: 'Invalid local part in NIP-05' };
       }
 
       try {
         // Make request to the well-known endpoint
-        const url = `https://${domain}/.well-known/nostr.json?name=${encodeURIComponent(localPart)}`;
+        const url = `https://${domain}/.well-known/nostr.json?name=${encodeURIComponent(localPart || '')}`;
         
         const response = await fetch(url, {
           signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]), // Reduced from 10s to 5s for better UX
@@ -54,7 +54,7 @@ export function useNip05Verification(nip05: string | undefined, pubkey: string |
         }
 
         // Check if the local part exists in the names mapping
-        const mappedPubkey = data.names[localPart];
+        const mappedPubkey = data.names[localPart || ''];
         if (!mappedPubkey) {
           return { isVerified: false, error: 'Name not found in mapping' };
         }
@@ -113,12 +113,12 @@ export function useNip05Status(nip05: string | undefined, pubkey: string | undef
   return {
     isVerified: data?.isVerified || false,
     isLoading,
-    error: errorMessage,
+    error: errorMessage || undefined,
     isError,
     relays: data?.relays || [],
     // Helper flags for UI states
-    isTimeout: errorMessage?.includes('timeout') || errorMessage?.includes('Request timeout'),
-    isNetworkError: errorMessage?.includes('Network error') || errorMessage?.includes('fetch'),
-    isInvalidFormat: errorMessage?.includes('Invalid'),
+    isTimeout: errorMessage?.includes('timeout') || errorMessage?.includes('Request timeout') || false,
+    isNetworkError: errorMessage?.includes('Network error') || errorMessage?.includes('fetch') || false,
+    isInvalidFormat: errorMessage?.includes('Invalid') || false,
   };
 }

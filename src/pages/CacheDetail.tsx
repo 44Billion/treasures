@@ -43,7 +43,7 @@ import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
 import { parseVerificationFromHash, verifyKeyPair } from "@/features/geocache/utils/verification";
 import { naddrToGeocache } from "@/shared/utils/naddr-utils";
-import type { Geocache } from "@/types/geocache";
+import type { Geocache, GeocacheLog } from "@/types/geocache";
 
 export default function CacheDetail() {
   const { naddr } = useParams<{ naddr: string }>();
@@ -699,7 +699,7 @@ export default function CacheDetail() {
             {/* Logs Section */}
             <div className="space-y-4" data-logs-section>
               <LogsSection 
-                logs={logs}
+                logs={logs as GeocacheLog[]}
                 geocache={typedGeocache}
                 onProfileClick={handleProfileClick}
                 isOwner={isOwner}
@@ -778,18 +778,18 @@ export default function CacheDetail() {
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Total Finds</span>
                     <span className="font-medium">
-                      {(logs as GeocacheLog[])?.filter(log => log.type === "found").length || 0}
+                      {logs?.filter(log => log.type === "found").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">DNFs</span>
                     <span className="font-medium">
-                      {(logs as GeocacheLog[])?.filter(log => log.type === "dnf").length || 0}
+                      {logs?.filter(log => log.type === "dnf").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Total Logs</span>
-                    <span className="font-medium">{(logs as GeocacheLog[])?.length || 0}</span>
+                    <span className="font-medium">{logs?.length || 0}</span>
                   </div>
                 </div>
               </CardContent>

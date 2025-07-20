@@ -42,7 +42,6 @@ import { mapIcons } from "@/features/map/utils/mapIcons";
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
-import { getPublicKey } from "nostr-tools";
 import { parseVerificationFromHash } from "@/features/geocache/utils/verification";
 import { naddrToGeocache } from "@/shared/utils/naddr-utils";
 import { useOfflineMode } from "@/features/geocache/hooks/useOfflineStorage";
@@ -119,13 +118,13 @@ export default function CreateCache() {
               // Decode the nsec to get the private key bytes
               const { data: privateKeyBytes } = nip19.decode(nsec);
               // Derive the public key (getPublicKey expects a hex string)
-              const privateKeyHex = toHexString(privateKeyBytes as Uint8Array);
+
 
               
               // Store the complete, valid keypair
               setImportedVerificationKeyPair({
                 nsec: nsec,
-                publicKey: publicKey,
+                publicKey: '', // Will be derived later
               });
               
               setImportedDTag(decodedNaddr.identifier);

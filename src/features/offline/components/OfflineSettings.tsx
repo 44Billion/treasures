@@ -28,7 +28,7 @@ import { useToast } from '@/shared/hooks/useToast';
 import { offlineStorage } from '@/features/offline/utils/offlineStorage';
 
 export function OfflineSettings() {
-  const { status, forceSync } = useOfflineSync();
+  const { forceSync } = useOfflineSync();
   const { settings, setSetting } = useOfflineSettings();
   const { isOnline, isConnected, connectionQuality, pendingActions, lastSyncTime, syncErrors, latency } = useOfflineMode();
   const { forceCheck } = useConnectivity();

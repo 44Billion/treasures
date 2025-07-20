@@ -97,7 +97,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
           }
         });
 
-        const validGeocaches = geocaches.filter(isValidGeocache) as Geocache[];
+        const validGeocaches = geocaches.filter(isValidGeocache);
         const validLogs = logs.filter(isValidLog);
 
         setState(prev => ({

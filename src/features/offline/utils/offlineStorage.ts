@@ -501,7 +501,7 @@ class OfflineStorage {
   // Storage management with limits
   async checkStorageLimit(): Promise<boolean> {
     try {
-      const { getStorageUsage, isStorageNearLimit } = await import('@/shared/utils/storageConfig');
+      const { isStorageNearLimit } = await import('@/shared/utils/storageConfig');
       return await isStorageNearLimit();
     } catch (error) {
       console.warn('Failed to check storage limit:', error);

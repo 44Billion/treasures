@@ -73,13 +73,13 @@ export function useUserFoundCaches(targetPubkey?: string) {
           // Get the geocache event
           const geocacheEvents = await nostr.query([{
             kinds: [NIP_GC_KINDS.GEOCACHE],
-            authors: [geocachePubkey],
-            '#d': [dTag],
+            authors: [geocachePubkey || ''],
+            '#d': [dTag || ''],
             limit: 1,
           }], { signal });
 
           if (geocacheEvents.length > 0) {
-            const parsed = parseGeocacheEvent(geocacheEvents[0]);
+            const parsed = parseGeocacheEvent(geocacheEvents[0]!);
             if (parsed) {
               geocaches.set(ref, parsed);
             }
@@ -88,7 +88,7 @@ export function useUserFoundCaches(targetPubkey?: string) {
           // Get all logs for this geocache (for counting)
           const allLogs = await nostr.query([{
             kinds: [NIP_GC_KINDS.FOUND_LOG, NIP_GC_KINDS.COMMENT_LOG],
-            '#a': [createGeocacheCoordinate(geocachePubkey, dTag)],
+            '#a': [createGeocacheCoordinate(geocachePubkey || '', dTag || '')],
             limit: 1000,
           }], { signal });
 

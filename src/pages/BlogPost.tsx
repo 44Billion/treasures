@@ -126,7 +126,7 @@ export default function BlogPost() {
         ) : (
           <BlogPostDetail
             post={post}
-            showAuthorActions={isAuthorized && isAuthor}
+            showAuthorActions={Boolean(isAuthorized && isAuthor)}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />

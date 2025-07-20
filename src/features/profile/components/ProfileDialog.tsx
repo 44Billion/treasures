@@ -25,8 +25,7 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
 
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || pubkey.slice(0, 8);
-  const about = metadata?.about;
-  const website = metadata?.website;
+
   const createdAt = author.data?.event?.created_at;
 
   // Filter geocaches created by this user
