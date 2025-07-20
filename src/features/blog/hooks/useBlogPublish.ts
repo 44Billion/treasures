@@ -28,9 +28,9 @@ export function useCreateBlogPost() {
       
       // Publish the event using the shared hook (handles retries and error handling)
       const event = await publishEvent({
-        kind: eventTemplate.kind,
-        content: eventTemplate.content,
-        tags: eventTemplate.tags,
+        kind: eventTemplate.kind as number,
+        content: eventTemplate.content || '',
+        tags: eventTemplate.tags || [],
       });
 
       return event;
@@ -67,9 +67,9 @@ export function useUpdateBlogPost() {
       
       // Publish the event using the shared hook (handles retries and error handling)
       const event = await publishEvent({
-        kind: eventTemplate.kind,
-        content: eventTemplate.content,
-        tags: eventTemplate.tags,
+        kind: eventTemplate.kind as number,
+        content: eventTemplate.content || '',
+        tags: eventTemplate.tags || [],
       });
 
       return event;

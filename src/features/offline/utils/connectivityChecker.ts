@@ -29,10 +29,12 @@ class ConnectivityChecker {
     isInitialCheck: true,
   };
 
+  public hasCompletedInitialCheck = false;
+
   private listeners: ((status: ConnectivityStatus) => void)[] = [];
   private checkInterval: number | null = null;
   private isChecking = false;
-  private hasCompletedInitialCheck = false;
+
 
 
   private options: ConnectivityOptions = {

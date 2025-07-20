@@ -3,26 +3,24 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import type { Geocache } from '@/types/geocache';
-import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { useNostr } from '@nostrify/react';
+
 import { offlineStorage, type CachedGeocache } from '@/features/offline/utils/offlineStorage';
 import { NIP_GC_KINDS, parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
 import { TIMEOUTS, QUERY_LIMITS } from '@/shared/config';
+import type { Geocache } from '@/types/geocache';
 
 export function useOfflineGeocaches() {
   const { nostr } = useNostr();
-  const { user } = useCurrentUser();
-  const { isOnline, isConnected } = useOfflineMode();
   
   // We'll fetch deletion events when needed
 
   return useQuery({
-    queryKey: ['geocaches', 'offline-aware', isOnline && isConnected],
-    queryFn: async (c) => {
+    queryKey: ['geocaches', 'offline-aware', navigator.onLine],
+    queryFn: async () => {
       console.log('useOfflineGeocaches query starting...', {
-        isOnline,
-        isConnected,
+        isOnline: navigator.onLine,
+        isConnected: navigator.onLine,
         navigatorOnline: navigator.onLine
       });
 
@@ -48,7 +46,7 @@ export function useOfflineGeocaches() {
         offlineGeocaches = parsedWithEvents
           .filter(item => nonDeletedEventIds.has(item.event.id))
           .map(item => item.geocache)
-          .filter(g => !g.hidden || g.pubkey === user?.pubkey)
+          .filter(g => !g.hidden)
           .map(g => ({ ...g, foundCount: 0, logCount: 0 }));
         
         console.log('Found offline geocaches:', offlineGeocaches.length);
@@ -57,14 +55,14 @@ export function useOfflineGeocaches() {
       }
 
       // If we're truly offline, return offline data immediately
-      if (!navigator.onLine || !isOnline || !isConnected) {
+      if (!navigator.onLine) {
         console.log('Using offline data - not connected to internet');
         return offlineGeocaches;
       }
 
       try {
         console.log('Fetching online geocaches...');
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
+        const signal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
         const events = await nostr.query([{
           kinds: [NIP_GC_KINDS.GEOCACHE],
           limit: QUERY_LIMITS.GEOCACHES,
@@ -80,11 +78,11 @@ export function useOfflineGeocaches() {
         const onlineGeocaches = nonDeletedEvents
           .map(parseGeocacheEvent)
           .filter((g): g is Geocache => g !== null)
-          .filter(g => !g.hidden || g.pubkey === user?.pubkey)
-          .map(g => ({ ...g, foundCount: 0, logCount: 0 }));
+          .filter((g: Geocache) => !g.hidden)
+          .map((g: Geocache) => ({ ...g, foundCount: 0, logCount: 0 }));
 
         // Cache online geocaches for offline use (only non-deleted ones)
-        const cachePromises = nonDeletedEvents.map(event => {
+        const cachePromises = nonDeletedEvents.map((event: any) => {
           const geocache = parseGeocacheEvent(event);
           if (!geocache) return Promise.resolve();
 
@@ -113,7 +111,7 @@ export function useOfflineGeocaches() {
         return offlineGeocaches;
       }
     },
-    staleTime: isOnline && isConnected ? 30000 : Infinity, // 30 seconds online, never stale offline
+    staleTime: navigator.onLine ? 30000 : Infinity, // 30 seconds online, never stale offline
     gcTime: 300000, // 5 minutes
     retry: false, // Disable retries to prevent cache invalidation
     refetchOnReconnect: true, // Refetch when connection is restored
@@ -129,13 +127,11 @@ export function useOfflineProximityGeocaches(
   lon?: number, 
   radiusKm: number = 10
 ) {
-  const { nostr } = useNostr();
-  const { user } = useCurrentUser();
-  const { isOnline, isConnected } = useOfflineMode();
+
 
   return useQuery({
-    queryKey: ['proximity-geocaches', lat, lon, radiusKm, isOnline && isConnected],
-    queryFn: async (c) => {
+    queryKey: ['proximity-geocaches', lat, lon, radiusKm, navigator.onLine],
+    queryFn: async () => {
       if (!lat || !lon) return [];
 
       // Get all geocaches (using cache)
@@ -160,7 +156,7 @@ export function useOfflineProximityGeocaches(
       });
     },
     enabled: lat !== undefined && lon !== undefined,
-    staleTime: isOnline && isConnected ? 60000 : Infinity, // 1 minute online, never stale offline
+    staleTime: navigator.onLine ? 60000 : Infinity, // 1 minute online, never stale offline
     gcTime: 300000,
   });
 }

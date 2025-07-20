@@ -105,7 +105,7 @@ export function useCreateVerifiedLog() {
       };
     },
     onSuccess: (result, variables) => {
-      const { logEvent, verificationEvent } = result;
+      const { logEvent } = result;
       
       // Optimistically update the cache immediately
       queryClient.setQueryData(['geocache-logs', variables.geocacheDTag, variables.geocachePubkey], (oldData: unknown) => {

@@ -267,7 +267,7 @@ export function cleanupDuplicateWarnings(warnings: string[]): string[] {
     
     for (let i = 0; i < cleaned.length; i++) {
       const existingWarning = cleaned[i];
-      const normalizedExisting = existingWarning.toLowerCase().replace(/⚠️\s*/, '');
+      const normalizedExisting = existingWarning?.toLowerCase().replace(/⚠️\s*/, '') || '';
       
       // Check for semantic duplicates
       const bothAboutPrivateProperty = normalizedWarning.includes('private property') && normalizedExisting.includes('private property');
@@ -285,7 +285,7 @@ export function cleanupDuplicateWarnings(warnings: string[]): string[] {
       if (bothAboutPrivateProperty || bothAboutNoAccess || bothAboutBuilding || bothAboutSchool || bothAboutMilitary || bothAboutWater) {
         // Prefer the more specific version based on multiple criteria
         const warningScore = getWarningSpecificityScore(warning);
-        const existingScore = getWarningSpecificityScore(existingWarning);
+        const existingScore = getWarningSpecificityScore(existingWarning || '');
         
         if (warningScore > existingScore) {
           // Replace the existing less specific one with the more specific one
@@ -378,15 +378,7 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
     // Only flag as underwater if we have strong evidence
     const isUnderwater = !isOnLand && isActuallyUnderwater(lat, lng, data.elements);
     
-    // Separate water features for nearby warnings (not underwater detection)
-    const nearbyWaterElements = data.elements.filter(element => 
-      element.tags && (
-        element.tags.natural === 'water' ||
-        element.tags.waterway ||
-        element.tags.landuse === 'reservoir' ||
-        element.tags.leisure === 'swimming_pool'
-      )
-    );
+    // Water features are handled in the main processing loop below
     
     // Process all elements for other warnings
     const allElements = data.elements;
@@ -412,9 +404,9 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
         const [key, value] = tagKey.split('=');
         if (value === '*') {
           // Wildcard match (e.g., military=*)
-          if (key in element.tags) {
+          if (key && element.tags && key in element.tags) {
             // Special handling for water bodies
-            if (isWaterFeature(key, element.tags[key])) {
+            if (isWaterFeature(key, element.tags[key] || '')) {
               if (isInWater) {
                 const waterName = element.tags.name || description.toLowerCase();
                 warnings.push(`⚠️ Location is UNDERWATER in ${waterName}`);
@@ -440,9 +432,9 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
               type: description,
             });
           }
-        } else if (element.tags[key] === value) {
+        } else if (element.tags && key && element.tags[key] === value) {
           // Special handling for water bodies
-          if (isWaterFeature(key, value)) {
+          if (isWaterFeature(key || '', value || '')) {
             if (isInWater) {
               const waterName = element.tags.name || description.toLowerCase();
               warnings.push(`⚠️ Location is UNDERWATER in ${waterName}`);
@@ -452,7 +444,7 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
                 value === 'water' ||
                 value === 'reservoir' ||
                 value === 'swimming_pool' ||
-                (key === 'waterway' && ['river', 'canal'].includes(value))
+                (key === 'waterway' && ['river', 'canal'].includes(value || ''))
               );
               if (isSignificantWater) {
                 warnings.push(`Location is near ${description.toLowerCase()}`);
@@ -705,7 +697,7 @@ export async function verifyLocation(lat: number, lng: number): Promise<Location
       if (!element.tags) return false;
       return PUBLIC_AREAS.some(publicTag => {
         const [key, value] = publicTag.split('=');
-        return element.tags![key] === value;
+        return element.tags && key && element.tags[key] === value;
       }) || 
       // Also check for explicit public access
       element.tags.access === 'yes' || element.tags.access === 'public';

@@ -282,11 +282,13 @@ export default function CacheDetail() {
 
     editGeocache({
       ...editFormData,
-      difficulty: parseInt(editFormData.difficulty),
-      terrain: parseInt(editFormData.terrain),
       images: editImages,
       hidden: editFormData.hidden,
       location: editLocation,
+      difficulty: parseFloat(editFormData.difficulty),
+      terrain: parseFloat(editFormData.terrain),
+      size: editFormData.size as "micro" | "small" | "regular" | "large" | "other",
+      type: editFormData.type as "traditional" | "multi" | "mystery",
     }, {
       onSuccess: () => {
         setIsEditing(false);

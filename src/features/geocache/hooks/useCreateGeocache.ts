@@ -117,7 +117,7 @@ export function useCreateGeocache() {
         const dTag = event.tags.find(t => t[0] === 'd')?.[1];
         if (dTag) {
           const relays = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
-          const naddr = geocacheToNaddr(event.pubkey, dTag || '', relays.filter(Boolean));
+          const naddr = geocacheToNaddr(event.pubkey, dTag || '', relays.filter(Boolean) as string[]);
           queryClient.invalidateQueries({ queryKey: ['geocache-by-naddr', naddr] });
         }
         queryClient.invalidateQueries({ queryKey: ['geocache', event.id] });

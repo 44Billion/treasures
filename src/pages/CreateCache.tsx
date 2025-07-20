@@ -257,7 +257,7 @@ export default function CreateCache() {
       if (dTag) {
         const relays = event.tags.filter((t: string[]) => t[0] === 'relay').map((t: string[]) => t[1]);
         const { geocacheToNaddr } = await import('@/shared/utils/naddr-utils');
-        const naddr = geocacheToNaddr(event.pubkey, dTag, relays);
+        const naddr = geocacheToNaddr(event.pubkey, dTag, relays as string[]);
         
           toast({
             title: "Cache Published Successfully!",

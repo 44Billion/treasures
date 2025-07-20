@@ -18,8 +18,8 @@ interface EditGeocacheData {
   hint?: string;
   difficulty: number;
   terrain: number;
-  size: string;
-  type: string;
+  size: "micro" | "small" | "regular" | "large" | "other";
+  type: "traditional" | "multi" | "mystery";
   images?: string[];
   hidden?: boolean;
   location?: { lat: number; lng: number };

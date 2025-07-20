@@ -856,7 +856,7 @@ export function GeocacheMap({
   
   const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
   const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
-  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
+  const mapStyle: MapStyle = (MAP_STYLES[currentMapStyle] || MAP_STYLES.original) as MapStyle;
   const { isCacheSaved, toggleSaveCache, isNostrEnabled } = useSavedCaches();
   const { toast } = useToast();
 

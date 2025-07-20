@@ -680,7 +680,7 @@ export async function generateQRGridImage(sheetData: {name: string, naddr: strin
       await new Promise((resolve, reject) => {
         qrImage.onload = resolve;
         qrImage.onerror = reject;
-        qrImage.src = qrCodes[row * 3 + col];
+        qrImage.src = qrCodes[row * 3 + col] || '';
       });
 
       const x = margin + col * cellWidth;
@@ -699,7 +699,10 @@ export async function generateQRGridImage(sheetData: {name: string, naddr: strin
       
       const textX = x + cellWidth / 2;
       const textY = qrY + qrSize + textHeight;
-      ctx.fillText(sheetData[row * 3 + col].name, textX, textY, cellWidth * 0.9);
+      const nameData = sheetData[row * 3 + col];
+      if (nameData && nameData.name) {
+        ctx.fillText(nameData.name, textX, textY, cellWidth * 0.9);
+      }
     }
   }
 
