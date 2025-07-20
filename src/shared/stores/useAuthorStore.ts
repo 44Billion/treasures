@@ -219,7 +219,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
       const result = await updateProfileMutation.mutateAsync(metadata);
       return baseStore.createSuccessResult(result);
     } catch (error) {
-      return baseStore.createErrorResult(baseStore.handleError(error, 'updateProfile'));
+      return baseStore.createErrorResult(baseStore.handleError(error, 'updateProfile')) as StoreActionResult<NostrEvent>;
     }
   }, [updateProfileMutation, baseStore]);
 
@@ -254,7 +254,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
 
   // Cache management
   const invalidateAuthor = useCallback((pubkey: string) => {
-    baseStore.invalidateQueries(createQueryKey('author', pubkey));
+    baseStore.invalidateQueries(createQueryKey('author', 'fetch', pubkey));
     // Remove from local state
     const newAuthors = { ...state.authors };
     delete newAuthors[pubkey];
@@ -262,7 +262,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
   }, [baseStore, state.authors]);
 
   const invalidateAll = useCallback(() => {
-    baseStore.invalidateQueries(createQueryKey('author'));
+    baseStore.invalidateQueries(createQueryKey('author', 'fetch'));
     updateState({
       authors: {},
       currentUser: null,
@@ -315,7 +315,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
       await backgroundSyncFn(pubkeys);
       return baseStore.createSuccessResult(undefined);
     } catch (error) {
-      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync'));
+      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync')) as StoreActionResult<void>;
     }
   }, [backgroundSyncFn, baseStore]);
 

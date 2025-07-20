@@ -88,7 +88,7 @@ export function useBaseStore(
       ]);
       return createSuccessResult(result);
     } catch (error) {
-      return createErrorResult(handleError(error, context));
+      return createErrorResult(handleError(error, context)) as StoreActionResult<T>;
     }
   }, [handleError, createSuccessResult, createErrorResult]);
 
@@ -277,7 +277,7 @@ export function createOptimisticUpdate<T>(
   const previousData = queryClient.getQueryData(queryKey);
   
   // Apply optimistic update
-  queryClient.setQueryData(queryKey, updateFn(previousData));
+  queryClient.setQueryData(queryKey, updateFn(previousData as T | undefined));
   
   // Return rollback function
   return () => {

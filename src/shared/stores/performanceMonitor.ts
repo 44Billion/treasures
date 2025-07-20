@@ -182,7 +182,8 @@ export class QueryOptimizer {
     // Clean up old entries if cache is full
     if (this.queryCache.size >= this.maxCacheSize) {
       const oldestKey = Array.from(this.queryCache.entries())
-        .sort(([, a], [, b]) => a.timestamp - b.timestamp)[0][0];
+        .sort(([, a], [, b]) => a.timestamp - b.timestamp)[0]?.[0];
+    if (!oldestKey) return;
       this.queryCache.delete(oldestKey);
     }
 

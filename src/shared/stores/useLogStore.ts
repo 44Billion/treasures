@@ -309,11 +309,12 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
       
       // Search through all logs to find the one to delete
+
       for (const [gId, logs] of Object.entries(state.logsByGeocache)) {
         const log = logs.find(l => l.id === logId);
         if (log) {
           logToDelete = log;
-          geocacheId = gId;
+
           break;
         }
       }

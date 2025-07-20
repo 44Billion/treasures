@@ -136,7 +136,9 @@ class LRUCache<K, V> {
     } else if (this.cache.size >= this.capacity) {
       // Remove least recently used (first item)
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
     
     this.cache.set(key, value);
@@ -248,11 +250,12 @@ export function useBatchMemo<T extends Record<string, any>>(
     let hasChanges = false;
     
     for (const [key, value] of Object.entries(values)) {
-      if (!equalityFn(refs.current[key], value)) {
-        refs.current[key] = value;
+      const typedKey = key as keyof T;
+      if (!equalityFn(refs.current[typedKey], value)) {
+        refs.current[typedKey] = value;
         hasChanges = true;
       }
-      result[key] = refs.current[key];
+      result[typedKey] = refs.current[typedKey] as T[keyof T];
     }
     
     return hasChanges ? result : refs.current as T;
@@ -264,7 +267,7 @@ export function useBatchMemo<T extends Record<string, any>>(
  */
 export function useMemoizedArray<T>(
   array: T[],
-  keyFn: (item: T) => string | number = (item, index) => index
+  keyFn: (item: T, index: number) => string | number = (_item, index) => index
 ): T[] {
   const keysRef = useRef<(string | number)[]>([]);
   const itemsRef = useRef<T[]>([]);

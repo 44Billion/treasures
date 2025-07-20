@@ -382,7 +382,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         });
       }
     },
-    onError: (error, _variables, context) => {
+    onError: (_error, _variables, context) => {
       context?.rollback();
       // Revert optimistic state update
       updateState({

@@ -97,17 +97,20 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
           }
         });
 
+        const validGeocaches = geocaches.filter(isValidGeocache);
+        const validLogs = logs.filter(isValidLog);
+
         setState(prev => ({
           ...prev,
-          offlineGeocaches: geocaches.filter(isValidGeocache),
+          offlineGeocaches: validGeocaches,
           offlineLogs: logsByGeocache,
           offlineBookmarks: bookmarks,
           storageInfo: {
             ...prev.storageInfo,
             totalSize: storageStats.totalSize,
             availableSpace: storageStats.availableSpace,
-            geocacheCount: geocaches.filter(isValidGeocache).length,
-            logCount: logs.filter(isValidLog).length,
+            geocacheCount: validGeocaches.length,
+            logCount: validLogs.length,
             lastCleanup: storageStats.lastCleanup,
           },
         }));
@@ -206,8 +209,8 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
         const newOfflineLogs = { ...prev.offlineLogs };
         let logRemoved = false;
         Object.keys(newOfflineLogs).forEach(geocacheId => {
-          const originalLength = newOfflineLogs[geocacheId].length;
-          newOfflineLogs[geocacheId] = newOfflineLogs[geocacheId].filter(l => l.id !== id);
+          const originalLength = newOfflineLogs[geocacheId]?.length || 0;
+          newOfflineLogs[geocacheId] = (newOfflineLogs[geocacheId] || []).filter(l => l.id !== id);
           if (newOfflineLogs[geocacheId].length < originalLength) {
             logRemoved = true;
           }
@@ -404,7 +407,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
       await backgroundSyncFn();
       return baseStore.createSuccessResult(undefined);
     } catch (error) {
-      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync'));
+      return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync')) as StoreActionResult<void>;
     }
   }, [backgroundSyncFn, baseStore]);
 

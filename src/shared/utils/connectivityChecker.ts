@@ -32,7 +32,7 @@ class ConnectivityChecker {
   private listeners: ((status: ConnectivityStatus) => void)[] = [];
   private checkInterval: number | null = null;
   private isChecking = false;
-  private hasCompletedInitialCheck = false;
+  private _hasCompletedInitialCheck = false;
 
 
   private options: ConnectivityOptions = {
@@ -74,7 +74,7 @@ class ConnectivityChecker {
       this.status.connectionQuality = 'offline';
       this.status.lastChecked = Date.now();
       this.status.isInitialCheck = false;
-      this.hasCompletedInitialCheck = true;
+      this._hasCompletedInitialCheck = true;
       this.notifyListeners();
     });
 
@@ -112,7 +112,7 @@ class ConnectivityChecker {
           lastChecked: Date.now(),
           isInitialCheck: false,
         };
-        this.hasCompletedInitialCheck = true;
+        this._hasCompletedInitialCheck = true;
         this.notifyListeners();
         return this.status;
       }
@@ -142,7 +142,7 @@ class ConnectivityChecker {
       };
     } finally {
       this.isChecking = false;
-      this.hasCompletedInitialCheck = true;
+      this._hasCompletedInitialCheck = true;
       this.notifyListeners();
     }
 
@@ -238,7 +238,7 @@ class ConnectivityChecker {
         lastChecked: Date.now(),
         isInitialCheck: false,
       };
-      this.hasCompletedInitialCheck = true;
+      this._hasCompletedInitialCheck = true;
       this.notifyListeners();
       return;
     }
@@ -252,7 +252,7 @@ class ConnectivityChecker {
       lastChecked: Date.now(),
       isInitialCheck: false,
     };
-    this.hasCompletedInitialCheck = true;
+    this._hasCompletedInitialCheck = true;
     this.notifyListeners();
 
     // Then perform the full check in the background
