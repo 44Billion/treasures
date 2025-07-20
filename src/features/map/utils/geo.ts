@@ -86,5 +86,5 @@ export function findClosestGeocache<T extends { location: { lat: number; lng: nu
   if (items.length === 0) return null;
   
   const sorted = sortByDistance(items, refLat, refLng);
-  return sorted[0];
+  return sorted[0] || null;
 }

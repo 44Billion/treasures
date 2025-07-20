@@ -33,7 +33,11 @@ export function parseCoordinateString(coordString: string): Coordinates | null {
   try {
     const parts = coordString.split(',').map(s => parseFloat(s.trim()));
     if (parts.length === 2 && parts.every(n => !isNaN(n))) {
-      return { lat: parts[0], lng: parts[1] };
+      const lat = parts[0];
+      const lng = parts[1];
+      if (lat !== undefined && lng !== undefined) {
+        return { lat, lng };
+      }
     }
     return null;
   } catch {

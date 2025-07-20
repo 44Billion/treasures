@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import type { Geocache } from '@/types/geocache';
 import { TIMEOUTS, QUERY_LIMITS } from '@/shared/config';
 import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
-import { useCacheInvalidation } from '@/hooks/useCacheInvalidation';
 import { offlineStorage, type CachedGeocache } from '@/features/offline/utils/offlineStorage';
 import { 
   NIP_GC_KINDS, 
@@ -14,10 +13,8 @@ import {
 
 export function useGeocache(id: string) {
   const { nostr } = useNostr();
-  const { isOnline, isConnected, connectionQuality } = useOfflineMode();
-  
-  // Enable cache invalidation monitoring
-  useCacheInvalidation();
+  const { isOnline, isConnected } = useOfflineMode();
+
 
   // Query for the geocache by ID
   return useQuery({
@@ -61,7 +58,7 @@ export function useGeocache(id: string) {
           return offlineGeocache;
         }
 
-        const geocache = parseGeocacheEvent(events[0]);
+        const geocache = events[0] ? parseGeocacheEvent(events[0]) : null;
         if (!geocache) {
           return offlineGeocache;
         }
@@ -70,7 +67,7 @@ export function useGeocache(id: string) {
         try {
           const cachedGeocache: CachedGeocache = {
             id: geocache.id,
-            event: events[0],
+            event: events[0]!,
             lastUpdated: Date.now(),
             lastValidated: Date.now(),
             coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] as [number, number] : undefined,

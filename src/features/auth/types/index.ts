@@ -1,9 +1,14 @@
 // Auth Types
 
-// Re-export shared types that are auth-related
-export type { NostrUser, NostrSigner } from '@/shared/types';
+// Import from shared types
+import type { NostrAccount } from '@/shared/types/nostr';
 
-// Auth-specific types can be added here as needed
+// Re-export shared types that are auth-related
+export type { NostrSigner } from '@/shared/types';
+
+// Auth-specific types
+export interface NostrUser extends NostrAccount {}
+
 export interface AuthState {
   isAuthenticated: boolean;
   user: NostrUser | null;

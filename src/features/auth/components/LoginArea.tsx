@@ -1,7 +1,7 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import LoginDialog from './LoginDialog';
@@ -78,6 +78,7 @@ export function LoginArea({ compact = false }: LoginAreaProps) {
       
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [currentUser, user, pendingWelcome]);
 
   // Fallback effect: if we have a user but no welcome modal has been shown for a new user
@@ -102,6 +103,7 @@ export function LoginArea({ compact = false }: LoginAreaProps) {
         localStorage.removeItem('treasures_last_signup'); // Clean up
       }
     }
+    return undefined;
   }, [currentUser, user, pendingWelcome, welcomeModalOpen, loginDialogOpen, signupDialogOpen]);
 
   return (

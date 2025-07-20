@@ -32,6 +32,7 @@ class ConnectivityChecker {
   private listeners: ((status: ConnectivityStatus) => void)[] = [];
   private checkInterval: number | null = null;
   private isChecking = false;
+  private hasCompletedInitialCheck = false;
 
 
   private options: ConnectivityOptions = {

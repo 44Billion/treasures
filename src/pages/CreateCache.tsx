@@ -76,9 +76,9 @@ function MapResizer({ location }: { location: { lat: number; lng: number } }) {
   return null;
 }
 
-// Helper function to convert Uint8Array to hex string
-const toHexString = (bytes: Uint8Array) =>
-  bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+// Helper function to convert Uint8Array to hex string - kept for potential future use
+// const toHexString = (bytes: Uint8Array) =>
+//   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
 
 export default function CreateCache() {
   const navigate = useNavigate();
@@ -116,9 +116,8 @@ export default function CreateCache() {
             
             if (decodedNaddr.pubkey === user.pubkey) {
               // Decode the nsec to get the private key bytes
-              const { data: privateKeyBytes } = nip19.decode(nsec);
+              const { data: _privateKeyBytes } = nip19.decode(nsec);
               // Derive the public key (getPublicKey expects a hex string)
-
 
               
               // Store the complete, valid keypair

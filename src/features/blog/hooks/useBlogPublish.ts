@@ -21,8 +21,17 @@ export function useCreateBlogPost() {
       // Create the event template
       const eventTemplate = createBlogPostEvent(data);
       
+      // Ensure kind is defined
+      if (!eventTemplate.kind) {
+        throw new Error('Event kind is required');
+      }
+      
       // Publish the event using the shared hook (handles retries and error handling)
-      const event = await publishEvent(eventTemplate);
+      const event = await publishEvent({
+        kind: eventTemplate.kind,
+        content: eventTemplate.content,
+        tags: eventTemplate.tags,
+      });
 
       return event;
     },
@@ -97,7 +106,7 @@ export function useDeleteBlogPost() {
 
       return deletionEvent;
     },
-    onSuccess: (deletionEvent) => {
+    onSuccess: (_deletionEvent) => {
       // Invalidate all blog post queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['blog'] });
     },

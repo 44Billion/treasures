@@ -3,8 +3,8 @@
 
 // Components
 export { LoginArea } from './components/LoginArea';
-export { LoginDialog } from './components/LoginDialog';
-export { SignupDialog } from './components/SignupDialog';
+export { default as LoginDialog } from './components/LoginDialog';
+export { default as SignupDialog } from './components/SignupDialog';
 export { AccountSwitcher } from './components/AccountSwitcher';
 export { WelcomeModal } from './components/WelcomeModal';
 

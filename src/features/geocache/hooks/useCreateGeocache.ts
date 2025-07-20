@@ -88,7 +88,7 @@ export function useCreateGeocache() {
 
       return { event, verificationKeyPair };
     },
-    onSuccess: ({ event, verificationKeyPair }) => {
+    onSuccess: ({ event }) => {
       toast({
         title: "Geocache created!",
         description: "Your geocache has been successfully hidden.",

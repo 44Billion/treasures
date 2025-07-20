@@ -16,7 +16,7 @@ export function eventToBlogPost(event: NostrEvent): BlogPost | null {
   const summary = event.tags.find(tag => tag[0] === 'summary')?.[1];
   const image = event.tags.find(tag => tag[0] === 'image')?.[1];
   const publishedAtTag = event.tags.find(tag => tag[0] === 'published_at')?.[1];
-  const topicTags = event.tags.filter(tag => tag[0] === 't').map(tag => tag[1]);
+  const topicTags = event.tags.filter(tag => tag[0] === 't').map(tag => tag[1]).filter(Boolean) as string[];
 
   // Validate required fields
   if (!dTag) {
@@ -72,7 +72,7 @@ export function createBlogPostEvent(data: CreateBlogPostData): Partial<NostrEven
   // Add additional topic tags
   if (data.tags) {
     data.tags.forEach(tag => {
-      if (tag !== BLOG_TAG) { // Don't duplicate the treasures tag
+      if (tag && tag !== BLOG_TAG) { // Don't duplicate the treasures tag
         tags.push(['t', tag]);
       }
     });

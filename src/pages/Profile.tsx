@@ -35,7 +35,7 @@ export default function Profile() {
   const { coords } = useGeolocation();
   const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [_copiedField, setCopiedField] = useState<string | null>(null);
 
 
 

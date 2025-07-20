@@ -778,18 +778,18 @@ export default function CacheDetail() {
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Total Finds</span>
                     <span className="font-medium">
-                      {logs?.filter(log => log.type === "found").length || 0}
+                      {(logs as GeocacheLog[])?.filter((log: GeocacheLog) => log.type === "found").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">DNFs</span>
                     <span className="font-medium">
-                      {logs?.filter(log => log.type === "dnf").length || 0}
+                      {(logs as GeocacheLog[])?.filter((log: GeocacheLog) => log.type === "dnf").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Total Logs</span>
-                    <span className="font-medium">{logs?.length || 0}</span>
+                    <span className="font-medium">{(logs as GeocacheLog[])?.length || 0}</span>
                   </div>
                 </div>
               </CardContent>

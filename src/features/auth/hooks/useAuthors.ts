@@ -52,7 +52,7 @@ export function useAuthors(pubkeys: (string | undefined)[]) {
         gcTime: 15 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnReconnect: true,
-        networkMode: 'online',
+        networkMode: 'online' as const,
         enabled: !!pubkey,
         refetchOnMount: false,
         placeholderData: { hasProfile: false },

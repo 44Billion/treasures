@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Crown, Sparkles } from 'lucide-react';
 import { BaseDialog } from '@/components/ui/base-dialog';
 import { Button } from '@/components/ui/button';

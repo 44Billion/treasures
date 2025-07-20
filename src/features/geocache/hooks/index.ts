@@ -10,7 +10,6 @@ export { useGeocacheNavigation } from './useGeocacheNavigation';
 export { useGeocacheStats } from './useGeocacheStats';
 export { useGeocaches } from './useGeocaches';
 export { useLoggedInAccounts } from './useLoggedInAccounts';
-export { useNostrSavedCaches } from './useNostrSavedCaches';
 export { useOfflineGeocaches } from './useOfflineGeocaches';
 export { useOptimisticGeocaches } from './useOptimisticGeocaches';
 export { useRegenerateVerificationKey } from './useRegenerateVerificationKey';

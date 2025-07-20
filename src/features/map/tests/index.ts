@@ -6,9 +6,6 @@ export * from './coordinates.test';
 export * from './ipGeolocation.test';
 export * from './coordinate-precision.test';
 
-// Hook tests  
-export * from './useGeolocation.test';
-
 // Integration tests (may require additional mocking for page-level components)
 // These tests are preserved but may need updates for full integration testing
 // - map-fixes.test.tsx

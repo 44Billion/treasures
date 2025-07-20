@@ -9,11 +9,11 @@ export { OfflineMap } from './components/OfflineMap';
 // Hooks
 export { useGeolocation } from './hooks/useGeolocation';
 
-// Utils
-export * from './utils/geo';
-export * from './utils/coordinateUtils';
-export * from './utils/coordinates';
-export * from './utils/ipGeolocation';
+// Utils - avoid duplicate exports
+export { calculateDistance, formatDistance, sortByDistance, filterByRadius, findClosestGeocache } from './utils/geo';
+export { coordinatesToArray, arrayToCoordinates, parseCoordinateString, formatCoordinates as formatCoordinateUtils, isValidCoordinates, calculateBounds, isWithinBounds, formatCoordinatesForDisplay as formatCoordinateDisplay } from './utils/coordinateUtils';
+export { parseCoordinate, autocorrectCoordinates, formatCoordinates as formatCoordinateString, getCoordinatePrecision, getGeohashPrecisionLevels, formatCoordinateForInput } from './utils/coordinates';
+export { getIPLocation } from './utils/ipGeolocation';
 export * from './utils/mapIcons';
 
 // Types

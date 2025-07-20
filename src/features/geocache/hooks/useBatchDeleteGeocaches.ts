@@ -190,7 +190,7 @@ export function useBatchDeleteGeocaches() {
       
       console.log(`Batch deletion complete: ${successful.length} successful, ${failed.length} failed`);
     },
-    onError: (error, { geocaches }, context) => {
+    onError: (error, _geocaches, context) => {
       const errorObj = error as { message?: string };
       const isSigningError = errorObj.message?.includes('User rejected') || 
                             errorObj.message?.includes('cancelled') ||

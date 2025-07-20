@@ -30,7 +30,7 @@ export function VerificationQRDialog({
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrType, setQrType] = useState<'full' | 'cutout' | 'micro'>('full');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [, setCopied] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,23 +69,7 @@ export function VerificationQRDialog({
     }
   };
 
-  const handleCopyKey = async () => {
-    try {
-      await navigator.clipboard.writeText(verificationKeyPair.nsec);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast({
-        title: 'Verification Key Copied',
-        description: 'The private verification key has been copied to your clipboard.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Copy Failed',
-        description: 'Unable to copy to clipboard. Please copy manually.',
-        variant: 'destructive',
-      });
-    }
-  };
+
 
   const handlePrint = () => {
     if (qrDataUrl) {

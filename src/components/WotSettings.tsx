@@ -38,7 +38,9 @@ export function WotSettings() {
   const followLimitPegs = [150, 250, 500, 1000, 2500, 0]; // 0 represents infinity
 
   const handleFollowLimitChange = (value: number[]) => {
-    setFollowLimit(followLimitPegs[value[0]]);
+    if (value.length > 0 && value[0] !== undefined) {
+      setFollowLimit(followLimitPegs[value[0]]);
+    }
   };
 
   const handleStartingPointChange = (e: React.ChangeEvent<HTMLInputElement>) => {

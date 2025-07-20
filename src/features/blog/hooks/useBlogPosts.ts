@@ -104,7 +104,7 @@ export function useBlogPost(pubkey: string, dTag: string) {
         return null;
       }
 
-      return eventToBlogPost(events[0]);
+      return events[0] ? eventToBlogPost(events[0]) : null;
     },
     staleTime: BLOG_CACHE_TIMES.SINGLE_POST,
     gcTime: BLOG_CACHE_TIMES.SINGLE_POST * 2,

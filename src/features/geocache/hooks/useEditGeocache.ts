@@ -200,7 +200,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       };
     },
 
-    onSuccess: (event, data, context) => {
+    onSuccess: (event, _data, context) => {
       toast({
         title: "Geocache updated!",
         description: "Your geocache has been successfully updated.",
@@ -273,7 +273,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       }, 3000);
     },
 
-    onError: (error: unknown, data, context) => {
+    onError: (error: unknown, _data, context) => {
       // Rollback optimistic updates on error
       if (context) {
         if (context.previousGeocache !== undefined) {

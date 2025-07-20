@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { Crown, Sparkles } from 'lucide-react';
 import { BaseDialog } from '@/shared/components/ui/base-dialog';
 import { Button } from '@/shared/components/ui/button';

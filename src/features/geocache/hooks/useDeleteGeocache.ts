@@ -96,7 +96,7 @@ export function useDeleteGeocache() {
       
       return { previousGeocache, previousGeocaches };
     },
-    onSuccess: (event, { geocacheId }) => {
+    onSuccess: (_event, { geocacheId }) => {
       toast({
         title: "Geocache deleted",
         description: "Your geocache has been removed and the deletion request sent to relays.",
