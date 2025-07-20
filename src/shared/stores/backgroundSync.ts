@@ -337,7 +337,7 @@ export function useSimpleBackgroundSync(
     maxRetries?: number;
   } = {}
 ) {
-  const { immediate = true, priority = 'medium', maxRetries = 3 } = options;
+  const { priority = 'medium', maxRetries = 3 } = options;
   const scheduler = useBackgroundSyncScheduler();
 
   useEffect(() => {

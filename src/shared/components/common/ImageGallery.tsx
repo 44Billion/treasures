@@ -116,13 +116,16 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
     
     try {
       const imageUrl = images[currentIndex];
+      if (!imageUrl) {
+        throw new Error('No image URL provided');
+      }
       
       // Extract filename from URL or create a default one
       const urlParts = imageUrl.split('/');
-      const urlFilename = urlParts[urlParts.length - 1];
+      const urlFilename = urlParts[urlParts.length - 1] || '';
       
       // Remove query parameters first
-      const cleanFilename = urlFilename.split('?')[0];
+      const cleanFilename = urlFilename.split('?')[0] || '';
       
       // Check if the clean filename has a valid image extension
       const hasExtension = cleanFilename.includes('.') && cleanFilename.split('.').pop()?.match(/^(jpg|jpeg|png|gif|webp|svg)$/i);
@@ -180,7 +183,10 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
       });
       
       // Final fallback: open in new tab
-      window.open(images[currentIndex], '_blank', 'noopener,noreferrer');
+      const imageUrl = images[currentIndex];
+      if (imageUrl) {
+        window.open(imageUrl, '_blank', 'noopener,noreferrer');
+      }
     } finally {
       setIsDownloading(false);
     }

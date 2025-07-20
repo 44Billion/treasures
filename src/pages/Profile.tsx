@@ -34,7 +34,6 @@ export default function Profile() {
   const { user: currentUser } = useCurrentUser();
   const { coords } = useGeolocation();
   const { toast } = useToast();
-  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Use current user's pubkey if no pubkey in URL
@@ -45,11 +44,7 @@ export default function Profile() {
   const { data: userCaches, isLoading: isLoadingUserCaches } = useUserGeocaches(targetPubkey);
   const { data: foundCaches, isLoading: isLoadingFoundCaches } = useUserFoundCaches(targetPubkey);
   const { savedCaches, isLoading: isLoadingSavedCaches } = useSavedCaches();
-  const { 
-    isVerified, 
-    isLoading: isLoadingNip05, 
-    error: nip05Error 
-  } = useNip05Status(authorData?.metadata?.nip05, targetPubkey);
+  const { isVerified } = useNip05Status(authorData?.metadata?.nip05, targetPubkey);
 
   const metadata = authorData?.metadata;
 
@@ -153,7 +148,6 @@ export default function Profile() {
   }
 
   const displayName = metadata?.name || metadata?.display_name || targetPubkey.slice(0, 8) + '...';
-  const shortPubkey = targetPubkey.slice(0, 8) + '...' + targetPubkey.slice(-8);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-green-950 dark:to-emerald-950 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 relative">

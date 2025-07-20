@@ -162,7 +162,7 @@ export function useMultipleStores<T extends (keyof UnifiedStores)[]>(
   return useMemo(() => {
     const selectedStores = {} as Pick<UnifiedStores, T[number]>;
     storeNames.forEach(storeName => {
-      selectedStores[storeName] = stores[storeName];
+      (selectedStores as any)[storeName] = (stores as any)[storeName];
     });
     return selectedStores;
   }, [stores, storeNames]);

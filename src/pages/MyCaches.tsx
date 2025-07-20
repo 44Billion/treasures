@@ -132,11 +132,11 @@ export default function MyCaches() {
           </div>
           <p className="text-sm text-muted-foreground">
             Your saved caches are synced to your Nostr profile and available across all your devices.
-            {offlineOnly && (
+            {offlineOnly ? (
               <span className="block mt-1 text-blue-600 dark:text-blue-400">
                 ℹ️ Offline mode is enabled. Only locally saved caches are shown.
               </span>
-            )}
+            ) : null}
             {!isOnline && !offlineOnly && (
               <span className="block mt-1 text-orange-600 dark:text-orange-400">
                 ⚠️ You are offline. Changes will sync when you reconnect.
