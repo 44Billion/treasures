@@ -3,10 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageLayout } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCacheIcon } from "@/features/geocache/utils/cacheIcons";
+import { CacheIcon } from "@/features/geocache/utils/cacheIcons";
+import { useTheme } from 'next-themes';
 import { NIP_GC_KINDS } from "@/features/geocache/utils/nip-gc";
 
 export default function About() {
+  const { theme } = useTheme();
   return (
     <PageLayout maxWidth="2xl" background="muted">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -122,7 +124,7 @@ export default function About() {
               {/* Traditional Cache */}
               <div className="flex flex-col items-center text-center space-y-3 p-4 border rounded-lg">
                 <div className="w-12 h-12 flex items-center justify-center">
-                  {getCacheIcon('traditional', 'lg')}
+                  <CacheIcon type="traditional" size="lg" theme={theme} />
                 </div>
                 <div>
                   <h4 className="font-semibold">Traditional</h4>
@@ -137,7 +139,7 @@ export default function About() {
               {/* Multi-Cache */}
               <div className="flex flex-col items-center text-center space-y-3 p-4 border rounded-lg">
                 <div className="w-12 h-12 flex items-center justify-center">
-                  {getCacheIcon('multi', 'lg')}
+                  <CacheIcon type="multi" size="lg" theme={theme} />
                 </div>
                 <div>
                   <h4 className="font-semibold">Multi-Cache</h4>
@@ -152,7 +154,7 @@ export default function About() {
               {/* Mystery Cache */}
               <div className="flex flex-col items-center text-center space-y-3 p-4 border rounded-lg">
                 <div className="w-12 h-12 flex items-center justify-center">
-                  {getCacheIcon('mystery', 'lg')}
+                  <CacheIcon type="mystery" size="lg" theme={theme} />
                 </div>
                 <div>
                   <h4 className="font-semibold">Mystery</h4>

@@ -13,7 +13,7 @@ import { useGeocacheNavigation } from '@/features/geocache/hooks/useGeocacheNavi
 import { useGeocacheStats } from '@/features/geocache/hooks/useGeocacheStats';
 import { formatDistanceToNow } from '@/shared/utils/date';
 import { formatDistance } from '@/features/map/utils/geo';
-import { getCacheIcon } from '@/features/geocache/utils/cacheIcons';
+import { CacheIcon } from '@/features/geocache/utils/cacheIcons';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useTheme } from 'next-themes';
 import type { Geocache } from '@/types/geocache';
@@ -254,7 +254,7 @@ export function GeocacheCard({
           {/* Icon with hidden indicator */}
           <div className="relative shrink-0">
             <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
-              {getCacheIcon(cache.type, 'sm', 'sm:w-5 sm:h-5')}
+              <CacheIcon type={cache.type} size="sm" className="sm:w-5 sm:h-5" theme={theme} />
             </div>
             {isHiddenByCreator && (
               <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
@@ -333,7 +333,7 @@ export function GeocacheCard({
             <div className="flex items-start gap-3">
               <div className="relative shrink-0">
                 <div className={`flex items-center justify-center w-8 h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
-                  {getCacheIcon(cache.type, 'sm')}
+                  <CacheIcon type={cache.type} size="sm" theme={theme} />
                 </div>
                 {isHiddenByCreator && (
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">

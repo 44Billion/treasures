@@ -9,30 +9,25 @@ interface WotAuthorCardProps {
 }
 
 export function WotAuthorCard({ pubkey }: WotAuthorCardProps) {
-  if (!pubkey) {
-    return null;
-  }
-
   let authorPubkey = '';
   try {
-    if (pubkey.startsWith('npub')) {
+    if (pubkey?.startsWith('npub')) {
       const decoded = nip19.decode(pubkey);
       if (decoded.type === 'npub') {
         authorPubkey = decoded.data;
       }
     } else {
-      authorPubkey = pubkey;
+      authorPubkey = pubkey || '';
     }
   } catch (e) {
     // Invalid pubkey, do nothing
   }
 
-  if (!authorPubkey) {
+  const { data: author, isLoading } = useAuthor(authorPubkey || '');
+
+  if (!pubkey || !authorPubkey) {
     return null;
   }
-
-
-  const { data: author, isLoading } = useAuthor(authorPubkey);
 
   if (isLoading) {
     return (

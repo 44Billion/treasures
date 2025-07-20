@@ -46,7 +46,8 @@ const TreesForestIcon = ({ className, ...props }: { className?: string }) => (
     })}
   </svg>
 );
-import { getCacheIcon } from '@/features/geocache/utils/cacheIcons';
+import { CacheIcon } from '@/features/geocache/utils/cacheIcons';
+import { useTheme } from 'next-themes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -189,6 +190,8 @@ interface CacheSelectFieldProps {
 }
 
 export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
+  const { theme } = useTheme();
+  
   const typeOptions = [
     { 
       value: "traditional", 
@@ -231,7 +234,7 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
               }`}
             >
               <div className="h-5 w-5 mx-auto mb-1">
-                {getCacheIcon(type.value, 'md')}
+                <CacheIcon type={type.value} size="md" theme={theme} />
               </div>
               <span className="font-medium text-xs text-foreground">{type.name}</span>
             </button>

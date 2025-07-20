@@ -35,14 +35,14 @@ export interface CacheIconProps {
   type: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  theme?: string;
 }
 
 /**
- * Get the appropriate Lucide icon component for a cache type
+ * CacheIcon component for rendering cache type icons
  * This ensures consistency between map markers and UI cards
  */
-export function getCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', className?: string): React.ReactNode {
-  const { theme } = useTheme();
+export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProps): React.ReactNode {
   const isAdventureTheme = theme === 'adventure';
   
   const sizeClasses = {
@@ -125,6 +125,54 @@ export function getCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', clas
     default:
       return <Chest {...iconProps} />;
   }
+}
+
+/**
+ * Get the appropriate Lucide icon component for a cache type
+ * This ensures consistency between map markers and UI cards
+ * @deprecated Use CacheIcon component instead, or pass theme explicitly
+ */
+export function getCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', className?: string): React.ReactNode {
+  const sizeClasses = {
+    sm: "h-4 w-4",
+    md: "h-5 w-5", 
+    lg: "h-8 w-8"
+  };
+  
+  const cacheType = type.toLowerCase() as CacheType;
+  
+  // Standard theme colors (fallback when theme is not provided)
+  const colorClasses = {
+    traditional: "text-emerald-600",
+    multi: "text-amber-600", 
+    mystery: "text-purple-600"
+  };
+  
+  const iconClass = `${sizeClasses[size]} ${colorClasses[cacheType] || colorClasses.traditional} ${className || ''}`.trim();
+  
+  const iconProps = {
+    className: iconClass,
+    strokeWidth: 2.5
+  };
+  
+  switch (cacheType) {
+    case 'traditional':
+      return <Chest {...iconProps} />;
+    case 'multi':
+      return <Compass {...iconProps} />;
+    case 'mystery':
+      return <HelpCircle {...iconProps} />;
+    default:
+      return <Chest {...iconProps} />;
+  }
+}
+
+/**
+ * Hook-based cache icon component that uses the current theme
+ */
+export function useCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', className?: string): React.ReactNode {
+  const { theme } = useTheme();
+  return <CacheIcon type={type} size={size} className={className} theme={theme} />;
 }
 
 /**
