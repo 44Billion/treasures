@@ -46,9 +46,9 @@ export function getCacheTypeLabel(type: string): string {
 // Default values for new geocaches  
 export function getDefaultCacheValues() {
   return {
-    difficulty: DIFFICULTY_TERRAIN_OPTIONS[0].value, // "1"
-    terrain: DIFFICULTY_TERRAIN_OPTIONS[0].value, // "1"  
-    size: CACHE_SIZE_OPTIONS.find(opt => opt.value === "regular")?.value || CACHE_SIZE_OPTIONS[0].value,
-    type: CACHE_TYPE_OPTIONS[0].value, // "traditional"
+    difficulty: DIFFICULTY_TERRAIN_OPTIONS[0]?.value || "1", // "1"
+    terrain: DIFFICULTY_TERRAIN_OPTIONS[0]?.value || "1", // "1"  
+    size: CACHE_SIZE_OPTIONS.find(opt => opt.value === "regular")?.value || CACHE_SIZE_OPTIONS[0]?.value || "regular",
+    type: CACHE_TYPE_OPTIONS[0]?.value || "traditional", // "traditional"
   };
 }

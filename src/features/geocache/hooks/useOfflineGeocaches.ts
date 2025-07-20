@@ -2,7 +2,6 @@
  * Offline-aware geocache hooks that work seamlessly online and offline
  */
 
-import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import type { Geocache } from '@/types/geocache';
 import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';

@@ -72,10 +72,10 @@ export function useOptimisticGeocaches(
           foundCount: 0,
           logCount: 0,
         };
-      }).filter(Boolean);
+      }).filter((g): g is NonNullable<typeof g> => g !== null);
 
       if (isWotEnabled && wotPubkeys.size > 0) {
-        return geocaches.filter(geocache => wotPubkeys.has(geocache.pubkey));
+        return geocaches.filter(geocache => geocache && wotPubkeys.has(geocache.pubkey));
       }
 
       return geocaches;

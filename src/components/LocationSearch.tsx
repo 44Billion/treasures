@@ -80,8 +80,8 @@ export function LocationSearch({
         
         if (pattern === patterns[0] || pattern === patterns[3]) {
           // Simple decimal format
-          lat = parseFloat(match[1]);
-          lng = parseFloat(match[2]);
+          lat = parseFloat(match[1] || '0');
+          lng = parseFloat(match[2] || '0');
           
           // Auto-detect if coordinates are swapped
           // If "latitude" is > 90 or < -90, they're probably swapped
@@ -96,19 +96,19 @@ export function LocationSearch({
           }
         } else if (pattern === patterns[1]) {
           // N/S E/W format
-          lat = parseFloat(match[1]) * (match[2].toUpperCase() === 'S' ? -1 : 1);
-          lng = parseFloat(match[3]) * (match[4].toUpperCase() === 'W' ? -1 : 1);
+          lat = parseFloat(match[1] || '0') * (match[2]?.toUpperCase() === 'S' ? -1 : 1);
+          lng = parseFloat(match[3] || '0') * (match[4]?.toUpperCase() === 'W' ? -1 : 1);
         } else if (pattern === patterns[2]) {
           // DMS format
-          const latDeg = parseInt(match[1]);
-          const latMin = parseInt(match[2]);
-          const latSec = parseFloat(match[3]);
-          const latDir = match[4].toUpperCase() === 'S' ? -1 : 1;
+          const latDeg = parseInt(match[1] || '0');
+          const latMin = parseInt(match[2] || '0');
+          const latSec = parseFloat(match[3] || '0');
+          const latDir = match[4]?.toUpperCase() === 'S' ? -1 : 1;
           
-          const lngDeg = parseInt(match[5]);
-          const lngMin = parseInt(match[6]);
-          const lngSec = parseFloat(match[7]);
-          const lngDir = match[8].toUpperCase() === 'W' ? -1 : 1;
+          const lngDeg = parseInt(match[5] || '0');
+          const lngMin = parseInt(match[6] || '0');
+          const lngSec = parseFloat(match[7] || '0');
+          const lngDir = match[8]?.toUpperCase() === 'W' ? -1 : 1;
           
           lat = (latDeg + latMin / 60 + latSec / 3600) * latDir;
           lng = (lngDeg + lngMin / 60 + lngSec / 3600) * lngDir;
@@ -238,7 +238,10 @@ export function LocationSearch({
       
       // If we have results, select the first one
       if (results.length > 0 && !isSearching) {
-        handleResultClick(results[0]);
+        const firstResult = results[0];
+        if (firstResult) {
+          handleResultClick(firstResult);
+        }
       } else if (query.trim()) {
         // Otherwise trigger immediate search
         handleSearch(query);

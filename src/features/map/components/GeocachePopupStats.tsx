@@ -8,8 +8,9 @@ import { useZaps } from '@/features/zaps/hooks/useZaps';
 export function GeocachePopupStats({ geocache }: { geocache: Geocache }) {
   const stats = useGeocacheStats(geocache.dTag, geocache.pubkey);
   const getZapTotal = useStore(useZapStore, (state) => state.getZapTotal);
-  useZaps(geocache.id, geocache.naddr);
-  const totalZapAmount = getZapTotal(geocache.naddr ? `naddr:${geocache.naddr}` : `event:${geocache.id}`);
+  const naddr = (geocache as any).naddr;
+  useZaps(geocache.id, naddr);
+  const totalZapAmount = getZapTotal(naddr ? `naddr:${naddr}` : `event:${geocache.id}`);
 
   return (
     <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">

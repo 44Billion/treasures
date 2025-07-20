@@ -12,7 +12,7 @@ export function useRelayConfig() {
   useEffect(() => {
     const userRelays = getUserRelays();
     if (userRelays.length > 0) {
-      setRelayUrl(userRelays[0]); // Use first relay as primary
+      setRelayUrl(userRelays[0] || DEFAULT_RELAY); // Use first relay as primary
     }
   }, []);
 

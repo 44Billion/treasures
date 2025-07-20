@@ -137,7 +137,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
   const checkConnectivityAction = useCallback(async (): Promise<boolean> => {
     const connected = await checkConnectivity();
     setState(prev => ({ ...prev, isConnected: connected }));
-    return connected;
+    return !!connected;
   }, [checkConnectivity]);
 
   const saveGeocacheOffline = useCallback(async (geocache: Geocache): Promise<StoreActionResult<void>> => {

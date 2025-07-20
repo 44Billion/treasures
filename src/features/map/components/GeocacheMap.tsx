@@ -1029,18 +1029,9 @@ export function GeocacheMap({
         touchZoom={true}
         attributionControl={false}
         // Optimize for fastest loading
-        whenReady={(mapInstance: L.Map) => {
+        whenReady={() => {
           // Mark map as initialized immediately
           setIsMapInitialized(true);
-          
-          // Force immediate tile loading with safety check
-          if (mapInstance && typeof mapInstance.invalidateSize === 'function') {
-            mapInstance.invalidateSize();
-          }
-          // Set loading priority
-          if (mapInstance && mapInstance.getContainer) {
-            mapInstance.getContainer().style.background = '#f8fafc';
-          }
         }}
         {...mapOptions}
       >

@@ -16,7 +16,7 @@ interface PublishTroubleshooterProps {
 
 export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: PublishTroubleshooterProps) {
   const { user } = useCurrentUser();
-  const { health } = useRelayHealth();
+  useRelayHealth();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const getErrorType = (errorMessage?: string) => {

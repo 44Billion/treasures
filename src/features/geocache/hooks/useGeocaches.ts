@@ -47,10 +47,10 @@ export function useGeocaches() {
           // Show hidden caches to their creator, filter them out for everyone else
           if (parsed.hidden && parsed.pubkey !== user?.pubkey) return null;
           return parsed;
-        }).filter(Boolean);
+        }).filter((g): g is NonNullable<typeof g> => g !== null);
 
         if (isWotEnabled && wotPubkeys.size > 0) {
-          return geocaches.filter(geocache => wotPubkeys.has(geocache.pubkey));
+          return geocaches.filter(geocache => geocache && wotPubkeys.has(geocache.pubkey));
         }
 
 
@@ -87,8 +87,6 @@ export function useGeocaches() {
       const cached = cacheManager.getAllGeocaches();
       return cached.length > 0 ? cached : undefined;
     },
-    // Prevent clearing data on background refetch failures
-    keepPreviousData: true,
     // Don't retry background failures aggressively
     retry: (failureCount, error) => {
       // Don't retry timeout errors in background
@@ -101,7 +99,7 @@ export function useGeocaches() {
 
   // Prefetch related data when geocaches are loaded
   useEffect(() => {
-    if (query.data && query.data.length > 0) {
+    if (query.data && Array.isArray(query.data) && query.data.length > 0) {
       // Prefetch logs for the first few geocaches
       const topGeocaches = query.data.slice(0, 5);
       topGeocaches.forEach(geocache => {
@@ -168,10 +166,10 @@ export function useNearbyGeocaches(lat?: number, lon?: number, radiusKm = 50) {
         // Show hidden caches to their creator, filter them out for everyone else
         if (parsed.hidden && parsed.pubkey !== user?.pubkey) return null;
         return parsed;
-      }).filter(Boolean);
+      }).filter((g): g is NonNullable<typeof g> => g !== null);
 
       if (isWotEnabled && wotPubkeys.size > 0) {
-        return geocaches.filter(geocache => wotPubkeys.has(geocache.pubkey));
+        return geocaches.filter(geocache => geocache && wotPubkeys.has(geocache.pubkey));
       }
 
       return geocaches;

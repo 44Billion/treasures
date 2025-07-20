@@ -28,7 +28,7 @@ async function getPublicKeyFromSecret(secretKey: Uint8Array): Promise<string> {
   return await signer.getPublicKey();
 }
 
-async function verifyEventSignature(event: NostrEvent): Promise<boolean> {
+async function verifyEventSignature(_event: NostrEvent): Promise<boolean> {
   try {
     // For now, we'll trust the event signature since Nostrify doesn't expose a verify function directly
     // In practice, events coming from relays are already verified by the relay

@@ -56,7 +56,7 @@ export function useDeleteLog() {
         throw error;
       }
     },
-    onSuccess: (event, logId) => {
+    onSuccess: (_event, logId) => {
       toast({
         title: "Log deleted",
         description: "Your log has been removed and the deletion request sent to relays.",

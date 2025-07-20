@@ -151,7 +151,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     // Get the most precise geohash (longest one) for location parsing
     const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]).filter(Boolean);
     const geohash = geohashes.length > 0 ? geohashes.reduce((longest, current) => 
-      (current && current.length > longest.length) ? current : longest
+      (current && current.length > (longest?.length || 0)) ? current : longest
     ) : undefined;
     const difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
     const terrain = event.tags.find(t => t[0] === 'terrain')?.[1];
@@ -279,13 +279,12 @@ function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
   
   // Check if this log has embedded verification data (but don't mark as verified yet)
   // The actual verification will be done in useGeocacheLogs with the geocache's verification pubkey
-  let hasEmbeddedVerification = false;
   if (verificationTag) {
     try {
       // Parse embedded verification event
       const verificationEvent = JSON.parse(verificationTag);
       if (verificationEvent.kind === NIP_GC_KINDS.VERIFICATION) {
-        hasEmbeddedVerification = true;
+        // hasEmbeddedVerification = true; // This variable is not used
       }
     } catch {
       // Invalid verification data

@@ -31,8 +31,8 @@ export function NostrEventCard({ nevent, onProfileClick }: NostrEventProps) {
         };
         
         const events = await nostr.query([filter]);
-        if (events.length > 0) {
-          setEvent(events[0]);
+        if (events && events.length > 0) {
+          setEvent(events[0] || null);
         }
       } catch (error) {
         console.error('Failed to fetch event:', error);

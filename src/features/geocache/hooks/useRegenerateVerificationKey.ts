@@ -25,7 +25,8 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
   const { toast } = useToast();
 
   const naddr = geocacheToNaddr(pubkey, dTag, relays);
-  const { data: geocache, isLoading: isLoadingGeocache } = useGeocacheByNaddr(naddr);
+  const { data: geocacheData, isLoading: isLoadingGeocache } = useGeocacheByNaddr(naddr);
+  const geocache = geocacheData;
 
   return useMutation({
     mutationKey: ['regenerate-verification-key', naddr],

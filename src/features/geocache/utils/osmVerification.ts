@@ -221,7 +221,7 @@ function isDefinitelyOnLand(elements: any[]): boolean {
 }
 
 // Conservative water detection - only flag as underwater if we're clearly IN a water body
-function isActuallyUnderwater(lat: number, lng: number, elements: any[]): boolean {
+function isActuallyUnderwater(_lat: number, _lng: number, elements: any[]): boolean {
   // Look for water bodies that we're actually inside of (very close proximity)
   for (const element of elements) {
     if (!element.tags) continue;

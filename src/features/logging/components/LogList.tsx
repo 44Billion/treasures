@@ -93,7 +93,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
   
   // Graceful handling of author data loading
   const isLoadingAuthor = author.isLoading;
-  const hasProfile = author.data?.hasProfile !== false; // undefined means still loading, false means no profile
+
   const authorName = author.data?.metadata?.name || 
                     author.data?.metadata?.display_name || 
                     (isLoadingAuthor ? 'Loading...' : log.pubkey.slice(0, 8));

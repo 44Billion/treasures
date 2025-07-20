@@ -101,8 +101,7 @@ export function useCreateVerifiedLog() {
       }
       
       return { 
-        logEvent: signedLogEvent, 
-        verificationEvent: verificationEvent 
+        logEvent: signedLogEvent
       };
     },
     onSuccess: (result, variables) => {

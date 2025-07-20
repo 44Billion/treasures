@@ -79,6 +79,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     // Try each strategy in sequence
     for (let i = 0; i < GEOLOCATION_STRATEGIES.length; i++) {
       const strategy = GEOLOCATION_STRATEGIES[i];
+      if (!strategy) return;
       
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {

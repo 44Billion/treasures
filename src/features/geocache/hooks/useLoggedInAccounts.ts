@@ -20,8 +20,8 @@ export function useLoggedInAccounts() {
     return {
       id: login.id,
       pubkey: login.pubkey,
-      metadata: (authorQuery.data as any)?.metadata || {},
-      isLoadingMetadata: authorQuery.isLoading,
+      metadata: (authorQuery?.data as any)?.metadata || {},
+      isLoadingMetadata: authorQuery?.isLoading ?? false,
     };
   });
 

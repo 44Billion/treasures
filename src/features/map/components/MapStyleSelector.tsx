@@ -80,7 +80,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
           className={`h-10 w-10 sm:w-auto gap-0 sm:gap-2 bg-background/90 backdrop-blur-sm border hover:bg-background/95 ${isAdventureTheme ? 'adventure-map-style-button' : ''} ${className}`}
         >
           {currentStyleData.icon}
-          <span className="hidden sm:inline">{currentStyleData.name}</span>
+          <span className="hidden sm:inline">{currentStyleData?.name || 'Original'}</span>
           <Map className="h-3 w-3 opacity-50 hidden sm:inline" />
         </Button>
       </PopoverTrigger>

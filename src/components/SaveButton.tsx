@@ -18,7 +18,6 @@ export function SaveButton({
   geocache, 
   variant = 'outline', 
   size = 'sm', 
-  showText = true,
   className 
 }: SaveButtonProps) {
   const { isCacheSaved, toggleSaveCache, isNostrEnabled } = useSavedCaches();
