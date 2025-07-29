@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -93,41 +93,4 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Higher-order component for wrapping components with error boundary
-export function withErrorBoundary(
-  Component: React.ComponentType<any>,
-  fallback?: React.ReactNode,
-  onError?: (error: Error, errorInfo: any) => void
-) {
-  const WrappedComponent = (props: any) => (
-    <ErrorBoundary fallback={fallback} onError={onError}>
-      <Component {...props} />
-    </ErrorBoundary>
-  );
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
-  return WrappedComponent;
-}
-
-// Compact error boundary for smaller components
-export function CompactErrorBoundary({ 
-  children, 
-  message = "Something went wrong" 
-}: { 
-  children: React.ReactNode; 
-  message?: string; 
-}) {
-  return (
-    <ErrorBoundary
-      fallback={
-        <Alert className="m-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      }
-    >
-      {children}
-    </ErrorBoundary>
-  );
-}
+export default ErrorBoundary;

@@ -102,14 +102,14 @@ export function useAsyncOperationWithRetry<T, P extends any[] = []>(
     onError?: (error: string) => void;
   } = {}
 ) {
-  const baseOperation = useAsyncOperation(asyncFunction, options);
+  const { execute: baseExecute, ...rest } = useAsyncOperation(asyncFunction, options);
 
   const executeWithRetry = useCallback(async (...params: P): Promise<T | undefined> => {
     let lastError: Error | null = null;
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        return await baseOperation.execute(...params);
+        return await baseExecute(...params);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
         
@@ -120,10 +120,10 @@ export function useAsyncOperationWithRetry<T, P extends any[] = []>(
     }
     
     throw lastError;
-  }, [baseOperation.execute, maxRetries, retryDelay]);
+  }, [baseExecute, maxRetries, retryDelay]);
 
   return {
-    ...baseOperation,
+    ...rest,
     execute: executeWithRetry,
   };
 }

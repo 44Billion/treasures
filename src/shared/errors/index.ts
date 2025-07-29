@@ -4,5 +4,7 @@
  */
 
 export * from './ErrorBoundary';
+export * from './errorBoundaryUtils';
+export * from './errorBoundaryHelpers';
 export * from './useErrorHandler';
 export * from './types';
