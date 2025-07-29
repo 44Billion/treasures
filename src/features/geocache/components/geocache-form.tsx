@@ -58,31 +58,9 @@ import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rati
 import { useUploadFile } from '@/shared/hooks/useUploadFile';
 import { useToast } from '@/shared/hooks/useToast';
 import { cn } from '@/shared/utils/utils';
-import { getDefaultCacheValues } from '@/features/geocache/utils/geocache-constants';
 
-// === GEOCACHE FORM TYPES ===
 
-export interface GeocacheFormData {
-  name: string;
-  description: string;
-  hint: string;
-  difficulty: string;
-  terrain: string;
-  size: string;
-  type: string;
-  hidden?: boolean;
-}
-
-export interface GeocacheFormProps {
-  formData: GeocacheFormData;
-  onFormDataChange: (data: GeocacheFormData) => void;
-  images: string[];
-  onImagesChange: (images: string[]) => void;
-  isSubmitting?: boolean;
-  showRequiredMarkers?: boolean;
-  className?: string;
-  fieldPrefix?: string;
-}
+import type { GeocacheFormData, GeocacheFormProps } from '@/features/geocache/types/geocache-form';
 
 // === FORM FIELD COMPONENTS ===
 
@@ -904,32 +882,3 @@ export function GeocacheForm({
   );
 }
 
-// === UTILITY FUNCTIONS ===
-
-export function createDefaultGeocacheFormData(): GeocacheFormData {
-  const defaults = getDefaultCacheValues();
-  return {
-    name: "",
-    description: "",
-    hint: "",
-    difficulty: defaults.difficulty,
-    terrain: defaults.terrain,
-    size: defaults.size,
-    type: defaults.type,
-    hidden: false,
-  };
-}
-
-export function validateGeocacheForm(formData: GeocacheFormData): string[] {
-  const errors: string[] = [];
-  
-  if (!formData.name.trim()) {
-    errors.push("Cache name is required");
-  }
-  
-  if (!formData.description.trim()) {
-    errors.push("Description is required");
-  }
-  
-  return errors;
-}

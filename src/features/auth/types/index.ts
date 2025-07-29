@@ -7,7 +7,7 @@ import type { NostrAccount } from '@/shared/types/nostr';
 export type { NostrSigner } from '@/shared/types';
 
 // Auth-specific types
-export interface NostrUser extends NostrAccount {}
+export type NostrUser = NostrAccount
 
 export interface AuthState {
   isAuthenticated: boolean;

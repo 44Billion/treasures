@@ -49,7 +49,7 @@ export function useGeocaches() {
           return parsed;
         }).filter((g): g is NonNullable<typeof g> => g !== null);
 
-        if (useIsWotEnabled() && wotPubkeys.size > 0) {
+        if (isWotEnabled && wotPubkeys.size > 0) {
           return geocaches.filter(geocache => geocache && wotPubkeys.has(geocache.pubkey));
         }
 
@@ -147,8 +147,9 @@ export function useNearbyGeocaches(lat?: number, lon?: number, radiusKm = 50) {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const { wotPubkeys } = useWotStore();
+  const isWotEnabled = useIsWotEnabled();
 
-  const queryKey = ['nearby-geocaches', lat, lon, radiusKm, useIsWotEnabled(), Array.from(wotPubkeys).sort().join(',')];
+  const queryKey = ['nearby-geocaches', lat, lon, radiusKm, isWotEnabled, Array.from(wotPubkeys).sort().join(',')];
 
   return useQuery({
     queryKey,
@@ -168,7 +169,7 @@ export function useNearbyGeocaches(lat?: number, lon?: number, radiusKm = 50) {
         return parsed;
       }).filter((g): g is NonNullable<typeof g> => g !== null);
 
-      if (useIsWotEnabled() && wotPubkeys.size > 0) {
+      if (isWotEnabled && wotPubkeys.size > 0) {
         return geocaches.filter(geocache => geocache && wotPubkeys.has(geocache.pubkey));
       }
 

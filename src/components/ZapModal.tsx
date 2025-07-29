@@ -258,7 +258,7 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
               <ToggleGroup
                 type="single"
                 value={String(amount)}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   if (value) {
                     setAmount(parseInt(value, 10));
                   }

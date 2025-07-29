@@ -1,24 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import NostrProvider from '@/components/NostrProvider';
+import { AppProvider } from '@/components/AppProvider';
 import SignupDialog from '../components/SignupDialog';
 
 // Mock the hooks and dependencies
 const mockNsecLogin = vi.fn();
-vi.mock('@/hooks/useLoginActions', () => ({
+vi.mock('@/features/auth/hooks/useLoginActions', () => ({
   useLoginActions: () => ({
     nsec: mockNsecLogin,
   }),
 }));
 
-vi.mock('@/shared/hooks/useToast.ts', () => ({
-  toast: vi.fn(),
+vi.mock('@/shared/hooks/useToast', () => ({
+  useToast: () => ({ toast: vi.fn() }),
 }));
 
-vi.mock('@/hooks/useLoggedInAccounts', () => ({
-  useLoggedInAccounts: () => ({
-    currentUser: null,
-  }),
+vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({ user: null }),
 }));
 
 const mockPublishEvent = vi.fn().mockResolvedValue({});
@@ -78,7 +78,11 @@ describe('SignupDialog', () => {
   const renderSignupDialog = (isOpen = true, onComplete?: () => void) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <SignupDialog isOpen={isOpen} onClose={vi.fn()} onComplete={onComplete} />
+        <AppProvider storageKey="test-app" defaultConfig={{ relayUrl: 'wss://ditto.pub/relay' }}>
+          <NostrProvider>
+            <SignupDialog isOpen={isOpen} onClose={vi.fn()} onComplete={onComplete} />
+          </NostrProvider>
+        </AppProvider>
       </QueryClientProvider>
     );
   };
