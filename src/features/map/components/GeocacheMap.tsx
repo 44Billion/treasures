@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { LatLngExpression, LatLngBounds } from "leaflet";
 import L from "leaflet";
@@ -8,7 +8,8 @@ import { GeocachePopupStats } from "./GeocachePopupStats";
 import { Navigation, Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import { MapStyleSelector, MAP_STYLES, type MapStyle } from "./MapStyleSelector";
+import { MapStyleSelector } from "./MapStyleSelector";
+import { MAP_STYLES, type MapStyle } from "@/features/map/constants/mapStyles";
 import { useSavedCaches } from "@/features/geocache/hooks/useSavedCaches";
 import { useToast } from "@/shared/hooks/useToast";
 import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavigation";
@@ -630,7 +631,7 @@ function AutoOfflineTileManager({
   const autoCacheMaps = (settings.autoCacheMaps as boolean) ?? false;
 
   // Check storage limits before caching
-  const checkStorageBeforeCaching = async (): Promise<boolean> => {
+  const checkStorageBeforeCaching = useCallback(async (): Promise<boolean> => {
     try {
       const { isStorageNearLimit } = await import('@/shared/utils/storageConfig');
       const nearLimit = await isStorageNearLimit();
@@ -643,9 +644,9 @@ function AutoOfflineTileManager({
       console.warn('Failed to check storage limit:', error);
       return true; // Default to allowing caching if check fails
     }
-  };
+  }, []);
 
-  const downloadTilesForBounds = async (bounds: LatLngBounds, minZoom: number, maxZoom: number) => {
+  const downloadTilesForBounds = React.useCallback(async (bounds: LatLngBounds, minZoom: number, maxZoom: number) => {
     if (!isOnline || isOfflineMode) return 0;
     
     // Check storage limits before starting download
@@ -713,7 +714,7 @@ function AutoOfflineTileManager({
     } finally {
       setIsDownloading(false);
     }
-  };
+  }, [isOnline, isOfflineMode, mapStyle.url, checkStorageBeforeCaching]);
 
   // Auto-cache initial map view - don't block initial display
   useEffect(() => {

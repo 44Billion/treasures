@@ -2,6 +2,7 @@ import React from 'react';
 import { Compass, HelpCircle } from 'lucide-react';
 import { chest as chestPaths } from '@lucide/lab';
 import { useTheme } from 'next-themes';
+import type { CacheType, CacheIconProps } from './cacheIcons.types';
 
 // Create a proper React component for the chest icon
 const Chest = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
@@ -29,14 +30,34 @@ const Chest = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
 
 Chest.displayName = "Chest";
 
-export type CacheType = 'traditional' | 'multi' | 'mystery';
+// Move constants outside the component to avoid Fast Refresh issues
+const sizeClasses = {
+  sm: "h-4 w-4",
+  md: "h-5 w-5", 
+  lg: "h-8 w-8"
+};
 
-export interface CacheIconProps {
-  type: string;
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
-  theme?: string;
-}
+const colorClasses = {
+  traditional: "text-emerald-600",
+  multi: "text-amber-600", 
+  mystery: "text-purple-600"
+};
+
+const adventureIconStyle: React.CSSProperties = {
+  background: `url('/parchment-50.jpg'), #5f7292`,
+  backgroundBlendMode: 'darken',
+  backgroundSize: '50px 50px, auto',
+  border: '2px solid #4a5a6b',
+  borderRadius: '6px',
+  width: '100%',
+  height: '100%',
+  color: '#FFFFFF',
+  boxShadow: '0 2px 4px rgba(63, 74, 90, 0.3)',
+  transition: 'all 0.2s ease',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
 
 /**
  * CacheIcon component for rendering cache type icons
@@ -44,33 +65,9 @@ export interface CacheIconProps {
  */
 export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProps): React.ReactNode {
   const isAdventureTheme = theme === 'adventure';
-  
-  const sizeClasses = {
-    sm: "h-4 w-4",
-    md: "h-5 w-5", 
-    lg: "h-8 w-8"
-  };
-  
   const cacheType = type.toLowerCase() as CacheType;
   
   if (isAdventureTheme) {
-    // Adventure mode: white SVGs with #5f7292 background and parchment texture
-    const adventureIconStyle: React.CSSProperties = {
-      background: `url('/parchment-50.jpg'), #5f7292`,
-      backgroundBlendMode: 'darken',
-      backgroundSize: '50px 50px, auto',
-      border: '2px solid #4a5a6b',
-      borderRadius: '6px',
-      width: '100%',
-      height: '100%',
-      color: '#FFFFFF',
-      boxShadow: '0 2px 4px rgba(63, 74, 90, 0.3)',
-      transition: 'all 0.2s ease',
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    };
-    
     const iconProps = {
       className: `${sizeClasses[size]} ${className || ''}`.trim(),
       strokeWidth: 2.5,
@@ -99,13 +96,6 @@ export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProp
       </div>
     );
   }
-  
-  // Standard theme colors
-  const colorClasses = {
-    traditional: "text-emerald-600",
-    multi: "text-amber-600", 
-    mystery: "text-purple-600"
-  };
   
   const iconClass = `${sizeClasses[size]} ${colorClasses[cacheType] || colorClasses.traditional} ${className || ''}`.trim();
   

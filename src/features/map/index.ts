@@ -3,8 +3,11 @@
 
 // Components
 export { GeocacheMap } from './components/GeocacheMap';
-export { MapStyleSelector, MAP_STYLES } from './components/MapStyleSelector';
+export { MapStyleSelector } from './components/MapStyleSelector';
 export { OfflineMap } from './components/OfflineMap';
+
+// Constants
+export { MAP_STYLES, ADVENTURE_COLORS } from './constants/mapStyles';
 
 // Hooks
 export { useGeolocation } from './hooks/useGeolocation';

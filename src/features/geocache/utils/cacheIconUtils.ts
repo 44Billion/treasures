@@ -1,4 +1,4 @@
-import type { CacheType } from './cacheIcons';
+import type { CacheType } from './cacheIcons.types';
 
 /**
  * Get the SVG string for a cache type (used in map markers)

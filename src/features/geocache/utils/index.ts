@@ -2,6 +2,7 @@
 export * from './cacheCleanup';
 export * from './cacheConstants';
 export * from './cacheIcons';
+export * from './cacheIcons.types';
 export * from './cacheManager';
 export * from './cacheUtils';
 

@@ -1,53 +1,9 @@
 import { useState } from "react";
-import { Map, Moon, Satellite, Sword } from "lucide-react";
+import { Map as MapIcon } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Badge } from "@/shared/components/ui/badge";
-
-export interface MapStyle {
-  key: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  url: string;
-  attribution: string;
-  preview?: string;
-}
-
-export const MAP_STYLES: Record<string, MapStyle> = {
-  original: {
-    key: "original",
-    name: "Original",
-    description: "Clean, bright cartography",
-    icon: <Map className="h-4 w-4" />,
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  },
-  dark: {
-    key: "dark",
-    name: "Dark Mode", 
-    description: "Dark theme for night use",
-    icon: <Moon className="h-4 w-4" />,
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  },
-  satellite: {
-    key: "satellite",
-    name: "Satellite",
-    description: "Aerial imagery view",
-    icon: <Satellite className="h-4 w-4" />,
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution: '&copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics'
-  },
-  adventure: {
-    key: "adventure",
-    name: "Quest Map",
-    description: "For true adventurers",
-    icon: <Sword className="h-4 w-4" />,
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  }
-};
+import { MAP_STYLES, ADVENTURE_COLORS } from "@/features/map/constants/mapStyles";
 
 interface MapStyleSelectorProps {
   currentStyle: string;
@@ -61,15 +17,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
   const currentStyleData = MAP_STYLES[currentStyle] || MAP_STYLES.original;
   const isAdventureTheme = currentStyle === 'adventure';
 
-  // Adventure theme colors
-  const adventureColors = {
-    primary: '#a0825a', // Bronze
-    primaryLight: '#b4966e', // Light bronze
-    accent: '#d4af37', // Gold
-    background: '#f5f1e8', // Parchment
-    text: '#3c2e1f', // Dark brown
-    textMuted: '#6b5b3f', // Medium brown
-  };
+  const adventureColors = ADVENTURE_COLORS;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -79,9 +27,9 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
           size="sm"
           className={`h-10 w-10 sm:w-auto gap-0 sm:gap-2 bg-background/90 backdrop-blur-sm border hover:bg-background/95 ${isAdventureTheme ? 'adventure-map-style-button' : ''} ${className}`}
         >
-          {currentStyleData?.icon || <Map className="h-4 w-4" />}
+          {currentStyleData?.icon || <MapIcon className="h-4 w-4" />}
           <span className="hidden sm:inline">{currentStyleData?.name || 'Original'}</span>
-          <Map className="h-3 w-3 opacity-50 hidden sm:inline" />
+          <MapIcon className="h-3 w-3 opacity-50 hidden sm:inline" />
         </Button>
       </PopoverTrigger>
       <PopoverContent 
@@ -102,7 +50,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
           <div className="flex items-center gap-2 pb-2 border-b" style={isAdventureTheme ? {
             borderColor: adventureColors.primary,
           } : {}}>
-            <Map className={`h-4 w-4 ${isAdventureTheme ? '' : 'text-emerald-600'}`} style={isAdventureTheme ? {
+            <MapIcon className={`h-4 w-4 ${isAdventureTheme ? '' : 'text-emerald-600'}`} style={isAdventureTheme ? {
               color: adventureColors.accent,
             } : {}} />
             <h4 className="font-semibold text-sm" style={isAdventureTheme ? {
