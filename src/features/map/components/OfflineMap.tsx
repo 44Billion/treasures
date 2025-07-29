@@ -2,7 +2,7 @@
  * Offline-aware map component that works without internet connection
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { LatLngBounds } from 'leaflet';
 import { Badge } from '@/shared/components/ui/badge';
@@ -33,7 +33,7 @@ function AutoOfflineTileManager() {
 
   const autoCacheMaps = settings.autoCacheMaps as boolean ?? true;
 
-  const downloadTilesForBounds = async (bounds: LatLngBounds, minZoom: number, maxZoom: number, silent: boolean = false) => {
+  const downloadTilesForBounds = useCallback(async (bounds: LatLngBounds, minZoom: number, maxZoom: number, silent: boolean = false) => {
     if (!isOnline || isOfflineMode) return 0;
     
     setIsDownloading(true);
@@ -97,7 +97,7 @@ function AutoOfflineTileManager() {
     } finally {
       setIsDownloading(false);
     }
-  };
+  }, [isOnline, isOfflineMode, toast]);
 
   // Auto-cache initial map view
   useEffect(() => {
@@ -120,7 +120,7 @@ function AutoOfflineTileManager() {
     };
 
     cacheInitialView();
-  }, [map, isOnline, isOfflineMode, autoCacheMaps]);
+  }, [map, isOnline, isOfflineMode, autoCacheMaps, downloadTilesForBounds]);
 
   // Count cached tiles on mount
   useEffect(() => {
