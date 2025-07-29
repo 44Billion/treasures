@@ -1,27 +1,49 @@
-import { useState, useEffect } from 'react';
-import { useOfflineStore } from '@/shared/stores/useOfflineStore';
+import { useState } from 'react';
+import { LatLngBounds } from 'leaflet';
+import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
+import { CACHE_NAMES } from '@/shared/config';
+import { getCacheEntryCount, clearCache } from '@/shared/utils/cacheUtils';
+
+export interface CachedArea {
+  bounds: LatLngBounds;
+  zoomLevels: number[];
+  downloadDate: Date;
+}
 
 export function useOfflineMapData() {
-  const offlineStore = useOfflineStore();
-  const [offlineData, setOfflineData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isOnline } = useOfflineMode();
+  const [cachedAreas, setCachedAreas] = useState<CachedArea[]>([]);
 
-  useEffect(() => {
-    const loadOfflineData = async () => {
-      setIsLoading(true);
-      try {
-        // Use the actual method from the store
-        const data = offlineStore.offlineGeocaches || [];
-        setOfflineData(data);
-      } catch (error) {
-        console.error('Failed to load offline map data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const downloadAreaForOffline = async (
+    bounds: LatLngBounds,
+    minZoom: number = 10,
+    maxZoom: number = 16
+  ) => {
+    if (!isOnline) {
+      throw new Error('Cannot download map data while offline');
+    }
 
-    loadOfflineData();
-  }, [offlineStore]);
+    // Implementation would download and cache map tiles for the specified area
+    // This is a placeholder for the actual implementation
+    console.log('Downloading map data for area:', bounds, 'zoom levels:', minZoom, 'to', maxZoom);
+  };
 
-  return { offlineData, isLoading };
+  const getCachedAreas = async () => {
+    return await getCacheEntryCount(CACHE_NAMES.OSM_TILES);
+  };
+
+  const clearCachedMapData = async () => {
+    const success = await clearCache(CACHE_NAMES.OSM_TILES);
+    if (success) {
+      setCachedAreas([]);
+    }
+  };
+
+  return {
+    cachedAreas,
+    downloadAreaForOffline,
+    getCachedAreas,
+    clearCachedMapData,
+    isOnline,
+  };
 }

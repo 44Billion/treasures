@@ -155,7 +155,7 @@ export default function CreateCache() {
         });
       }
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, toast]);
 
   // Handle location verification when location changes
   const handleLocationChange = async (newLocation: { lat: number; lng: number } | null) => {

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Compass, HelpCircle } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import type { CacheType, CacheIconProps } from './cacheIcons.types';
 import { Chest, sizeClasses, colorClasses, adventureIconStyle } from '@/features/geocache/constants/cacheIconConstants';
 
@@ -61,10 +60,3 @@ export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProp
   }
 }
 
-/**
- * Hook-based cache icon component that uses the current theme
- */
-export function useCacheIcon(type: string, size: 'sm' | 'md' | 'lg' = 'md', className?: string): React.ReactNode {
-  const { theme } = useTheme();
-  return <CacheIcon type={type} size={size} className={className} theme={theme} />;
-}

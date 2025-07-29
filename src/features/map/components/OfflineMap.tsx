@@ -10,7 +10,7 @@ import { Download, WifiOff } from 'lucide-react';
 import { useOfflineMode, useOfflineGeocaches, useOfflineSettings } from '@/features/offline/hooks/useOfflineStorage';
 import { useToast } from '@/shared/hooks/useToast';
 import { CACHE_NAMES } from '@/shared/config';
-import { getCacheEntryCount, clearCache, cacheMapTile } from '@/shared/utils/cacheUtils';
+import { getCacheEntryCount, cacheMapTile } from '@/shared/utils/cacheUtils';
 import 'leaflet/dist/leaflet.css';
 
 interface OfflineMapProps {
@@ -295,45 +295,3 @@ export function OfflineMap({
   );
 }
 
-// Hook for managing offline map data
-export function useOfflineMapData() {
-  const { isOnline } = useOfflineMode();
-  const [cachedAreas, setCachedAreas] = useState<Array<{
-    bounds: LatLngBounds;
-    zoomLevels: number[];
-    downloadDate: Date;
-  }>>([]);
-
-  const downloadAreaForOffline = async (
-    bounds: LatLngBounds,
-    minZoom: number = 10,
-    maxZoom: number = 16
-  ) => {
-    if (!isOnline) {
-      throw new Error('Cannot download map data while offline');
-    }
-
-    // Implementation would download and cache map tiles for the specified area
-    // This is a placeholder for the actual implementation
-    console.log('Downloading map data for area:', bounds, 'zoom levels:', minZoom, 'to', maxZoom);
-  };
-
-  const getCachedAreas = async () => {
-    return await getCacheEntryCount(CACHE_NAMES.OSM_TILES);
-  };
-
-  const clearCachedMapData = async () => {
-    const success = await clearCache(CACHE_NAMES.OSM_TILES);
-    if (success) {
-      setCachedAreas([]);
-    }
-  };
-
-  return {
-    cachedAreas,
-    downloadAreaForOffline,
-    getCachedAreas,
-    clearCachedMapData,
-    isOnline,
-  };
-}

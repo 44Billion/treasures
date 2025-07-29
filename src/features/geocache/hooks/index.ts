@@ -1,5 +1,6 @@
 // Geocache feature hooks
 export { useBatchDeleteGeocaches } from './useBatchDeleteGeocaches';
+export { useCacheIcon } from './useCacheIcon';
 export { useCreateGeocache } from './useCreateGeocache';
 export { useDeleteGeocache } from './useDeleteGeocache';
 export { useEditGeocache } from './useEditGeocache';
