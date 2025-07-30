@@ -192,14 +192,17 @@ export default function CreateCacheLanding() {
         </div>
 
         <div className="space-y-2 xs:space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Step 1: Get Your QR Code</h2>
+          <h2 className="text-md sm:text-lg font-semibold text-foreground">Step 1: Get Your QR Code</h2>
+          <p className="text-xs text-muted-foreground p-1">
+            {qrType === 'sheet' ? 'Print this 3x3 grid of QR codes for multiple geocaches.' : 'Print this QR code and place it inside your geocache.'}
+          </p>
           
           <div className="flex justify-center">
             {qrDataUrl ? (
               <img
                 src={qrDataUrl}
                 alt="Verification QR Code"
-                className="w-full [@media(max-height:680px)]:h-[185px] [@media(max-height:900px)]:max-w-[65vw] sm:h-auto rounded max-w-xs object-contain"
+                className="w-full [@media(max-height:680px)]:h-[150px] [@media(max-height:900px)]:max-w-[65vw] sm:h-auto rounded max-w-xs object-contain"
               />
             ) : (
               <div className="w-64 h-64 flex items-center justify-center bg-muted rounded">
@@ -256,10 +259,7 @@ export default function CreateCacheLanding() {
               </div>
             )}
           </div>
-          
-          <p className="text-xs text-muted-foreground p-1">
-            {qrType === 'sheet' ? 'Print this 3x3 grid of QR codes for multiple geocaches.' : 'Print this QR code and place it inside your geocache.'}
-          </p>
+
           <div className="flex justify-center gap-2 flex-wrap">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -295,7 +295,7 @@ export default function CreateCacheLanding() {
         </div>
 
         <div className="space-y-2 xs:space-y-4 pt-4 border-t">
-          <h2 className="text-lg font-semibold text-foreground">Step 2: Create Your Listings</h2>
+          <h2 className="text-md sm:text-lg font-semibold text-foreground">Step 2: Create Your Listings</h2>
           {qrType === 'sheet' ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
