@@ -30,6 +30,10 @@ import {
   colors,
   animals,
 } from "unique-names-generator";
+import { useAuthor } from "@/features/auth/hooks/useAuthor";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const customConfig: Config = {
   dictionaries: [adjectives, colors, animals],
@@ -51,6 +55,7 @@ export default function CreateCacheLanding() {
   const [_sheetData, setSheetData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [customNpub, setCustomNpub] = useState<string>("");
+  const [submittedNpub, setSubmittedNpub] = useState<string>("");
   const [npubError, setNpubError] = useState<string>("");
 
   const validateNpub = (npub: string): boolean => {
@@ -62,9 +67,66 @@ export default function CreateCacheLanding() {
     }
   };
 
+  const GiftAuthorCard = ({ npub }: { npub: string }) => {
+    let authorPubkey = '';
+    try {
+      if (npub?.startsWith('npub')) {
+        const decoded = nip19.decode(npub);
+        if (decoded.type === 'npub') {
+          authorPubkey = decoded.data;
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+
+    const { data: author, isLoading } = useAuthor(authorPubkey || '');
+
+    if (!authorPubkey) {
+      return null;
+    }
+
+    if (isLoading) {
+      return (
+        <Card>
+          <CardContent className="flex items-center gap-3 p-3">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-[120px]" />
+              <Skeleton className="h-3 w-[80px]" />
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (!author) {
+      return null;
+    }
+
+    const metadata = author.metadata;
+
+    return (
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex items-center gap-3 p-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={metadata?.picture} alt={metadata?.name} />
+            <AvatarFallback>{metadata?.name?.charAt(0) || '?'}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium text-sm text-left">{metadata?.name || 'Unknown User'}</p>
+            <p className="text-xs text-muted-foreground text-left">
+              {npub.slice(0, 12)}...{npub.slice(-4)}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   const getPubkeyForNaddr = (): string => {
-    if (customNpub && validateNpub(customNpub)) {
-      const decoded = nip19.decode(customNpub);
+    if (submittedNpub && validateNpub(submittedNpub)) {
+      const decoded = nip19.decode(submittedNpub);
       return decoded.data as string;
     }
     return user?.pubkey || '';
@@ -105,7 +167,7 @@ export default function CreateCacheLanding() {
         variant: "destructive",
       });
     }
-  }, [user, qrType, toast, naddr, verificationKeyPair, customNpub]);
+  }, [user, qrType, toast, naddr, verificationKeyPair]);
 
   useEffect(() => {
     if (!user) return;
@@ -122,7 +184,7 @@ export default function CreateCacheLanding() {
     };
 
     generateInitialQR();
-  }, [user, customNpub]);
+  }, [user, submittedNpub]);
 
   useEffect(() => {
     if (naddr && verificationKeyPair) {
@@ -163,7 +225,7 @@ export default function CreateCacheLanding() {
       const params = new URLSearchParams();
       params.set('claimUrl', claimUrl);
       if (customNpub && validateNpub(customNpub)) {
-        params.set('giftNpub', customNpub);
+        params.set('giftNpub');
       }
       navigate(`/create-cache?${params.toString()}`);
     }
@@ -202,7 +264,7 @@ export default function CreateCacheLanding() {
               <img
                 src={qrDataUrl}
                 alt="Verification QR Code"
-                className="w-full [@media(max-height:680px)]:h-[150px] [@media(max-height:900px)]:max-w-[65vw] sm:h-auto rounded max-w-xs object-contain"
+                className="w-full [@media(max-height:680px)]:h-[150px] [@media(max-height:900px)]:max-w-[55vw] sm:h-auto rounded max-w-xs object-contain"
               />
             ) : (
               <div className="w-64 h-64 flex items-center justify-center bg-muted rounded">
@@ -226,7 +288,7 @@ export default function CreateCacheLanding() {
             
             {showAdvanced && (
               <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
-                <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   <Gift className="h-4 w-4 text-primary" />
                   <span>Create Giftable Cache</span>
                 </div>
@@ -247,14 +309,44 @@ export default function CreateCacheLanding() {
                         setNpubError("");
                       }
                     }}
-                    className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 text-sm border rounded-md bg-background text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   {npubError && (
                     <p className="text-xs text-destructive">{npubError}</p>
                   )}
+                  
+                  {customNpub && validateNpub(customNpub) && (
+                    <GiftAuthorCard npub={customNpub} />
+                  )}
+                  
                   <p className="text-xs text-muted-foreground">
-                    Leave blank to create a cache for yourself. Enter a friend's npub to create a giftable cache they'll own.
+                    Enter a friend's npub to create a giftable cache.
                   </p>
+                  {customNpub && (
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        if (validateNpub(customNpub)) {
+                          setSubmittedNpub(customNpub);
+                          toast({
+                            title: "Giftable Cache Updated",
+                            description: "QR code updated for the gift recipient",
+                          });
+                        } else {
+                          toast({
+                            title: "Invalid npub",
+                            description: "Please enter a valid npub address",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      disabled={!customNpub || !!npubError}
+                      className="w-full"
+                    >
+                      <Gift className="h-4 w-4" />
+                      Create Giftable QR Code
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
