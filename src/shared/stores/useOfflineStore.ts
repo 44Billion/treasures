@@ -46,30 +46,30 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
   } = useOfflineStorage();
   
   // Type guard to ensure we have proper Geocache objects
-  const isValidGeocache = (obj: any): obj is Geocache => {
+  const isValidGeocache = useCallback((obj: any): obj is Geocache => {
     return obj && typeof obj === 'object' && 'id' in obj && 'dTag' in obj && 'name' in obj;
-  };
+  }, []);
   
   // Type guard to ensure we have proper GeocacheLog objects
-  const isValidLog = (obj: any): obj is GeocacheLog => {
+  const isValidLog = useCallback((obj: any): obj is GeocacheLog => {
     return obj && typeof obj === 'object' && 'id' in obj && 'geocacheId' in obj && 'type' in obj;
-  };
+  }, []);
   
   // Helper to convert NostrEvent to Geocache
-  const convertNostrEventToGeocache = (event: any): Geocache | null => {
+  const convertNostrEventToGeocache = useCallback((event: any): Geocache | null => {
     if (isValidGeocache(event)) {
       return event as Geocache;
     }
     return null;
-  };
+  }, [isValidGeocache]);
   
   // Helper to convert NostrEvent to GeocacheLog
-  const convertNostrEventToLog = (event: any): GeocacheLog | null => {
+  const convertNostrEventToLog = useCallback((event: any): GeocacheLog | null => {
     if (isValidLog(event)) {
       return event as GeocacheLog;
     }
     return null;
-  };
+  }, [isValidLog]);
 
 
   
@@ -147,7 +147,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     };
 
     loadOfflineData();
-  }, [getAllGeocaches, getAllLogs, getStorageStats, getAllBookmarks, baseStore]);
+  }, [getAllGeocaches, getAllLogs, getStorageStats, getAllBookmarks, baseStore, convertNostrEventToGeocache, convertNostrEventToLog, isValidLog]);
 
   const setAutoCacheMapAreas = useCallback((autoCache: boolean) => {
     setState(prev => ({ ...prev, autoCacheMapAreas: autoCache }));

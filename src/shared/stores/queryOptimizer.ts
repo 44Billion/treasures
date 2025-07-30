@@ -248,25 +248,6 @@ export function useIntelligentPrefetch() {
   const userActionsRef = useRef<string[]>([]);
   const maxActions = 50;
 
-  const recordAction = useCallback((action: string) => {
-    userActionsRef.current.push(action);
-    
-    if (userActionsRef.current.length > maxActions) {
-      userActionsRef.current = userActionsRef.current.slice(-maxActions);
-    }
-
-    // Analyze patterns and prefetch likely next queries
-    const recentActions = userActionsRef.current.slice(-5);
-    const patterns = findActionPatterns(recentActions);
-    
-    patterns.forEach(pattern => {
-      if (pattern.confidence > 0.7) {
-        // Prefetch the likely next query
-        prefetchForAction(pattern.nextAction);
-      }
-    });
-  }, []);
-
   const prefetchForAction = useCallback((action: string) => {
     // This would map actions to specific queries to prefetch
     // For example: 'view-geocache' -> prefetch logs for that geocache
@@ -287,6 +268,25 @@ export function useIntelligentPrefetch() {
       prefetchFn();
     }
   }, []);
+
+  const recordAction = useCallback((action: string) => {
+    userActionsRef.current.push(action);
+    
+    if (userActionsRef.current.length > maxActions) {
+      userActionsRef.current = userActionsRef.current.slice(-maxActions);
+    }
+
+    // Analyze patterns and prefetch likely next queries
+    const recentActions = userActionsRef.current.slice(-5);
+    const patterns = findActionPatterns(recentActions);
+    
+    patterns.forEach(pattern => {
+      if (pattern.confidence > 0.7) {
+        // Prefetch the likely next query
+        prefetchForAction(pattern.nextAction);
+      }
+    });
+  }, [prefetchForAction]);
 
   return { recordAction };
 }

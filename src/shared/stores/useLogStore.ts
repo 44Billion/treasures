@@ -151,7 +151,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       updateState({ recentLogs });
       return recentLogs;
     }, 'fetchRecentLogs');
-  }, [baseStore]);
+  }, [baseStore, updateState]);
 
   const fetchUserLogs = useCallback(async (pubkey: string): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -194,7 +194,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
       return userLogs;
     }, 'fetchUserLogs');
-  }, [baseStore, user?.pubkey]);
+  }, [baseStore, user?.pubkey, updateState]);
 
   const fetchZapsForLog = useCallback(async (logId: string): Promise<StoreActionResult<any[]>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -216,7 +216,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       });
       return events;
     }, 'fetchZapsForLog');
-  }, [baseStore, state.zapsByLogId]);
+  }, [baseStore, state.zapsByLogId, updateState]);
 
 
   // CRUD operations - Real implementations
@@ -443,7 +443,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
         [geocacheId]: [],
       },
     });
-  }, [baseStore, state.logsByGeocache]);
+  }, [baseStore, state.logsByGeocache, updateState]);
 
   const invalidateAll = useCallback(() => {
     baseStore.invalidateQueries(createQueryKey('log', 'list'));
@@ -452,7 +452,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       recentLogs: [],
       userLogs: [],
     });
-  }, [baseStore]);
+  }, [baseStore, updateState]);
 
   const refreshLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {
     invalidateLogs(geocacheId);
@@ -487,12 +487,12 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
   const startBackgroundSync = useCallback(() => {
     baseStore.startBackgroundSync(() => backgroundSyncFn());
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, backgroundSyncFn]);
+  }, [baseStore, backgroundSyncFn, updateState]);
 
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore]);
+  }, [baseStore, updateState]);
 
   const triggerSync = useCallback(async (geocacheIds?: string[]): Promise<StoreActionResult<void>> => {
     try {
@@ -522,7 +522,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
 
   // Memoized store object
   const store = useMemo((): LogStore => ({

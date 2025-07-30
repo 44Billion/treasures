@@ -257,7 +257,8 @@ export function useSavedCachesStore() {
     async (geocache: Geocache) => {
       const naddr = `${NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
       if (isOnline) {
-        if (savedCacheCoords.includes(naddr)) return;
+        // Check if already saved using the existing function
+        if (isCacheSaved(geocache.id, geocache.dTag, geocache.pubkey)) return;
         const currentTags = bookmarkListEvent?.tags || [];
         const newTags = [...currentTags, ['a', naddr]];
         await updateBookmarkList(newTags);
@@ -266,7 +267,7 @@ export function useSavedCachesStore() {
         await saveBookmarkOffline(geocache);
       }
     },
-    [isOnline, savedCacheCoords, bookmarkListEvent, updateBookmarkList, saveBookmarkOffline]
+    [isOnline, bookmarkListEvent, updateBookmarkList, saveBookmarkOffline, isCacheSaved]
   );
 
   const unsaveCache = useCallback(
@@ -298,7 +299,7 @@ export function useSavedCachesStore() {
         await removeOfflineBookmark(naddr);
       }
     },
-    [isOnline, savedCacheCoords, bookmarkListEvent, updateBookmarkList, removeOfflineBookmark]
+    [isOnline, bookmarkListEvent, updateBookmarkList, removeOfflineBookmark, user?.pubkey, queryClient]
   );
 
   const toggleSaveCache = useCallback(
