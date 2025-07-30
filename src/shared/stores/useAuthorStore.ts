@@ -45,20 +45,22 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
   });
   const updateState = updateStateRef.current;
 
-  // Update current user when user changes
+  // Update current user when user changes - use a ref to avoid hoisting issues
+  const fetchAuthorRef = useRef<(pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>>();
+  
   useEffect(() => {
     if (user?.pubkey) {
       const currentUserMetadata = state.authors[user.pubkey];
       if (currentUserMetadata) {
         updateState({ currentUser: currentUserMetadata });
-      } else {
+      } else if (fetchAuthorRef.current) {
         // Fetch current user metadata
-        fetchAuthor(user.pubkey);
+        fetchAuthorRef.current(user.pubkey);
       }
     } else {
       updateState({ currentUser: null });
     }
-  }, [user?.pubkey]); // Remove state.authors dependency to prevent infinite loop
+  }, [user?.pubkey, state.authors, updateState]);
 
   // Data fetching actions
   const fetchAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {
@@ -113,6 +115,9 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
       return authorData;
     }, 'fetchAuthor');
   }, [baseStore, state.authors, user?.pubkey, updateState]);
+
+  // Set the ref after fetchAuthor is defined
+  fetchAuthorRef.current = fetchAuthor;
 
   const fetchAuthors = useCallback(async (pubkeys: string[]): Promise<StoreActionResult<AuthorMetadata[]>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -259,7 +264,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
     const newAuthors = { ...state.authors };
     delete newAuthors[pubkey];
     updateState({ authors: newAuthors });
-  }, [baseStore, state.authors]);
+  }, [baseStore, state.authors, updateState]);
 
   const invalidateAll = useCallback(() => {
     baseStore.invalidateQueries(createQueryKey('author', 'fetch'));
@@ -267,7 +272,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
       authors: {},
       currentUser: null,
     });
-  }, [baseStore]);
+  }, [baseStore, updateState]);
 
   const refreshAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {
     invalidateAuthor(pubkey);
@@ -303,12 +308,12 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
   const startBackgroundSync = useCallback(() => {
     baseStore.startBackgroundSync(() => backgroundSyncFn());
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, backgroundSyncFn]);
+  }, [baseStore, backgroundSyncFn, updateState]);
 
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
     updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore]);
+  }, [baseStore, updateState]);
 
   const triggerSync = useCallback(async (pubkeys?: string[]): Promise<StoreActionResult<void>> => {
     try {
@@ -322,7 +327,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
   // User management
   const setCurrentUser = useCallback((userMetadata: AuthorMetadata | null) => {
     updateState({ currentUser: userMetadata });
-  }, []);
+  }, [updateState]);
 
   // Configuration
   const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {
@@ -342,7 +347,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
 
   // Memoized store object
   const store = useMemo((): AuthorStore => ({

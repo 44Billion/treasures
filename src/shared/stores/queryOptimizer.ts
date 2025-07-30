@@ -261,28 +261,32 @@ export function useIntelligentPrefetch() {
     
     patterns.forEach(pattern => {
       if (pattern.confidence > 0.7) {
-        // Prefetch the likely next query - inline the logic to avoid dependency issues
-        const prefetchMap: Record<string, () => void> = {
-          'view-geocache-list': () => {
-            // Prefetch first few geocache details
-          },
-          'open-geocache-detail': () => {
-            // Prefetch logs and author info
-          },
-          'view-map': () => {
-            // Prefetch nearby geocaches
-          },
-        };
-
-        const prefetchFn = prefetchMap[pattern.nextAction];
-        if (prefetchFn) {
-          prefetchFn();
-        }
+        // Prefetch the likely next query
+        prefetchForAction(pattern.nextAction);
       }
     });
   }, []);
 
+  const prefetchForAction = useCallback((action: string) => {
+    // This would map actions to specific queries to prefetch
+    // For example: 'view-geocache' -> prefetch logs for that geocache
+    const prefetchMap: Record<string, () => void> = {
+      'view-geocache-list': () => {
+        // Prefetch first few geocache details
+      },
+      'open-geocache-detail': () => {
+        // Prefetch logs and author info
+      },
+      'view-map': () => {
+        // Prefetch nearby geocaches
+      },
+    };
 
+    const prefetchFn = prefetchMap[action];
+    if (prefetchFn) {
+      prefetchFn();
+    }
+  }, []);
 
   return { recordAction };
 }
