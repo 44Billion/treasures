@@ -39,11 +39,10 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
     cacheStats: baseStore.getCacheStats(),
   }));
 
-  // Update state helper - use useRef to make it stable
-  const updateStateRef = useRef((updates: Partial<AuthorStoreState>) => {
+  // Update state helper - use useCallback to make it stable
+  const updateState = useCallback((updates: Partial<AuthorStoreState>) => {
     setState(prev => ({ ...prev, ...updates }));
-  });
-  const updateState = updateStateRef.current;
+  }, []);
 
   // Update current user when user changes - use a ref to avoid hoisting issues
   const fetchAuthorRef = useRef<(pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>>();
@@ -52,25 +51,19 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
     if (user?.pubkey) {
       const currentUserMetadata = state.authors[user.pubkey];
       if (currentUserMetadata) {
-        updateState({ currentUser: currentUserMetadata });
+        setState(prev => ({ ...prev, currentUser: currentUserMetadata }));
       } else if (fetchAuthorRef.current) {
         // Fetch current user metadata
         fetchAuthorRef.current(user.pubkey);
       }
     } else {
-      updateState({ currentUser: null });
+      setState(prev => ({ ...prev, currentUser: null }));
     }
-  }, [user?.pubkey, state.authors, updateState]);
+  }, [user?.pubkey, state.authors]);
 
   // Data fetching actions
   const fetchAuthor = useCallback(async (pubkey: string): Promise<StoreActionResult<AuthorMetadata>> => {
     return baseStore.safeAsyncOperation(async () => {
-      // Check cache first
-      const cached = state.authors[pubkey];
-      if (cached && !isDataStale(cached.lastUpdate, baseStore.config.cacheTimeout!)) {
-        return cached;
-      }
-
       const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
       const events = await baseStore.nostr.query([{
         kinds: [0], // Profile metadata
@@ -98,23 +91,9 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
         }
       }
 
-      // Update cache
-      updateState({
-        authors: {
-          ...state.authors,
-          [pubkey]: authorData,
-        },
-        lastUpdate: new Date(),
-      });
-
-      // Update current user if this is the current user
-      if (pubkey === user?.pubkey) {
-        updateState({ currentUser: authorData });
-      }
-
       return authorData;
     }, 'fetchAuthor');
-  }, [baseStore, state.authors, user?.pubkey, updateState]);
+  }, [baseStore]);
 
   // Set the ref after fetchAuthor is defined
   fetchAuthorRef.current = fetchAuthor;
@@ -122,35 +101,19 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
   const fetchAuthors = useCallback(async (pubkeys: string[]): Promise<StoreActionResult<AuthorMetadata[]>> => {
     return baseStore.safeAsyncOperation(async () => {
       const uniquePubkeys = [...new Set(pubkeys)];
-      const results: AuthorMetadata[] = [];
       
-      // Check cache for each pubkey
-      const uncachedPubkeys: string[] = [];
-      for (const pubkey of uniquePubkeys) {
-        const cached = state.authors[pubkey];
-        if (cached && !isDataStale(cached.lastUpdate, baseStore.config.cacheTimeout!)) {
-          results.push(cached);
-        } else {
-          uncachedPubkeys.push(pubkey);
-        }
-      }
+      const fetchedAuthors = await batchOperations(
+        uniquePubkeys,
+        async (pubkey) => {
+          const result = await fetchAuthor(pubkey);
+          return result.data!;
+        },
+        5 // Batch size
+      );
 
-      // Fetch uncached authors in batches
-      if (uncachedPubkeys.length > 0) {
-        const fetchedAuthors = await batchOperations(
-          uncachedPubkeys,
-          async (pubkey) => {
-            const result = await fetchAuthor(pubkey);
-            return result.data!;
-          },
-          5 // Batch size
-        );
-        results.push(...fetchedAuthors);
-      }
-
-      return results;
+      return fetchedAuthors;
     }, 'fetchAuthors');
-  }, [baseStore, state.authors, fetchAuthor]);
+  }, [baseStore, fetchAuthor]);
 
   // Profile management
   const updateProfileMutation = useMutation({
@@ -307,13 +270,13 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
 
   const startBackgroundSync = useCallback(() => {
     baseStore.startBackgroundSync(() => backgroundSyncFn());
-    updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, backgroundSyncFn, updateState]);
+    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
+  }, [baseStore, backgroundSyncFn]);
 
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
-    updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, updateState]);
+    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
+  }, [baseStore]);
 
   const triggerSync = useCallback(async (pubkeys?: string[]): Promise<StoreActionResult<void>> => {
     try {
@@ -347,7 +310,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync]);
 
   // Memoized store object
   const store = useMemo((): AuthorStore => ({

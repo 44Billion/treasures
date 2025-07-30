@@ -455,7 +455,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync]);
 
   useEffect(() => {
     if (isOnline && isConnected && state.pendingActions.length > 0) {

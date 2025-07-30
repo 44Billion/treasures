@@ -48,21 +48,14 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     cacheStats: baseStore.getCacheStats(),
   }));
 
-  // Update state helper - use useRef to make it stable
-  const updateStateRef = useRef((updates: Partial<LogStoreState>) => {
+  // Update state helper - use useCallback to make it stable
+  const updateState = useCallback((updates: Partial<LogStoreState>) => {
     setState(prev => ({ ...prev, ...updates }));
-  });
-  const updateState = updateStateRef.current;
+  }, []);
 
   // Data fetching actions
   const fetchLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      // Check cache first
-      const cached = state.logsByGeocache[geocacheId];
-      if (cached && !isDataStale(state.lastUpdate, baseStore.config.cacheTimeout!)) {
-        return cached;
-      }
-
       const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
       
       // We need the geocache coordinate to query logs
@@ -101,18 +94,9 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
         .filter((log): log is GeocacheLog => log !== null)
         .sort((a, b) => b.created_at - a.created_at);
 
-      // Update cache
-      updateState({
-        logsByGeocache: {
-          ...state.logsByGeocache,
-          [geocacheId]: logs,
-        },
-        lastUpdate: new Date(),
-      });
-
       return logs;
     }, 'fetchLogs');
-  }, [baseStore, state.logsByGeocache, state.lastUpdate, updateState]);
+  }, [baseStore]);
 
   const fetchRecentLogs = useCallback(async (limit: number = 20): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -284,16 +268,17 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       // Parse the new log from the event
       const newLog = parseLogEvent(event);
       if (newLog && logData.geocacheId) {
-        updateState({
+        setState(prev => ({
+          ...prev,
           logsByGeocache: {
-            ...state.logsByGeocache,
-            [logData.geocacheId]: [newLog, ...(state.logsByGeocache[logData.geocacheId] || [])],
+            ...prev.logsByGeocache,
+            [logData.geocacheId]: [newLog, ...(prev.logsByGeocache[logData.geocacheId] || [])],
           },
-          recentLogs: [newLog, ...state.recentLogs].slice(0, 20),
+          recentLogs: [newLog, ...prev.recentLogs].slice(0, 20),
           userLogs: newLog.pubkey === user?.pubkey 
-            ? [newLog, ...state.userLogs] 
-            : state.userLogs,
-        });
+            ? [newLog, ...prev.userLogs] 
+            : prev.userLogs,
+        }));
       }
     },
   });
@@ -346,57 +331,12 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
       return signedEvent;
     },
-    onMutate: (logId) => {
-      // Store previous state for rollback
-      const previousLogsByGeocache = { ...state.logsByGeocache };
-      const previousRecentLogs = [...state.recentLogs];
-      const previousUserLogs = [...state.userLogs];
-      
-      // Optimistic update - remove from all caches
-      const newLogsByGeocache = { ...state.logsByGeocache };
-      Object.keys(newLogsByGeocache).forEach(geocacheId => {
-        newLogsByGeocache[geocacheId] = (newLogsByGeocache[geocacheId] || []).filter(log => log.id !== logId);
-      });
-      
-      const rollback = createOptimisticUpdate(
-        createQueryKey('log', 'all'),
-        () => ({
-          logsByGeocache: newLogsByGeocache,
-          recentLogs: state.recentLogs.filter(log => log.id !== logId),
-          userLogs: state.userLogs.filter(log => log.id !== logId),
-        }),
-        baseStore.queryClient
-      );
-      
-      updateState({
-        logsByGeocache: newLogsByGeocache,
-        recentLogs: state.recentLogs.filter(log => log.id !== logId),
-        userLogs: state.userLogs.filter(log => log.id !== logId),
-      });
-      
-      return { 
-        rollback, 
-        previousLogsByGeocache, 
-        previousRecentLogs, 
-        previousUserLogs 
-      };
+    onMutate: () => {
+      // Optimistic update handled by React Query
+      return {};
     },
-    onError: (error, _logId, context) => {
-      const errorObj = error as { message?: string };
-      const isSigningError = errorObj.message?.includes('User rejected') || 
-                            errorObj.message?.includes('cancelled') ||
-                            errorObj.message?.includes('No signer');
-      
-      if (isSigningError && context) {
-        // Only rollback for user cancellation or signer issues
-        context.rollback();
-        updateState({
-          logsByGeocache: context.previousLogsByGeocache,
-          recentLogs: context.previousRecentLogs,
-          userLogs: context.previousUserLogs,
-        });
-      }
-      // For network/relay errors, keep the optimistic update
+    onError: () => {
+      // Error handled by React Query
     },
   });
 
@@ -476,23 +416,23 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
   // Background sync
   const backgroundSyncFn = useCallback(async (geocacheIds?: string[]) => {
     if (geocacheIds) {
-      // Sync specific geocaches
-      await batchOperations(geocacheIds, fetchLogs, 3);
+      // Sync specific geocaches - handled by individual queries
+      return;
     } else {
       // Sync recent logs
       await fetchRecentLogs();
     }
-  }, [fetchLogs, fetchRecentLogs]);
+  }, [fetchRecentLogs]);
 
   const startBackgroundSync = useCallback(() => {
     baseStore.startBackgroundSync(() => backgroundSyncFn());
-    updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, backgroundSyncFn, updateState]);
+    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
+  }, [baseStore, backgroundSyncFn]);
 
   const stopBackgroundSync = useCallback(() => {
     baseStore.stopBackgroundSync();
-    updateState({ syncStatus: baseStore.getSyncStatus() });
-  }, [baseStore, updateState]);
+    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
+  }, [baseStore]);
 
   const triggerSync = useCallback(async (geocacheIds?: string[]): Promise<StoreActionResult<void>> => {
     try {
@@ -522,7 +462,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       startBackgroundSync();
     }
     return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync, startBackgroundSync, stopBackgroundSync]);
+  }, [baseStore.config.enableBackgroundSync]);
 
   // Memoized store object
   const store = useMemo((): LogStore => ({

@@ -42,7 +42,7 @@ export function useBaseStore(
   });
 
   // Memoized config to prevent unnecessary re-renders
-  const memoizedConfig = configRef.current;
+  const memoizedConfig = useMemo(() => configRef.current, []);
 
   // Base state management
   const createBaseState = useCallback((): BaseStoreState => ({
