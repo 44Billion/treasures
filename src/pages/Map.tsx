@@ -49,7 +49,7 @@ export default function Map() {
   const [searchRadius, setSearchRadius] = useState(25); // km
   const [searchInView, setSearchInView] = useState(false);
 
-  const [mapUpdateKey, setMapUpdateKey] = useState(0);
+
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
@@ -108,7 +108,6 @@ export default function Map() {
         lng: parseFloat(lng),
       };
       setMapCenter(center);
-      setMapUpdateKey(prev => prev + 1);
     }
 
     if (zoom) {
@@ -147,7 +146,6 @@ export default function Map() {
         clearMapInteractionLock(); // Clear any interaction locks for explicit location update
         setMapCenter(location);
         setMapZoom(13);
-        setMapUpdateKey(prev => prev + 1); // Force map update
       }
     }
   }, [coords, showNearMe]);
@@ -225,7 +223,6 @@ export default function Map() {
 
     setSearchLocation(newCenter);
     setHighlightedGeocache(null); // Clear any highlighted geocache
-    setMapUpdateKey(prev => prev + 1); // Force map update
   };
 
   const handleNearMe = async () => {
@@ -303,7 +300,6 @@ export default function Map() {
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
     setMapZoom(16); // Zoom in closer for better detail
     setHighlightedGeocache(geocache.dTag); // Highlight this geocache
-    setMapUpdateKey(prev => prev + 1); // Force map update
     
     // Clear any location-based searches to prevent conflicts
     setShowNearMe(false);
@@ -558,7 +554,6 @@ export default function Map() {
         {/* Map - render immediately with progressive geocache loading */}
         <div className="flex-1 relative bg-background min-h-0">
           <GeocacheMap 
-            key={mapUpdateKey}
             geocaches={filteredGeocaches} 
             userLocation={userLocation}
             searchLocation={searchLocation || (showNearMe ? userLocation : null)}
@@ -699,7 +694,8 @@ export default function Map() {
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden">
+            {/* List Tab - Always mounted but hidden when inactive */}
+            <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden data-[state=inactive]:hidden">
               <div 
                 className="flex-1 overflow-y-auto p-4 pb-6 min-h-0 relative"
                 onTouchStart={handleTouchStart}
@@ -821,10 +817,11 @@ export default function Map() {
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block">
+            
+            {/* Map Tab - Always mounted but hidden when inactive */}
+            <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block data-[state=inactive]:hidden">
               <div className="h-full w-full bg-background relative">
                 <GeocacheMap 
-                  key={mapUpdateKey}
                   geocaches={filteredGeocaches} 
                   userLocation={userLocation}
                   searchLocation={searchLocation || (showNearMe ? userLocation : null)}
