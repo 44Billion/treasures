@@ -416,7 +416,7 @@ export default function CacheDetail() {
                       onClick={() => {
                         // Create the full claim URL to pass to the create page
                         const claimUrl = `${window.location.origin}${window.location.pathname}${window.location.hash}`;
-                        navigate(`/create?claimUrl=${encodeURIComponent(claimUrl)}`);
+                        navigate(`/create-cache?claimUrl=${encodeURIComponent(claimUrl)}`);
                       }}
                       className="w-full"
                     >
