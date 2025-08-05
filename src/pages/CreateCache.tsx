@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, AlertTriangle, CheckCircle, Check, WifiOff, QrCode, Edit3 } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { useTheme } from "next-themes";
+import { MAP_STYLES } from "@/features/map/constants/mapStyles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -87,6 +89,7 @@ export default function CreateCache() {
   const { isOfflineMode } = useOfflineMode();
   const { mutateAsync: createGeocache, isPending } = useCreateGeocache();
   const { toast } = useToast();
+  const { theme, systemTheme } = useTheme();
 
   const [formData, setFormData] = useState<GeocacheFormData>(createDefaultGeocacheFormData());
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -101,6 +104,74 @@ export default function CreateCache() {
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
   const [importedKind, setImportedKind] = useState<number | null>(null);
   const [showQROverlay, setShowQROverlay] = useState(false);
+
+  // Map style management for confirmation dialog - using same logic as GeocacheMap
+  const getDefaultMapStyle = () => {
+    // First check app theme setting
+    if (theme === "dark") {
+      return "dark";
+    } else if (theme === "light") {
+      return "original";
+    } else if (theme === "adventure") {
+      return "adventure";
+    } else if (theme === "system") {
+      // Use system preference if theme is set to system
+      return systemTheme === "dark" ? "dark" : "original";
+    }
+    
+    // Fallback to system preference if theme is undefined (during mounting)
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return "dark";
+    }
+    return "original";
+  };
+  
+  const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
+  const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
+  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
+
+  // Listen for theme changes and update map style accordingly - using same logic as GeocacheMap
+  useEffect(() => {
+    const newDefaultStyle = () => {
+      if (theme === "dark") {
+        return "dark";
+      } else if (theme === "light") {
+        return "original";
+      } else if (theme === "adventure") {
+        return "adventure";
+      } else if (theme === "system") {
+        return systemTheme === "dark" ? "dark" : "original";
+      }
+      
+      // Fallback to system preference if theme is undefined (during mounting)
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return "dark";
+      }
+      return "original";
+    };
+
+    const newStyle = newDefaultStyle();
+    if (currentMapStyle !== newStyle) {
+      setCurrentMapStyle(newStyle);
+    }
+  }, [theme, systemTheme, currentMapStyle]);
+
+  // Also listen for system theme changes as backup - using same logic as GeocacheMap
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      // Only respond to system changes if app theme is set to system or undefined AND user hasn't manually selected a style
+      if ((theme === "system" || !theme) && !hasManuallySelectedStyle) {
+        const newDefaultStyle = e.matches ? "dark" : "original";
+        if (currentMapStyle !== newDefaultStyle) {
+          setCurrentMapStyle(newDefaultStyle);
+        }
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleThemeChange);
+  }, [theme, currentMapStyle, hasManuallySelectedStyle]);
 
   // Check for claim URL in params (from pre-generated QR code)
   useEffect(() => {
@@ -1045,7 +1116,9 @@ export default function CreateCache() {
                             touchZoom={false}
                           >
                           <TileLayer
-                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                            attribution={mapStyle.attribution}
+                            url={mapStyle.url}
+                            maxZoom={19}
                           />
                           <MapResizer location={location} />
                           <Marker 

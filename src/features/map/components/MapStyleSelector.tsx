@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Map as MapIcon } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { MAP_STYLES, ADVENTURE_COLORS } from "@/features/map/constants/mapStyles";
 
 interface MapStyleSelectorProps {

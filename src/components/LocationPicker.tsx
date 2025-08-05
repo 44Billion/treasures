@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LocationSearch } from "@/components/LocationSearch";
-import { MapStyleSelector } from "@/components/MapStyleSelector";
-import { MAP_STYLES } from "@/components/MapStyleSelector.types";
+import { MapStyleSelector } from "@/features/map/components/MapStyleSelector";
+import { MAP_STYLES } from "@/features/map/constants/mapStyles";
 import { useGeolocation } from "@/features/map/hooks/useGeolocation";
 import { useTheme } from "next-themes";
 import { autocorrectCoordinates, parseCoordinate, formatCoordinateForInput } from "@/features/map/utils/coordinates";
@@ -114,7 +114,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   
   const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
   const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
-  const mapStyle = MAP_STYLES.find(style => style.id === currentMapStyle) || MAP_STYLES[0];
+  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
 
   // Handle manual style changes
   const handleStyleChange = (style: string) => {
