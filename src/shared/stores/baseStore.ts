@@ -100,11 +100,69 @@ export function useBaseStore(
     timeout: number = TIMEOUTS.QUERY
   ): Promise<StoreActionResult<any[]>> => {
     return safeAsyncOperation(async () => {
+      // Try to get the current relay URL from the Nostr context
+      let currentRelay = 'unknown';
+      try {
+        // Note: This depends on the nostr implementation having a relay property
+        if ('relay' in nostr && (nostr as any).relay) {
+          currentRelay = (nostr as any).relay;
+        } else if ('pool' in nostr && (nostr as any).pool && 'relays' in (nostr as any).pool) {
+          const relays = Object.keys((nostr as any).pool.relays || {});
+          currentRelay = relays[0] || 'unknown';
+        }
+      } catch (e) {
+        // Ignore errors when trying to get relay info
+      }
+      
+      console.log(`🔍 [${storeName}] Starting batch query:`, {
+        context,
+        relay: currentRelay,
+        filterCount: filters.length,
+        timeout,
+        filters: filters.map(f => ({
+          kinds: f.kinds,
+          limit: f.limit,
+          authors: f.authors?.length || 0
+        }))
+      });
+      
       const signal = AbortSignal.timeout(timeout);
-      const events = await nostr.query(filters, { signal });
-      return events;
+      const startTime = Date.now();
+      
+      try {
+        const events = await nostr.query(filters, { signal });
+        const queryDuration = Date.now() - startTime;
+        
+        // Check if this was a timeout (duration equals timeout)
+        const isTimeout = queryDuration >= timeout - 100; // Within 100ms of timeout
+        
+        console.log(`✅ [${storeName}] Batch query completed:`, {
+          context,
+          relay: currentRelay,
+          eventCount: events.length,
+          queryDuration: `${queryDuration}ms`,
+          timeout,
+          isTimeout,
+          wasSuccessful: !isTimeout || events.length > 0
+        });
+        
+        return events;
+      } catch (error) {
+        const queryDuration = Date.now() - startTime;
+        const isTimeout = queryDuration >= timeout - 100;
+        
+        console.error(`❌ [${storeName}] Batch query failed:`, {
+          context,
+          relay: currentRelay,
+          queryDuration: `${queryDuration}ms`,
+          timeout,
+          isTimeout,
+          error: error instanceof Error ? error.message : error
+        });
+        throw error;
+      }
     }, context);
-  }, [safeAsyncOperation, nostr]);
+  }, [safeAsyncOperation, nostr, storeName]);
 
 
 

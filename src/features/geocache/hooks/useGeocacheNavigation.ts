@@ -18,7 +18,7 @@ export function useGeocacheNavigation() {
    * Pre-populates the cache to avoid re-fetching data we already have
    */
   const navigateToGeocache = useCallback((geocache: Geocache, options?: { fromMap?: boolean }) => {
-    const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays);
+    const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
     
     // Pre-populate the cache with the geocache data we already have
     queryClient.setQueryData(['geocache-by-naddr', naddr], geocache);
@@ -45,7 +45,7 @@ export function useGeocacheNavigation() {
    */
   const prePopulateGeocaches = useCallback((geocaches: Geocache[]) => {
     geocaches.forEach(geocache => {
-      const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays);
+      const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
       queryClient.setQueryData(['geocache-by-naddr', naddr], geocache);
     });
     
@@ -55,8 +55,8 @@ export function useGeocacheNavigation() {
   /**
    * Check if a geocache is already cached
    */
-  const isGeocacheCached = useCallback((pubkey: string, dTag: string, relays?: string[]) => {
-    const naddr = geocacheToNaddr(pubkey, dTag, relays);
+  const isGeocacheCached = useCallback((pubkey: string, dTag: string, relays?: string[], kind?: number) => {
+    const naddr = geocacheToNaddr(pubkey, dTag, relays, kind);
     const cachedData = queryClient.getQueryData(['geocache-by-naddr', naddr]);
     return !!cachedData;
   }, [queryClient]);

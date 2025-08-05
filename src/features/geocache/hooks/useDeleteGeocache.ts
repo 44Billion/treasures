@@ -1,10 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNostr } from '@nostrify/react';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { useGeocacheStoreContext } from '@/shared/stores/hooks';
 import { useToast } from '@/shared/hooks/useToast';
 import { offlineStorage } from '@/features/offline/utils/offlineStorage';
-import { NIP_GC_KINDS, createGeocacheCoordinate } from '@/features/geocache/utils/nip-gc';
-import { TIMEOUTS } from '@/shared/config';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 interface DeleteGeocacheParams {
@@ -14,17 +11,12 @@ interface DeleteGeocacheParams {
 }
 
 export function useDeleteGeocache() {
-  const { nostr } = useNostr();
-  const { user } = useCurrentUser();
   const queryClient = useQueryClient();
+  const geocacheStore = useGeocacheStoreContext();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ geocacheId, geocacheEvent, reason }: DeleteGeocacheParams) => {
-      if (!user?.signer) {
-        throw new Error("You must be logged in to delete geocaches");
-      }
-
+    mutationFn: async ({ geocacheId }: DeleteGeocacheParams) => {
       // Optimistically remove from local storage immediately
       try {
         await offlineStorage.removeGeocache(geocacheId);
@@ -33,46 +25,13 @@ export function useDeleteGeocache() {
         console.warn('Failed to remove from offline storage:', error);
       }
 
-      // Create deletion event
-      const deletionTags: string[][] = [
-        ['e', geocacheId],
-        ['k', (geocacheEvent?.kind || NIP_GC_KINDS.GEOCACHE).toString()],
-        ['client', 'treasures'],
-      ];
-
-      // Add coordinate tag for replaceable events
-      if (geocacheEvent && geocacheEvent.kind === NIP_GC_KINDS.GEOCACHE) {
-        const dTag = geocacheEvent.tags.find(t => t[0] === 'd')?.[1];
-        if (dTag) {
-          const coordinate = createGeocacheCoordinate(geocacheEvent.pubkey, dTag);
-          deletionTags.push(['a', coordinate]);
-        }
+      // Use the store's deleteGeocache method
+      const result = await geocacheStore.deleteGeocache(geocacheId);
+      if (!result.success) {
+        throw result.error;
       }
 
-      const deletionEvent = {
-        kind: 5,
-        content: reason || 'Geocache deleted by author',
-        tags: deletionTags,
-        created_at: Math.floor(Date.now() / 1000),
-      };
-
-      // Sign the event
-      const signedEvent = await user.signer.signEvent(deletionEvent);
-
-      // Fire-and-forget deletion: send to relays without strict verification
-      // Deletion events are optimistic - we assume they work and don't fail the operation
-      // if some relays don't respond immediately
-      try {
-        await nostr.event(signedEvent, { 
-          signal: AbortSignal.timeout(TIMEOUTS.DELETE_OPERATION) 
-        });
-      } catch (publishError) {
-        // Don't throw here - the event was signed and some relays might have received it
-        // Log for debugging but continue with optimistic success
-        console.warn('Deletion event publish warning (continuing optimistically):', publishError);
-      }
-
-      return signedEvent;
+      return result.data;
     },
     onMutate: async ({ geocacheId }) => {
       // Optimistic update: immediately remove from UI
@@ -96,7 +55,7 @@ export function useDeleteGeocache() {
       
       return { previousGeocache, previousGeocaches };
     },
-    onSuccess: (_event, { geocacheId }) => {
+    onSuccess: (_data, { geocacheId }) => {
       toast({
         title: "Geocache deleted",
         description: "Your geocache has been removed and the deletion request sent to relays.",
@@ -105,7 +64,7 @@ export function useDeleteGeocache() {
       // Invalidate related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['geocaches'] });
       queryClient.invalidateQueries({ queryKey: ['offline-geocaches'] });
-      queryClient.invalidateQueries({ queryKey: ['my-geocaches'] });
+      queryClient.invalidateQueries({ queryKey: ['user-geocaches'] });
       
       console.log(`Deletion event sent for geocache: ${geocacheId}`);
     },
@@ -146,4 +105,3 @@ export function useDeleteGeocache() {
     },
   });
 }
-

@@ -1,210 +1,171 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNostr } from '@nostrify/react';
-import { NostrEvent } from '@nostrify/nostrify';
-import type { GeocacheLog } from '@/types/geocache';
-import { NIP_GC_KINDS, parseLogEvent, createGeocacheCoordinate } from '@/features/geocache/utils/nip-gc';
-import { verifyEmbeddedVerification, getEmbeddedVerification } from '@/features/geocache/utils/verification';
 import { useIsWotEnabled } from '@/shared/utils/wot';
 import { useWotStore } from '@/shared/stores/useWotStore';
-import { TIMEOUTS, POLLING_INTERVALS, QUERY_LIMITS } from '@/shared/config';
-import { cacheManager } from '@/features/geocache/utils/cacheManager';
+import { verifyEmbeddedVerification, getEmbeddedVerification } from '@/features/geocache/utils/verification';
+import { useNostr } from '@nostrify/react';
+import { TIMEOUTS, QUERY_LIMITS } from '@/lib/constants';
+import { NIP_GC_KINDS, parseLogEvent } from '@/features/geocache/utils/nip-gc';
+import { separateQueries } from '@/shared/utils/batchQuery';
 
-export function useGeocacheLogs(_geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, _preferredRelays?: string[], verificationPubkey?: string) {
-  const { nostr } = useNostr();
+export function useGeocacheLogs(_geocacheId: string, geocacheDTag?: string, geocachePubkey?: string, _preferredRelays?: string[], verificationPubkey?: string, geocacheKind?: number) {
   const isWotEnabled = useIsWotEnabled();
   const { wotPubkeys } = useWotStore();
-  
-  // Note: Deletion filtering is now handled using utility functions
+  const { nostr } = useNostr();
   
   return useQuery({
-    queryKey: ['geocache-logs', geocacheDTag, geocachePubkey, verificationPubkey, isWotEnabled, Array.from(wotPubkeys).sort().join(',')],
-    queryFn: async (c) => {
+    queryKey: ['geocache-logs', geocacheDTag, geocachePubkey, verificationPubkey, geocacheKind, isWotEnabled, Array.from(wotPubkeys).sort().join(',')],
+    queryFn: async () => {
       if (!geocachePubkey || !geocacheDTag) {
         return [];
       }
 
-      // Check LRU cache first - if we have fresh data, use it
-      const cacheKey = `${geocachePubkey}:${geocacheDTag}`;
-      const cached = cacheManager.getLogs(cacheKey);
-      if (cached && cached.length > 0) {
-        const validation = cacheManager.validateLogs(cacheKey, 240000); // 4 minutes
-        if (validation.isValid && !c.meta?.forceRefresh) {
-          return cached;
-        }
-      }
-
       try {
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
-        const geocacheCoordinate = createGeocacheCoordinate(geocachePubkey, geocacheDTag);
-        const allEvents: NostrEvent[] = [];
-        
-        // Query for found logs with increased limit for better caching
-        try {
-          const foundLogs = await nostr.query([{
-            kinds: [NIP_GC_KINDS.FOUND_LOG],
-            '#a': [geocacheCoordinate],
-            limit: QUERY_LIMITS.LOGS,
-          }], { signal });
-          allEvents.push(...foundLogs);
-        } catch (error) {
-          console.warn('Failed to fetch found logs:', error);
-        }
-        
-        // Query for comment logs with increased limit
-        try {
-          const commentLogs = await nostr.query([{
-            kinds: [NIP_GC_KINDS.COMMENT_LOG],
-            '#a': [geocacheCoordinate],
-            '#A': [geocacheCoordinate],
-            limit: QUERY_LIMITS.LOGS,
-          }], { signal });
-          allEvents.push(...commentLogs);
-        } catch (error) {
-          console.warn('Failed to fetch comment logs:', error);
-        }
+        // Query directly for logs for this geocache instead of using store
+        // Use the geocache's kind if provided, otherwise default to the new kind
+        const kind = geocacheKind || NIP_GC_KINDS.GEOCACHE;
+        const geocacheCoordinate = `${kind}:${geocachePubkey}:${geocacheDTag}`;
+        const signal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
+        // We need to query for logs using both the legacy kind AND the new kind
+        // This is the key difference from useGeocaches which works correctly
+        const legacyCoordinate = geocacheKind === NIP_GC_KINDS.GEOCACHE_LEGACY 
+          ? geocacheCoordinate 
+          : `${NIP_GC_KINDS.GEOCACHE_LEGACY}:${geocachePubkey}:${geocacheDTag}`;
 
-        // Process the events
-        if (allEvents.length === 0) {
-          // If network returned empty but we have cache, return cache
-          if (cached && cached.length > 0) {
-            console.log('Network returned no logs, serving from cache');
-            return cached;
+        // Query for logs intelligently to avoid duplicates
+        // For found logs, query both coordinates with #a tag (most common)
+        // For comment logs, query both coordinates but only use #a OR #A, not both
+        const events = await separateQueries(nostr, [
+          // Found logs for new coordinate
+          {
+            filters: {
+              kinds: [NIP_GC_KINDS.FOUND_LOG],
+              '#a': [geocacheCoordinate],
+              limit: QUERY_LIMITS.LOGS,
+            },
+            name: 'found-logs-new'
+          },
+          // Found logs for legacy coordinate  
+          {
+            filters: {
+              kinds: [NIP_GC_KINDS.FOUND_LOG],
+              '#a': [legacyCoordinate],
+              limit: QUERY_LIMITS.LOGS,
+            },
+            name: 'found-logs-legacy'
+          },
+          // Comment logs - use #a tag for both coordinates (most common)
+          {
+            filters: {
+              kinds: [NIP_GC_KINDS.COMMENT_LOG],
+              '#a': [geocacheCoordinate],
+              limit: QUERY_LIMITS.LOGS,
+            },
+            name: 'comment-logs-a-new'
+          },
+          {
+            filters: {
+              kinds: [NIP_GC_KINDS.COMMENT_LOG],
+              '#a': [legacyCoordinate],
+              limit: QUERY_LIMITS.LOGS,
+            },
+            name: 'comment-logs-a-legacy'
           }
-          return [];
-        }
+        ], signal);
 
-        try {
-          // Remove duplicates by event ID
-          const uniqueEvents = allEvents.reduce((acc, event) => {
-            if (!acc.has(event.id)) {
-              acc.set(event.id, event);
-            }
-            return acc;
-          }, new Map<string, NostrEvent>());
+        // Parse logs but keep the raw events for verification
+        const parsedLogs = events.map(event => ({
+          event,
+          parsed: parseLogEvent(event)
+        }));
+        
+        const successfullyParsedLogs = parsedLogs.filter(item => item.parsed !== null);
+        
+        let logs = successfullyParsedLogs.map(item => item.parsed);
 
-          const deduplicatedEvents = Array.from(uniqueEvents.values());
+        // Deduplicate by event ID to handle React 18's double-rendering in development
+        const seenIds = new Set();
+        logs = logs.filter(log => {
+          if (!log || seenIds.has(log.id)) {
+            return false;
+          }
+          seenIds.add(log.id);
+          return true;
+        });
 
-          // Filter out deleted events first, before any other processing
-          // Note: For now, we'll skip deletion filtering since we need deletion events
-          // This functionality can be re-implemented with the new store system if needed
-          const nonDeletedEvents = deduplicatedEvents;
+        // Successfully parsed logs, continue with filtering
 
-          // Filter out verification events
-          const finalEvents = nonDeletedEvents.filter(event => {
-            if (event.kind === NIP_GC_KINDS.VERIFICATION) {
-              return false;
-            }
+        // Filter out verification events (only actual verification events, not regular logs)
+        logs = logs.filter(log => {
+          if (!log) return false;
+          // Only filter out if it's a found log (verification logs are found logs with embedded verification)
+          // Don't filter out comment logs from the cache owner
+          if (verificationPubkey && log.pubkey === verificationPubkey && log.type === 'found') {
+            return false;
+          }
+          return true;
+        });
+        
+        // Successfully filtered logs, continue with processing
+
+        // Perform verification validation if verification pubkey is available
+        if (verificationPubkey) {
+          const verificationPromises = logs.map(async (log) => {
+            if (!log) return log;
             
-            if (verificationPubkey && event.pubkey === verificationPubkey) {
-              return false;
-            }
-            
-            return true;
-          });
-
-          // Parse log events and perform verification validation
-          const logs: GeocacheLog[] = [];
-          
-          // Batch verification for better performance
-          const verificationPromises = finalEvents.map(async (event) => {
-            const parsed = parseLogEvent(event);
-            if (!parsed) return null;
+            // Find the corresponding event for this log
+            const event = parsedLogs.find(item => item.parsed?.id === log.id)?.event;
+            if (!event) return log;
             
             // Quick check for embedded verification
             const embeddedVerification = getEmbeddedVerification(event);
             
-            if (embeddedVerification && verificationPubkey) {
-              // Only verify if we have both embedded verification AND the geocache's verification pubkey
+            if (embeddedVerification) {
               try {
                 const isValid = await verifyEmbeddedVerification(event, verificationPubkey);
-                parsed.isVerified = isValid;
+                log.isVerified = isValid;
               } catch (error) {
                 // If verification fails, mark as unverified but don't fail the whole operation
-                console.warn('Verification check failed for event:', event.id, error);
-                parsed.isVerified = false;
+                console.warn('Verification check failed for event:', log.id, error);
+                log.isVerified = false;
               }
             } else {
-              // If there's no verification pubkey, we can't verify, so mark as unverified
-              parsed.isVerified = false;
+              // If there's no embedded verification, we can't verify, so mark as unverified
+              log.isVerified = false;
             }
             
-            return parsed;
+            return log;
           });
           
-          // Wait for all verifications to complete
+          // Wait for all verifications to complete and update in place
           const verificationResults = await Promise.allSettled(verificationPromises);
-          
-          // Collect successful results
-          for (const result of verificationResults) {
+          verificationResults.forEach((result, index) => {
             if (result.status === 'fulfilled' && result.value) {
-              logs.push(result.value);
+              logs[index] = result.value;
             }
-          }
-
-          // Sort by creation date (newest first)
-          logs.sort((a, b) => b.created_at - a.created_at);
-
-          if (isWotEnabled && wotPubkeys.size > 0) {
-            return logs.filter(log => wotPubkeys.has(log.pubkey));
-          }
-
-
-          // Update LRU cache with fresh data ONLY if we got results
-          if (logs.length > 0) {
-            cacheManager.setLogs(cacheKey, logs);
-            return logs;
-          } else {
-            // If processing returned empty but we have cache, return cache
-            if (cached && cached.length > 0) {
-              console.log('Processing returned no logs, serving from cache');
-              return cached;
-            }
-            return [];
-          }
-        } catch (error) {
-          console.error('Error processing geocache logs:', error);
-          // If processing failed but we have cache, return cache
-          if (cached && cached.length > 0) {
-            console.log('Processing failed, serving from cache');
-            return cached;
-          }
-          return [];
+          });
         }
+
+        // Apply WoT filtering if enabled
+        if (isWotEnabled && wotPubkeys.size > 0) {
+          logs = logs.filter(log => log && wotPubkeys.has(log.pubkey));
+        }
+
+        // Sort by creation date (newest first)
+        logs.sort((a, b) => (b?.created_at || 0) - (a?.created_at || 0));
+
+        // Return the final processed logs
+
+        return logs;
       } catch (error) {
-        // If network fails and we have cache, return cache instead of failing
-        if (cached && cached.length > 0) {
-          console.log('Network failed for logs, serving from cache:', error);
-          return cached;
-        }
-        // Only throw if we have no fallback data
+        console.warn('Failed to fetch geocache logs:', error);
         throw error;
       }
     },
     enabled: !!(geocacheDTag && geocachePubkey),
-    staleTime: 240000, // 4 minutes - longer stale time since we have LRU cache
-    gcTime: 900000, // 15 minutes - longer cache retention
+    staleTime: 300000, // 5 minutes - increased for better caching
+    gcTime: 600000, // 10 minutes - cache retention
     refetchOnWindowFocus: false,
-    refetchInterval: POLLING_INTERVALS.LOGS, // Background polling for real updates
-    refetchIntervalInBackground: true, // Continue polling in background
-    // Use LRU cache as placeholder data
-    placeholderData: (previousData) => {
-      if (previousData) return previousData;
-      if (!geocachePubkey || !geocacheDTag) return undefined;
-      const cacheKey = `${geocachePubkey}:${geocacheDTag}`;
-      const cached = cacheManager.getLogs(cacheKey);
-      return cached && cached.length > 0 ? cached : undefined;
-    },
-    // Prevent clearing data on background refetch failures
-
-    // Don't retry background failures aggressively
-    retry: (failureCount, error) => {
-      // Don't retry timeout errors in background
-      if (error?.message?.includes('timeout') && failureCount > 0) {
-        return false;
-      }
-      return failureCount < 2;
-    },
+    refetchInterval: false, // No background sync
+    refetchIntervalInBackground: false, // Disabled background sync
   });
 }
-
-// parseLogEvent is now imported from @/features/geocache/utils/nip-gc

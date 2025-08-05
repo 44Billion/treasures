@@ -16,7 +16,7 @@ import type { ProfileDialogProps } from "../types";
 export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogProps) {
   const navigate = useNavigate();
   const author = useAuthor(pubkey || "");
-  const { data: geocachesData = [] } = useGeocaches();
+  const { data: geocachesData = [], isStatsLoading } = useGeocaches();
   const geocaches = Array.isArray(geocachesData) ? geocachesData : [];
   const { data: foundCaches = [] } = useUserFoundCaches(pubkey || "");
   
@@ -102,12 +102,13 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
                     return (
                       <GeocacheCard 
                         key={geocache.id} 
-                        cache={geocache} 
+                        cache={geocache}
                         variant="compact"
                         onClick={() => {
                           onOpenChange(false);
-                          navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays)}`);
+                          navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind)}`);
                         }}
+                        statsLoading={isStatsLoading}
                       />
                     );
                   })}

@@ -78,10 +78,11 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         relays: originalGeocache.relays,
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key!
         hidden: data.hidden,
+        kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind!
       });
 
       const event = await publishEvent({
-        kind: NIP_GC_KINDS.GEOCACHE,
+        kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
         content: data.description.trim(), // Plain text description in content
         tags,
       });
@@ -166,7 +167,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       });
 
       // Optimistically update geocache by coordinate
-      const coordinate = `${NIP_GC_KINDS.GEOCACHE}:${originalGeocache.pubkey}:${originalGeocache.dTag}`;
+      const coordinate = `${originalGeocache.kind || NIP_GC_KINDS.GEOCACHE}:${originalGeocache.pubkey}:${originalGeocache.dTag}`;
       queryClient.setQueryData(['geocache-by-coordinate', coordinate], (old: unknown) => {
         if (!Array.isArray(old)) return old;
         return old.map((event: any) => {
@@ -245,7 +246,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         });
 
         // Update geocache by coordinate with actual event data
-        const coordinate = `${NIP_GC_KINDS.GEOCACHE}:${originalGeocache.pubkey}:${originalGeocache.dTag}`;
+        const coordinate = `${originalGeocache.kind || NIP_GC_KINDS.GEOCACHE}:${originalGeocache.pubkey}:${originalGeocache.dTag}`;
         queryClient.setQueryData(['geocache-by-coordinate', coordinate], [event]);
 
         // Update all naddr-based queries with actual data

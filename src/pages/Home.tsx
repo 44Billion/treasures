@@ -8,25 +8,47 @@ import { DesktopHeader } from "@/components/DesktopHeader";
 import LoginDialog from "@/components/auth/LoginDialog";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
-import { useHomePageGeocaches } from "@/features/geocache/hooks/useOptimisticGeocaches";
+import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
-import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
+
+import { RelayErrorFallback } from "@/components/RelayErrorFallback";
 
 export default function Home() {
   const { user } = useCurrentUser();
   const { config } = useAppContext();
   
-  // Use optimistic loading for better UX
+  // Use geocaches with optimized loading
   const {
-    geocaches,
+    data: geocaches,
     isLoading,
     isError,
     error,
-    hasInitialData,
-    refresh
-  } = useHomePageGeocaches();
+    isStatsLoading,
+    refetch: refresh
+  } = useGeocaches();
   
   const [isRetrying, setIsRetrying] = useState(false);
+  
+  // Add a state to track initial page load for skeleton display
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  // Set initial load to false after a short delay to show skeletons
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false);
+    }, 1500); // Show skeletons for at least 1.5 seconds
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Debug skeleton state
+  console.log('🏠 Home page loading state:', {
+    isInitialLoad,
+    isLoading,
+    hasGeocaches: !!geocaches,
+    geocacheCount: geocaches?.length || 0,
+    shouldShowSkeletons: (isLoading || isInitialLoad) && !geocaches
+  });
   
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
@@ -461,56 +483,73 @@ export default function Home() {
             </div>
           </div>
           
-          <SmartLoadingState
-            isLoading={isLoading}
-            isError={isError}
-            hasData={hasInitialData}
-            data={geocaches}
-            error={error}
-            onRetry={handleRetry}
-            isRetrying={isRetrying}
-            skeletonCount={skeletonCount}
-            skeletonVariant="featured"
-            showRelayFallback={true}
-
-          >
-            {/* Featured Grid Layout */}
+          {(isLoading || isInitialLoad) ? (
+            // Show skeleton cards during loading
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {geocaches.slice(0, 6).map((geocache) => (
-                <GeocacheCard
-                  key={geocache.id}
-                  cache={geocache}
-                  variant="featured"
-                />
+              {Array.from({ length: skeletonCount }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                      <div className="flex-1 space-y-3">
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+                        <div className="space-y-2">
+                          <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
+                          <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-2">
+                            <div className="h-5 w-6 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="h-5 w-6 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                          </div>
+                          <div className="flex gap-2">
+                            <div className="h-4 w-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="h-4 w-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-            
-            {/* Show more button if there are more caches */}
-            {geocaches.length > 6 && (
-              <div className="text-center mt-8">
+          ) : isError ? (
+            // Show error state
+            <RelayErrorFallback
+              error={error}
+              onRetry={handleRetry}
+              isRetrying={isRetrying}
+            />
+          ) : (
+            // Show actual content
+            <>
+              {/* Featured Grid Layout */}
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {geocaches.slice(0, 6).map((geocache) => (
+                  <GeocacheCard
+                    key={geocache.id}
+                    cache={geocache}
+                    variant="featured"
+                    statsLoading={isStatsLoading}
+                  />
+                ))}
+              </div>
+              
+              {/* Mobile view all button */}
+              <div className="mt-8 text-center sm:hidden">
                 <Link to="/map">
-                  <Button variant="outline" size="lg" className="group">
-                    <Search className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform adventure:hidden" />
-                    <Compass className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform hidden adventure:inline" />
-                    <span className="adventure:hidden">Discover {geocaches.length - 6} More Geocaches</span>
-                    <span className="hidden adventure:inline">Uncover {geocaches.length - 6} More Geocaches</span>
+                  <Button variant="outline" className="w-full">
+                    <Search className="h-4 w-4 mr-2 adventure:hidden" />
+                    <Compass className="h-4 w-4 mr-2 hidden adventure:inline" />
+                    <span className="adventure:hidden">View All Geocaches</span>
+                    <span className="hidden adventure:inline">Survey All Geocaches</span>
                   </Button>
                 </Link>
               </div>
-            )}
-            
-            {/* Mobile view all button */}
-            <div className="mt-8 text-center sm:hidden">
-              <Link to="/map">
-                <Button variant="outline" className="w-full">
-                  <Search className="h-4 w-4 mr-2 adventure:hidden" />
-                  <Compass className="h-4 w-4 mr-2 hidden adventure:inline" />
-                  <span className="adventure:hidden">View All Geocaches</span>
-                  <span className="hidden adventure:inline">Survey All Geocaches</span>
-                </Button>
-              </Link>
-            </div>
-          </SmartLoadingState>
+            </>
+          )}
         </div>
       </section>
 

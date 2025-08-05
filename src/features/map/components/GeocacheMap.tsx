@@ -8,6 +8,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import { MapStyleSelector } from "./MapStyleSelector";
 import { MAP_STYLES, type MapStyle } from "@/features/map/constants/mapStyles";
 import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavigation";
+import { useMapController } from "@/features/map/hooks/useMapController";
 import type { Geocache } from "@/shared/types";
 import { getTypeLabel, getSizeLabel } from "@/features/geocache/utils/geocache-utils";
 
@@ -248,22 +249,7 @@ interface GeocacheMapProps {
   isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
 }
 
-// Helper function to calculate appropriate zoom level based on search radius
-function getZoomForRadius(radius: number): number {
-  if (radius <= 1) {
-    return 15; // Very close for 1km
-  } else if (radius <= 5) {
-    return 13; // Close for 5km
-  } else if (radius <= 10) {
-    return 12; // Medium for 10km
-  } else if (radius <= 25) {
-    return 10; // Wider for 25km
-  } else if (radius <= 50) {
-    return 9;  // Wide for 50km
-  } else {
-    return 8;  // Very wide for 100km+
-  }
-}
+
 
 // Component to handle map centering
 function MapController({ 
@@ -279,124 +265,22 @@ function MapController({
   searchRadius?: number;
   isMapCenterLocked?: boolean;
 }) {
-  const map = useMap();
-  const lastCenterRef = useRef<string | null>(null);
-  const lastRadiusRef = useRef<number | null>(null);
-  const userIsInteracting = useRef(false);
-  const userHasInteracted = useRef(false);
-  const lastUpdateTime = useRef<number>(0);
-  const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const { handleCardClick } = useMapController({
+    center,
+    zoom,
+    searchLocation,
+    searchRadius,
+    isMapCenterLocked,
+  });
+
+  // Expose handleCardClick to parent component via window object for card click handling
   useEffect(() => {
-    // Comprehensive user interaction tracking
-    const handleInteractionStart = () => {
-      userIsInteracting.current = true;
-      userHasInteracted.current = true;
-      
-      // Clear any existing timeout
-      if (interactionTimeoutRef.current) {
-        clearTimeout(interactionTimeoutRef.current);
-      }
-    };
-    
-    const handleInteractionEnd = () => {
-      userIsInteracting.current = false;
-      
-      // Set a reasonable timeout before allowing automatic updates
-      interactionTimeoutRef.current = setTimeout(() => {
-        userHasInteracted.current = false;
-      }, 8000); // 8 seconds - balanced protection that's not too long
-    };
-    
-    // Listen to all possible user interactions
-    map.on('dragstart', handleInteractionStart);
-    map.on('dragend', handleInteractionEnd);
-    map.on('zoomstart', handleInteractionStart);
-    map.on('zoomend', handleInteractionEnd);
-    map.on('movestart', handleInteractionStart);
-    map.on('moveend', handleInteractionEnd);
-    
-    // Also listen for mouse/touch events as backup
-    const mapContainer = map.getContainer();
-    mapContainer.addEventListener('mousedown', handleInteractionStart);
-    mapContainer.addEventListener('touchstart', handleInteractionStart);
-    
+    (window as any).handleMapCardClick = handleCardClick;
     return () => {
-      map.off('dragstart', handleInteractionStart);
-      map.off('dragend', handleInteractionEnd);
-      map.off('zoomstart', handleInteractionStart);
-      map.off('zoomend', handleInteractionEnd);
-      map.off('movestart', handleInteractionStart);
-      map.off('moveend', handleInteractionEnd);
-      
-      mapContainer.removeEventListener('mousedown', handleInteractionStart);
-      mapContainer.removeEventListener('touchstart', handleInteractionStart);
-      
-      if (interactionTimeoutRef.current) {
-        clearTimeout(interactionTimeoutRef.current);
-      }
+      delete (window as any).handleMapCardClick;
     };
-  }, [map]);
-  
-  useEffect(() => {
-    if (center) {
-      // Create a key to track if the center has actually changed
-      const centerArray = Array.isArray(center) ? center : [(center as { lat: number; lng: number }).lat, (center as { lat: number; lng: number }).lng];
-      const centerKey = `${centerArray[0]},${centerArray[1]},${zoom}`;
-      const now = Date.now();
-      
-      // NEVER update if user is currently interacting or has interacted recently
-      // NEVER update if map center is locked from parent component
-      // Only update if enough time has passed since last update (prevent spam)
-      if (centerKey !== lastCenterRef.current && 
-          !userIsInteracting.current &&
-          !userHasInteracted.current &&
-          !isMapCenterLocked &&
-          now - lastUpdateTime.current > 1000) { // Reduced to 1 second for more responsive location updates
-        
-        lastCenterRef.current = centerKey;
-        lastUpdateTime.current = now;
-        
-        // If we have a search location with radius, use radius-based zoom
-        if (searchLocation && searchRadius) {
-          const targetZoom = getZoomForRadius(searchRadius);
-          
-          map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
-            animate: true,
-            duration: 0.5 // Slightly longer animation for smoother experience
-          });
-          lastRadiusRef.current = searchRadius;
-        } else {
-          // Otherwise just set the view
-          map.setView(center, zoom, {
-            animate: true,
-            duration: 0.5
-          });
-        }
-      }
-    }
-  }, [map, center, zoom, searchLocation, searchRadius, isMapCenterLocked]);
-  
-  // Handle radius changes independently of center changes
-  useEffect(() => {
-    if (searchLocation && searchRadius && 
-        lastRadiusRef.current !== searchRadius && 
-        !userIsInteracting.current &&
-        !userHasInteracted.current &&
-        !isMapCenterLocked) {
-      
-      lastRadiusRef.current = searchRadius;
-      
-      // Calculate appropriate zoom level based on radius and update map
-      const targetZoom = getZoomForRadius(searchRadius);
-      
-      map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
-        animate: true,
-        duration: 0.25
-      });
-    }
-  }, [map, searchLocation, searchRadius, isMapCenterLocked]);
-  
+  }, [handleCardClick]);
+
   return null;
 }
 
@@ -445,47 +329,110 @@ function PopupController({
 }) {
   const map = useMap();
   const lastHighlightedRef = useRef<string | null>(null);
-  const popupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const popupAttemptsRef = useRef<number>(0);
+  const maxAttempts = 15;
+  const isOpeningRef = useRef<boolean>(false);
   
   useEffect(() => {
-    // Clear any existing timeout
-    if (popupTimeoutRef.current) {
-      clearTimeout(popupTimeoutRef.current);
-      popupTimeoutRef.current = null;
-    }
-    
-    // Only open popup if highlightedGeocache has actually changed
     if (highlightedGeocache && highlightedGeocache !== lastHighlightedRef.current) {
       lastHighlightedRef.current = highlightedGeocache;
+      popupAttemptsRef.current = 0;
+      isOpeningRef.current = true;
       
       // Find the geocache
       const geocache = geocaches.find(g => g.dTag === highlightedGeocache);
       if (geocache) {
-        // Small delay to ensure map has centered, then trigger popup on the marker
-        popupTimeoutRef.current = setTimeout(() => {
-          // Find all markers and open the popup for the matching one
+        const attemptOpenPopup = (attempt: number) => {
+          if (attempt > maxAttempts || !isOpeningRef.current) {
+            if (attempt > maxAttempts) {
+              console.warn(`Could not find marker for geocache ${geocache.dTag} after ${maxAttempts} attempts`);
+            }
+            isOpeningRef.current = false;
+            return;
+          }
+          
+          let markerFound = false;
+          
+          // Search through all layers to find the marker, including cluster groups
           map.eachLayer((layer: L.Layer) => {
-            if (layer instanceof L.Marker && 'getLatLng' in layer) {
+            if (layer instanceof L.Marker && 'getLatLng' in layer && !markerFound) {
               const markerLatLng = (layer as L.Marker).getLatLng();
               if (Math.abs(markerLatLng.lat - geocache.location.lat) < 0.0001 && 
                   Math.abs(markerLatLng.lng - geocache.location.lng) < 0.0001) {
-                (layer as L.Marker).openPopup();
+                
+                const marker = layer as L.Marker;
+                
+                // Force close any existing popups first
+                map.closePopup();
+                
+                // Check if marker has a popup bound
+                if (marker.getPopup()) {
+                  // Force open the popup with a small delay to ensure it's ready
+                  setTimeout(() => {
+                    try {
+                      marker.openPopup();
+                      markerFound = true;
+                      isOpeningRef.current = false;
+                    } catch (error) {
+                      console.warn('Failed to open popup:', error);
+                      // Try again if it fails
+                      setTimeout(() => {
+                        popupAttemptsRef.current = attempt + 1;
+                        attemptOpenPopup(attempt + 1);
+                      }, 200);
+                    }
+                  }, 50);
+                } else {
+                  // If no popup is bound yet, bind one and open it
+                  const popupContent = createGeocachePopupHTML(geocache);
+                  marker.bindPopup(popupContent, {
+                    maxWidth: 300,
+                    className: 'geocache-popup',
+                    closeButton: true,
+                    autoClose: false,
+                    autoPan: true,
+                    keepInView: true,
+                    closeOnClick: false
+                  });
+                  
+                  setTimeout(() => {
+                    try {
+                      marker.openPopup();
+                      markerFound = true;
+                      isOpeningRef.current = false;
+                    } catch (error) {
+                      console.warn('Failed to open popup after binding:', error);
+                      setTimeout(() => {
+                        popupAttemptsRef.current = attempt + 1;
+                        attemptOpenPopup(attempt + 1);
+                      }, 200);
+                    }
+                  }, 100);
+                }
               }
             }
           });
-        }, 500);
+          
+          // If marker wasn't found, try again with exponential backoff
+          if (!markerFound && isOpeningRef.current) {
+            const delay = Math.min(50 * Math.pow(1.3, attempt), 800); // Exponential backoff, max 800ms
+            setTimeout(() => {
+              popupAttemptsRef.current = attempt + 1;
+              attemptOpenPopup(attempt + 1);
+            }, delay);
+          }
+        };
+        
+        // Start attempting to open popup after a very short delay for map to settle
+        setTimeout(() => {
+          attemptOpenPopup(1);
+        }, 100); // Reduced initial wait time
       }
     } else if (!highlightedGeocache) {
-      // Clear the reference when no geocache is highlighted
       lastHighlightedRef.current = null;
+      popupAttemptsRef.current = 0;
+      isOpeningRef.current = false;
     }
-    
-    return () => {
-      if (popupTimeoutRef.current) {
-        clearTimeout(popupTimeoutRef.current);
-        popupTimeoutRef.current = null;
-      }
-    };
   }, [map, highlightedGeocache, geocaches]);
   
   return null;
@@ -1001,7 +948,6 @@ export function GeocacheMap({
     // Additional performance optimizations
     trackResize: false, // Disable automatic resize tracking
     boxZoom: false, // Disable box zoom for better performance
-    doubleClickZoom: true, // Keep double click zoom
     keyboard: false, // Disable keyboard navigation for performance
     inertia: true, // Enable inertia for smoother panning
     inertiaDeceleration: 3000, // Faster deceleration
@@ -1026,7 +972,7 @@ export function GeocacheMap({
     return () => {
       window.removeEventListener('geocache-view-details', handleViewDetails as EventListener);
     };
-  }, [geocaches, onMarkerClick]);
+  }, [geocaches, onMarkerClick, handleMarkerClick]);
 
   return (
     <div 
@@ -1217,6 +1163,13 @@ export function GeocacheMap({
                     autoPan: true,
                     keepInView: true
                   });
+                },
+                click: (e) => {
+                  // Ensure popup opens on marker click
+                  const marker = e.target;
+                  if (!marker.isPopupOpen()) {
+                    marker.openPopup();
+                  }
                 }
                 // Removed click handler - clicking marker should only show popup, not open modal
               }}

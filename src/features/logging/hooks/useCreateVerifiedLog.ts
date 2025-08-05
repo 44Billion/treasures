@@ -73,6 +73,7 @@ export function useCreateVerifiedLog() {
         geocacheDTag: data.geocacheDTag!,
         images: data.images,
         verificationEvent: JSON.stringify(verificationEvent),
+        geocacheKind: data.geocacheKind,
       });
       
       // Create found log event template with embedded verification event

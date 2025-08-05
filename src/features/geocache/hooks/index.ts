@@ -8,11 +8,10 @@ export { useGeocache } from './useGeocache';
 export { useGeocacheByNaddr } from './useGeocacheByNaddr';
 export { useGeocacheLogs } from './useGeocacheLogs';
 export { useGeocacheNavigation } from './useGeocacheNavigation';
-export { useGeocacheStats } from './useGeocacheStats';
 export { useGeocaches } from './useGeocaches';
 export { useLoggedInAccounts } from './useLoggedInAccounts';
 export { useOfflineGeocaches } from './useOfflineGeocaches';
-export { useOptimisticGeocaches } from './useOptimisticGeocaches';
+
 export { useRegenerateVerificationKey } from './useRegenerateVerificationKey';
 export { useReliableProximitySearch } from './useReliableProximitySearch';
 export { useSavedCaches } from './useSavedCaches';

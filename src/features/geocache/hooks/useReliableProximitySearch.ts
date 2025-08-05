@@ -4,20 +4,13 @@
  */
 
 import { useMemo, useCallback } from 'react';
-import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
-import type { Geocache } from '@/types/geocache';
+import { useGeocacheStoreContext } from '@/shared/stores/hooks';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
-// Note: Deletion filtering functionality has been simplified
-import { TIMEOUTS, QUERY_LIMITS, POLLING_INTERVALS } from '@/shared/config';
+import { POLLING_INTERVALS } from '@/shared/config';
 import type { ComparisonOperator } from '@/components/ui/comparison-filter';
-import { 
-  NIP_GC_KINDS, 
-  parseGeocacheEvent,
-  encodeGeohash
-} from '@/features/geocache/utils/nip-gc';
 import { calculateDistance as calculateGeoDistance } from '@/features/map/utils/geo';
+import type { Geocache } from '@/shared/types';
 
 interface UseReliableProximitySearchOptions {
   limit?: number;
@@ -35,7 +28,7 @@ interface UseReliableProximitySearchOptions {
   enableProximityOptimization?: boolean;
 }
 
-export type GeocacheWithDistance = Geocache & { distance?: number };
+export type GeocacheWithDistance = Geocache & { distance?: number; zapTotal?: number };
 
 interface SearchResult {
   geocaches: GeocacheWithDistance[];
@@ -51,79 +44,19 @@ interface SearchResult {
   };
 }
 
-/**
- * Generate geohash patterns for proximity search using the new multi-precision approach
- * 
- * NEW APPROACH: Since geocaches now include geohash tags at precisions 3-9,
- * we can use exact matches at the appropriate precision level for the search radius.
- * This is much more efficient than generating complex grid patterns.
- */
-function generateGeohashPatterns(
-  centerLat: number, 
-  centerLng: number, 
-  radiusKm: number
-): string[] {
-  const patterns = new Set<string>();
-  
-  // Determine the optimal precision level based on radius
-  let targetPrecision: number;
-  if (radiusKm >= 100) targetPrecision = 3;      // u4x       (metro area)
-  else if (radiusKm >= 50) targetPrecision = 4;  // u4xs      (city-level)
-  else if (radiusKm >= 25) targetPrecision = 5;  // u4xsu     (broader)
-  else if (radiusKm >= 10) targetPrecision = 6;  // u4xsud    (region)
-  else if (radiusKm >= 5) targetPrecision = 7;   // u4xsudv   (area)
-  else if (radiusKm >= 2) targetPrecision = 8;   // u4xsudvx  (nearby)
-  else targetPrecision = 9;                      // u4xsudvxb (exact)
-  
-  // Generate the center geohash at target precision
-  const centerGeohash = encodeGeohash(centerLat, centerLng, targetPrecision);
-  patterns.add(centerGeohash);
-  
-  // For comprehensive coverage, also include patterns at nearby precisions
-  // This ensures we catch geocaches that might be at cell boundaries
-  const precisionRange = Math.max(1, Math.min(2, Math.floor(radiusKm / 10)));
-  
-  for (let p = Math.max(3, targetPrecision - precisionRange); p <= Math.min(9, targetPrecision + precisionRange); p++) {
-    const geohash = encodeGeohash(centerLat, centerLng, p);
-    patterns.add(geohash);
-    
-    // For larger radiuses, add some spatial coverage by slightly offsetting coordinates
-    if (radiusKm >= 5) {
-      const offset = 0.001 * Math.pow(2, 9 - p); // Smaller offset for higher precision
-      const offsets = [
-        [offset, 0], [-offset, 0], [0, offset], [0, -offset],
-        [offset, offset], [offset, -offset], [-offset, offset], [-offset, -offset]
-      ];
-      
-      for (const [latOffset, lngOffset] of offsets) {
-        const offsetLat = centerLat + (latOffset || 0);
-        const offsetLng = centerLng + (lngOffset || 0);
-        
-        if (offsetLat >= -90 && offsetLat <= 90 && offsetLng >= -180 && offsetLng <= 180) {
-          const offsetGeohash = encodeGeohash(offsetLat, offsetLng, p);
-          patterns.add(offsetGeohash);
-        }
-      }
-    }
-  }
-  
-  const result = Array.from(patterns).sort();
-  
-  return result;
-}
-
-
-
-export function useReliableProximitySearch(options: UseReliableProximitySearchOptions = {}) {
-  const { nostr } = useNostr();
+export function useReliableProximitySearch(options: UseReliableProximitySearchOptions = {}, baseGeocaches?: any[]) {
+  const geocacheStore = useGeocacheStoreContext();
   const { user } = useCurrentUser();
-  // Note: Deletion filtering has been simplified for now
   
   // Determine if proximity search should be attempted
   const hasProximityParams = !!(options.centerLat && options.centerLng && options.radiusKm);
   const shouldAttemptProximity = hasProximityParams && options.enableProximityOptimization !== false;
   
-  // Query key includes all parameters that affect the Nostr query
+  // Query key includes all parameters that affect the query
+  // Add baseGeocaches to the key to ensure cache consistency when using pre-fetched data
+  const baseGeocachesCount = baseGeocaches?.length || 0;
+  const baseGeocachesIds = baseGeocaches?.slice(0, 10).map(g => g.id).join('') || '';
+  
   const queryKey = useMemo(() => [
     'reliable-proximity-search',
     {
@@ -133,6 +66,9 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
       centerLng: options.centerLng,
       radiusKm: options.radiusKm,
       enableProximityOptimization: options.enableProximityOptimization,
+      // Include base geocaches checksum to ensure cache consistency
+      baseGeocachesCount,
+      baseGeocachesIds,
     }
   ], [
     options.limit,
@@ -141,72 +77,23 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
     options.centerLng,
     options.radiusKm,
     options.enableProximityOptimization,
+    baseGeocachesCount,
+    baseGeocachesIds,
   ]);
 
-  const executeProximitySearch = useCallback(async (signal: AbortSignal): Promise<{
-    events: NostrEvent[];
-    successful: boolean;
-    debugInfo: any;
-  }> => {
-    if (!options.centerLat || !options.centerLng || !options.radiusKm) {
-      return { events: [], successful: false, debugInfo: { error: 'Missing proximity parameters' } };
-    }
-
-    try {
-      const patterns = generateGeohashPatterns(
-        options.centerLat,
-        options.centerLng,
-        options.radiusKm
-      );
-
-      // Create a single filter with all patterns
-      const filter: NostrFilter = {
-        kinds: [NIP_GC_KINDS.GEOCACHE],
-        '#g': patterns,
-        limit: Math.min(patterns.length * 10, 1000), // More generous limit since patterns are more targeted
-      };
-
-      if (options.authorPubkey) {
-        filter.authors = [options.authorPubkey];
-      }
-
-      const events = await nostr.query([filter], { signal });
-
-      return {
-        events,
-        successful: true, // Always consider successful since we have targeted patterns
-        debugInfo: {
-          geohashPatterns: patterns,
-          filterGroups: 1,
-          eventsFound: events.length
-        }
-      };
-    } catch (error) {
-      console.warn('🔍 Proximity search failed:', error);
-      return {
-        events: [],
-        successful: false,
-        debugInfo: {
-          error: error instanceof Error ? error.message : String(error)
-        }
-      };
-    }
-  }, [options.centerLat, options.centerLng, options.radiusKm, options.authorPubkey, nostr]);
-
-  const executeBroadSearch = useCallback(async (signal: AbortSignal): Promise<NostrEvent[]> => {
-    const filter: NostrFilter = {
-      kinds: [NIP_GC_KINDS.GEOCACHE],
-      limit: options.limit || QUERY_LIMITS.GEOCACHES,
-    };
-
-    if (options.authorPubkey) {
-      filter.authors = [options.authorPubkey];
-    }
-
-    return await nostr.query([filter], { signal });
-  }, [options.limit, options.authorPubkey, nostr]);
-
   const applyClientSideFilters = useCallback((geocaches: GeocacheWithDistance[]): GeocacheWithDistance[] => {
+    console.log('🗺️ applyClientSideFilters input:', {
+      totalCount: geocaches.length,
+      hasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
+      filters: {
+        search: options.search,
+        difficulty: options.difficulty,
+        terrain: options.terrain,
+        cacheType: options.cacheType,
+        hasProximity: hasProximityParams
+      }
+    });
+
     let filtered = [...geocaches];
 
     // Text search filter
@@ -250,9 +137,19 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
       })).filter(cache => cache.distance! <= options.radiusKm!)
         .sort((a, b) => (a.distance || 0) - (b.distance || 0));
     } else {
-      // Sort by creation date if no proximity
-      filtered.sort((a, b) => b.created_at - a.created_at);
+      // Preserve original order if no proximity search
+      // Don't sort by creation date as this reorders the geocaches unexpectedly
     }
+
+    console.log('🗺️ applyClientSideFilters output:', {
+      filteredCount: filtered.length,
+      hasStats: filtered.some(g => 'foundCount' in g || 'zapTotal' in g),
+      sampleStats: filtered.slice(0, 3).map(g => ({
+        name: g.name,
+        foundCount: g.foundCount,
+        zapTotal: g.zapTotal
+      }))
+    });
 
     return filtered;
   }, [
@@ -270,61 +167,82 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
 
   const { data: searchResult, ...queryResult } = useQuery({
     queryKey,
-    queryFn: async (c): Promise<SearchResult> => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
-      
-      let events: NostrEvent[] = [];
+    queryFn: async (): Promise<SearchResult> => {
+      let geocaches: Geocache[] = [];
       let searchStrategy: 'proximity' | 'broad' | 'fallback' = 'broad';
       let proximityAttempted = false;
       let proximitySuccessful = false;
-      let debugInfo: any = {};
+      const debugInfo: any = {};
 
-      // Step 1: Try proximity search if enabled
-      if (shouldAttemptProximity) {
-        proximityAttempted = true;
-        const proximityResult = await executeProximitySearch(signal);
-        
-        if (proximityResult.successful) {
-          events = proximityResult.events;
-          searchStrategy = 'proximity';
-          proximitySuccessful = true;
-          debugInfo = proximityResult.debugInfo;
+      // Step 1: Use pre-fetched geocaches if available, otherwise fetch from store
+      try {
+        if (baseGeocaches !== undefined) {
+          geocaches = baseGeocaches;
+          console.log('🗺️ useReliableProximitySearch using pre-fetched geocaches:', {
+            count: geocaches.length,
+            hasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
+            sampleStats: baseGeocaches.slice(0, 3).map(g => ({
+              name: g.name,
+              foundCount: g.foundCount,
+              zapTotal: g.zapTotal
+            }))
+          });
         } else {
-          debugInfo = proximityResult.debugInfo;
+          const result = await geocacheStore.fetchGeocaches();
+          if (!result.success) {
+            throw result.error;
+          }
+          
+          geocaches = result.data || [];
+          console.log('🗺️ useReliableProximitySearch fetched geocaches from store:', {
+            count: geocaches.length,
+            hasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g)
+          });
         }
+        
+        searchStrategy = 'broad';
+        proximityAttempted = shouldAttemptProximity;
+        proximitySuccessful = shouldAttemptProximity;
+      } catch (error) {
+        console.error('❌ Failed to get geocaches:', error);
+        debugInfo.fetchError = error instanceof Error ? error.message : String(error);
       }
 
-      // Step 2: Fallback to broad search if proximity failed or wasn't attempted
-      if (events.length === 0) {
-        try {
-          events = await executeBroadSearch(signal);
-          searchStrategy = proximityAttempted ? 'fallback' : 'broad';
-        } catch (error) {
-          console.error('❌ Broad search also failed:', error);
-          debugInfo.broadSearchError = error instanceof Error ? error.message : String(error);
-        }
-      }
+      // Step 2: Filter out hidden caches unless user is the creator
+      const visibleGeocaches = geocaches.filter(geocache => 
+        !geocache.hidden || geocache.pubkey === user?.pubkey
+      );
 
-      // Step 3: Process events into geocaches
-      // For now, use all events (deletion filtering can be re-implemented later)
-      const geocaches: Geocache[] = events
-        .map(parseGeocacheEvent)
-        .filter((g): g is Geocache => g !== null)
-        .filter(g => !g.hidden || g.pubkey === user?.pubkey);
+      // Step 3: Apply client-side filters
+      const filteredGeocaches = applyClientSideFilters(visibleGeocaches);
 
-      // Step 4: Apply client-side filters
-      const filteredGeocaches = applyClientSideFilters(geocaches);
+      console.log('🗺️ useReliableProximitySearch final result:', {
+        originalCount: geocaches.length,
+        filteredCount: filteredGeocaches.length,
+        originalHasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
+        filteredHasStats: filteredGeocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
+        sampleOriginal: geocaches.slice(0, 1).map(g => ({
+          name: g.name,
+          foundCount: g.foundCount,
+          zapTotal: g.zapTotal
+        })),
+        sampleFiltered: filteredGeocaches.slice(0, 1).map(g => ({
+          name: g.name,
+          foundCount: g.foundCount,
+          zapTotal: g.zapTotal
+        }))
+      });
 
       return {
         geocaches: filteredGeocaches,
         searchStrategy,
         proximityAttempted,
         proximitySuccessful,
-        totalFound: events.length,
+        totalFound: geocaches.length,
       };
     },
-    staleTime: 60000, // 1 minute
-    gcTime: 300000, // 5 minutes
+    staleTime: 300000, // 5 minutes - longer stale time to prevent unnecessary refetches
+    gcTime: 600000, // 10 minutes cache retention
     refetchInterval: POLLING_INTERVALS.GEOCACHES,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: false,
@@ -361,6 +279,8 @@ export function useAdaptiveReliableGeocaches(options: Omit<UseReliableProximityS
   searchLocation?: { lat: number; lng: number } | null;
   searchRadius?: number;
   showNearMe?: boolean;
+  // Allow passing pre-fetched geocaches to avoid duplicate fetches
+  baseGeocaches?: any[];
 }) {
   const searchOptions: UseReliableProximitySearchOptions = {
     ...options,
@@ -370,5 +290,5 @@ export function useAdaptiveReliableGeocaches(options: Omit<UseReliableProximityS
     enableProximityOptimization: !!(options.searchLocation || (options.showNearMe && options.userLocation)),
   };
 
-  return useReliableProximitySearch(searchOptions);
+  return useReliableProximitySearch(searchOptions, options.baseGeocaches);
 }

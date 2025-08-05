@@ -99,40 +99,119 @@ export default function CreateCache() {
 
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
+  const [importedKind, setImportedKind] = useState<number | null>(null);
   const [showQROverlay, setShowQROverlay] = useState(false);
 
   // Check for claim URL in params (from pre-generated QR code)
   useEffect(() => {
-    const claimUrlParam = searchParams.get('claimUrl');
-    if (claimUrlParam && user) {
+    const processClaimUrl = async () => {
+      const claimUrlParam = searchParams.get('claimUrl');
+      console.log('🔗 Processing claim URL:', { claimUrlParam, user: !!user });
+      
+      // Guard against processing the same claim URL multiple times
+      if (!claimUrlParam || !user || importedDTag || importedVerificationKeyPair) {
+        console.log('🛑 Skipping claim URL processing:', {
+          hasClaimUrl: !!claimUrlParam,
+          hasUser: !!user,
+          hasImportedDTag: !!importedDTag,
+          hasImportedKeyPair: !!importedVerificationKeyPair
+        });
+        return;
+      }
+      
       try {
-        const claimUrl = new URL(claimUrlParam);
-        const naddr = claimUrl.pathname.slice(1); // Remove leading slash
+        console.log('🔗 Raw claimUrlParam:', claimUrlParam);
+        
+        // Handle both full URLs and relative URLs
+        let claimUrl: URL;
+        if (claimUrlParam.startsWith('http')) {
+          claimUrl = new URL(claimUrlParam);
+        } else {
+          // If it's a relative path, construct a full URL
+          claimUrl = new URL(claimUrlParam, window.location.origin);
+        }
+        
+        console.log('🌐 Constructed claim URL:', {
+          href: claimUrl.href,
+          origin: claimUrl.origin,
+          pathname: claimUrl.pathname,
+          hash: claimUrl.hash,
+          search: claimUrl.search
+        });
+        
+        // Extract naddr from pathname - it should be the entire path without leading slash
+        const pathname = claimUrl.pathname;
+        console.log('📄 Raw pathname:', pathname);
+        
+        // Handle case where pathname might be like "/naddr1..." or just "naddr1..."
+        let naddr = pathname;
+        if (pathname.startsWith('/')) {
+          naddr = pathname.slice(1);
+        }
+        
+        // If the naddr starts with the origin, remove it (this would be the bug)
+        if (naddr.startsWith(claimUrl.origin)) {
+          naddr = naddr.slice(claimUrl.origin.length);
+          if (naddr.startsWith('/')) {
+            naddr = naddr.slice(1);
+          }
+        }
+        
+        console.log('🎯 Extracted naddr:', naddr);
+        
+        // Extract nsec from hash
         const nsec = parseVerificationFromHash(claimUrl.hash);
+        console.log('🔑 Extracted nsec:', nsec ? nsec.substring(0, 20) + '...' : null);
         
         if (naddr && nsec) {
           try {
+            console.log('🔍 Attempting to decode naddr:', naddr);
             const decodedNaddr = naddrToGeocache(naddr);
+            
+            console.log('✅ Decoded naddr successfully:', {
+              pubkey: decodedNaddr.pubkey,
+              identifier: decodedNaddr.identifier,
+              kind: decodedNaddr.kind,
+              userPubkey: user.pubkey,
+              matches: decodedNaddr.pubkey === user.pubkey
+            });
             
             if (decodedNaddr.pubkey === user.pubkey) {
               // Decode the nsec to get the private key bytes
-              const { data: _privateKeyBytes } = nip19.decode(nsec);
-              // Derive the public key (getPublicKey expects a hex string)
-
+              const { data: privateKeyBytes } = nip19.decode(nsec);
+              
+              // Import the private key and derive the public key
+              const { getPublicKey } = await import('nostr-tools');
+              
+              // The privateKeyBytes is already a Uint8Array, which is what getPublicKey expects
+              const publicKeyHex = getPublicKey(privateKeyBytes as Uint8Array);
+              
+              console.log('🔑 Derived key pair:', {
+                publicKey: publicKeyHex,
+                publicKeyShort: `${publicKeyHex.substring(0, 10)}...`,
+                nsec: nsec.substring(0, 20) + '...'
+              });
               
               // Store the complete, valid keypair
               setImportedVerificationKeyPair({
                 nsec: nsec,
-                publicKey: '', // Will be derived later
+                privateKey: privateKeyBytes, // Keep as Uint8Array to match interface
+                publicKey: publicKeyHex,
+                npub: nip19.npubEncode(publicKeyHex), // Add npub to match interface
               });
               
               setImportedDTag(decodedNaddr.identifier);
+              setImportedKind(decodedNaddr.kind);
               
               toast({
                 title: "Claim URL Imported",
                 description: "Your pre-generated cache settings have been loaded. Please fill in the location and other details.",
               });
             } else {
+              console.log('❌ Pubkey mismatch:', {
+                decodedPubkey: decodedNaddr.pubkey,
+                userPubkey: user.pubkey
+              });
               toast({
                 title: "Invalid Claim URL",
                 description: "This claim URL doesn't belong to your account.",
@@ -140,22 +219,33 @@ export default function CreateCache() {
               });
             }
           } catch (decodeError) {
+            console.error('❌ Failed to decode naddr:', naddr, decodeError);
             toast({
               title: "Invalid Claim URL",
               description: "Unable to decode the cache identifier.",
               variant: "destructive",
             });
           }
+        } else {
+          console.log('❌ Missing naddr or nsec:', { naddr, nsec });
+          toast({
+            title: "Invalid Claim URL",
+            description: "The claim URL is missing required information.",
+            variant: "destructive",
+          });
         }
       } catch (error) {
+        console.error('❌ Failed to parse claim URL:', { claimUrlParam, error });
         toast({
           title: "Invalid Claim URL",
           description: "The provided claim URL is not valid.",
           variant: "destructive",
         });
       }
-    }
-  }, [searchParams, user, toast]);
+    };
+    
+    processClaimUrl();
+  }, [searchParams, user, importedDTag, importedVerificationKeyPair, toast]); // Add all dependencies
 
   // Handle location verification when location changes
   const handleLocationChange = async (newLocation: { lat: number; lng: number } | null) => {
@@ -241,8 +331,18 @@ export default function CreateCache() {
     }
 
     try {
+      console.log('🚀 Starting geocache creation...', {
+        name: formData.name,
+        location,
+        importedDTag,
+        importedKind,
+        difficulty: parseInt(formData.difficulty),
+        terrain: parseInt(formData.terrain),
+        verificationKeyPair: importedVerificationKeyPair,
+      });
+
       // Location was already confirmed on step 1, so create directly
-      const { event } = await createGeocache({
+      const result = await createGeocache({
         ...formData,
         location,
         images,
@@ -250,24 +350,65 @@ export default function CreateCache() {
         terrain: parseInt(formData.terrain),
         dTag: importedDTag || undefined, // Use imported dTag if available
         verificationKeyPair: importedVerificationKeyPair || undefined, // Use imported verification keypair if available
+        kind: importedKind || undefined, // Use imported kind if available
       });
 
-      // Generate naddr for the created cache
+      console.log('✅ Geocache creation successful:', result);
+
+      const { event } = result;
+
+      // We have the geocache data already, so we can navigate directly with the data
+      const { geocache } = result;
+      
+      // Generate naddr for the created cache (for URL consistency)
       const dTag = event.tags.find((t: string[]) => t[0] === 'd')?.[1];
-      if (dTag) {
+      console.log('🏷️ Extracted dTag:', dTag);
+      
+      if (dTag && geocache) {
         const relays = event.tags.filter((t: string[]) => t[0] === 'relay').map((t: string[]) => t[1]);
-        const { geocacheToNaddr } = await import('@/shared/utils/naddr-utils');
-        const naddr = geocacheToNaddr(event.pubkey, dTag, relays as string[]);
+        console.log('🔗 Extracted relays:', relays);
         
-          toast({
-            title: "Cache Published Successfully!",
-            description: "Your geocache is now live.",
-          });
-          navigate(`/${naddr}`);
+        const { geocacheToNaddr } = await import('@/shared/utils/naddr-utils');
+        
+        // If this was created from a claim URL, don't include relays in the naddr
+        // Otherwise, include relays for regular cache creation
+        const includeRelays = !importedDTag; // Only include relays if not from claim URL
+        const naddr = geocacheToNaddr(event.pubkey, dTag, relays as string[], event.kind, includeRelays);
+        
+        console.log('🎯 Generated naddr:', naddr);
+        console.log('🧭 Navigating to:', `/${naddr}`);
+        console.log('📡 Include relays:', includeRelays);
+        
+        toast({
+          title: "Cache Published Successfully!",
+          description: "Your geocache is now live. Redirecting...",
+        });
+        
+        // Navigate to the newly created cache with the data we already have
+        // This prevents the "not found" issue while relay propagation happens
+        navigate(`/${naddr}`, { 
+          state: { 
+            geocacheData: geocache,
+            justCreated: true 
+          } 
+        });
+      } else {
+        console.error('❌ No dTag found in event tags:', event.tags);
+        // Fallback: navigate to home if we can't generate naddr
+        toast({
+          title: "Cache Published Successfully!",
+          description: "Your geocache is now live, but we couldn't generate the direct link.",
+        });
+        navigate('/');
       }
     } catch (error) {
-      // Error handling is already done in the mutation
-      console.error('Failed to create geocache:', error);
+      console.error('❌ Failed to create geocache:', error);
+      // Show more detailed error to user
+      toast({
+        title: "Failed to create geocache",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 

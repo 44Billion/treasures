@@ -302,13 +302,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
     };
   }, [baseStore, state.authors]);
 
-  // Auto-start background sync
-  useEffect(() => {
-    if (baseStore.config.enableBackgroundSync) {
-      startBackgroundSync();
-    }
-    return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync]);
+  // Background sync removed - no auto-start
 
   // Memoized store object
   const store = useMemo((): AuthorStore => ({

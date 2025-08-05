@@ -40,6 +40,8 @@ interface LogListProps {
 }
 
 export function LogList({ logs, compact = false, onProfileClick }: LogListProps) {
+  // Logs received from LogsSection
+  
   return (
     <div className="space-y-3 md:space-y-4">
       {logs.map((log) => (

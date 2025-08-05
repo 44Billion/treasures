@@ -22,8 +22,8 @@ interface ShareDialogProps {
 export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) {
   const [copied, setCopied] = useState(false);
 
-  // Generate the shareable URL
-  const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays);
+  // Generate the shareable URL using the actual geocache kind
+  const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
   const shareUrl = `${window.location.origin}/${naddr}`;
 
   const handleCopyLink = async () => {

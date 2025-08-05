@@ -13,6 +13,7 @@ interface GeocacheListProps {
   geocaches: (Geocache | GeocacheWithDistance)[];
   compact?: boolean;
   isLoading?: boolean;
+  statsLoading?: boolean;
   className?: string;
 }
 
@@ -20,12 +21,13 @@ export function GeocacheList({
   geocaches,
   compact = false,
   isLoading = false,
+  statsLoading = false,
   className
 }: GeocacheListProps) {
   const navigate = useNavigate();
 
   const handleCacheClick = (cache: Geocache | GeocacheWithDistance) => {
-    navigate(`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays)}`);
+    navigate(`/${geocacheToNaddr(cache.pubkey, cache.dTag, cache.relays, cache.kind)}`);
   };
 
   return (
@@ -41,6 +43,7 @@ export function GeocacheList({
           distance={('distance' in geocache) ? geocache.distance : undefined}
           variant={compact ? 'compact' : 'default'}
           onClick={() => handleCacheClick(geocache)}
+          statsLoading={statsLoading}
         />
       ))}
     </div>

@@ -7,6 +7,7 @@
 export const QUERY_LIMITS = {
   GEOCACHES: 150,
   LOGS: 100, // Reasonable limit per geocache
+  ZAPS: 50, // Reasonable limit per target
   BATCH_SIZE: 3,
   PROXIMITY_RESULTS: 100,
   HOME_PAGE_LIMIT: 6,

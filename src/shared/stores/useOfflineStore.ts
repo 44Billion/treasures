@@ -206,7 +206,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
 
   const saveBookmarkOffline = useCallback(async (geocache: Geocache): Promise<StoreActionResult<void>> => {
     return baseStore.safeAsyncOperation(async () => {
-      const naddr = `${NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
+      const naddr = `${geocache.kind || NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
       const bookmark: OfflineBookmark = { naddr, geocache, source: 'manual' };
       await saveBookmark(bookmark);
       setState(prev => ({
@@ -450,12 +450,7 @@ export function useOfflineStore(config: Partial<StoreConfig> = {}): OfflineStore
     };
   }, [baseStore, state.offlineGeocaches, state.offlineLogs]);
 
-  useEffect(() => {
-    if (baseStore.config.enableBackgroundSync) {
-      startBackgroundSync();
-    }
-    return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync]);
+  // Background sync removed - no auto-start
 
   useEffect(() => {
     if (isOnline && isConnected && state.pendingActions.length > 0) {

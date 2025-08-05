@@ -11,7 +11,8 @@ import { getGeohashPrecisionLevels } from '@/features/map/utils/coordinates';
 // ===== CONSTANTS =====
 
 export const NIP_GC_KINDS = {
-  GEOCACHE: 37515,
+  GEOCACHE: 37516,
+  GEOCACHE_LEGACY: 37515,
   FOUND_LOG: 7516,
   COMMENT_LOG: 1111,
   VERIFICATION: 7517,
@@ -136,8 +137,8 @@ export function validateCoordinates(lat: number, lng: number): boolean {
 
 export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
   try {
-    // Only process geocache events - support NIP-GC standard (37515)
-    if (event.kind !== NIP_GC_KINDS.GEOCACHE) {
+    // Process both new (37516) and legacy (37515) geocache events
+    if (event.kind !== NIP_GC_KINDS.GEOCACHE && event.kind !== NIP_GC_KINDS.GEOCACHE_LEGACY) {
       return null;
     }
 
@@ -153,9 +154,23 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const geohash = geohashes.length > 0 ? geohashes.reduce((longest, current) => 
       (current && current.length > (longest?.length || 0)) ? current : longest
     ) : undefined;
-    const difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
-    const terrain = event.tags.find(t => t[0] === 'terrain')?.[1];
-    const size = event.tags.find(t => t[0] === 'size')?.[1];
+    
+    // Handle both new (37516) and legacy (37515) tag formats
+    let difficulty: string | undefined;
+    let terrain: string | undefined;
+    let size: string | undefined;
+    
+    if (event.kind === NIP_GC_KINDS.GEOCACHE) {
+      // New format uses T, D, S tags
+      difficulty = event.tags.find(t => t[0] === 'D')?.[1];
+      terrain = event.tags.find(t => t[0] === 'T')?.[1];
+      size = event.tags.find(t => t[0] === 'S')?.[1];
+    } else {
+      // Legacy format uses difficulty, terrain, size tags
+      difficulty = event.tags.find(t => t[0] === 'difficulty')?.[1];
+      terrain = event.tags.find(t => t[0] === 'terrain')?.[1];
+      size = event.tags.find(t => t[0] === 'size')?.[1];
+    }
     
     // Type tag is 't' according to NIP-GC, defaults to 'traditional' if not specified
     // Look for cache type in 't' tags, excluding 'hidden'
@@ -201,7 +216,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const naddr = nip19.naddrEncode({
       identifier: dTag,
       pubkey: event.pubkey,
-      kind: NIP_GC_KINDS.GEOCACHE,
+      kind: event.kind, // Use the actual event kind!
       relays: relays,
     });
 
@@ -211,6 +226,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       pubkey: event.pubkey,
       created_at: event.created_at,
       dTag,
+      kind: event.kind, // Store original kind for updates
       name,
       description: event.content, // Description is in content field per NIP-GC
       hint,
@@ -244,6 +260,7 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
 
     return null;
   } catch (error) {
+    console.error('DEBUG: Error in parseLogEvent:', error);
     return null;
   }
 }
@@ -267,7 +284,7 @@ function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
 
   // Extract geocache reference from a-tag
   const [kind, pubkey, dTag] = aTag.split(':');
-  if (kind !== NIP_GC_KINDS.GEOCACHE.toString() || !pubkey || !dTag) {
+  if (kind !== NIP_GC_KINDS.GEOCACHE.toString() && kind !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) {
     return null;
   }
 
@@ -316,13 +333,15 @@ function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
   }
 
   // Verify this is a geocache comment
-  if (kTag !== NIP_GC_KINDS.GEOCACHE.toString() || KTag !== NIP_GC_KINDS.GEOCACHE.toString()) {
+  if ((kTag !== NIP_GC_KINDS.GEOCACHE.toString() && kTag !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) ||
+      (KTag !== NIP_GC_KINDS.GEOCACHE.toString() && KTag !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString())) {
     return null;
   }
 
   // Extract geocache reference from a-tag (should be same as A-tag for top-level comments)
   const [kind, pubkey, dTag] = aTag.split(':');
-  if (kind !== NIP_GC_KINDS.GEOCACHE.toString() || !pubkey || !dTag) {
+  
+  if ((kind !== NIP_GC_KINDS.GEOCACHE.toString() && kind !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) || !pubkey || !dTag) {
     return null;
   }
 
@@ -365,6 +384,7 @@ export function buildGeocacheTags(data: {
   relays?: string[];
   verificationPubkey?: string;
   hidden?: boolean;
+  kind?: number; // Original kind to preserve for updates
 }): string[][] {
   // Validate inputs
   if (!validateCacheType(data.type)) {
@@ -377,14 +397,24 @@ export function buildGeocacheTags(data: {
     throw new Error(`Invalid coordinates: ${data.location.lat}, ${data.location.lng}`);
   }
 
-  // Build required tags according to NIP-GC
+  // Determine which tag format to use based on original kind
+  const isLegacy = data.kind === NIP_GC_KINDS.GEOCACHE_LEGACY;
+  
   const tags: string[][] = [
     ['d', data.dTag],
     ['name', data.name],
-    ['difficulty', data.difficulty.toString()],
-    ['terrain', data.terrain.toString()],
-    ['size', data.size],
   ];
+
+  // Use appropriate tags based on original kind
+  if (isLegacy) {
+    tags.push(['difficulty', data.difficulty.toString()]);
+    tags.push(['terrain', data.terrain.toString()]);
+    tags.push(['size', data.size]);
+  } else {
+    tags.push(['D', data.difficulty.toString()]);
+    tags.push(['T', data.terrain.toString()]);
+    tags.push(['S', data.size]);
+  }
 
   // Add multiple geohash tags at precision levels appropriate for the coordinate specificity
   // This enables efficient filtering while avoiding overly precise geohashes for imprecise coordinates
@@ -422,7 +452,10 @@ export function buildGeocacheTags(data: {
   }
 
   if (data.verificationPubkey) {
+    console.log('🔑 Adding verification tag:', data.verificationPubkey);
     tags.push(['verification', data.verificationPubkey]);
+  } else {
+    console.log('🔑 No verification pubkey provided');
   }
 
   // Add hidden tag if the cache is hidden
@@ -438,10 +471,12 @@ export function buildFoundLogTags(data: {
   geocacheDTag: string;
   images?: string[];
   verificationEvent?: string; // JSON string of embedded verification event
+  geocacheKind?: number; // Optional geocache kind
 }): string[][] {
   // Build required tags for found logs according to NIP-GC
+  const kind = data.geocacheKind || NIP_GC_KINDS.GEOCACHE;
   const tags: string[][] = [
-    ['a', `${NIP_GC_KINDS.GEOCACHE}:${data.geocachePubkey}:${data.geocacheDTag}`],
+    ['a', `${kind}:${data.geocachePubkey}:${data.geocacheDTag}`],
   ];
 
   // Add optional image tags
@@ -464,21 +499,23 @@ export function buildCommentLogTags(data: {
   geocacheDTag: string;
   logType: ValidCommentLogType | 'note';
   images?: string[];
+  geocacheKind?: number; // Optional geocache kind
 }): string[][] {
   // Validate comment log type
   if (data.logType !== 'note' && !validateCommentLogType(data.logType)) {
     throw new Error(`Invalid comment log type: ${data.logType}`);
   }
 
-  const geocacheCoordinate = `${NIP_GC_KINDS.GEOCACHE}:${data.geocachePubkey}:${data.geocacheDTag}`;
+  const kind = data.geocacheKind || NIP_GC_KINDS.GEOCACHE;
+  const geocacheCoordinate = `${kind}:${data.geocachePubkey}:${data.geocacheDTag}`;
 
   // Build required tags for comment logs according to NIP-GC (NIP-22 structure)
   const tags: string[][] = [
     ['A', geocacheCoordinate], // Root geocache reference
-    ['K', NIP_GC_KINDS.GEOCACHE.toString()], // Root kind number
+    ['K', kind.toString()], // Root kind number
     ['P', data.geocachePubkey], // Root author (cache owner pubkey)
     ['a', geocacheCoordinate], // Parent reference (same as root for top-level comments)
-    ['k', NIP_GC_KINDS.GEOCACHE.toString()], // Parent kind number
+    ['k', kind.toString()], // Parent kind number
     ['p', data.geocachePubkey], // Parent author (cache owner pubkey)
   ];
 
@@ -520,20 +557,24 @@ export function getOptimalPrecision(distanceKm: number): number {
 
 // ===== UTILITIES =====
 
-export function createGeocacheCoordinate(pubkey: string, dTag: string): string {
-  return `${NIP_GC_KINDS.GEOCACHE}:${pubkey}:${dTag}`;
+export function createGeocacheCoordinate(pubkey: string, dTag: string, kind: number = NIP_GC_KINDS.GEOCACHE): string {
+  return `${kind}:${pubkey}:${dTag}`;
 }
 
-export function parseGeocacheCoordinate(coordinate: string): { pubkey: string; dTag: string } | null {
+export function parseGeocacheCoordinate(coordinate: string): { pubkey: string; dTag: string; kind: number } | null {
   const [kind, pubkey, dTag] = coordinate.split(':');
-  if (kind !== NIP_GC_KINDS.GEOCACHE.toString() || !pubkey || !dTag) {
+  if (!kind || !pubkey || !dTag) {
     return null;
   }
-  return { pubkey, dTag };
+  const kindNum = parseInt(kind);
+  if (kindNum !== NIP_GC_KINDS.GEOCACHE && kindNum !== NIP_GC_KINDS.GEOCACHE_LEGACY) {
+    return null;
+  }
+  return { pubkey, dTag, kind: kindNum };
 }
 
 export function isGeocacheEvent(event: NostrEvent): boolean {
-  return event.kind === NIP_GC_KINDS.GEOCACHE;
+  return event.kind === NIP_GC_KINDS.GEOCACHE || event.kind === NIP_GC_KINDS.GEOCACHE_LEGACY;
 }
 
 export function isFoundLogEvent(event: NostrEvent): boolean {

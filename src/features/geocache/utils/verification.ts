@@ -1,7 +1,7 @@
 /**
  * Geocache verification utilities using Nostr key pairs
  * 
- * When regenerating a QR code, a new geocache event (kind 37515) is created
+ * When regenerating a QR code, a new geocache event (kind 37516) is created
  * with a new verification key, invalidating all previous verification keys.
  * Only the most recent verification key from the latest geocache event is valid.
  */

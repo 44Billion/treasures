@@ -4,6 +4,7 @@ export interface Geocache {
   created_at: number;
   dTag: string; // Store the d-tag for proper replacement
   naddr?: string; // The naddr of the geocache
+  kind?: number; // Original event kind (37515 for legacy, 37516 for new)
   name: string;
   description: string;
   hint?: string;
@@ -18,6 +19,7 @@ export interface Geocache {
   images?: string[];
   foundCount?: number;
   logCount?: number;
+  zapTotal?: number;
   relays?: string[]; // Preferred relays from the geocache event
   sourceRelay?: string; // The relay this event was fetched from
   client?: string; // The client that created this event
@@ -82,6 +84,7 @@ export interface CreateGeocacheData {
   hidden?: boolean;
   dTag?: string; // Optional pre-generated dTag for matching QR codes
   verificationKeyPair?: any; // Optional pre-generated verification keypair
+  kind?: number; // Optional kind to preserve from claim URLs (37515 for legacy, 37516 for new)
   // Additional metadata from OSM verification
   accessibility?: {
     wheelchair?: boolean;
@@ -113,6 +116,7 @@ export interface CreateLogData {
   geocacheId: string;
   geocacheDTag?: string; // For linking to stable d-tag
   geocachePubkey?: string; // Pubkey of the cache owner
+  geocacheKind?: number; // Kind of the geocache (37515 for legacy, 37516 for new)
   relayUrl?: string; // Optional relay URL where the cache can be found
   preferredRelays?: string[]; // Preferred relays from the geocache for publishing logs
   type: "found" | "dnf" | "note" | "maintenance" | "archived";

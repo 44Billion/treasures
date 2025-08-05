@@ -4,12 +4,12 @@ import { nip19 } from 'nostr-tools';
 /**
  * Convert geocache data to naddr format
  */
-export function geocacheToNaddr(pubkey: string, dTag: string, relays: string[] = []): string {
+export function geocacheToNaddr(pubkey: string, dTag: string, relays: string[] = [], kind?: number, includeRelays: boolean = true): string {
   return nip19.naddrEncode({
     pubkey,
-    kind: NIP_GC_KINDS.GEOCACHE, // Geocache kind
+    kind: kind || NIP_GC_KINDS.GEOCACHE, // Use actual kind if provided, otherwise default to new kind
     identifier: dTag,
-    relays,
+    relays: includeRelays ? relays : [],
   });
 }
 

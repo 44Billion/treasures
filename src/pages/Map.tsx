@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/features/geocache/hooks/useReliableProximitySearch";
-import { useMapPageGeocaches } from "@/features/geocache/hooks/useOptimisticGeocaches";
+import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
 import { useGeolocation } from "@/features/map/hooks/useGeolocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -18,6 +18,7 @@ import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
+import { useIsMobile } from "@/shared/hooks/useIsMobile";
 
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ export default function Map() {
 
   const { config } = useAppContext();
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
   const [difficultyOperator, setDifficultyOperator] = useState<ComparisonOperator>("all");
@@ -59,8 +61,32 @@ export default function Map() {
   
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   
-  // Use optimistic loading for base geocaches - don't block map rendering
-  const optimisticGeocaches = useMapPageGeocaches();
+  // Use the same geocaches hook as Home page to ensure consistent stats
+  const baseGeocaches = useGeocaches();
+  
+  // Add state for skeleton loading
+  const [showMapSkeletons, setShowMapSkeletons] = useState(true);
+  
+  // Hide skeletons after data loads or timeout
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowMapSkeletons(false);
+    }, 2000); // Show skeletons for at least 2 seconds
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Hide skeletons immediately if we have data and it's not the initial load
+  useEffect(() => {
+    if (baseGeocaches.data && baseGeocaches.data.length > 0) {
+      const timer = setTimeout(() => {
+        setShowMapSkeletons(false);
+      }, 1000); // Keep skeletons for at least 1 second even with data
+      
+      return () => clearTimeout(timer);
+    }
+    return;
+  }, [baseGeocaches.data]);
   
   const [isRetrying, setIsRetrying] = useState(false);
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
@@ -87,6 +113,7 @@ export default function Map() {
     searchLocation,
     searchRadius,
     showNearMe,
+    baseGeocaches: baseGeocaches.data, // Pass the geocaches with stats from useGeocaches
   });
 
 
@@ -154,11 +181,11 @@ export default function Map() {
   const isProximitySearchActive = !!(searchLocation || (showNearMe && userLocation) || searchInView);
 
 
-  // Use proximity search results when active, otherwise fall back to optimistic geocaches
-  // Apply client-side filtering when using optimistic geocaches
+  // Use proximity search results when active, otherwise fall back to base geocaches
+  // Apply client-side filtering when using base geocaches
   const filteredGeocaches: GeocacheWithDistance[] = isProximitySearchActive 
     ? (geocaches || [])
-    : applyClientSideFilters(optimisticGeocaches.geocaches || []);
+    : applyClientSideFilters(baseGeocaches.data || []);
 
   // Client-side filtering function for optimistic geocaches
   function applyClientSideFilters(caches: any[]): GeocacheWithDistance[] {
@@ -222,7 +249,7 @@ export default function Map() {
     setSearchInView(false); // Clear search in view
 
     setSearchLocation(newCenter);
-    setHighlightedGeocache(null); // Clear any highlighted geocache
+    setHighlightedGeocache(null); setHighlightedGeocache(null); setHighlightedGeocache(null); // Clear any highlighted geocache
   };
 
   const handleNearMe = async () => {
@@ -233,7 +260,7 @@ export default function Map() {
     setSearchLocation(null); // Clear search location
     setSearchInView(false); // Clear search in view
 
-    setHighlightedGeocache(null); // Clear any highlighted geocache
+    // Clear any highlighted geocache
     
     // Start location request
     try {
@@ -268,7 +295,7 @@ export default function Map() {
       setSearchLocation({ lat: center.lat, lng: center.lng });
       setSearchRadius(Math.ceil(radiusKm));
 
-      setHighlightedGeocache(null); // Clear any highlighted geocache
+      // Clear any highlighted geocache
     }
   };
 
@@ -296,23 +323,39 @@ export default function Map() {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
     
-    // On desktop, snap to the location on the map and highlight it
+    // Check if we're on mobile AND in list view - only then open the dialog
+    if (isMobile && activeTab === 'list') {
+      setSelectedGeocache(geocache);
+      setDialogOpen(true);
+      // Switch to map tab to show the location after modal closes
+      setActiveTab('map');
+      return;
+    }
+    
+    // On desktop (or when in map tab), center map on the geocache and highlight it to show popup
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
-    setMapZoom(16); // Zoom in closer for better detail
-    setHighlightedGeocache(geocache.dTag); // Highlight this geocache
+    setMapZoom(16);
+    setHighlightedGeocache(geocache.dTag);
     
     // Clear any location-based searches to prevent conflicts
     setShowNearMe(false);
     setSearchLocation(null);
     setSearchInView(false);
 
+    // Use the new map controller for immediate navigation
+    if (typeof window !== 'undefined' && (window as any).handleMapCardClick) {
+      (window as any).handleMapCardClick(
+        { lat: geocache.location.lat, lng: geocache.location.lng },
+        16
+      );
+    }
   };
 
   const handleRetry = async () => {
     setIsRetrying(true);
     try {
       await Promise.all([
-        optimisticGeocaches.refresh(),
+        baseGeocaches.refetch(),
         refetch()
       ]);
     } catch (error) {
@@ -348,7 +391,7 @@ export default function Map() {
       setIsPullRefreshing(true);
       try {
         await Promise.all([
-          optimisticGeocaches.refresh(),
+          baseGeocaches.refetch(),
           refetch()
         ]);
       } finally {
@@ -467,21 +510,47 @@ export default function Map() {
 
           {/* Results */}
           <div className="flex-1 overflow-y-auto min-h-0">
-            <SmartLoadingState
-              isLoading={isProximitySearchActive ? isLoading && filteredGeocaches.length === 0 : optimisticGeocaches.isLoading && !optimisticGeocaches.hasInitialData}
-              isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
-              hasData={filteredGeocaches.length > 0 || optimisticGeocaches.hasInitialData}
-              data={filteredGeocaches}
-              error={(isProximitySearchActive ? error : optimisticGeocaches.error) as Error}
-              onRetry={handleRetry}
-              isRetrying={isRetrying}
-              skeletonCount={3}
-              skeletonVariant="compact"
-              compact={true}
-              showRelayFallback={true}
-              className="h-full"
-            >
+            {showMapSkeletons ? (
+              // Show skeleton cards during loading
               <div className="p-4">
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0"></div>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="flex gap-1">
+                              <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                              <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                              <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            </div>
+                          </div>
+                          <div className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded shrink-0"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <SmartLoadingState
+                isLoading={isProximitySearchActive ? isLoading && filteredGeocaches.length === 0 : baseGeocaches.isLoading && baseGeocaches.data === undefined}
+                isError={isProximitySearchActive ? !!error : baseGeocaches.isError}
+                hasData={filteredGeocaches.length > 0 || baseGeocaches.data !== undefined}
+                data={filteredGeocaches}
+                error={(isProximitySearchActive ? error : baseGeocaches.error) as Error}
+                onRetry={handleRetry}
+                isRetrying={isRetrying}
+                skeletonCount={3}
+                skeletonVariant="compact"
+                compact={true}
+                showRelayFallback={true}
+                className="h-full"
+              >
+                <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-sm text-muted-foreground">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -492,24 +561,13 @@ export default function Map() {
                       
 
                       
-                      {((isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                      {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
                         <div className="flex items-center gap-1 text-xs">
                           <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
                           <span>searching...</span>
                         </div>
                       )}
-                      {optimisticGeocaches.isStale && !optimisticGeocaches.isFetching && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRetry}
-                          className="h-6 px-2 text-xs text-red-900 hover:text-red-950 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
-                        >
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                          Update available
-                        </Button>
-                      )}
-                      {optimisticGeocaches.isFetching && (
+                      {baseGeocaches.isFetching && (
                         <div className="flex items-center gap-1 text-xs">
                           <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
                           <span>updating</span>
@@ -523,15 +581,11 @@ export default function Map() {
                       variant="outline" 
                       size="sm"
                       onClick={handleRetry}
-                      className={`h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200 ${
-                        optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
-                          ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
-                          : ''
-                      }`}
+                      className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
                       title="Refresh geocaches (R)"
                       disabled={isRetrying}
                     >
-                      <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : optimisticGeocaches.isStale && !optimisticGeocaches.isFetching ? 'animate-pulse' : ''}`} />
+                      <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
                       <span className="text-xs">Refresh</span>
                     </Button>
                   </div>
@@ -543,11 +597,13 @@ export default function Map() {
                       cache={cache}
                       distance={cache.distance}
                       onClick={() => handleCardClick(cache)}
+                      statsLoading={baseGeocaches.isStatsLoading}
                     />
                   ))}
                 </div>
               </div>
             </SmartLoadingState>
+            )}
           </div>
         </div>
 
@@ -569,7 +625,7 @@ export default function Map() {
           />
           
           {/* Progressive loading indicator for geocaches */}
-          {(isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0 && (
+          {(isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0 && (
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground/30 border-t-primary"></div>
@@ -578,19 +634,7 @@ export default function Map() {
             </div>
           )}
           
-          {/* Floating refresh button when data is stale */}
-          {optimisticGeocaches.isStale && !optimisticGeocaches.isFetching && filteredGeocaches.length > 0 && (
-            <div className="absolute top-4 right-4 z-20">
-              <Button
-                onClick={handleRetry}
-                className="bg-red-900 hover:bg-red-950 text-white shadow-lg animate-in fade-in duration-300"
-                size="sm"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRetrying ? "animate-spin" : ""}`} />
-                New caches available
-              </Button>
-            </div>
-          )}
+          
         </div>
       </div>
 
@@ -727,11 +771,11 @@ export default function Map() {
                 
                 <div style={{ paddingTop: pullDistance > 0 ? `${Math.min(pullDistance, pullThreshold)}px` : '0' }}>
                 <SmartLoadingState
-                  isLoading={isProximitySearchActive ? isLoading && filteredGeocaches.length === 0 : optimisticGeocaches.isLoading && !optimisticGeocaches.hasInitialData}
-                  isError={isProximitySearchActive ? !!error : optimisticGeocaches.isError}
-                  hasData={filteredGeocaches.length > 0 || optimisticGeocaches.hasInitialData}
+                  isLoading={isProximitySearchActive ? isLoading && filteredGeocaches.length === 0 : baseGeocaches.isLoading && baseGeocaches.data === undefined}
+                  isError={isProximitySearchActive ? !!error : baseGeocaches.isError}
+                  hasData={filteredGeocaches.length > 0 || baseGeocaches.data !== undefined}
                   data={filteredGeocaches}
-                  error={(isProximitySearchActive ? error : optimisticGeocaches.error) as Error}
+                  error={(isProximitySearchActive ? error : baseGeocaches.error) as Error}
                   onRetry={handleRetry}
                   isRetrying={isRetrying}
                   skeletonCount={3}
@@ -749,24 +793,13 @@ export default function Map() {
                           {isProximitySearchActive && ` • ${searchRadius}km radius`}
                           {searchInView && ' • in view'}
                         </span>
-                        {((isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                        {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
                           <div className="flex items-center gap-1 text-xs">
                             <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
                             <span>searching...</span>
                           </div>
                         )}
-                        {optimisticGeocaches.isStale && !optimisticGeocaches.isFetching && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleRetry}
-                            className="h-6 px-2 text-xs text-red-900 hover:text-red-950 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
-                          >
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                            Update
-                          </Button>
-                        )}
-                        {optimisticGeocaches.isFetching && (
+                        {baseGeocaches.isFetching && (
                           <div className="flex items-center gap-1 text-xs">
                             <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
                             <span>updating</span>
@@ -779,15 +812,11 @@ export default function Map() {
                         variant="outline" 
                         size="sm"
                         onClick={handleRetry}
-                        className={`h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200 ${
-                          optimisticGeocaches.isStale && !optimisticGeocaches.isFetching 
-                            ? 'border-red-300 bg-red-50 text-red-900 hover:bg-red-100 dark:border-red-600 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40' 
-                            : ''
-                        }`}
+                        className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
                         title="Refresh geocaches (R)"
                         disabled={isRetrying}
                       >
-                        <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : optimisticGeocaches.isStale && !optimisticGeocaches.isFetching ? 'animate-pulse' : ''}`} />
+                        <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
                         <span className="text-xs">Refresh</span>
                       </Button>
                       {isProximitySearchActive && (
@@ -808,7 +837,8 @@ export default function Map() {
                         key={cache.id}
                         cache={cache}
                         distance={cache.distance}
-                        onClick={() => handleMarkerClick(cache)}
+                        onClick={() => handleCardClick(cache)}
+                        statsLoading={baseGeocaches.isStatsLoading}
                       />
                     ))}
                   </div>
@@ -837,7 +867,7 @@ export default function Map() {
                 />
                 
                 {/* Progressive loading indicator for mobile map */}
-                {(isProximitySearchActive ? isLoading : optimisticGeocaches.isLoading) && filteredGeocaches.length === 0 && (
+                {(isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0 && (
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground/30 border-t-primary"></div>
@@ -846,20 +876,7 @@ export default function Map() {
                   </div>
                 )}
                 
-                {/* Floating refresh button for mobile map when data is stale */}
-                {optimisticGeocaches.isStale && !optimisticGeocaches.isFetching && filteredGeocaches.length > 0 && (
-                  <div className="absolute top-4 right-4 z-20">
-                    <Button
-                      onClick={handleRetry}
-                      className="bg-red-900 hover:bg-red-950 text-white shadow-lg animate-in fade-in duration-300"
-                      size="sm"
-                    >
-                      <RefreshCw className={`h-4 w-4 mr-1 ${isRetrying ? "animate-spin" : ""}`} />
-                      <span className="hidden sm:inline">New caches</span>
-                      <span className="sm:hidden">Update</span>
-                    </Button>
-                  </div>
-                )}
+                
               </div>
             </TabsContent>
           </MapViewTabs>
@@ -870,7 +887,13 @@ export default function Map() {
       <GeocacheDialog 
         geocache={selectedGeocache}
         isOpen={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          // When dialog closes on mobile, switch back to list tab
+          if (!open && activeTab === 'map') {
+            setActiveTab('list');
+          }
+        }}
       />
     </div>
   );

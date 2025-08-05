@@ -176,7 +176,7 @@ export function ZapModal({ open, onOpenChange, target, webln }: ZapModalProps) {
       });
 
       if ('dTag' in target && target.dTag) {
-        const naddr = geocacheToNaddr(target.pubkey, target.dTag, target.relays);
+        const naddr = geocacheToNaddr(target.pubkey, target.dTag, target.relays, target.kind);
         const decodedNaddr = nip19.decode(naddr).data as nip19.AddressPointer;
         zapRequest.tags.push(["a", `${decodedNaddr.kind}:${decodedNaddr.pubkey}:${decodedNaddr.identifier}`]);
         // remove the e tag

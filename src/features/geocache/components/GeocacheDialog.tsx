@@ -42,14 +42,15 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
     geocache?.dTag,
     geocache?.pubkey,
     geocache?.relays,
-    geocache?.verificationPubkey
+    geocache?.verificationPubkey,
+    geocache?.kind || 37516
   );
   
   // Safely handle logs data
   const logs: GeocacheLog[] = Array.isArray(logsData) ? logsData : [];
   const author = useAuthor(geocache?.pubkey || "");
   const getZapTotal = useStore(useZapStore, (state) => state.getZapTotal);
-  const naddr = geocache ? geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays) : "";
+  const naddr = geocache ? geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind || 37516) : "";
   const totalSats = getZapTotal(naddr ? `naddr:${naddr}` : `event:${geocache?.id}`);
   const { isCacheSaved, toggleSaveCache, isNostrEnabled } = useSavedCaches();
   const { toast } = useToast();
@@ -71,7 +72,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
 
   const handleViewFullDetails = () => {
     onOpenChange(false);
-    navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays)}?fromMap=true`);
+    navigate(`/${geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind || 37516)}?fromMap=true`);
   };
 
   const handleImageClick = (index: number) => {

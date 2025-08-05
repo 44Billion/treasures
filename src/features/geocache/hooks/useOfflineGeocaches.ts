@@ -3,18 +3,15 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { useNostr } from '@nostrify/react';
+import { useGeocacheStoreContext } from '@/shared/stores/hooks';
 
-import { offlineStorage, type CachedGeocache } from '@/features/offline/utils/offlineStorage';
-import { NIP_GC_KINDS, parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
-import { TIMEOUTS, QUERY_LIMITS } from '@/shared/config';
+import { offlineStorage } from '@/features/offline/utils/offlineStorage';
+import { parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
 import type { Geocache } from '@/types/geocache';
 
 export function useOfflineGeocaches() {
-  const { nostr } = useNostr();
+  const geocacheStore = useGeocacheStoreContext();
   
-  // We'll fetch deletion events when needed
-
   return useQuery({
     queryKey: ['geocaches', 'offline-aware', navigator.onLine],
     queryFn: async () => {
@@ -62,47 +59,16 @@ export function useOfflineGeocaches() {
 
       try {
         console.log('Fetching online geocaches...');
-        const signal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
-        const events = await nostr.query([{
-          kinds: [NIP_GC_KINDS.GEOCACHE],
-          limit: QUERY_LIMITS.GEOCACHES,
-        }], { signal });
+        const result = await geocacheStore.fetchGeocaches();
+        
+        if (!result.success) {
+          console.warn('Online geocache fetch failed, using offline data:', result.error);
+          return offlineGeocaches;
+        }
 
-        console.log('Retrieved online events:', events.length);
-
-        // For now, skip deletion filtering to simplify the migration
-        // TODO: Implement proper deletion event fetching and filtering
-        const nonDeletedEvents = events;
-
-        // Parse online geocaches
-        const onlineGeocaches = nonDeletedEvents
-          .map(parseGeocacheEvent)
-          .filter((g): g is Geocache => g !== null)
+        const onlineGeocaches = (result.data || [])
           .filter((g: Geocache) => !g.hidden)
           .map((g: Geocache) => ({ ...g, foundCount: 0, logCount: 0 }));
-
-        // Cache online geocaches for offline use (only non-deleted ones)
-        const cachePromises = nonDeletedEvents.map((event: any) => {
-          const geocache = parseGeocacheEvent(event);
-          if (!geocache) return Promise.resolve();
-
-          const cachedGeocache: CachedGeocache = {
-            id: geocache.id,
-            event: event,
-            lastUpdated: Date.now(),
-            coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] as [number, number] : undefined,
-            difficulty: geocache.difficulty,
-            terrain: geocache.terrain,
-            type: geocache.type,
-          };
-          
-          return offlineStorage.storeGeocache(cachedGeocache).catch(error => 
-            console.warn('Failed to cache geocache:', geocache.id, error)
-          );
-        });
-
-        // Don't wait for caching to complete
-        Promise.all(cachePromises);
 
         console.log('Online geocache query successful:', onlineGeocaches.length);
         return onlineGeocaches;
@@ -127,80 +93,23 @@ export function useOfflineProximityGeocaches(
   lon?: number, 
   radiusKm: number = 10
 ) {
-
+  const geocacheStore = useGeocacheStoreContext();
 
   return useQuery({
     queryKey: ['proximity-geocaches', lat, lon, radiusKm, navigator.onLine],
     queryFn: async () => {
       if (!lat || !lon) return [];
 
-      // Get all geocaches (using cache)
-      const allGeocaches = await getAllGeocachesFromCache();
-      
-      // Filter by proximity
-      const proximityGeocaches = allGeocaches.filter(geocache => {
-        if (!geocache.location) return false;
-        
-        const distance = calculateDistance(
-          lat, lon, 
-          geocache.location.lat, geocache.location.lng
-        );
-        
-        return distance <= radiusKm;
-      });
+      const result = await geocacheStore.fetchNearbyGeocaches(lat, lon, radiusKm);
+      if (!result.success) {
+        console.warn('Failed to fetch proximity geocaches:', result.error);
+        return [];
+      }
 
-      return proximityGeocaches.sort((a, b) => {
-        const distA = calculateDistance(lat, lon, a.location!.lat, a.location!.lng);
-        const distB = calculateDistance(lat, lon, b.location!.lat, b.location!.lng);
-        return distA - distB;
-      });
+      return result.data;
     },
     enabled: lat !== undefined && lon !== undefined,
     staleTime: navigator.onLine ? 60000 : Infinity, // 1 minute online, never stale offline
     gcTime: 300000,
   });
-}
-
-/**
- * Helper function to get all geocaches from cache or network
- */
-async function getAllGeocachesFromCache(): Promise<Geocache[]> {
-  try {
-    await offlineStorage.init();
-    const cachedGeocaches = await offlineStorage.getAllGeocaches();
-    
-    // Parse geocaches first, then filter out deleted ones using raw events
-    const parsedWithEvents = cachedGeocaches
-      .map(cached => {
-        const parsed = parseGeocacheEvent(cached.event);
-        return parsed ? { geocache: parsed, event: cached.event } : null;
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-      
-    // For now, skip deletion filtering to simplify migration
-    // TODO: Implement proper deletion event handling
-    return parsedWithEvents.map(item => ({ ...item.geocache, foundCount: 0, logCount: 0 }));
-  } catch (error) {
-    console.warn('Failed to get geocaches from cache:', error);
-    return [];
-  }
-}
-
-/**
- * Calculate distance between two points in kilometers
- */
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
-
-function deg2rad(deg: number): number {
-  return deg * (Math.PI/180);
 }

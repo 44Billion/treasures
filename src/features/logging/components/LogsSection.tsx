@@ -19,6 +19,7 @@ interface LogsSectionProps {
     dTag: string;
     pubkey: string;
     relays?: string[];
+    kind?: number;
   };
   onProfileClick?: (pubkey: string) => void;
   compact?: boolean;
@@ -40,6 +41,8 @@ export function LogsSection({
   isVerificationValid = false,
   hideForm = false
 }: LogsSectionProps) {
+  // Logs received from parent component
+  
   const { user } = useCurrentUser();
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
   
@@ -59,6 +62,7 @@ export function LogsSection({
       geocacheId: geocache.id,
       geocacheDTag: geocache.dTag,
       geocachePubkey: geocache.pubkey,
+      geocacheKind: geocache.kind,
       relayUrl: primaryRelay,
       preferredRelays: geocache.relays,
       type: logType,

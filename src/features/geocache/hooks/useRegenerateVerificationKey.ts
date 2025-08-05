@@ -56,11 +56,12 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
         relays: geocache.relays,
         verificationPubkey: newVerificationKeyPair.publicKey, // New verification key
         hidden: geocache.hidden,
+        kind: geocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 
-      // Create a new Nostr event (kind 37515) with the new verification key
+      // Create a new Nostr event with the original kind and new verification key
       const event = await publishEvent({
-        kind: NIP_GC_KINDS.GEOCACHE,
+        kind: geocache.kind || NIP_GC_KINDS.GEOCACHE,
         content: geocache.description,
         tags,
       });

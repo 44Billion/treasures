@@ -3,7 +3,7 @@
  * Consolidates all log-related data management
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { 
   useBaseStore, 
@@ -27,6 +27,7 @@ import {
 } from '@/features/geocache/utils/nip-gc';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { QUERY_LIMITS, TIMEOUTS } from '@/shared/config';
+import { separateQueries } from '@/shared/utils/batchQuery';
 
 /**
  * Unified log store hook
@@ -52,23 +53,38 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
   }, []);
 
   // Data fetching actions
-  const fetchLogs = useCallback(async (geocacheId: string): Promise<StoreActionResult<GeocacheLog[]>> => {
+  const fetchLogs = useCallback(async (geocacheId: string, geocacheKind?: number): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      const geocacheCoordinate = `${NIP_GC_KINDS.GEOCACHE}:${geocacheId}`;
+      const kind = geocacheKind || NIP_GC_KINDS.GEOCACHE;
+      const geocacheCoordinate = `${kind}:${geocacheId}`;
       
-      const { data: allEvents } = await baseStore.batchQuery([
+      // Use separate queries to avoid "arr too big" errors
+      const allEvents = await separateQueries(baseStore.nostr, [
         {
-          kinds: [NIP_GC_KINDS.FOUND_LOG],
-          '#a': [geocacheCoordinate],
-          limit: QUERY_LIMITS.LOGS,
+          filters: {
+            kinds: [NIP_GC_KINDS.FOUND_LOG],
+            '#a': [geocacheCoordinate],
+            limit: QUERY_LIMITS.LOGS,
+          },
+          name: 'fetchLogs-found'
         },
         {
-          kinds: [NIP_GC_KINDS.COMMENT_LOG],
-          '#a': [geocacheCoordinate],
-          '#A': [geocacheCoordinate],
-          limit: QUERY_LIMITS.LOGS,
+          filters: {
+            kinds: [NIP_GC_KINDS.COMMENT_LOG],
+            '#a': [geocacheCoordinate],
+            limit: QUERY_LIMITS.LOGS,
+          },
+          name: 'fetchLogs-comment-a'
+        },
+        {
+          filters: {
+            kinds: [NIP_GC_KINDS.COMMENT_LOG],
+            '#A': [geocacheCoordinate],
+            limit: QUERY_LIMITS.LOGS,
+          },
+          name: 'fetchLogs-comment-A'
         }
-      ], 'fetchLogs');
+      ], AbortSignal.timeout(TIMEOUTS.QUERY));
 
       const logs = (allEvents || [])
         .map(parseLogEvent)
@@ -79,10 +95,54 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     }, 'fetchLogs');
   }, [baseStore]);
 
+  const fetchLogsForGeocache = useCallback(async (
+    geocachePubkey: string,
+    geocacheDTag: string,
+    geocacheKind?: number
+  ): Promise<StoreActionResult<GeocacheLog[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const kind = geocacheKind || NIP_GC_KINDS.GEOCACHE;
+      const geocacheCoordinate = `${kind}:${geocachePubkey}:${geocacheDTag}`;
+      
+      // Use separate queries to avoid "arr too big" errors
+      const allEvents = await separateQueries(baseStore.nostr, [
+        {
+          filters: {
+            kinds: [NIP_GC_KINDS.FOUND_LOG],
+            '#a': [geocacheCoordinate],
+            limit: QUERY_LIMITS.LOGS,
+          },
+          name: 'fetchLogsForGeocache-found'
+        },
+        {
+          filters: {
+            kinds: [NIP_GC_KINDS.COMMENT_LOG],
+            '#a': [geocacheCoordinate],
+            limit: QUERY_LIMITS.LOGS,
+          },
+          name: 'fetchLogsForGeocache-comment-a'
+        },
+        {
+          filters: {
+            kinds: [NIP_GC_KINDS.COMMENT_LOG],
+            '#A': [geocacheCoordinate],
+            limit: QUERY_LIMITS.LOGS,
+          },
+          name: 'fetchLogsForGeocache-comment-A'
+        }
+      ], AbortSignal.timeout(TIMEOUTS.QUERY));
+
+      const logs = (allEvents || [])
+        .map(parseLogEvent)
+        .filter((log: GeocacheLog | null): log is GeocacheLog => log !== null)
+        .sort((a: GeocacheLog, b: GeocacheLog) => b.created_at - a.created_at);
+
+      return logs;
+    }, 'fetchLogsForGeocache');
+  }, [baseStore]);
+
   const fetchRecentLogs = useCallback(async (limit: number = 20): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-
-      
       const allEvents = [];
       
       // Fetch recent found logs
@@ -120,8 +180,6 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
   const fetchUserLogs = useCallback(async (pubkey: string): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-
-      
       const allEvents = [];
       
       // Fetch user's found logs
@@ -214,6 +272,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
           geocacheDTag: logData.geocacheId,
           images: logData.images,
           verificationEvent: logData.verificationEvent,
+          geocacheKind: (logData as any).geocacheKind,
         });
       } else {
         // All other log types use kind 1111 (comment logs)
@@ -227,6 +286,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
           geocacheDTag: logData.geocacheId,
           logType: logData.type as ValidCommentLogType | 'note',
           images: logData.images,
+          geocacheKind: (logData as any).geocacheKind,
         });
       }
 
@@ -273,7 +333,6 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       // Find the log to delete
       let logToDelete: GeocacheLog | undefined;
 
-      
       // Search through all logs to find the one to delete
       for (const [, logs] of Object.entries(state.logsByGeocache)) {
         const log = logs.find(l => l.id === logId);
@@ -394,35 +453,25 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     );
   }, [baseStore, fetchLogs]);
 
-  // Background sync
-  const backgroundSyncFn = useCallback(async (geocacheIds?: string[]) => {
-    if (geocacheIds) {
-      // Sync specific geocaches - handled by individual queries
-      return;
-    } else {
-      // Sync recent logs
-      await fetchRecentLogs();
-    }
-  }, [fetchRecentLogs]);
-
+  // Background sync - removed for simplicity
   const startBackgroundSync = useCallback(() => {
-    baseStore.startBackgroundSync(() => backgroundSyncFn());
-    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
-  }, [baseStore, backgroundSyncFn]);
+    // No-op - background sync removed
+  }, []);
 
   const stopBackgroundSync = useCallback(() => {
-    baseStore.stopBackgroundSync();
-    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
-  }, [baseStore]);
+    // No-op - background sync removed
+  }, []);
 
   const triggerSync = useCallback(async (geocacheIds?: string[]): Promise<StoreActionResult<void>> => {
     try {
-      await backgroundSyncFn(geocacheIds);
+      if (!geocacheIds) {
+        await fetchRecentLogs();
+      }
       return baseStore.createSuccessResult(undefined);
     } catch (error) {
       return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync')) as StoreActionResult<void>;
     }
-  }, [backgroundSyncFn, baseStore]);
+  }, [fetchRecentLogs, baseStore]);
 
   // Configuration
   const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {
@@ -437,13 +486,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     };
   }, [baseStore, state.logsByGeocache]);
 
-  // Auto-start background sync
-  useEffect(() => {
-    if (baseStore.config.enableBackgroundSync) {
-      startBackgroundSync();
-    }
-    return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync]);
+  // Background sync removed - no auto-start
 
   // Memoized store object
   const store = useMemo((): LogStore => ({
@@ -455,6 +498,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     fetchRecentLogs,
     fetchUserLogs,
     fetchZapsForLog,
+    fetchLogsForGeocache,
     
     // CRUD operations
     createLog,
@@ -483,6 +527,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     fetchRecentLogs,
     fetchUserLogs,
     fetchZapsForLog,
+    fetchLogsForGeocache,
     createLog,
     createVerifiedLog,
     deleteLog,

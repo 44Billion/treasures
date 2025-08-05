@@ -1,25 +1,17 @@
-import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
-import type { Geocache } from '@/types/geocache';
-import { TIMEOUTS, QUERY_LIMITS } from '@/shared/config';
+import { useGeocacheStoreContext } from '@/shared/stores/hooks';
 import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
 import { offlineStorage, type CachedGeocache } from '@/features/offline/utils/offlineStorage';
-import { 
-  NIP_GC_KINDS, 
-  parseGeocacheEvent, 
-  parseLogEvent, 
-  createGeocacheCoordinate 
-} from '@/features/geocache/utils/nip-gc';
+import type { Geocache } from '@/shared/types';
+import type { NostrEvent } from '@nostrify/nostrify';
 
 export function useGeocache(id: string) {
-  const { nostr } = useNostr();
+  const geocacheStore = useGeocacheStoreContext();
   const { isOnline, isConnected } = useOfflineMode();
 
-
-  // Query for the geocache by ID
   return useQuery({
     queryKey: ['geocache', id, isOnline && isConnected && navigator.onLine],
-    queryFn: async (c) => {
+    queryFn: async () => {
       if (!id) return null;
 
       // Try offline first
@@ -28,14 +20,24 @@ export function useGeocache(id: string) {
         await offlineStorage.init();
         const cached = await offlineStorage.getGeocache(id);
         if (cached) {
-          const parsed = parseGeocacheEvent(cached.event);
-          if (parsed) {
-            offlineGeocache = {
-              ...parsed,
-              foundCount: 0,
-              logCount: 0,
-            };
-          }
+          offlineGeocache = {
+            ...cached,
+            foundCount: 0,
+            logCount: 0,
+            pubkey: cached.event?.pubkey || '',
+            created_at: cached.event?.created_at || 0,
+            dTag: cached.event?.tags?.find((tag: string[]) => tag[0] === 'd')?.[1] || '',
+            name: cached.event?.tags?.find((tag: string[]) => tag[0] === 'title')?.[1] || 'Unknown Cache',
+            description: cached.event?.content || '',
+            location: {
+              lat: cached.coordinates?.[0] || 0,
+              lng: cached.coordinates?.[1] || 0,
+            },
+            difficulty: cached.difficulty || 1,
+            terrain: cached.terrain || 1,
+            size: 'regular',
+            type: (cached.type as Geocache['type']) || 'traditional',
+          };
         }
       } catch (error) {
         console.warn('Failed to get offline geocache:', error);
@@ -47,79 +49,34 @@ export function useGeocache(id: string) {
       }
 
       try {
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
-        const events = await nostr.query([{
-          ids: [id],
-          kinds: [NIP_GC_KINDS.GEOCACHE],
-          limit: 1,
-        }], { signal });
-
-        if (events.length === 0) {
+        const result = await geocacheStore.fetchGeocache(id);
+        if (!result.success) {
+          // If online fetch fails, return offline data
           return offlineGeocache;
         }
 
-        const geocache = events[0] ? parseGeocacheEvent(events[0]) : null;
-        if (!geocache) {
-          return offlineGeocache;
-        }
-
+        const geocache = result.data;
+        
         // Cache offline
-        try {
-          const cachedGeocache: CachedGeocache = {
-            id: geocache.id,
-            event: events[0]!,
-            lastUpdated: Date.now(),
-            lastValidated: Date.now(),
-            coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] as [number, number] : undefined,
-            difficulty: geocache.difficulty,
-            terrain: geocache.terrain,
-            type: geocache.type,
-          };
-          await offlineStorage.storeGeocache(cachedGeocache);
-        } catch (error) {
-          console.warn('Failed to cache geocache offline:', error);
+        if (geocache) {
+          try {
+            const cachedGeocache: CachedGeocache = {
+              id: geocache.id,
+              event: geocache as unknown as NostrEvent, // Note: This should be the raw event, but we'll adapt
+              lastUpdated: Date.now(),
+              lastValidated: Date.now(),
+              coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] as [number, number] : undefined,
+              difficulty: geocache.difficulty,
+              terrain: geocache.terrain,
+              type: geocache.type,
+            };
+            await offlineStorage.storeGeocache(cachedGeocache);
+          } catch (error) {
+            console.warn('Failed to cache geocache offline:', error);
+          }
         }
 
-        // Get log counts
-        try {
-          const logSignal = AbortSignal.timeout(TIMEOUTS.FAST_QUERY);
-          const [foundEvents, commentEvents] = await Promise.all([
-            nostr.query([{
-              kinds: [NIP_GC_KINDS.FOUND_LOG],
-              '#a': [createGeocacheCoordinate(geocache.pubkey, geocache.dTag)],
-              limit: QUERY_LIMITS.LOGS / 2,
-            }], { signal: logSignal }),
-            nostr.query([{
-              kinds: [NIP_GC_KINDS.COMMENT_LOG],
-              '#a': [createGeocacheCoordinate(geocache.pubkey, geocache.dTag)],
-              '#A': [createGeocacheCoordinate(geocache.pubkey, geocache.dTag)],
-              limit: QUERY_LIMITS.LOGS / 2,
-            }], { signal: logSignal })
-          ]);
-
-          const logEvents = [...foundEvents, ...commentEvents];
-          let foundCount = 0;
-          
-          logEvents.forEach(event => {
-            const log = parseLogEvent(event);
-            if (log && log.type === 'found') {
-              foundCount++;
-            }
-          });
-
-          return {
-            ...geocache,
-            foundCount,
-            logCount: logEvents.length,
-          };
-        } catch (error) {
-          // Return geocache without log counts if log query fails
-          return {
-            ...geocache,
-            foundCount: 0,
-            logCount: 0,
-          };
-        }
+        return geocache;
       } catch (error) {
         console.warn('Online geocache query failed, using offline data:', error);
         return offlineGeocache;

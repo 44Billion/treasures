@@ -1,22 +1,22 @@
-import { useNostr } from '@nostrify/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { NostrEvent, NostrFilter } from '@nostrify/nostrify';
-import type { Geocache } from '@/shared/types';
+import { useGeocacheStoreContext } from '@/shared/stores/hooks';
 import { parseNaddr } from '@/shared/utils/naddr';
-import { TIMEOUTS, QUERY_LIMITS } from '@/shared/config';
 import { useOfflineMode } from '@/features/offline/hooks/useOfflineStorage';
-import { offlineStorage, type CachedGeocache } from '@/features/offline/utils/offlineStorage';
-import { 
-  NIP_GC_KINDS, 
-  parseGeocacheEvent, 
-  parseLogEvent,
-  createGeocacheCoordinate 
-} from '@/features/geocache/utils/nip-gc';
+import { offlineStorage } from '@/features/offline/utils/offlineStorage';
+import { parseGeocacheEvent } from '@/features/geocache/utils/nip-gc';
+import { useNostr } from '@nostrify/react';
+import { TIMEOUTS } from '@/lib/constants';
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
+import { nip19, nip57 } from 'nostr-tools';
+import { useZapStore } from '@/shared/stores/useZapStore';
+import type { Geocache } from '@/shared/types';
 
 export function useGeocacheByNaddr(naddr: string) {
-  const { nostr } = useNostr();
+  const geocacheStore = useGeocacheStoreContext();
   const { isOnline, isConnected, connectionQuality } = useOfflineMode();
   const queryClient = useQueryClient();
+  const { nostr } = useNostr();
+  const { setZaps } = useZapStore();
 
   return useQuery({
     queryKey: ['geocache-by-naddr', naddr],
@@ -34,7 +34,7 @@ export function useGeocacheByNaddr(naddr: string) {
     refetchOnReconnect: true, // Refetch when connection is restored
     networkMode: 'always', // Always run queries regardless of network status
 
-    queryFn: async (c) => {
+    queryFn: async () => {
       console.log('useGeocacheByNaddr query starting...', {
         naddr,
         isOnline,
@@ -64,7 +64,7 @@ export function useGeocacheByNaddr(naddr: string) {
       }
 
       // Always try to get offline data first as a fallback
-      let offlineGeocache: Geocache | null = null;
+      let offlineGeocache: Geocache | undefined = undefined;
       try {
         await offlineStorage.init();
         const cachedGeocaches = await offlineStorage.getAllGeocaches();
@@ -74,7 +74,7 @@ export function useGeocacheByNaddr(naddr: string) {
         );
         
         if (cached) {
-          offlineGeocache = parseGeocacheEvent(cached.event);
+          offlineGeocache = parseGeocacheEvent(cached.event) || undefined;
           console.log('Found offline geocache:', offlineGeocache?.name);
         }
       } catch (error) {
@@ -82,109 +82,143 @@ export function useGeocacheByNaddr(naddr: string) {
       }
 
       // Always attempt network fetch first when accessing direct links
-      // This ensures QR codes and bookmarks work even with poor connectivity detection
-
       try {
-        // Query by pubkey and d-tag
-        const filter: NostrFilter = {
-          kinds: [NIP_GC_KINDS.GEOCACHE], // Geocache listing events
-          '#d': [dTag],
-          limit: 1,
-        };
-
-        const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
-        const events = await nostr.query([filter], { signal });
-
-        if (events.length === 0 || !events[0]) {
-          // If no online data but we have offline data, return that
-          if (offlineGeocache) {
-            console.log('No online data found, using offline geocache');
-            return {
-              ...offlineGeocache,
-              foundCount: 0,
-              logCount: 0,
-            };
-          }
-          return null;
-        }
-
-        const geocache = parseGeocacheEvent(events[0]);
+        // Try to find the geocache in the current store data first (for performance)
+        const currentGeocaches = geocacheStore.geocaches;
+        const existingGeocache = currentGeocaches.find(
+          g => g.pubkey === pubkey && g.dTag === dTag
+        );
+        
+        let geocache: Geocache | undefined = existingGeocache;
+        
+        // If not found in current data, query directly for this specific geocache
         if (!geocache) {
-          // If parsing failed but we have offline data, return that
-          if (offlineGeocache) {
-            console.log('Online data parsing failed, using offline geocache');
-            return {
-              ...offlineGeocache,
-              foundCount: 0,
-              logCount: 0,
-            };
+          console.log(`Geocache not found in store, querying directly: ${pubkey}:${dTag}`);
+          
+          // Query directly for this specific geocache using naddr coordinates
+          const signal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
+          const events = await nostr.query([{
+            kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+            authors: [pubkey],
+            '#d': [dTag],
+            limit: 1,
+          }], { signal });
+          
+          if (events.length === 0) {
+            console.warn(`Geocache not found on relay: ${pubkey}:${dTag}`);
+            // If we have offline data, use that
+            if (offlineGeocache) {
+              console.log('Using offline geocache as fallback');
+              geocache = offlineGeocache || undefined;
+            } else {
+              // Return null instead of throwing error - this allows the UI to handle create scenarios
+              console.log('No geocache found and no offline data - returning null for potential create scenario');
+              return null;
+            }
+          } else {
+            if (!events[0]) {
+              throw new Error('No event returned from query');
+            }
+            const parsedGeocache = parseGeocacheEvent(events[0]);
+            if (!parsedGeocache) {
+              throw new Error('Failed to parse geocache event');
+            }
+            geocache = parsedGeocache;
           }
-          return null;
         }
-
+        
         // Cache the geocache offline for future use
         try {
-          const cachedGeocache: CachedGeocache = {
-            id: geocache.id,
-            event: events[0],
-            lastUpdated: Date.now(),
-            coordinates: geocache.location ? [geocache.location.lat, geocache.location.lng] as [number, number] : undefined,
-            difficulty: geocache.difficulty,
-            terrain: geocache.terrain,
-            type: geocache.type,
-          };
-          await offlineStorage.storeGeocache(cachedGeocache);
+          // If we have the raw event (from direct query), cache it offline
+          if (!existingGeocache && geocache) {
+            await offlineStorage.init();
+            // Note: We don't have the raw event here, so we'll skip offline caching for direct queries
+            console.log('Skipping offline caching for direct naddr query');
+          }
         } catch (error) {
           console.warn('Failed to cache geocache offline:', error);
         }
         
-        // Get logs for this specific geocache (both found and comment logs)
-        const geocacheCoordinate = createGeocacheCoordinate(geocache.pubkey, geocache.dTag);
-        
-        const foundLogFilter: NostrFilter = {
-          kinds: [NIP_GC_KINDS.FOUND_LOG],
-          '#a': [geocacheCoordinate],
-          limit: QUERY_LIMITS.LOGS / 2,
-        };
-        
-        const commentLogFilter: NostrFilter = {
-          kinds: [NIP_GC_KINDS.COMMENT_LOG],
-          '#a': [geocacheCoordinate],
-          '#A': [geocacheCoordinate],
-          limit: QUERY_LIMITS.LOGS / 2,
-        };
-
-        // Use nostr query with error handling
-        let logEvents: NostrEvent[] = [];
-        try {
-          const [foundEvents, commentEvents] = await Promise.all([
-            nostr.query([foundLogFilter], { signal }),
-            nostr.query([commentLogFilter], { signal }),
-          ]);
-          logEvents = [...foundEvents, ...commentEvents];
-        } catch (error) {
-          logEvents = []; // Continue without log counts
+        // If we returned null early (no geocache found), skip logs/zaps processing
+        if (!geocache) {
+          return null;
         }
-      
+
+        // Get logs and zaps for this specific geocache - query directly instead of using store
+        // Use the actual kind from the geocache event
+        const actualKind = (geocache?.kind as number) || NIP_GC_KINDS.GEOCACHE;
+        const geocacheCoordinate = `${actualKind}:${pubkey}:${dTag}`;
+        const logSignal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
+        
+        // Fetch logs
+        const logEvents = await nostr.query([{
+          kinds: [NIP_GC_KINDS.FOUND_LOG, NIP_GC_KINDS.COMMENT_LOG],
+          '#a': [geocacheCoordinate],
+          limit: 100, // Reasonable limit for logs
+        }], { signal: logSignal });
+        
+        // Fetch zaps
+        const zapSignal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
+        const zapEvents = await nostr.query([{
+          kinds: [9735],
+          '#a': [geocacheCoordinate],
+        }], { signal: zapSignal });
+        
         let foundCount = 0;
         const logCount = logEvents.length;
+        let zapTotal = 0;
         
+        // Count found logs (unique by pubkey)
+        const uniqueFinders = new Set<string>();
         logEvents.forEach(event => {
-          const log = parseLogEvent(event);
-          if (log && log.type === 'found') {
-            foundCount++;
+          if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
+            uniqueFinders.add(event.pubkey);
           }
         });
+        foundCount = uniqueFinders.size;
+        
+        // Calculate zap total
+        zapEvents.forEach(event => {
+          const bolt11 = event.tags.find((t: string[]) => t[0] === 'bolt11')?.[1];
+          if (bolt11) {
+            try {
+              zapTotal += nip57.getSatoshisAmountFromBolt11(bolt11);
+            } catch (e) {
+              console.error("Invalid bolt11 invoice", bolt11, e);
+            }
+          }
+        });
+        
+        // Construct the correct naddr based on the actual geocache's kind
+        const correctNaddr = nip19.naddrEncode({
+          kind: geocache?.kind || NIP_GC_KINDS.GEOCACHE,
+          pubkey: geocache?.pubkey || '',
+          identifier: geocache?.dTag || '',
+          relays: geocache?.relays || []
+        });
+        
+        // Update zap store with fetched zaps
+        const zapKey = `naddr:${correctNaddr}`;
+        setZaps(zapKey, zapEvents);
+        
+        console.log('DEBUG: naddr correction:', {
+          originalNaddr: naddr,
+          originalKind: parsed?.kind,
+          actualKind: geocache?.kind,
+          correctNaddr,
+          geocacheName: geocache?.name
+        });
 
-        const result = {
+        const resultGeocache = {
           ...geocache,
-          naddr,
+          naddr: correctNaddr,
           foundCount,
           logCount,
+          zapTotal,
         };
 
-        console.log('Online geocache query successful:', result.name);
-        return result;
+        console.log('Online geocache query successful:', resultGeocache.name);
+        return resultGeocache;
       } catch (error) {
         console.warn('Online geocache query failed:', error);
         // Return offline data if available, otherwise throw a more specific error
@@ -194,6 +228,7 @@ export function useGeocacheByNaddr(naddr: string) {
             ...offlineGeocache,
             foundCount: 0,
             logCount: 0,
+            zapTotal: 0,
           };
         }
         

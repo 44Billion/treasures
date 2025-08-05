@@ -40,6 +40,7 @@ export function useCreateLog() {
           geocacheDTag: data.geocacheDTag!,
           images: data.images,
           verificationEvent: data.verificationEvent,
+          geocacheKind: data.geocacheKind,
         });
       } else {
         // All other log types use kind 1111 (comment logs)
@@ -53,6 +54,7 @@ export function useCreateLog() {
           geocacheDTag: data.geocacheDTag!,
           logType: data.type as ValidCommentLogType | 'note',
           images: data.images,
+          geocacheKind: data.geocacheKind,
         });
       }
       

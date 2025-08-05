@@ -54,7 +54,7 @@ export function RegenerateQRDialog({
     }, 30000);
     setOperationTimeout(timeout);
 
-    // This creates a new Nostr event (kind 37515) with a new verification key
+    // This creates a new Nostr event (kind 37516) with a new verification key
     // The new event replaces the previous geocache event, invalidating old QR codes
     regenerateKey(undefined, {
       onSuccess: (result) => {

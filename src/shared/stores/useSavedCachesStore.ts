@@ -85,7 +85,7 @@ export function useSavedCachesStore() {
   const savedCacheCoords = useMemo(() => {
     if (!bookmarkListEvent) return [];
     return bookmarkListEvent.tags
-      .filter(tag => tag[0] === 'a' && tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE}:`))
+      .filter(tag => tag[0] === 'a' && (tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE}:`) || tag[1]?.startsWith(`${NIP_GC_KINDS.GEOCACHE_LEGACY}:`)))
       .map(tag => tag[1]);
   }, [bookmarkListEvent]);
 
@@ -197,9 +197,10 @@ export function useSavedCachesStore() {
   );
 
   const isCacheSaved = useCallback(
-    (cacheId: string, dTag?: string, pubkey?: string) => {
+    (cacheId: string, dTag?: string, pubkey?: string, kind?: number) => {
       if (!user) return false;
-      const naddr = `${NIP_GC_KINDS.GEOCACHE}:${pubkey}:${dTag}`;
+      const actualKind = kind || NIP_GC_KINDS.GEOCACHE;
+      const naddr = `${actualKind}:${pubkey}:${dTag}`;
       if (isCacheSavedOffline(naddr)) return true;
       if (dTag && pubkey) {
         return savedCacheCoords.includes(naddr);
@@ -255,10 +256,10 @@ export function useSavedCachesStore() {
 
   const saveCache = useCallback(
     async (geocache: Geocache) => {
-      const naddr = `${NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
+      const naddr = `${geocache.kind || NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
       if (isOnline) {
         // Check if already saved using the existing function
-        if (isCacheSaved(geocache.id, geocache.dTag, geocache.pubkey)) return;
+        if (isCacheSaved(geocache.id, geocache.dTag, geocache.pubkey, geocache.kind)) return;
         const currentTags = bookmarkListEvent?.tags || [];
         const newTags = [...currentTags, ['a', naddr]];
         await updateBookmarkList(newTags);
@@ -272,7 +273,7 @@ export function useSavedCachesStore() {
 
   const unsaveCache = useCallback(
     async (geocache: Geocache) => {
-      const naddr = `${NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
+      const naddr = `${geocache.kind || NIP_GC_KINDS.GEOCACHE}:${geocache.pubkey}:${geocache.dTag}`;
       
       // Optimistically update the bookmark list event
       queryClient.setQueryData(['cache-bookmark-list', user?.pubkey], (oldData: NostrEvent | null) => {

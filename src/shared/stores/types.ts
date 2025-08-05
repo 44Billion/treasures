@@ -66,7 +66,7 @@ export interface GeocacheStoreActions {
   fetchNearbyGeocaches: (lat: number, lon: number, radius?: number) => Promise<StoreActionResult<Geocache[]>>;
   
   // CRUD operations
-  createGeocache: (geocache: Partial<Geocache>) => Promise<StoreActionResult<Geocache>>;
+  createGeocache: (geocache: Partial<Geocache>) => Promise<StoreActionResult<{ event: any; geocache: Geocache }>>;
   updateGeocache: (id: string, updates: Partial<Geocache>) => Promise<StoreActionResult<Geocache>>;
   deleteGeocache: (id: string) => Promise<StoreActionResult<void>>;
   batchDeleteGeocaches: (ids: string[]) => Promise<StoreActionResult<void>>;
@@ -104,6 +104,7 @@ export interface LogStoreState extends BaseStoreState {
 export interface LogStoreActions {
   // Data fetching
   fetchLogs: (geocacheId: string) => Promise<StoreActionResult<GeocacheLog[]>>;
+  fetchLogsForGeocache: (geocachePubkey: string, geocacheDTag: string, geocacheKind?: number) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchRecentLogs: (limit?: number) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchUserLogs: (pubkey: string) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchZapsForLog: (logId: string) => Promise<StoreActionResult<NostrEvent[]>>;

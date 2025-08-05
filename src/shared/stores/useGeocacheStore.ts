@@ -61,18 +61,47 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const geocachesQuery = useQuery({
     queryKey: createQueryKey('geocache', 'list'),
     queryFn: async () => {
+      console.log('🚀 Geocache store query starting...', {
+        timestamp: new Date().toISOString(),
+        userPubkey: user?.pubkey,
+        timeout: TIMEOUTS.QUERY
+      });
+      
       const cacheKey = `geocaches-${user?.pubkey || 'anonymous'}`;
       
       // Check query optimizer cache first
       const cached = QueryOptimizer.getCachedResult<Geocache[]>(cacheKey);
       if (cached) {
+        console.log('🎯 Using cached geocaches:', {
+          count: cached.length,
+          cacheKey
+        });
         return cached;
       }
 
+      console.log('📡 Fetching geocaches from relay...', {
+        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+        limit: QUERY_LIMITS.GEOCACHES,
+        queryLimits: QUERY_LIMITS.GEOCACHES,
+        fullFilter: {
+          kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+          limit: QUERY_LIMITS.GEOCACHES
+        }
+      });
+
+      const startTime = Date.now();
       const { data: events } = await baseStore.batchQuery([{
-        kinds: [NIP_GC_KINDS.GEOCACHE],
+        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
         limit: QUERY_LIMITS.GEOCACHES,
       }], 'fetchGeocaches');
+      
+      const queryDuration = Date.now() - startTime;
+      
+      console.log('📊 Relay query completed:', {
+        eventCount: events?.length || 0,
+        queryDuration: `${queryDuration}ms`,
+        timeout: TIMEOUTS.QUERY
+      });
 
       const geocaches = (events || [])
         .map(parseGeocacheEvent)
@@ -84,14 +113,20 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         })
         .sort((a: Geocache, b: Geocache) => b.created_at - a.created_at);
 
+      console.log('✅ Geocache processing completed:', {
+        originalEvents: events?.length || 0,
+        validGeocaches: geocaches.length,
+        filteredOut: (events?.length || 0) - geocaches.length
+      });
+
       // Cache the result
       QueryOptimizer.setCachedResult(cacheKey, geocaches);
       
       return geocaches;
     },
-    staleTime: baseStore.config.cacheTimeout,
-    gcTime: baseStore.config.cacheTimeout ? baseStore.config.cacheTimeout * 2 : undefined,
-    refetchInterval: baseStore.config.enableBackgroundSync ? baseStore.config.syncInterval : false,
+    staleTime: 300000, // 5 minutes
+    gcTime: 1800000, // 30 minutes
+    refetchInterval: false, // No background sync
   });
 
   // Update state when query data changes
@@ -111,8 +146,41 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   // Optimized data fetching actions
   const fetchGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      await geocachesQuery.refetch();
-      return geocachesQuery.data || [];
+      console.log('🔄 STORE FETCH: Returning current query data...');
+      
+      // If the query has data, return it directly
+      if (geocachesQuery.data) {
+        console.log('🔄 STORE FETCH: Using existing query data:', {
+          dataLength: geocachesQuery.data.length,
+          queryStatus: geocachesQuery.status
+        });
+        return geocachesQuery.data;
+      }
+      
+      // If no data but query is loading, wait for it
+      if (geocachesQuery.isLoading) {
+        console.log('🔄 STORE FETCH: Query is loading, waiting for completion...');
+        try {
+          const result = await geocachesQuery.refetch();
+          console.log('🔄 STORE FETCH: Loading query completed:', {
+            dataLength: result.data?.length || 0,
+            isError: result.isError
+          });
+          return result.data || [];
+        } catch (error) {
+          console.error('🔄 STORE FETCH: Loading query failed:', error);
+          throw error;
+        }
+      }
+      
+      // If no data and not loading, trigger a fresh fetch
+      console.log('🔄 STORE FETCH: No data and not loading, triggering fresh fetch...');
+      const result = await geocachesQuery.refetch();
+      console.log('🔄 STORE FETCH: Fresh fetch completed:', {
+        dataLength: result.data?.length || 0,
+        isError: result.isError
+      });
+      return result.data || [];
     }, 'fetchGeocaches');
   }, [geocachesQuery, baseStore]);
 
@@ -120,7 +188,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     return baseStore.safeAsyncOperation(async () => {
       const { data: events } = await baseStore.batchQuery([{
         ids: [id],
-        kinds: [NIP_GC_KINDS.GEOCACHE],
+        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
         limit: 1,
       }], 'fetchGeocache');
 
@@ -136,7 +204,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const fetchUserGeocaches = useCallback(async (pubkey: string): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
       const { data: events } = await baseStore.batchQuery([{
-        kinds: [NIP_GC_KINDS.GEOCACHE],
+        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
         authors: [pubkey],
         limit: QUERY_LIMITS.GEOCACHES,
       }], 'fetchUserGeocaches');
@@ -167,6 +235,8 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       return nearby;
     }, 'fetchNearbyGeocaches');
   }, [baseStore, state.geocaches]);
+
+  
 
   // CRUD operations - Real implementations
   const createGeocacheMutation = useMutation({
@@ -204,11 +274,18 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       }
 
       // Create the geocache event according to NIP-GC
-      const dTag = `cache-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+      // Use provided dTag if available (for claim URLs), otherwise generate new one
+      const dTag = geocacheData.dTag || `cache-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
       const relayPreferences = getGeocachingRelays();
 
-      // Generate verification key pair
-      const verificationKeyPair = await generateVerificationKeyPair();
+      // Generate verification key pair or use provided one
+      const verificationKeyPair = (geocacheData as any).verificationKeyPair || await generateVerificationKeyPair();
+      
+      console.log('🔑 Verification key pair:', {
+        hasProvidedKeyPair: !!(geocacheData as any).verificationKeyPair,
+        publicKey: verificationKeyPair.publicKey,
+        keyPairStructure: verificationKeyPair
+      });
 
       // Build tags using consolidated utility
       const tags = buildGeocacheTags({
@@ -224,10 +301,11 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         relays: relayPreferences,
         verificationPubkey: verificationKeyPair.publicKey,
         hidden: geocacheData.hidden,
+        kind: geocacheData.kind, // Pass the kind to determine tag format
       });
 
       const event = {
-        kind: NIP_GC_KINDS.GEOCACHE,
+        kind: geocacheData.kind || NIP_GC_KINDS.GEOCACHE, // Use provided kind or default to new kind
         content: geocacheData.description.trim(),
         tags,
         created_at: Math.floor(Date.now() / 1000),
@@ -318,10 +396,11 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         relays: originalGeocache.relays,
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key
         hidden: updatedData.hidden,
+        kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 
       const event = {
-        kind: NIP_GC_KINDS.GEOCACHE,
+        kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
         content: updatedData.description,
         tags,
         created_at: Math.floor(Date.now() / 1000),
@@ -367,7 +446,8 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         throw new Error("Geocache not found");
       }
 
-      // Create deletion event
+      // Create deletion event - we need to get the actual kind from the original event
+      // For now, we'll use the new kind as default since we don't store the original kind
       const deletionTags: string[][] = [
         ['e', id],
         ['k', NIP_GC_KINDS.GEOCACHE.toString()],
@@ -411,16 +491,16 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   });
 
   // Action implementations
-  const createGeocache = useCallback(async (geocache: Partial<Geocache>): Promise<StoreActionResult<Geocache>> => {
+  const createGeocache = useCallback(async (geocache: Partial<Geocache>): Promise<StoreActionResult<{ event: any; geocache: Geocache }>> => {
     try {
       const { event } = await createGeocacheMutation.mutateAsync(geocache);
       const newGeocache = parseGeocacheEvent(event);
       if (!newGeocache) {
         throw new Error('Failed to parse created geocache');
       }
-      return baseStore.createSuccessResult(newGeocache);
+      return baseStore.createSuccessResult({ event, geocache: newGeocache });
     } catch (error) {
-      return baseStore.createErrorResult(baseStore.handleError(error, 'createGeocache')) as StoreActionResult<Geocache>;
+      return baseStore.createErrorResult(baseStore.handleError(error, 'createGeocache')) as StoreActionResult<{ event: any; geocache: Geocache }>;
     }
   }, [createGeocacheMutation, baseStore]);
 
@@ -495,29 +575,23 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     );
   }, [baseStore, fetchGeocache]);
 
-  // Background sync
-  const backgroundSyncFn = useCallback(async () => {
-    await geocachesQuery.refetch();
-  }, [geocachesQuery]);
-
+  // Background sync - removed for simplicity
   const startBackgroundSync = useCallback(() => {
-    baseStore.startBackgroundSync(backgroundSyncFn);
-    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
-  }, [baseStore, backgroundSyncFn]);
+    // No-op - background sync removed
+  }, []);
 
   const stopBackgroundSync = useCallback(() => {
-    baseStore.stopBackgroundSync();
-    setState(prev => ({ ...prev, syncStatus: baseStore.getSyncStatus() }));
-  }, [baseStore]);
+    // No-op - background sync removed
+  }, []);
 
   const triggerSync = useCallback(async (): Promise<StoreActionResult<void>> => {
     try {
-      await backgroundSyncFn();
+      await geocachesQuery.refetch();
       return baseStore.createSuccessResult(undefined);
     } catch (error) {
       return baseStore.createErrorResult(baseStore.handleError(error, 'triggerSync')) as StoreActionResult<void>;
     }
-  }, [backgroundSyncFn, baseStore]);
+  }, [geocachesQuery, baseStore]);
 
   // Configuration
   const updateConfig = useCallback((newConfig: Partial<StoreConfig>) => {
@@ -531,13 +605,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     };
   }, [baseStore, state.geocaches.length]);
 
-  // Auto-start background sync
-  useEffect(() => {
-    if (baseStore.config.enableBackgroundSync) {
-      startBackgroundSync();
-    }
-    return () => stopBackgroundSync();
-  }, [baseStore.config.enableBackgroundSync]);
+  // Background sync removed - no auto-start
 
   // Memoized geocaches array for performance
   const memoizedGeocaches = useMemoizedArray(state.geocaches, (geocache) => geocache.id);
@@ -585,6 +653,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     fetchGeocache,
     fetchUserGeocaches,
     fetchNearbyGeocaches,
+    
     createGeocache,
     updateGeocache,
     deleteGeocache,

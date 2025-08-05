@@ -112,7 +112,7 @@ export const mockNostrEvents = {
   geocaches: [
     {
       id: 'test-cache-1',
-      kind: 37515,
+      kind: 37516,
       pubkey: 'test-pubkey-1',
       content: JSON.stringify({
         name: 'Mountain Adventure',
@@ -131,7 +131,7 @@ export const mockNostrEvents = {
     },
     {
       id: 'test-cache-2',
-      kind: 37515,
+      kind: 37516,
       pubkey: 'test-pubkey-2',
       content: JSON.stringify({
         name: 'Urban Explorer',
@@ -154,7 +154,7 @@ export const mockNostrEvents = {
       kind: 3753515, // Found log
       pubkey: 'finder-1',
       content: 'Great cache! Enjoyed the hike.',
-      tags: [['a', '37515:test-pubkey-1:mountain-adventure']],
+      tags: [['a', '37516:test-pubkey-1:mountain-adventure']],
       created_at: Math.floor(new Date('2024-01-04T10:00:00Z').getTime() / 1000),
       sig: 'log-signature-1',
     },
@@ -163,7 +163,7 @@ export const mockNostrEvents = {
       kind: 3753516, // Comment log
       pubkey: 'finder-2',
       content: 'Thanks for the hint!',
-      tags: [['A', '37515:test-pubkey-1:mountain-adventure']],
+      tags: [['A', '37516:test-pubkey-1:mountain-adventure']],
       created_at: Math.floor(new Date('2024-01-05T14:30:00Z').getTime() / 1000),
       sig: 'log-signature-2',
     },
@@ -221,12 +221,12 @@ export const commonMocks = {
   },
   nipGc: {
     NIP_GC_KINDS: {
-      GEOCACHE: 37515,
+      GEOCACHE: 37516,
       FOUND_LOG: 3753515,
       COMMENT_LOG: 3753516,
     },
     createGeocacheCoordinate: vi.fn((pubkey: string, dTag: string) => 
-      `37515:${pubkey}:${dTag}`
+      `37516:${pubkey}:${dTag}`
     ),
     parseGeocacheEvent: vi.fn((event) => {
       const content = JSON.parse(event.content || '{}');
@@ -280,7 +280,7 @@ export function createMockNostr(customBehavior: Record<string, any> = {}) {
       }
       
       // Default behavior based on filter kinds
-      if (filter.kinds?.includes(37515)) {
+      if (filter.kinds?.includes(37516)) {
         return Promise.resolve(mockNostrEvents.geocaches);
       }
       

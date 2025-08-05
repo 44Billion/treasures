@@ -248,6 +248,10 @@ export interface Geocache {
   created_at: number;
   /** Store the d-tag for proper replacement */
   dTag: string;
+  /** The naddr of the geocache */
+  naddr?: string;
+  /** Original event kind (37515 for legacy, 37516 for new) */
+  kind?: number;
   /** Cache name/title */
   name: string;
   /** Cache description */
@@ -273,6 +277,8 @@ export interface Geocache {
   foundCount?: number;
   /** Number of logs */
   logCount?: number;
+  /** Total zap amount in sats */
+  zapTotal?: number;
   /** Preferred relays from the geocache event */
   relays?: string[];
   /** The relay this event was fetched from */

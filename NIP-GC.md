@@ -8,27 +8,27 @@ Geocaching Events
 
 This NIP defines event kinds for geocaching on Nostr. These events allow users to create, share, and log geocaches in a decentralized manner.
 
-## Geocache Listing Event (Kind 37515)
+## Geocache Listing Event (Kind 37516)
 
-Geocache listing events are addressable events of kind `37515` with the following structure:
+Geocache listing events are addressable events of kind `37516` with the following structure:
 
 ```json
 {
-  "kind": 37515,
+  "kind": 37516,
   "content": "<cache description>",
   "tags": [
     ["d", "<cache-identifier>"],
     ["name", "<cache-name>"],
     ["g", "<geohash>"],
-    ["difficulty", "<1-5>"],
-    ["terrain", "<1-5>"],
-    ["size", "<size>"],
+    ["D", "<1-5>"],
+    ["T", "<1-5>"],
+    ["S", "<size>"],
     ["t", "<type>"]
   ]
 }
 ```
 
-Listing events require all information about the cache and information relevant to finding the cache. These include the `name`, location (`g`), `difficulty` and `terrain` scores, and `size`. The type of cache (`t`) is optional and defaults to `traditional` if not specified.
+Listing events require all information about the cache and information relevant to finding the cache. These include the `name`, location (`g`), difficulty (`D`) and terrain (`T`) scores, and size (`S`). The type of cache (`t`) is optional and defaults to `traditional` if not specified.
 
 Cache types are determined by individual clients, with common types including `traditional`, `multi`, and `mystery`. Clients should decide which cache types they support based on their implementation needs.
 
@@ -45,9 +45,9 @@ The content field contains the cache description and any additional information 
 - `d` (required) - unique identifier for the cache
 - `name` (required) - human-readable name for the cache  
 - `g` (required) - geohash of cache location. To allow for a proximity search, include multiple geohash tags at different precision levels (3-9 characters)
-- `difficulty` (required) - integer 1-5 indicating puzzle/finding difficulty
-- `terrain` (required) - integer 1-5 indicating physical difficulty  
-- `size` (required) - one of: `micro`, `small`, `regular`, `large`, `other`
+- `D` (required) - integer 1-5 indicating puzzle/finding difficulty (indexed)
+- `T` (required) - integer 1-5 indicating physical difficulty (indexed)
+- `S` (required) - one of: `micro`, `small`, `regular`, `large`, `other` (indexed)
 - `t` (optional) - cache type, with common values including: `traditional`, `multi`, `mystery`. Defaults to `traditional` if not specified
 - `hint` (optional) - plaintext hint to help find the cache
 - `image` (optional) - image URLs related to the cache
@@ -177,7 +177,7 @@ For the best Geocaching experience, clients implementing geocaching support shou
 
 ```json
 {
-  "kind": 37515,
+  "kind": 37516,
   "content": "The first Nostr treasure, left in the aftermath of Oslo Freedom Forum!",
   "tags": [
     ["d", "first-treasure-1748619568668"],
@@ -189,9 +189,9 @@ For the best Geocaching experience, clients implementing geocaching support shou
     ["g", "u4xsu6r"],
     ["g", "u4xsu6ry"],
     ["g", "u4xsu6ryb"],
-    ["difficulty", "1"],
-    ["terrain", "1"],
-    ["size", "small"],
+    ["D", "1"],
+    ["T", "1"],
+    ["S", "small"],
     ["t", "traditional"],
     ["hint", "In the branches"],
     ["image", "https://blossom.primal.net/74efe01a767b27dead71b8a9bb8278a108360438e78e55194ed9ab14a9382dd3.jpg"]
@@ -203,15 +203,15 @@ For the best Geocaching experience, clients implementing geocaching support shou
 
 ```json
 {
-  "kind": 37515,
+  "kind": 37516,
   "content": "High-security treasure requiring physical verification!",
   "tags": [
     ["d", "verified-treasure-1748619568669"],
     ["name", "Verified Treasure"], 
     ["g", "u4xsu6ry"],
-    ["difficulty", "3"],
-    ["terrain", "2"],
-    ["size", "small"],
+    ["D", "3"],
+    ["T", "2"],
+    ["S", "small"],
     ["t", "traditional"],
     ["hint", "Look for the secret code"],
     ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]

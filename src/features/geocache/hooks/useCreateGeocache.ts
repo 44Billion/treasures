@@ -1,29 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
+import { useGeocacheStoreContext } from '@/shared/stores/hooks';
 import { useToast } from '@/shared/hooks/useToast';
-import { getGeocachingRelays } from '@/shared/utils/naddrrelays';
-import { geocacheToNaddr } from '@/shared/utils/naddr-utils';
 import type { CreateGeocacheData } from '@/types/geocache';
-import { 
-  NIP_GC_KINDS, 
-  buildGeocacheTags, 
-  validateCacheType, 
-  validateCacheSize,
-  validateCoordinates,
-  parseGeocacheEvent,
-  type ValidCacheType,
-  type ValidCacheSize
-} from '@/features/geocache/utils/nip-gc';
-import { generateVerificationKeyPair } from '@/features/geocache/utils/verification';
-import { generateDeterministicDTag, generateRandomDTag } from '@/features/geocache/utils/dTag';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import type { Geocache } from '@/shared/types';
 
+interface CreateGeocacheResult {
+  event: any;
+  geocache: Geocache;
+}
 
 export function useCreateGeocache() {
   const queryClient = useQueryClient();
-  const { mutateAsync: publishEvent } = useNostrPublish();
+  const geocacheStore = useGeocacheStoreContext();
   const { toast } = useToast();
-  const { user } = useCurrentUser();
 
   return useMutation({
     mutationFn: async (data: CreateGeocacheData) => {
@@ -44,87 +33,46 @@ export function useCreateGeocache() {
         throw new Error("Terrain must be between 1 and 5");
       }
 
-      // Validate inputs according to NIP-GC
-      if (!validateCacheType(data.type)) {
-        throw new Error(`Invalid cache type: ${data.type}`);
-      }
-      if (!validateCacheSize(data.size)) {
-        throw new Error(`Invalid cache size: ${data.size}`);
-      }
-      if (!validateCoordinates(data.location.lat, data.location.lng)) {
-        throw new Error(`Invalid coordinates: ${data.location.lat}, ${data.location.lng}`);
+      // Validate size is one of the allowed values
+      const validSizes = ["micro", "small", "regular", "large", "other"];
+      if (!data.size || !validSizes.includes(data.size)) {
+        throw new Error("Size must be one of: micro, small, regular, large, other");
       }
 
-      // Create the geocache event according to NIP-GC
-      // Use provided dTag, or generate deterministic one, or fallback to random
-      const dTag = data.dTag || 
-        (user && data.name ? generateDeterministicDTag(data.name.trim(), user.pubkey) : generateRandomDTag());
-      const relayPreferences = getGeocachingRelays();
+      // Cast data to Partial<Geocache> with proper type assertion
+      const geocacheData = {
+        ...data,
+        size: data.size as Geocache['size'],
+        type: data.type as Geocache['type'],
+      };
 
-      // Use provided verification key pair or generate a new one
-      const verificationKeyPair = data.verificationKeyPair || await generateVerificationKeyPair();
+      // Use the store's createGeocache method
+      const result = await geocacheStore.createGeocache(geocacheData);
+      if (!result.success) {
+        throw result.error;
+      }
 
-      // Build tags using consolidated utility
-      const tags = buildGeocacheTags({
-        dTag,
-        name: data.name.trim(),
-        location: data.location,
-        difficulty: data.difficulty,
-        terrain: data.terrain,
-        size: data.size as ValidCacheSize,
-        type: data.type as ValidCacheType,
-        hint: data.hint,
-        images: data.images,
-        relays: relayPreferences,
-        verificationPubkey: verificationKeyPair.publicKey,
-        hidden: data.hidden,
-      });
+      // The result already has the correct structure
+      if (!result.data) {
+        throw new Error('Failed to create geocache: No data returned');
+      }
 
-      const event = await publishEvent({
-        kind: NIP_GC_KINDS.GEOCACHE,
-        content: data.description.trim(), // Plain text description in content
-        tags,
-      });
-
-      return { event, verificationKeyPair };
+      return result.data;
     },
-    onSuccess: ({ event }) => {
+    onSuccess: (data: CreateGeocacheResult) => {
       toast({
         title: "Geocache created!",
         description: "Your geocache has been successfully hidden.",
       });
       
-      // Optimistically update the cache with the new geocache
-      queryClient.setQueryData(['geocache', event.id], () => {
-        // Use consolidated parsing utility
-        const parsed = parseGeocacheEvent(event);
-        if (!parsed) {
-          return null;
-        }
-        
-        return {
-          ...parsed,
-          foundCount: 0,
-          logCount: 0,
-        };
-      });
-      
-      // Also update the geocaches list
+      // Invalidate related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['geocaches'] });
-      
-      // Background refresh after a delay to ensure data consistency
-      setTimeout(() => {
-        const dTag = event.tags.find(t => t[0] === 'd')?.[1];
-        if (dTag) {
-          const relays = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
-          const naddr = geocacheToNaddr(event.pubkey, dTag || '', relays.filter(Boolean) as string[]);
-          queryClient.invalidateQueries({ queryKey: ['geocache-by-naddr', naddr] });
-        }
-        queryClient.invalidateQueries({ queryKey: ['geocache', event.id] });
-      }, 2000);
+      queryClient.invalidateQueries({ queryKey: ['user-geocaches'] });
+      if (data?.geocache) {
+        queryClient.invalidateQueries({ queryKey: ['geocache', data.geocache.id] });
+      }
     },
     onError: (error: unknown) => {
-      
       let errorMessage = "Please try again later.";
       const errorObj = error as { message?: string };
       
@@ -144,5 +92,3 @@ export function useCreateGeocache() {
     },
   });
 }
-
-// Geohash functions are now imported from @/features/geocache/utils/nip-gc

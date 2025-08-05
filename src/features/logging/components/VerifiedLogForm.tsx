@@ -12,6 +12,7 @@ interface VerifiedLogFormProps {
     dTag: string;
     pubkey: string;
     relays?: string[];
+    kind?: number;
   };
   verificationKey: string;
   compact?: boolean;
@@ -44,6 +45,7 @@ export function VerifiedLogForm({
       geocacheId: geocache.id,
       geocacheDTag: geocache.dTag,
       geocachePubkey: geocache.pubkey,
+      geocacheKind: geocache.kind,
       relayUrl: primaryRelay,
       preferredRelays: geocache.relays,
       type: logType,

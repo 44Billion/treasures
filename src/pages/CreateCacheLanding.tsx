@@ -69,18 +69,13 @@ export default function CreateCacheLanding() {
 
   const GiftAuthorCard = ({ npub }: { npub: string }) => {
     let authorPubkey = '';
-    try {
-      if (npub?.startsWith('npub')) {
-        const decoded = nip19.decode(npub);
-        if (decoded.type === 'npub') {
-          authorPubkey = decoded.data;
-        }
+    if (npub?.startsWith('npub')) {
+      const decoded = nip19.decode(npub);
+      if (decoded.type === 'npub') {
+        authorPubkey = decoded.data;
       }
-    } catch (e) {
-      return null;
     }
-
-    const { data: author, isLoading } = useAuthor(authorPubkey || '');
+    const { data: author, isLoading } = useAuthor(authorPubkey);
 
     if (!authorPubkey) {
       return null;
@@ -124,13 +119,13 @@ export default function CreateCacheLanding() {
     );
   };
 
-  const getPubkeyForNaddr = (): string => {
+  const getPubkeyForNaddr = useCallback((): string => {
     if (submittedNpub && validateNpub(submittedNpub)) {
       const decoded = nip19.decode(submittedNpub);
       return decoded.data as string;
     }
     return user?.pubkey || '';
-  };
+  }, [submittedNpub, user?.pubkey]);
 
   const generateQR = useCallback(async () => {
     if (!user || !verificationKeyPair) return;
@@ -167,7 +162,7 @@ export default function CreateCacheLanding() {
         variant: "destructive",
       });
     }
-  }, [user, qrType, toast, naddr, verificationKeyPair]);
+  }, [user, qrType, toast, naddr, verificationKeyPair, getPubkeyForNaddr]);
 
   useEffect(() => {
     if (!user) return;
@@ -184,7 +179,7 @@ export default function CreateCacheLanding() {
     };
 
     generateInitialQR();
-  }, [user, submittedNpub]);
+  }, [user, submittedNpub, getPubkeyForNaddr]);
 
   useEffect(() => {
     if (naddr && verificationKeyPair) {
@@ -225,7 +220,7 @@ export default function CreateCacheLanding() {
       const params = new URLSearchParams();
       params.set('claimUrl', claimUrl);
       if (customNpub && validateNpub(customNpub)) {
-        params.set('giftNpub');
+        params.set('giftNpub', customNpub);
       }
       navigate(`/create-cache?${params.toString()}`);
     }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useStore } from 'zustand';
 import { useZapStore } from '@/shared/stores/useZapStore';
-import { useZaps } from '@/features/zaps/hooks/useZaps';
 import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, BookmarkX, Zap } from 'lucide-react';
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
@@ -10,7 +9,6 @@ import { SaveButton } from '@/shared/components/common/SaveButton';
 import { CacheMenu } from '@/components/CacheMenu';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
 import { useGeocacheNavigation } from '@/features/geocache/hooks/useGeocacheNavigation';
-import { useGeocacheStats } from '@/features/geocache/hooks/useGeocacheStats';
 import { formatDistanceToNow } from '@/shared/utils/date';
 import { formatDistance } from '@/features/map/utils/geo';
 import { CacheIcon } from '@/features/geocache/utils/cacheIcons';
@@ -23,6 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Base interface for all geocache cards
 interface BaseGeocacheCardProps {
@@ -52,6 +51,7 @@ interface BaseGeocacheCardProps {
   metadata?: React.ReactNode;
   showAuthor?: boolean;
   showStats?: boolean;
+  statsLoading?: boolean;
 }
 
 // Compact Card - Used in map sidebar and mobile views
@@ -59,6 +59,8 @@ interface CompactGeocacheCardProps extends BaseGeocacheCardProps {
   variant: 'compact';
   cache: BaseGeocacheCardProps['cache'] & {
     foundCount?: number;
+    logCount?: number;
+    zapTotal?: number;
   };
 }
 
@@ -70,6 +72,7 @@ interface DefaultGeocacheCardProps extends BaseGeocacheCardProps {
     created_at?: number;
     foundCount?: number;
     logCount?: number;
+    zapTotal?: number;
   };
 }
 
@@ -81,6 +84,7 @@ interface DetailedGeocacheCardProps extends BaseGeocacheCardProps {
     created_at?: number;
     foundCount?: number;
     logCount?: number;
+    zapTotal?: number;
     // Additional fields for saved/found caches
     savedAt?: number;
     foundAt?: number;
@@ -96,6 +100,7 @@ interface FeaturedGeocacheCardProps extends BaseGeocacheCardProps {
     created_at?: number;
     foundCount?: number;
     logCount?: number;
+    zapTotal?: number;
   };
 }
 
@@ -109,21 +114,45 @@ export function GeocacheCard({
   actions,
   metadata,
   showAuthor = true,
-  showStats = true
+  showStats = true,
+  statsLoading = false
 }: GeocacheCardProps) {
   const { user } = useCurrentUser();
   const { theme } = useTheme();
   const { navigateToGeocache } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
   const getZapTotal = useStore(useZapStore, (state) => state.getZapTotal);
-  useZaps(cache.id, cache.naddr);
-  const totalZapAmount = getZapTotal(cache.naddr ? `naddr:${cache.naddr}` : `event:${cache.id}`);
 
   const authorName = author.data?.metadata?.name || cache.pubkey.slice(0, 8);
   const profilePicture = author.data?.metadata?.picture;
+  
+  // Handle avatar loading errors gracefully
+  const [avatarError, setAvatarError] = React.useState(false);
+  const handleAvatarError = React.useCallback(() => {
+    setAvatarError(true);
+    console.warn('Avatar failed to load for:', authorName);
+  }, [authorName]);
 
-  // Get real-time stats for this geocache
-  const stats = useGeocacheStats(cache.dTag, cache.pubkey);
+  // Use stats that are now included in the geocache data from useGeocaches
+  const stats = {
+    foundCount: cache.foundCount || 0,
+    logCount: cache.logCount || 0,
+  };
+  
+  // Use zap total from cache data if available, otherwise fall back to store
+  const zapStoreKey = cache.naddr ? `naddr:${cache.naddr}` : `event:${cache.id}`;
+  const totalZapAmount = cache.zapTotal ?? getZapTotal(zapStoreKey);
+  
+  // Debug logging to see what's happening
+  console.log('DEBUG: GeocacheCard zap data:', {
+    cacheName: cache.name,
+    cacheZapTotal: cache.zapTotal,
+    zapStoreKey,
+    storeZapTotal: getZapTotal(zapStoreKey),
+    finalZapAmount: totalZapAmount,
+    cacheNaddr: cache.naddr,
+    cacheId: cache.id
+  });
 
   // Check if this cache is hidden and the current user is the creator
   const isHiddenByCreator = cache.hidden && cache.pubkey === user?.pubkey;
@@ -147,11 +176,14 @@ export function GeocacheCard({
       <div className="flex items-center gap-1 min-w-0">
         <span className="shrink-0">by</span>
         <span className="truncate font-medium">{authorName}</span>
-        {profilePicture && (
+        {profilePicture && !avatarError && (
           <img
             src={profilePicture}
             alt={authorName}
             className="h-3 w-3 sm:h-4 sm:w-4 rounded-full object-cover shrink-0 ml-1"
+            onError={handleAvatarError}
+            loading="lazy"
+            decoding="async"
           />
         )}
       </div>
@@ -168,6 +200,23 @@ export function GeocacheCard({
     <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
       {cache.description}
     </p>
+  );
+
+  const renderStatsSkeleton = (isCompact = false) => (
+    <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground shrink-0">
+      <span className="flex items-center gap-1">
+        <Zap className="h-3 w-3" />
+        <Skeleton className={`h-3 w-6 ${isCompact ? '' : 'sm:w-8'}`} />
+      </span>
+      <span className="flex items-center gap-1">
+        <Trophy className="h-3 w-3" />
+        <Skeleton className={`h-3 w-3 ${isCompact ? '' : 'sm:w-4'}`} />
+      </span>
+      <span className="flex items-center gap-1">
+        <MessageSquare className="h-3 w-3" />
+        <Skeleton className={`h-3 w-3 ${isCompact ? '' : 'sm:w-4'}`} />
+      </span>
+    </div>
   );
 
   const renderBadgesAndStats = (isCompact = false) => (
@@ -205,18 +254,24 @@ export function GeocacheCard({
       <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground shrink-0">
         {showStats && (
           <>
-            <span className="flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              <span>{totalZapAmount.toLocaleString()}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Trophy className="h-3 w-3" />
-              <span>{stats.foundCount}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              <span>{stats.logCount}</span>
-            </span>
+            {statsLoading ? (
+              renderStatsSkeleton(isCompact)
+            ) : (
+              <>
+                <span className="flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  <span>{totalZapAmount.toLocaleString()}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Trophy className="h-3 w-3" />
+                  <span>{stats.foundCount}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <MessageSquare className="h-3 w-3" />
+                  <span>{stats.logCount}</span>
+                </span>
+              </>
+            )}
           </>
         )}
       </div>
@@ -363,11 +418,14 @@ export function GeocacheCard({
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                     <span className="flex items-center gap-1">
                       by {authorName}
-                      {profilePicture && (
+                      {profilePicture && !avatarError && (
                         <img
                           src={profilePicture}
                           alt={authorName}
                           className="h-3 w-3 rounded-full object-cover"
+                          onError={handleAvatarError}
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                     </span>
@@ -412,20 +470,39 @@ export function GeocacheCard({
 
               {/* Stats in bottom right */}
               {showStats && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                  <span className="flex items-center gap-1">
-                    <Zap className="h-3 w-3" />
-                    <span>{totalZapAmount.toLocaleString()}</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Trophy className="h-3 w-3" />
-                    <span>{stats.foundCount}</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare className="h-3 w-3" />
-                    <span>{stats.logCount}</span>
-                  </span>
-                </div>
+                <>
+                  {statsLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                      <span className="flex items-center gap-1">
+                        <Zap className="h-3 w-3" />
+                        <Skeleton className="h-3 w-6" />
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Trophy className="h-3 w-3" />
+                        <Skeleton className="h-3 w-3" />
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        <Skeleton className="h-3 w-3" />
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                      <span className="flex items-center gap-1">
+                        <Zap className="h-3 w-3" />
+                        <span>{totalZapAmount.toLocaleString()}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Trophy className="h-3 w-3" />
+                        <span>{stats.foundCount}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        <span>{stats.logCount}</span>
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
