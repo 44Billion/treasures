@@ -16,6 +16,11 @@ import type {
   StoreConfig, 
   StoreActionResult 
 } from './types';
+
+// Extend the LogStoreState interface to include memoized stats
+interface ExtendedLogStoreState extends LogStoreState {
+  totalLogsCount: number;
+}
 import type { GeocacheLog } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
@@ -37,7 +42,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
   const { user } = useCurrentUser();
   
   // Store state
-  const [state, setState] = useState<LogStoreState>(() => ({
+  const [state, setState] = useState<ExtendedLogStoreState>(() => ({
     ...baseStore.createBaseState(),
     logsByGeocache: {},
     recentLogs: [],
@@ -45,7 +50,15 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
     zapsByLogId: {},
     syncStatus: baseStore.getSyncStatus(),
     cacheStats: baseStore.getCacheStats(),
+    // Memoized stats to avoid expensive calculations
+    totalLogsCount: 0,
   }));
+
+  // Helper to update memoized stats efficiently
+  const updateTotalLogsCount = useCallback((logsByGeocache: typeof state.logsByGeocache) => {
+    const totalLogs = Object.values(logsByGeocache).reduce((sum, logs) => sum + logs.length, 0);
+    setState(prev => ({ ...prev, totalLogsCount: totalLogs }));
+  }, []);
 
   // Update state helper - use useCallback to make it stable
   const updateState = useCallback((updates: Partial<LogStoreState>) => {
@@ -309,17 +322,25 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       // Parse the new log from the event
       const newLog = parseLogEvent(event);
       if (newLog && logData.geocacheId) {
-        setState(prev => ({
-          ...prev,
-          logsByGeocache: {
+        setState(prev => {
+          const updatedLogsByGeocache = {
             ...prev.logsByGeocache,
             [logData.geocacheId!]: [newLog, ...(prev.logsByGeocache[logData.geocacheId!] || [])],
-          },
-          recentLogs: [newLog, ...prev.recentLogs].slice(0, 20),
-          userLogs: newLog.pubkey === user?.pubkey 
-            ? [newLog, ...prev.userLogs] 
-            : prev.userLogs,
-        }));
+          };
+          
+          // Update memoized stats
+          const totalLogs = Object.values(updatedLogsByGeocache).reduce((sum, logs) => sum + logs.length, 0);
+          
+          return {
+            ...prev,
+            logsByGeocache: updatedLogsByGeocache,
+            totalLogsCount: totalLogs,
+            recentLogs: [newLog, ...prev.recentLogs].slice(0, 20),
+            userLogs: newLog.pubkey === user?.pubkey 
+              ? [newLog, ...prev.userLogs] 
+              : prev.userLogs,
+          };
+        });
       }
     },
   });
@@ -479,12 +500,11 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
   }, [baseStore]);
 
   const getStats = useCallback(() => {
-    const totalLogs = Object.values(state.logsByGeocache).reduce((sum, logs) => sum + logs.length, 0);
     return {
       ...baseStore.getCacheStats(),
-      totalItems: totalLogs,
+      totalItems: state.totalLogsCount,
     };
-  }, [baseStore, state.logsByGeocache]);
+  }, [baseStore, state.totalLogsCount]);
 
   // Background sync removed - no auto-start
 

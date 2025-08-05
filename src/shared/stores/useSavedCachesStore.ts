@@ -172,12 +172,17 @@ export function useSavedCachesStore() {
       return offlineSavedCaches.sort((a, b) => b.savedAt - a.savedAt);
     }
     const allCaches = [...onlineSavedCaches, ...offlineSavedCaches];
-    const uniqueCaches = allCaches.reduce((acc, current) => {
-      if (!acc.find(item => item.id === current.id)) {
-        acc.push(current);
+    const uniqueMap = new Map<string, SavedCache>();
+    
+    // Use Map for O(1) lookups instead of Array.find() O(n)
+    allCaches.forEach(cache => {
+      const existing = uniqueMap.get(cache.id);
+      if (!existing || cache.savedAt > existing.savedAt) {
+        uniqueMap.set(cache.id, cache);
       }
-      return acc;
-    }, [] as SavedCache[]);
+    });
+    
+    const uniqueCaches = Array.from(uniqueMap.values());
     return uniqueCaches.sort((a, b) => b.savedAt - a.savedAt);
   }, [onlineSavedCaches, offlineSavedCaches, offlineOnly]);
 

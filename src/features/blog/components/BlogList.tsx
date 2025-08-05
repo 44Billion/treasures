@@ -54,10 +54,12 @@ export function BlogList() {
     return matchesSearch && matchesTag;
   }) || [];
 
-  // Get all unique tags from posts
-  const allTags = Array.from(
-    new Set(posts?.flatMap(post => post.tags) || [])
-  ).sort();
+  // Get all unique tags from posts - memoized for performance
+  const allTags = useMemo(() => {
+    return Array.from(
+      new Set(posts?.flatMap(post => post.tags) || [])
+    ).sort();
+  }, [posts]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
