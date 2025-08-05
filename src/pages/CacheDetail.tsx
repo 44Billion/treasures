@@ -512,6 +512,18 @@ export default function CacheDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 lg:space-y-6 min-w-0">
             <Card>
+              {/* Map Banner inside the top card */}
+              <div className="relative h-48 md:h-60 lg:h-72 mb-4 rounded-t-lg overflow-hidden bg-gray-100">
+                <GeocacheMap 
+                  geocaches={[{
+                    ...geocache,
+                    location: isEditing && editLocation ? editLocation : geocache.location
+                  }]} 
+                  center={isEditing && editLocation ? editLocation : geocache.location}
+                  zoom={15}
+                />
+              </div>
+              
               <CardHeader>
                 <div className="flex items-start gap-2 sm:gap-4">
                   <CardTitle className="text-2xl break-words flex-1">{geocache.name}</CardTitle>
@@ -707,24 +719,7 @@ export default function CacheDetail() {
               </CardContent>
             </Card>
 
-            {/* Map Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Map</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-96 rounded-lg overflow-hidden">
-                  <GeocacheMap 
-                    geocaches={[{
-                      ...geocache,
-                      location: isEditing && editLocation ? editLocation : geocache.location
-                    }]} 
-                    center={isEditing && editLocation ? editLocation : geocache.location}
-                    zoom={15}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            
 
             {/* Logs Section */}
             <div className="space-y-4" data-logs-section>
