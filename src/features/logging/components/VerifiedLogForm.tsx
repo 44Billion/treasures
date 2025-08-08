@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Share2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { useCreateVerifiedLog } from "@/features/logging/hooks/useCreateVerifiedLog";
+import { useShareLogAsEvent } from "@/features/logging/hooks/useShareLogAsEvent";
 
 interface VerifiedLogFormProps {
   geocache: {
     id: string;
+    name?: string;
     dTag: string;
     pubkey: string;
     relays?: string[];
@@ -26,14 +28,16 @@ export function VerifiedLogForm({
   className 
 }: VerifiedLogFormProps) {
   const { mutate: createVerifiedLog, isPending: isCreatingLog } = useCreateVerifiedLog();
+  const { shareLogAsEvent, isPublishing: isSharing } = useShareLogAsEvent();
   
   const [logText, setLogText] = useState("");
+  const [shareToFeed, setShareToFeed] = useState(false);
   const [postingStatus, setPostingStatus] = useState<string>("");
   
   // Verified logs are always "found" - if they have the verification key, they found it!
   const logType = "found";
 
-  const handleCreateLog = () => {
+  const handleCreateLog = async () => {
     if (!logText.trim() || !geocache) return;
     
     setPostingStatus("Creating verified log (this may take a moment)...");
@@ -52,9 +56,33 @@ export function VerifiedLogForm({
       text: logText,
       verificationKey,
     }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         setPostingStatus("Verified log posted successfully!");
+        
+        // If user wants to share to feed, publish as kind 1 event
+        if (shareToFeed) {
+          try {
+            setPostingStatus("Sharing to your feed...");
+            await shareLogAsEvent({
+              geocache: {
+                ...geocache,
+                name: geocache.name || 'Geocache' // Fallback name if not available
+              },
+              logText,
+              logType,
+              isVerified: true
+            });
+            setPostingStatus("Verified log posted and shared to feed!");
+          } catch (error) {
+            console.error('Failed to share to feed:', error);
+            setPostingStatus("Verified log posted! (Failed to share to feed)");
+          }
+        } else {
+          setPostingStatus("Verified log posted successfully!");
+        }
+        
         setLogText("");
+        setShareToFeed(false);
         setTimeout(() => {
           setPostingStatus("");
         }, 2000);
@@ -84,21 +112,37 @@ export function VerifiedLogForm({
         </Alert>
         
         <Textarea
-          placeholder="Share your find experience! What was it like discovering this cache?"
+          placeholder="Share your find experience! What was it like discovering this treasure?"
           value={logText}
           onChange={(e) => setLogText(e.target.value)}
           rows={compact ? 3 : 4}
           className={compact ? "text-sm" : ""}
         />
         
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="share-to-feed-verified"
+            checked={shareToFeed}
+            onCheckedChange={(checked) => setShareToFeed(checked as boolean)}
+            disabled={isCreatingLog || isSharing}
+          />
+          <label
+            htmlFor="share-to-feed-verified"
+            className={`flex items-center gap-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${compact ? "text-xs" : ""}`}
+          >
+            <Share2 className="h-3 w-3" />
+            Share to my feed
+          </label>
+        </div>
+        
         <Button 
           onClick={handleCreateLog} 
-          disabled={!logText.trim() || isCreatingLog}
+          disabled={!logText.trim() || isCreatingLog || isSharing}
           size={compact ? "sm" : "default"}
           className="w-full bg-green-600 hover:bg-green-700"
         >
           <ShieldCheck className="h-4 w-4 mr-2" />
-          {isCreatingLog ? "Posting Verified Log (please wait)..." : "Post Verified Log"}
+          {isCreatingLog || isSharing ? "Posting Verified Log (please wait)..." : "Post Verified Log"}
         </Button>
         
         {postingStatus && (

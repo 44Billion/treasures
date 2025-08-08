@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Share2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { LogTypeButtonGroup } from "@/shared/components/ui/mobile-button-patterns";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { EmptyStateCard } from "@/shared/components/ui/card-patterns";
 import { LogList } from "@/features/logging/components/LogList";
 import { LoginArea } from "@/features/auth/components/LoginArea";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useCreateLog } from "@/features/logging/hooks/useCreateLog";
+import { useShareLogAsEvent } from "@/features/logging/hooks/useShareLogAsEvent";
 import { VerifiedLogForm } from "@/features/logging/components/VerifiedLogForm";
 import type { GeocacheLog } from "@/types/geocache";
 
@@ -16,6 +17,7 @@ interface LogsSectionProps {
   logs: GeocacheLog[];
   geocache: {
     id: string;
+    name?: string;
     dTag: string;
     pubkey: string;
     relays?: string[];
@@ -45,12 +47,14 @@ export function LogsSection({
   
   const { user } = useCurrentUser();
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
+  const { shareLogAsEvent, isPublishing: isSharing } = useShareLogAsEvent();
   
   const [logText, setLogText] = useState("");
   const [logType, setLogType] = useState<"found" | "dnf" | "note" | "maintenance" | "archived">("found");
+  const [shareToFeed, setShareToFeed] = useState(false);
   const [postingStatus, setPostingStatus] = useState<string>("");
 
-  const handleCreateLog = () => {
+  const handleCreateLog = async () => {
     if (!logText.trim() || !geocache) return;
     
     setPostingStatus("Signing event...");
@@ -68,9 +72,33 @@ export function LogsSection({
       type: logType,
       text: logText,
     }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         setPostingStatus("Posted! Refreshing...");
+        
+        // If user wants to share to feed, publish as kind 1 event
+        if (shareToFeed) {
+          try {
+            setPostingStatus("Sharing to your feed...");
+            await shareLogAsEvent({
+              geocache: {
+                ...geocache,
+                name: geocache.name || 'Geocache' // Fallback name if not available
+              },
+              logText,
+              logType,
+              isVerified: false
+            });
+            setPostingStatus("Posted and shared to feed!");
+          } catch (error) {
+            console.error('Failed to share to feed:', error);
+            setPostingStatus("Posted! (Failed to share to feed)");
+          }
+        } else {
+          setPostingStatus("Posted! Refreshing...");
+        }
+        
         setLogText("");
+        setShareToFeed(false);
         setTimeout(() => {
           setPostingStatus("");
         }, 2000);
@@ -117,13 +145,32 @@ export function LogsSection({
               className={compact ? "text-sm" : ""}
             />
             
+            {/* Only show share option for "found" logs */}
+            {logType === 'found' && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="share-to-feed"
+                  checked={shareToFeed}
+                  onCheckedChange={(checked) => setShareToFeed(checked as boolean)}
+                  disabled={isCreatingLog || isSharing}
+                />
+                <label
+                  htmlFor="share-to-feed"
+                  className={`flex items-center gap-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${compact ? "text-xs" : ""}`}
+                >
+                  <Share2 className="h-3 w-3" />
+                  Share to my feed
+                </label>
+              </div>
+            )}
+            
             <Button 
               onClick={handleCreateLog} 
-              disabled={!logText.trim() || isCreatingLog}
+              disabled={!logText.trim() || isCreatingLog || isSharing}
               size={compact ? "sm" : "default"}
               className="w-full"
             >
-              {isCreatingLog ? "Posting..." : "Post Log"}
+              {isCreatingLog || isSharing ? "Posting..." : "Post Log"}
             </Button>
             
             {postingStatus && (

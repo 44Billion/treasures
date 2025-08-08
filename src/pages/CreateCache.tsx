@@ -1116,8 +1116,8 @@ export default function CreateCache() {
                             touchZoom={false}
                           >
                           <TileLayer
-                            attribution={mapStyle.attribution}
-                            url={mapStyle.url}
+                            attribution={mapStyle?.attribution}
+                            url={mapStyle?.url || ""}
                             maxZoom={19}
                           />
                           <MapResizer location={location} />
