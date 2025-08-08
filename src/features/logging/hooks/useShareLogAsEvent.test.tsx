@@ -77,7 +77,6 @@ https://treasures.to/naddr1test
 My experience:
 "This was an amazing find!"`,
       tags: [
-        ['t', 'treasures'],
         ['r', 'https://treasures.to/naddr1test'],
         ['client', 'treasures'],
       ],
@@ -122,7 +121,6 @@ https://treasures.to/naddr1test
 My experience:
 "Verified find with QR code!"`,
       tags: [
-        ['t', 'treasures'],
         ['r', 'https://treasures.to/naddr1test'],
         ['client', 'treasures'],
       ],
@@ -196,7 +194,6 @@ https://treasures.to/naddr1test
 My experience:
 "Found it!"`,
       tags: [
-        ['t', 'treasures'],
         ['r', 'https://treasures.to/naddr1test'],
         ['client', 'treasures'],
       ],
@@ -241,7 +238,6 @@ https://treasures.to/naddr1test
 My experience:
 "This was incredible! The view was breathtaking."`,
       tags: [
-        ['t', 'treasures'],
         ['r', 'https://treasures.to/naddr1test'],
         ['client', 'treasures'],
       ],

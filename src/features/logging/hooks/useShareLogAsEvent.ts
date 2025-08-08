@@ -45,7 +45,6 @@ export function useShareLogAsEvent() {
       kind: 1,
       content: content.trim(),
       tags: [
-        ['t', 'treasures'], // Add treasures hashtag
         ['r', geocacheUrl], // Add reference to the geocache URL
         ['client', 'treasures'] // Client identifier
       ]
