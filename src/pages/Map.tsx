@@ -50,6 +50,7 @@ export default function Map() {
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchRadius, setSearchRadius] = useState(25); // km
   const [searchInView, setSearchInView] = useState(false);
+  const [showMobileSearchOptions, setShowMobileSearchOptions] = useState(false);
 
 
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
@@ -249,6 +250,7 @@ export default function Map() {
     setSearchInView(false); // Clear search in view
 
     setSearchLocation(newCenter);
+    setShowMobileSearchOptions(true); // Expand search options on mobile
     setHighlightedGeocache(null); setHighlightedGeocache(null); setHighlightedGeocache(null); // Clear any highlighted geocache
   };
 
@@ -259,6 +261,7 @@ export default function Map() {
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
     setSearchInView(false); // Clear search in view
+    setShowMobileSearchOptions(true); // Expand search options on mobile
 
     // Clear any highlighted geocache
     
@@ -295,6 +298,7 @@ export default function Map() {
       setShowNearMe(false); // Clear near me
       setSearchLocation({ lat: center.lat, lng: center.lng });
       setSearchRadius(Math.ceil(radiusKm));
+      setShowMobileSearchOptions(true); // Expand search options on mobile
 
       // Clear any highlighted geocache
     }
@@ -681,9 +685,28 @@ export default function Map() {
                   >
                     <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
+                  
+                  {(showNearMe || searchLocation || searchInView) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 flex-shrink-0"
+                      onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
+                      title={showMobileSearchOptions ? "Hide search options" : "Show search options"}
+                    >
+                      <svg 
+                        className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </Button>
+                  )}
                 </div>
                 
-                {(showNearMe || searchLocation || searchInView) && (
+                {(showNearMe || searchLocation || searchInView) && showMobileSearchOptions && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">Search radius:</span>
@@ -710,6 +733,7 @@ export default function Map() {
                         setShowNearMe(false);
                         setSearchLocation(null);
                         setSearchInView(false);
+                        setShowMobileSearchOptions(false);
                       }}
                     >
                       <X className="h-3 w-3 mr-1" />
