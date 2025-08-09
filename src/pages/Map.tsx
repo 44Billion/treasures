@@ -443,37 +443,37 @@ export default function Map() {
               </div>
               
               <div className="space-y-3">
-                <LocationSearch 
-                  onLocationSelect={handleLocationSelect}
-                  placeholder="Search city or zip..."
-                />
-                
                 <div className="flex gap-2">
+                  <div className="flex-1">
+                    <LocationSearch 
+                      onLocationSelect={handleLocationSelect}
+                      placeholder="Search city or zip..."
+                    />
+                  </div>
+                  
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
-                    className={`h-9 text-xs ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
+                    className="h-9 w-9 p-0 flex-shrink-0"
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
+                    title={isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me active" : "Near Me"}
                   >
-                    <Locate className={`h-3 w-3 mr-1 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                    {isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me ✓" : "Near Me"}
+                    <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
-                  
-                  
                   
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="flex-1 min-w-0 h-9 text-xs">
-                          <SelectValue placeholder="25 km" />
+                        <SelectTrigger className="w-20 h-9 text-xs">
+                          <SelectValue placeholder="25km" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">1 km</SelectItem>
-                          <SelectItem value="5">5 km</SelectItem>
-                          <SelectItem value="10">10 km</SelectItem>
-                          <SelectItem value="25">25 km</SelectItem>
-                          <SelectItem value="50">50 km</SelectItem>
-                          <SelectItem value="100">100 km</SelectItem>
+                          <SelectItem value="1">1km</SelectItem>
+                          <SelectItem value="5">5km</SelectItem>
+                          <SelectItem value="10">10km</SelectItem>
+                          <SelectItem value="25">25km</SelectItem>
+                          <SelectItem value="50">50km</SelectItem>
+                          <SelectItem value="100">100km</SelectItem>
                         </SelectContent>
                       </Select>
                       
@@ -484,7 +484,6 @@ export default function Map() {
                           setShowNearMe(false);
                           setSearchLocation(null);
                           setSearchInView(false);
-
                         }}
                         title="Clear location filter"
                       >
@@ -661,37 +660,37 @@ export default function Map() {
               </div>
               
               <div className="space-y-2">
-                <LocationSearch 
-                  onLocationSelect={handleLocationSelect}
-                  placeholder="Search city or zip..."
-                />
-                
                 <div className="flex gap-2">
+                  <div className="flex-1">
+                    <LocationSearch 
+                      onLocationSelect={handleLocationSelect}
+                      placeholder="Search city or zip..."
+                    />
+                  </div>
+                  
                   <Button 
                     variant={showNearMe ? "default" : "outline"} 
-                    className={`h-9 text-xs ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
+                    className="h-9 w-9 p-0 flex-shrink-0"
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
+                    title={isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me active" : "Near Me"}
                   >
-                    <Locate className={`h-3 w-3 mr-1 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                    {isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me ✓" : "Near Me"}
+                    <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
-                  
-                  
                   
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="flex-1 min-w-0 h-9 text-xs">
-                          <SelectValue placeholder="25 km" />
+                        <SelectTrigger className="w-20 h-9 text-xs">
+                          <SelectValue placeholder="25km" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">1 km</SelectItem>
-                          <SelectItem value="5">5 km</SelectItem>
-                          <SelectItem value="10">10 km</SelectItem>
-                          <SelectItem value="25">25 km</SelectItem>
-                          <SelectItem value="50">50 km</SelectItem>
-                          <SelectItem value="100">100 km</SelectItem>
+                          <SelectItem value="1">1km</SelectItem>
+                          <SelectItem value="5">5km</SelectItem>
+                          <SelectItem value="10">10km</SelectItem>
+                          <SelectItem value="25">25km</SelectItem>
+                          <SelectItem value="50">50km</SelectItem>
+                          <SelectItem value="100">100km</SelectItem>
                         </SelectContent>
                       </Select>
                       
@@ -702,7 +701,6 @@ export default function Map() {
                           setShowNearMe(false);
                           setSearchLocation(null);
                           setSearchInView(false);
-
                         }}
                         title="Clear location filter"
                       >
