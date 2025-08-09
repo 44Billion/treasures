@@ -460,11 +460,14 @@ export default function Map() {
                   >
                     <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
-                  
-                  {(showNearMe || searchLocation || searchInView) && (
-                    <>
+                </div>
+                
+                {(showNearMe || searchLocation || searchInView) && (
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Search radius:</span>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-20 h-9 text-xs">
+                        <SelectTrigger className="w-20 h-7 text-xs">
                           <SelectValue placeholder="25km" />
                         </SelectTrigger>
                         <SelectContent>
@@ -476,22 +479,23 @@ export default function Map() {
                           <SelectItem value="100">100km</SelectItem>
                         </SelectContent>
                       </Select>
-                      
-                      <Button
-                        variant="ghost"
-                        className="h-9 w-9 p-0 flex-shrink-0"
-                        onClick={() => {
-                          setShowNearMe(false);
-                          setSearchLocation(null);
-                          setSearchInView(false);
-                        }}
-                        title="Clear location filter"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => {
+                        setShowNearMe(false);
+                        setSearchLocation(null);
+                        setSearchInView(false);
+                      }}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                )}
               </div>
               
 
@@ -677,11 +681,14 @@ export default function Map() {
                   >
                     <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
-                  
-                  {(showNearMe || searchLocation || searchInView) && (
-                    <>
+                </div>
+                
+                {(showNearMe || searchLocation || searchInView) && (
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Search radius:</span>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-20 h-9 text-xs">
+                        <SelectTrigger className="w-20 h-7 text-xs">
                           <SelectValue placeholder="25km" />
                         </SelectTrigger>
                         <SelectContent>
@@ -693,22 +700,23 @@ export default function Map() {
                           <SelectItem value="100">100km</SelectItem>
                         </SelectContent>
                       </Select>
-                      
-                      <Button
-                        variant="ghost"
-                        className="h-9 w-9 p-0 flex-shrink-0"
-                        onClick={() => {
-                          setShowNearMe(false);
-                          setSearchLocation(null);
-                          setSearchInView(false);
-                        }}
-                        title="Clear location filter"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => {
+                        setShowNearMe(false);
+                        setSearchLocation(null);
+                        setSearchInView(false);
+                      }}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
