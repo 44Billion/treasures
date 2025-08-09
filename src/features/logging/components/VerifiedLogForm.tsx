@@ -116,10 +116,10 @@ export function VerifiedLogForm({
           value={logText}
           onChange={(e) => setLogText(e.target.value)}
           rows={compact ? 3 : 4}
-          className={compact ? "text-sm" : ""}
+          className={`text-primary ${compact && "text-sm"}`}
         />
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 text-primary">
           <Checkbox
             id="share-to-feed-verified"
             checked={shareToFeed}
