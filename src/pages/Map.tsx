@@ -459,15 +459,7 @@ export default function Map() {
                     {isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me ✓" : "Near Me"}
                   </Button>
                   
-                  <Button 
-                    variant={searchInView ? "default" : "outline"} 
-                    className={`h-9 text-xs ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
-                    onClick={handleSearchInView}
-                    disabled={isLoading}
-                  >
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {(showNearMe || searchLocation || searchInView) ? 'In View' : 'Search in View'}
-                  </Button>
+                  
                   
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
@@ -685,15 +677,7 @@ export default function Map() {
                     {isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me ✓" : "Near Me"}
                   </Button>
                   
-                  <Button 
-                    variant={searchInView ? "default" : "outline"} 
-                    className={`h-9 text-xs ${(showNearMe || searchLocation || searchInView) ? 'px-3' : 'flex-1'}`}
-                    onClick={handleSearchInView}
-                    disabled={isLoading}
-                  >
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {(showNearMe || searchLocation || searchInView) ? 'In View' : 'Search in View'}
-                  </Button>
+                  
                   
                   {(showNearMe || searchLocation || searchInView) && (
                     <>
