@@ -57,10 +57,8 @@ export default function Profile() {
 
   const metadata = authorData?.metadata;
 
-  // Filter geocaches from the main stats system to only show ones created by target user
-  const userGeocachesWithStats = (allGeocaches || []).filter(cache => 
-    cache.pubkey === targetPubkey
-  );
+  // Use userCaches directly for created tab - it already handles hidden/unlisted cache filtering
+  const userGeocachesWithStats = userCaches || [];
 
   // Calculate distances if location is available
   const userCachesWithDistance = (userGeocachesWithStats || []).map(cache => {
