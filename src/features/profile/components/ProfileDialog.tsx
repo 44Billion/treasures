@@ -18,7 +18,7 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
   const author = useAuthor(pubkey || "");
   const { data: geocachesData = [], isStatsLoading } = useGeocaches();
   const geocaches = Array.isArray(geocachesData) ? geocachesData : [];
-  const { data: foundCaches = [] } = useUserFoundCaches(pubkey || "");
+  const { data: foundCaches = [] } = useUserFoundCaches(pubkey || "", geocaches);
   
   // Early return after all hooks
   if (!pubkey) return null;

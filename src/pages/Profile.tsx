@@ -24,6 +24,7 @@ import { useAuthor } from '@/features/auth/hooks/useAuthor';
 import { useUserGeocaches } from '@/features/geocache/hooks/useUserGeocaches';
 import { useUserFoundCaches } from '@/features/profile/hooks/useUserFoundCaches';
 import { useSavedCaches } from '@/features/geocache/hooks/useSavedCaches';
+import { useGeocaches } from '@/features/geocache/hooks/useGeocaches';
 
 
 import { useGeolocation } from '@/features/map/hooks/useGeolocation';
@@ -45,14 +46,24 @@ export default function Profile() {
 
   const { data: authorData, isLoading: isLoadingAuthor } = useAuthor(targetPubkey);
   const { data: userCaches, isLoading: isLoadingUserCaches } = useUserGeocaches(targetPubkey);
-  const { data: foundCaches, isLoading: isLoadingFoundCaches } = useUserFoundCaches(targetPubkey);
   const { savedCaches, isLoading: isLoadingSavedCaches } = useSavedCaches();
+  
+  // Use the same stats query/store system as index/map page for created caches
+  const { data: allGeocaches, isStatsLoading } = useGeocaches();
+  
+  // Now use the allGeocaches data for found caches
+  const { data: foundCaches, isLoading: isLoadingFoundCaches } = useUserFoundCaches(targetPubkey, allGeocaches);
 
 
   const metadata = authorData?.metadata;
 
+  // Filter geocaches from the main stats system to only show ones created by target user
+  const userGeocachesWithStats = (allGeocaches || []).filter(cache => 
+    cache.pubkey === targetPubkey
+  );
+
   // Calculate distances if location is available
-  const userCachesWithDistance = (userCaches || []).map(cache => {
+  const userCachesWithDistance = (userGeocachesWithStats || []).map(cache => {
     let distance: number | undefined;
     if (coords && cache.location) {
       const R = 6371; // Earth's radius in kilometers
@@ -172,7 +183,7 @@ export default function Profile() {
               pubkey={targetPubkey}
               metadata={metadata}
 
-              hiddenCount={userCaches?.length || 0}
+              hiddenCount={userGeocachesWithStats?.length || 0}
               foundCount={foundCaches?.length || 0}
               savedCount={isOwnProfile ? savedCaches?.length || 0 : undefined}
               variant="page"
@@ -206,7 +217,7 @@ export default function Profile() {
             <TabsTrigger value="created" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
               <MapPin className="h-4 w-4 flex-shrink-0" />
               <span className="text-xs sm:text-sm">Created</span>
-              <span className="text-xs sm:text-sm">({userCaches?.length || 0})</span>
+              <span className="text-xs sm:text-sm">({userGeocachesWithStats?.length || 0})</span>
             </TabsTrigger>
             <TabsTrigger value="found" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
               <CheckCircle className="h-4 w-4 flex-shrink-0" />
@@ -233,7 +244,7 @@ export default function Profile() {
               <div className="flex items-center justify-center py-12">
                 <ComponentLoading size="sm" title="Loading caches..." description="Fetching created caches" />
               </div>
-            ) : !userCaches || userCaches.length === 0 ? (
+            ) : !userGeocachesWithStats || userGeocachesWithStats.length === 0 ? (
               <EmptyStateCard
                 icon={MapPin}
                 title={isOwnProfile ? "No caches created yet" : "No caches found"}
@@ -259,6 +270,7 @@ export default function Profile() {
                       cache={cache}
                       distance={cache.distance}
                       variant="featured"
+                      statsLoading={isStatsLoading}
                     />
                   ))}
               </div>
@@ -302,6 +314,7 @@ export default function Profile() {
                     cache={cache}
                     distance={cache.distance}
                     variant="featured"
+                    statsLoading={isStatsLoading}
                   />
                 ))}
               </div>

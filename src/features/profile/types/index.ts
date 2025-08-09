@@ -54,6 +54,7 @@ export interface FoundCache {
   type: string;
   foundCount?: number; // Total number of finds for this cache (by all users)
   logCount?: number; // Total number of logs for this cache (by all users)
+  zapTotal?: number; // Total zaps received by this cache
 }
 
 export interface Nip05Response {
