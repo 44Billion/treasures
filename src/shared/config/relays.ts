@@ -3,7 +3,7 @@
  */
 
 // Primary relay for the application
-export const DEFAULT_RELAY = 'wss://relay.primal.net';
+export const DEFAULT_RELAY = 'wss://relay.damus.io';
 
 // Array of relays (for compatibility)
 export const DEFAULT_RELAYS = [DEFAULT_RELAY];

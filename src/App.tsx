@@ -37,7 +37,7 @@ const queryClient = new QueryClient({
 });
 
 const defaultConfig: AppConfig = {
-  relayUrl: DEFAULT_RELAY || 'wss://relay.primal.net',
+  relayUrl: DEFAULT_RELAY,
 };
 
 export function App() {
