@@ -117,8 +117,8 @@ export default function TexasRenFest() {
       <DesktopHeader />
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white py-3 px-3 sm:py-4 sm:px-6 border-b-4 border-amber-700 shadow-lg flex-shrink-0">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white border-b-4 border-amber-700 shadow-lg flex-shrink-0 sticky top-16 lg:static z-30">
+        <div className="max-w-7xl mx-auto py-3 px-3 sm:py-4 sm:px-6">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-amber-300 animate-pulse flex-shrink-0" />
@@ -238,9 +238,9 @@ export default function TexasRenFest() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: 'calc(4rem + 3.5rem)', bottom: '4rem' }}>
+      <div className="block lg:hidden pb-16">
         {/* Mobile Content Area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="min-h-[calc(100vh-4rem-4rem-4rem)]">
           <MapViewTabs
             className="h-full flex flex-col"
             value={activeTab}
