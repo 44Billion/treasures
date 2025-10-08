@@ -7,8 +7,9 @@ A dedicated page for discovering geocaches at the Texas Renaissance Festival gro
 
 ### Location
 - **Coordinates**: 30.25423961135441, -95.83969787081105 (Texas Renaissance Festival grounds)
-- **Zoom Level**: 16 (detailed view of festival grounds)
+- **Zoom Level**: 17 (detailed view of festival grounds)
 - **Map Lock**: Map is centered on festival grounds (users can pan to explore)
+- **Festival Area Radius**: 2km (for list organization)
 
 ### Theme
 - **Auto-switches to Adventure Theme** when page loads
@@ -58,8 +59,8 @@ const TEXAS_REN_FEST_CENTER = {
   lat: 30.25423961135441,
   lng: -95.83969787081105
 };
-const TEXAS_REN_FEST_ZOOM = 16;
-const TEXAS_REN_FEST_RADIUS = 5; // km - used for list organization only
+const TEXAS_REN_FEST_ZOOM = 17;
+const TEXAS_REN_FEST_RADIUS = 2; // km - used for list organization only
 ```
 
 ### Theme Forcing

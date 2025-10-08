@@ -24,8 +24,8 @@ const TEXAS_REN_FEST_CENTER = {
   lng: -95.83969787081105
 };
 
-const TEXAS_REN_FEST_ZOOM = 16;
-const TEXAS_REN_FEST_RADIUS = 5; // 5km radius to separate nearby vs elsewhere
+const TEXAS_REN_FEST_ZOOM = 17;
+const TEXAS_REN_FEST_RADIUS = 2; // 2km radius to separate nearby vs elsewhere
 
 // Helper function to calculate distance between two points in km
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -204,7 +204,7 @@ export default function TexasRenFest() {
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Search festival caches..."
+                  placeholder="Search caches..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1"
@@ -333,7 +333,7 @@ export default function TexasRenFest() {
             <div className="space-y-3">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Search festival caches..."
+                  placeholder="Search caches..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1"
