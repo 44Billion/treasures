@@ -227,7 +227,7 @@ export default function TexasRenFest() {
             center={TEXAS_REN_FEST_CENTER}
             zoom={TEXAS_REN_FEST_ZOOM}
             onMarkerClick={handleMarkerClick}
-            onSearchInView={() => {}} // Disabled for festival page
+            onSearchInView={undefined} // Hide search in view button
             highlightedGeocache={highlightedGeocache || undefined}
             showStyleSelector={true}
             isNearMeActive={false}
@@ -257,7 +257,7 @@ export default function TexasRenFest() {
                   center={TEXAS_REN_FEST_CENTER}
                   zoom={TEXAS_REN_FEST_ZOOM}
                   onMarkerClick={handleMarkerClick}
-                  onSearchInView={() => {}} // Disabled
+                  onSearchInView={undefined} // Hide search in view button
                   highlightedGeocache={highlightedGeocache || undefined}
                   showStyleSelector={true}
                   isNearMeActive={false}
