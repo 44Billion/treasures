@@ -24,8 +24,11 @@ A dedicated page for discovering geocaches at the Texas Renaissance Festival gro
   - Click markers to view cache details
   - Mobile-responsive layout with map/list tabs
 - Shows all geocaches (no radius restriction)
+- Smart list organization:
+  - "Festival Area" section for caches within 5km
+  - "...treasures elsewhere in the world" for distant caches
 - Map centered on festival location at startup
-- Festival-specific banner with location info
+- Festival-specific banner with location info (responsive on mobile)
 - Full integration with existing geocache system
 
 ### Navigation
@@ -56,6 +59,7 @@ const TEXAS_REN_FEST_CENTER = {
   lng: -95.7165
 };
 const TEXAS_REN_FEST_ZOOM = 16;
+const TEXAS_REN_FEST_RADIUS = 5; // km - used for list organization only
 ```
 
 ### Theme Forcing
