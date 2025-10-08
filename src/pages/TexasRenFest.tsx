@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { MapPin, Sparkles } from "lucide-react";
 import L from "leaflet";
-import { Input } from "@/components/ui/input";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
 import { GeocacheMap } from "@/components/GeocacheMap";
@@ -45,7 +44,6 @@ export default function TexasRenFest() {
   const { setTheme, theme } = useTheme();
   const isMobile = useIsMobile();
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
   const [difficultyOperator, setDifficultyOperator] = useState<ComparisonOperator>("all");
   const [terrain, setTerrain] = useState<number | undefined>(undefined);
@@ -101,15 +99,6 @@ export default function TexasRenFest() {
   // Client-side filtering function
   function applyClientSideFilters(caches: any[]) {
     let filtered = [...caches];
-
-    // Text search filter
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      filtered = filtered.filter(g =>
-        g.name.toLowerCase().includes(searchLower) ||
-        g.description.toLowerCase().includes(searchLower)
-      );
-    }
 
     // Difficulty filter
     if (difficulty !== undefined && difficultyOperator && difficultyOperator !== 'all') {
@@ -203,12 +192,6 @@ export default function TexasRenFest() {
           <div className="p-4 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
             <div className="space-y-4">
               <div className="flex gap-2">
-                <Input
-                  placeholder="Search caches..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                />
                 <FilterButton
                   difficulty={difficulty}
                   difficultyOperator={difficultyOperator}
@@ -332,12 +315,6 @@ export default function TexasRenFest() {
           <div className="p-3">
             <div className="space-y-3">
               <div className="flex gap-2">
-                <Input
-                  placeholder="Search caches..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                />
                 <FilterButton
                   difficulty={difficulty}
                   difficultyOperator={difficultyOperator}
