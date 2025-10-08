@@ -25,6 +25,20 @@ const TEXAS_REN_FEST_CENTER = {
 };
 
 const TEXAS_REN_FEST_ZOOM = 16;
+const TEXAS_REN_FEST_RADIUS = 5; // 5km radius to separate nearby vs elsewhere
+
+// Helper function to calculate distance between two points in km
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 export default function TexasRenFest() {
   const { config } = useAppContext();
@@ -56,7 +70,30 @@ export default function TexasRenFest() {
   }, [theme, setTheme]);
 
   // Use base geocaches with client-side filtering (no radius restriction)
-  const filteredGeocaches = applyClientSideFilters(baseGeocaches.data || []);
+  const allFilteredGeocaches = applyClientSideFilters(baseGeocaches.data || []);
+
+  // Separate caches into nearby (within radius) and elsewhere
+  const nearbyCaches = allFilteredGeocaches.filter(cache => {
+    const distance = calculateDistance(
+      TEXAS_REN_FEST_CENTER.lat,
+      TEXAS_REN_FEST_CENTER.lng,
+      cache.location.lat,
+      cache.location.lng
+    );
+    return distance <= TEXAS_REN_FEST_RADIUS;
+  });
+
+  const elsewhereCaches = allFilteredGeocaches.filter(cache => {
+    const distance = calculateDistance(
+      TEXAS_REN_FEST_CENTER.lat,
+      TEXAS_REN_FEST_CENTER.lng,
+      cache.location.lat,
+      cache.location.lng
+    );
+    return distance > TEXAS_REN_FEST_RADIUS;
+  });
+
+  const filteredGeocaches = allFilteredGeocaches; // Show all on map
   const isLoading = baseGeocaches.isLoading;
   const error = baseGeocaches.error;
   const refetch = baseGeocaches.refetch;
@@ -140,17 +177,17 @@ export default function TexasRenFest() {
       <DesktopHeader />
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white py-4 px-6 border-b-4 border-amber-700 shadow-lg flex-shrink-0">
+      <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white py-3 px-3 sm:py-4 sm:px-6 border-b-4 border-amber-700 shadow-lg flex-shrink-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Sparkles className="h-8 w-8 text-amber-300 animate-pulse" />
-              <div>
-                <h1 className="text-3xl font-bold mb-1">Texas Renaissance Festival</h1>
-                <p className="text-amber-200 text-sm">Discover hidden treasures at the festival grounds</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-amber-300 animate-pulse flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-0 sm:mb-1 truncate">Texas Renaissance Festival</h1>
+                <p className="text-amber-200 text-xs sm:text-sm hidden xs:block">Discover hidden treasures at the festival grounds</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-amber-700 text-white border-amber-600 hidden sm:flex items-center gap-2">
+            <Badge variant="secondary" className="bg-amber-700 text-white border-amber-600 hidden sm:flex items-center gap-2 flex-shrink-0">
               <MapPin className="h-4 w-4" />
               Todd Mission, TX
             </Badge>
@@ -206,22 +243,63 @@ export default function TexasRenFest() {
               className="h-full"
             >
               <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-muted-foreground">
-                    {filteredGeocaches.length} festival cache{filteredGeocaches.length !== 1 ? 's' : ''}
+                {/* Nearby Caches */}
+                {nearbyCaches.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-amber-600" />
+                        Festival Area
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {nearbyCaches.length} cache{nearbyCaches.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {nearbyCaches.map((cache) => (
+                        <CompactGeocacheCard
+                          key={cache.id}
+                          cache={cache}
+                          distance={cache.distance}
+                          onClick={() => handleCardClick(cache)}
+                          statsLoading={baseGeocaches.isStatsLoading}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-3">
-                  {filteredGeocaches.map((cache) => (
-                    <CompactGeocacheCard
-                      key={cache.id}
-                      cache={cache}
-                      distance={cache.distance}
-                      onClick={() => handleCardClick(cache)}
-                      statsLoading={baseGeocaches.isStatsLoading}
-                    />
-                  ))}
-                </div>
+                )}
+
+                {/* Elsewhere Caches */}
+                {elsewhereCaches.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground">
+                        ...treasures elsewhere in the world
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {elsewhereCaches.length}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {elsewhereCaches.map((cache) => (
+                        <CompactGeocacheCard
+                          key={cache.id}
+                          cache={cache}
+                          distance={cache.distance}
+                          onClick={() => handleCardClick(cache)}
+                          statsLoading={baseGeocaches.isStatsLoading}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* No caches message */}
+                {nearbyCaches.length === 0 && elsewhereCaches.length === 0 && !isLoading && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">No caches found</p>
+                  </div>
+                )}
               </div>
             </SmartLoadingState>
           </div>
@@ -248,7 +326,7 @@ export default function TexasRenFest() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '8rem', bottom: '4rem' }}>
+      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: 'calc(4rem + 3.5rem)', bottom: '4rem' }}>
         {/* Mobile Filters */}
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0 z-10">
           <div className="p-3">
@@ -325,22 +403,63 @@ export default function TexasRenFest() {
                   className="h-full"
                 >
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        {filteredGeocaches.length} festival cache{filteredGeocaches.length !== 1 ? 's' : ''}
+                    {/* Nearby Caches */}
+                    {nearbyCaches.length > 0 && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-amber-600" />
+                            Festival Area
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            {nearbyCaches.length} cache{nearbyCaches.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="space-y-3">
+                          {nearbyCaches.map((cache) => (
+                            <CompactGeocacheCard
+                              key={cache.id}
+                              cache={cache}
+                              distance={cache.distance}
+                              onClick={() => handleCardClick(cache)}
+                              statsLoading={baseGeocaches.isStatsLoading}
+                            />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-3">
-                      {filteredGeocaches.map((cache) => (
-                        <CompactGeocacheCard
-                          key={cache.id}
-                          cache={cache}
-                          distance={cache.distance}
-                          onClick={() => handleCardClick(cache)}
-                          statsLoading={baseGeocaches.isStatsLoading}
-                        />
-                      ))}
-                    </div>
+                    )}
+
+                    {/* Elsewhere Caches */}
+                    {elsewhereCaches.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-semibold text-muted-foreground">
+                            ...treasures elsewhere in the world
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            {elsewhereCaches.length}
+                          </span>
+                        </div>
+                        <div className="space-y-3">
+                          {elsewhereCaches.map((cache) => (
+                            <CompactGeocacheCard
+                              key={cache.id}
+                              cache={cache}
+                              distance={cache.distance}
+                              onClick={() => handleCardClick(cache)}
+                              statsLoading={baseGeocaches.isStatsLoading}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* No caches message */}
+                    {nearbyCaches.length === 0 && elsewhereCaches.length === 0 && !isLoading && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p className="text-sm">No caches found</p>
+                      </div>
+                    )}
                   </div>
                 </SmartLoadingState>
               </div>
