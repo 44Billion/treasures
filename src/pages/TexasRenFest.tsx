@@ -238,9 +238,9 @@ export default function TexasRenFest() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden pb-16">
-        {/* Mobile Content Area */}
-        <div className="min-h-[calc(100vh-4rem-4rem-4rem)]">
+      <div className="block lg:hidden">
+        {/* Mobile Content Area - Account for header (4rem) + banner (~3.75rem) + bottom nav (4rem) */}
+        <div className="h-[calc(100vh-11.75rem)]">
           <MapViewTabs
             className="h-full flex flex-col"
             value={activeTab}
