@@ -39,6 +39,8 @@
 .adventure .select,
 .adventure .input[type="submit"],
 .adventure .input[type="button"],
+.adventure button,
+.adventure .btn,
 .adventure .link,
 .adventure a:not(.text-content a),
 .adventure .text-lg,
@@ -124,7 +126,7 @@
 }
 
 .bg-adventure-map {
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 35%, rgba(101, 67, 33, 0.08) 1px, transparent 1px),
     radial-gradient(circle at 70% 60%, rgba(92, 51, 23, 0.06) 1px, transparent 1px),
     radial-gradient(circle at 85% 25%, rgba(101, 67, 33, 0.05) 0.5px, transparent 0.5px);
