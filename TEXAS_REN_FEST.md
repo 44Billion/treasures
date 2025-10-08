@@ -8,8 +8,7 @@ A dedicated page for discovering geocaches at the Texas Renaissance Festival gro
 ### Location
 - **Coordinates**: 30.2672, -95.7165 (Texas Renaissance Festival grounds)
 - **Zoom Level**: 16 (detailed view of festival grounds)
-- **Search Radius**: 2km from festival center
-- **Map Lock**: Map is centered and locked to festival grounds
+- **Map Lock**: Map is centered on festival grounds (users can pan to explore)
 
 ### Theme
 - **Auto-switches to Adventure Theme** when page loads
@@ -24,7 +23,8 @@ A dedicated page for discovering geocaches at the Texas Renaissance Festival gro
   - Interactive map with geocache markers
   - Click markers to view cache details
   - Mobile-responsive layout with map/list tabs
-- Geocaches automatically filtered to 2km radius
+- Shows all geocaches (no radius restriction)
+- Map centered on festival location at startup
 - Festival-specific banner with location info
 - Full integration with existing geocache system
 
@@ -34,14 +34,11 @@ A dedicated page for discovering geocaches at the Texas Renaissance Festival gro
 - **Direct URL**: `/texas-ren-fest`
 
 ### Visual Design
-- **Hero Banner**: 
+- **Hero Banner**:
   - Amber gradient background with festival name
   - Sparkles icon animation
   - Location badge showing "Todd Mission, TX"
-- **Adventure Mode Indicator**: 
-  - Shows active radius (2km)
-  - Amber-themed notification card
-- **Map Markers**: 
+- **Map Markers**:
   - Blue quest markers with parchment texture
   - Consistent with adventure theme styling
 
@@ -59,7 +56,6 @@ const TEXAS_REN_FEST_CENTER = {
   lng: -95.7165
 };
 const TEXAS_REN_FEST_ZOOM = 16;
-const TEXAS_REN_FEST_RADIUS = 2; // km
 ```
 
 ### Theme Forcing
@@ -83,14 +79,14 @@ useEffect(() => {
 1. User clicks "Explore" → "Texas Ren Fest" in header
 2. Page loads with adventure theme automatically applied
 3. Map shows festival grounds at 16x zoom
-4. Left sidebar shows all caches within 2km
+4. Left sidebar shows all geocaches (filtered by search/difficulty/terrain if set)
 5. Can filter and search caches
 6. Click any cache to view details
 
 ### Mobile
 1. User taps hamburger menu → "Texas Ren Fest"
 2. Page loads with adventure theme and festival banner
-3. Default view is map (showing festival grounds)
+3. Default view is map (centered on festival grounds)
 4. Can switch to list view to see all caches
 5. Tap cache card to view details and navigate to location
 

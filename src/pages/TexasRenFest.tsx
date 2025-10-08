@@ -2,10 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { MapPin, Sparkles } from "lucide-react";
 import L from "leaflet";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { useAdaptiveReliableGeocaches } from "@/features/geocache/hooks/useReliableProximitySearch";
 import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -27,57 +25,91 @@ const TEXAS_REN_FEST_CENTER = {
 };
 
 const TEXAS_REN_FEST_ZOOM = 16;
-const TEXAS_REN_FEST_RADIUS = 2; // 2km radius
 
 export default function TexasRenFest() {
   const { config } = useAppContext();
   const { setTheme, theme } = useTheme();
   const isMobile = useIsMobile();
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
   const [difficultyOperator, setDifficultyOperator] = useState<ComparisonOperator>("all");
   const [terrain, setTerrain] = useState<number | undefined>(undefined);
   const [terrainOperator, setTerrainOperator] = useState<ComparisonOperator>("all");
   const [cacheType, setCacheType] = useState<string | undefined>(undefined);
-  
+
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("map");
 
   const mapRef = useRef<L.Map | null>(null);
-  
+
   // Use the same geocaches hook as Map page
   const baseGeocaches = useGeocaches();
-  
+
   // Force adventure theme on mount
   useEffect(() => {
     if (theme !== 'adventure') {
       setTheme('adventure');
     }
   }, [theme, setTheme]);
-  
-  const { 
-    data: geocaches, 
-    isLoading, 
-    error, 
-    refetch,
-  } = useAdaptiveReliableGeocaches({
-    search: searchQuery,
-    difficulty,
-    difficultyOperator,
-    terrain,
-    terrainOperator,
-    cacheType,
-    userLocation: null,
-    searchLocation: TEXAS_REN_FEST_CENTER,
-    searchRadius: TEXAS_REN_FEST_RADIUS,
-    showNearMe: false,
-    baseGeocaches: baseGeocaches.data,
-  });
 
-  const filteredGeocaches = geocaches || [];
+  // Use base geocaches with client-side filtering (no radius restriction)
+  const filteredGeocaches = applyClientSideFilters(baseGeocaches.data || []);
+  const isLoading = baseGeocaches.isLoading;
+  const error = baseGeocaches.error;
+  const refetch = baseGeocaches.refetch;
+
+  // Client-side filtering function
+  function applyClientSideFilters(caches: any[]) {
+    let filtered = [...caches];
+
+    // Text search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(g =>
+        g.name.toLowerCase().includes(searchLower) ||
+        g.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Difficulty filter
+    if (difficulty !== undefined && difficultyOperator && difficultyOperator !== 'all') {
+      filtered = filtered.filter(g =>
+        applyComparison(g.difficulty, difficultyOperator, difficulty)
+      );
+    }
+
+    // Terrain filter
+    if (terrain !== undefined && terrainOperator && terrainOperator !== 'all') {
+      filtered = filtered.filter(g =>
+        applyComparison(g.terrain, terrainOperator, terrain)
+      );
+    }
+
+    // Cache type filter
+    if (cacheType && cacheType !== 'all') {
+      filtered = filtered.filter(g => g.type === cacheType);
+    }
+
+    // Sort by creation date
+    filtered.sort((a, b) => b.created_at - a.created_at);
+
+    return filtered;
+  }
+
+  function applyComparison(value: number, operator: string, target: number): boolean {
+    switch (operator) {
+      case 'eq': return value === target;
+      case 'gt': return value > target;
+      case 'gte': return value >= target;
+      case 'lt': return value < target;
+      case 'lte': return value <= target;
+      case 'all':
+      default: return true;
+    }
+  }
 
   const handleMarkerClick = (geocache: Geocache) => {
     setSelectedGeocache(geocache);
@@ -92,9 +124,9 @@ export default function TexasRenFest() {
       setActiveTab('map');
       return;
     }
-    
+
     setHighlightedGeocache(geocache.dTag);
-    
+
     if (typeof window !== 'undefined' && (window as any).handleMapCardClick) {
       (window as any).handleMapCardClick(
         { lat: geocache.location.lat, lng: geocache.location.lng },
@@ -106,7 +138,7 @@ export default function TexasRenFest() {
   return (
     <div className="h-screen flex flex-col adventure">
       <DesktopHeader />
-      
+
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white py-4 px-6 border-b-4 border-amber-700 shadow-lg flex-shrink-0">
         <div className="max-w-7xl mx-auto">
@@ -125,7 +157,7 @@ export default function TexasRenFest() {
           </div>
         </div>
       </div>
-      
+
       {/* Desktop View */}
       <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
         {/* Sidebar */}
@@ -153,16 +185,8 @@ export default function TexasRenFest() {
                   onCacheTypeChange={setCacheType}
                 />
               </div>
-              
-              <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="text-sm font-medium">Adventure Mode Active</span>
-                </div>
-                <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                  Showing caches within {TEXAS_REN_FEST_RADIUS}km of festival grounds
-                </p>
-              </div>
+
+
             </div>
           </div>
 
@@ -205,11 +229,11 @@ export default function TexasRenFest() {
 
         {/* Map */}
         <div className="flex-1 relative bg-background min-h-0">
-          <GeocacheMap 
-            geocaches={filteredGeocaches} 
+          <GeocacheMap
+            geocaches={filteredGeocaches}
             userLocation={null}
-            searchLocation={TEXAS_REN_FEST_CENTER}
-            searchRadius={TEXAS_REN_FEST_RADIUS}
+            searchLocation={null}
+            searchRadius={25}
             center={TEXAS_REN_FEST_CENTER}
             zoom={TEXAS_REN_FEST_ZOOM}
             onMarkerClick={handleMarkerClick}
@@ -250,20 +274,15 @@ export default function TexasRenFest() {
                   compact
                 />
               </div>
-              
-              <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
-                <div className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
-                  <Sparkles className="h-3 w-3" />
-                  <span className="text-xs font-medium">Adventure Mode • {TEXAS_REN_FEST_RADIUS}km radius</span>
-                </div>
-              </div>
+
+
             </div>
           </div>
         </div>
 
         {/* Mobile Content Area */}
         <div className="flex-1 overflow-hidden">
-          <MapViewTabs 
+          <MapViewTabs
             className="h-full flex flex-col"
             value={activeTab}
             onValueChange={setActiveTab}
@@ -271,11 +290,11 @@ export default function TexasRenFest() {
             {/* Map Tab */}
             <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block data-[state=inactive]:hidden">
               <div className="h-full w-full bg-background relative">
-                <GeocacheMap 
-                  geocaches={filteredGeocaches} 
+                <GeocacheMap
+                  geocaches={filteredGeocaches}
                   userLocation={null}
-                  searchLocation={TEXAS_REN_FEST_CENTER}
-                  searchRadius={TEXAS_REN_FEST_RADIUS}
+                  searchLocation={null}
+                  searchRadius={25}
                   center={TEXAS_REN_FEST_CENTER}
                   zoom={TEXAS_REN_FEST_ZOOM}
                   onMarkerClick={handleMarkerClick}
@@ -288,7 +307,7 @@ export default function TexasRenFest() {
                 />
               </div>
             </TabsContent>
-            
+
             {/* List Tab */}
             <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden data-[state=inactive]:hidden">
               <div className="flex-1 overflow-y-auto p-4 pb-6 min-h-0">
@@ -331,7 +350,7 @@ export default function TexasRenFest() {
       </div>
 
       {/* Geocache Dialog */}
-      <GeocacheDialog 
+      <GeocacheDialog
         geocache={selectedGeocache}
         isOpen={dialogOpen}
         onOpenChange={(open) => {
