@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-    
+
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' wss: https: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' wss: https: blob:; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    
+
     <!-- Device Permissions -->
     <meta name="permissions" content="geolocation=(), device-orientation=()">
-    
+
     <!-- PWA Meta Tags -->
     <title>Treasures - Decentralized Geocaching</title>
     <meta name="description" content="Discover and hide geocaches on the decentralized Nostr network. Share locations, find geocaches, and explore the world!" />
@@ -24,7 +24,7 @@
     <meta name="application-name" content="Treasures" />
     <meta name="msapplication-TileColor" content="#10b981" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://treasures.to/" />
@@ -40,16 +40,19 @@
     <meta property="twitter:title" content="Treasures - Decentralized Geocaching" />
     <meta property="twitter:description" content="Discover and hide geocaches on the decentralized Nostr network. Share locations, find geocaches, and explore the world!" />
     <meta property="twitter:image" content="https://treasures.to/og-image.png" />
-    
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    
+
     <!-- PWA Icons -->
-    
+
     <link rel="icon" href="/icon-192x192.png" sizes="192x192" type="image/png" />
     <link rel="icon" href="/icon-512x512.png" sizes="512x512" type="image/png" />
 
@@ -60,7 +63,7 @@
         min-height: 100vh;
         background-color: #ffffff;
       }
-      
+
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
         #root {
@@ -68,7 +71,7 @@
           color: #f8fafc;
         }
       }
-      
+
       /* Loading spinner for initial load */
       .initial-loading {
         display: flex;
@@ -77,7 +80,7 @@
         min-height: 100vh;
         font-family: system-ui, -apple-system, sans-serif;
       }
-      
+
       .loading-spinner {
         width: 32px;
         height: 32px;
@@ -86,12 +89,12 @@
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
-      
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      
+
       /* Hide loading once React takes over */
       .app-loaded .initial-loading {
         display: none;
