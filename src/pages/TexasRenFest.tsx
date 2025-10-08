@@ -7,14 +7,12 @@ import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
-import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
 import { useIsMobile } from "@/shared/hooks/useIsMobile";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { useTheme } from "@/shared/hooks/useTheme";
 
 // Texas Renaissance Festival coordinates
@@ -44,12 +42,6 @@ export default function TexasRenFest() {
   const { setTheme, theme } = useTheme();
   const isMobile = useIsMobile();
 
-  const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
-  const [difficultyOperator, setDifficultyOperator] = useState<ComparisonOperator>("all");
-  const [terrain, setTerrain] = useState<number | undefined>(undefined);
-  const [terrainOperator, setTerrainOperator] = useState<ComparisonOperator>("all");
-  const [cacheType, setCacheType] = useState<string | undefined>(undefined);
-
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
@@ -67,11 +59,11 @@ export default function TexasRenFest() {
     }
   }, [theme, setTheme]);
 
-  // Use base geocaches with client-side filtering (no radius restriction)
-  const allFilteredGeocaches = applyClientSideFilters(baseGeocaches.data || []);
+  // Use base geocaches (no filtering)
+  const allCaches = baseGeocaches.data || [];
 
   // Separate caches into nearby (within radius) and elsewhere
-  const nearbyCaches = allFilteredGeocaches.filter(cache => {
+  const nearbyCaches = allCaches.filter(cache => {
     const distance = calculateDistance(
       TEXAS_REN_FEST_CENTER.lat,
       TEXAS_REN_FEST_CENTER.lng,
@@ -81,7 +73,7 @@ export default function TexasRenFest() {
     return distance <= TEXAS_REN_FEST_RADIUS;
   });
 
-  const elsewhereCaches = allFilteredGeocaches.filter(cache => {
+  const elsewhereCaches = allCaches.filter(cache => {
     const distance = calculateDistance(
       TEXAS_REN_FEST_CENTER.lat,
       TEXAS_REN_FEST_CENTER.lng,
@@ -91,51 +83,10 @@ export default function TexasRenFest() {
     return distance > TEXAS_REN_FEST_RADIUS;
   });
 
-  const filteredGeocaches = allFilteredGeocaches; // Show all on map
+  const filteredGeocaches = allCaches; // Show all on map
   const isLoading = baseGeocaches.isLoading;
   const error = baseGeocaches.error;
   const refetch = baseGeocaches.refetch;
-
-  // Client-side filtering function
-  function applyClientSideFilters(caches: any[]) {
-    let filtered = [...caches];
-
-    // Difficulty filter
-    if (difficulty !== undefined && difficultyOperator && difficultyOperator !== 'all') {
-      filtered = filtered.filter(g =>
-        applyComparison(g.difficulty, difficultyOperator, difficulty)
-      );
-    }
-
-    // Terrain filter
-    if (terrain !== undefined && terrainOperator && terrainOperator !== 'all') {
-      filtered = filtered.filter(g =>
-        applyComparison(g.terrain, terrainOperator, terrain)
-      );
-    }
-
-    // Cache type filter
-    if (cacheType && cacheType !== 'all') {
-      filtered = filtered.filter(g => g.type === cacheType);
-    }
-
-    // Sort by creation date
-    filtered.sort((a, b) => b.created_at - a.created_at);
-
-    return filtered;
-  }
-
-  function applyComparison(value: number, operator: string, target: number): boolean {
-    switch (operator) {
-      case 'eq': return value === target;
-      case 'gt': return value > target;
-      case 'gte': return value >= target;
-      case 'lt': return value < target;
-      case 'lte': return value <= target;
-      case 'all':
-      default: return true;
-    }
-  }
 
   const handleMarkerClick = (geocache: Geocache) => {
     setSelectedGeocache(geocache);
@@ -188,28 +139,6 @@ export default function TexasRenFest() {
       <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
         {/* Sidebar */}
         <div className="w-96 border-r bg-background flex flex-col">
-          {/* Filters */}
-          <div className="p-4 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <FilterButton
-                  difficulty={difficulty}
-                  difficultyOperator={difficultyOperator}
-                  onDifficultyChange={setDifficulty}
-                  onDifficultyOperatorChange={setDifficultyOperator}
-                  terrain={terrain}
-                  terrainOperator={terrainOperator}
-                  onTerrainChange={setTerrain}
-                  onTerrainOperatorChange={setTerrainOperator}
-                  cacheType={cacheType}
-                  onCacheTypeChange={setCacheType}
-                />
-              </div>
-
-
-            </div>
-          </div>
-
           {/* Results */}
           <div className="flex-1 overflow-y-auto min-h-0">
             <SmartLoadingState
@@ -310,31 +239,6 @@ export default function TexasRenFest() {
 
       {/* Mobile View */}
       <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: 'calc(4rem + 3.5rem)', bottom: '4rem' }}>
-        {/* Mobile Filters */}
-        <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0 z-10">
-          <div className="p-3">
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <FilterButton
-                  difficulty={difficulty}
-                  difficultyOperator={difficultyOperator}
-                  onDifficultyChange={setDifficulty}
-                  onDifficultyOperatorChange={setDifficultyOperator}
-                  terrain={terrain}
-                  terrainOperator={terrainOperator}
-                  onTerrainChange={setTerrain}
-                  onTerrainOperatorChange={setTerrainOperator}
-                  cacheType={cacheType}
-                  onCacheTypeChange={setCacheType}
-                  compact
-                />
-              </div>
-
-
-            </div>
-          </div>
-        </div>
-
         {/* Mobile Content Area */}
         <div className="flex-1 overflow-hidden">
           <MapViewTabs
