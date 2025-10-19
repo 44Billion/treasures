@@ -8,27 +8,26 @@ import { TIMEOUTS } from '@/lib/constants';
 import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 import { nip19, nip57 } from 'nostr-tools';
 import { useZapStore } from '@/shared/stores/useZapStore';
+import { useMultiRelayQuery } from '@/shared/hooks/useMultiRelayQuery';
 import type { Geocache } from '@/shared/types';
 
-export function useGeocacheByNaddr(naddr: string) {
+export function useGeocacheByNaddr(naddr: string, options?: {
+  onRelayAttempt?: (relayUrl: string, attempt: number) => void;
+  onMultiRelayStart?: () => void;
+  onMultiRelayEnd?: () => void;
+}) {
   const geocacheStore = useGeocacheStoreContext();
   const queryClient = useQueryClient();
   const { nostr } = useNostr();
   const { setZaps } = useZapStore();
+  const { queryMultipleRelays } = useMultiRelayQuery();
+  const { onRelayAttempt, onMultiRelayStart, onMultiRelayEnd } = options || {};
 
   return useQuery({
     queryKey: ['geocache-by-naddr', naddr],
     staleTime: 30000,
     gcTime: 300000, // 5 minutes
-    retry: (failureCount, error) => {
-      // Don't retry if it's an invalid cache link
-      if (error instanceof Error && error.message === 'INVALID_CACHE_LINK') {
-        return false;
-      }
-      // Retry network errors up to 2 times
-      return failureCount < 2;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+    retry: false, // We handle retry logic manually with multi-relay
     refetchOnReconnect: true, // Refetch when connection is restored
     networkMode: 'always', // Always run queries regardless of network status
 
@@ -43,7 +42,7 @@ export function useGeocacheByNaddr(naddr: string) {
       if (!parsed) {
         throw new Error('INVALID_CACHE_LINK');
       }
-      
+
       const { pubkey, dTag } = parsed;
 
       // Check if we have fresh data in cache first (avoid unnecessary network requests)
@@ -64,14 +63,14 @@ export function useGeocacheByNaddr(naddr: string) {
         const existingGeocache = currentGeocaches.find(
           g => g.pubkey === pubkey && g.dTag === dTag
         );
-        
+
         let geocache: Geocache | undefined = existingGeocache;
-        
+
         // If not found in current data, query directly for this specific geocache
         if (!geocache) {
           console.log(`Geocache not found in store, querying directly: ${pubkey}:${dTag}`);
-          
-          // Query directly for this specific geocache using naddr coordinates
+
+          // First try the selected relay
           const signal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
           const events = await nostr.query([{
             kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
@@ -79,10 +78,43 @@ export function useGeocacheByNaddr(naddr: string) {
             '#d': [dTag],
             limit: 1,
           }], { signal });
-          
+
           if (events.length === 0) {
-            console.warn(`Geocache not found on relay: ${pubkey}:${dTag}`);
-            // Return null instead of throwing error - this allows the UI to handle create scenarios
+            console.warn(`Geocache not found on primary relay: ${pubkey}:${dTag}`);
+
+            // Check if this might be the owner trying to create from URL/QR
+            // If we can't determine ownership, we'll try multi-relay as fallback
+            console.log(`Trying multi-relay fallback for ${pubkey}:${dTag}`);
+
+            onMultiRelayStart?.();
+
+            const { events: fallbackEvents, successRelay } = await queryMultipleRelays([{
+              kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+              authors: [pubkey],
+              '#d': [dTag],
+              limit: 1,
+            }], {
+              onRelayAttempt: (relayUrl, attempt) => {
+                // This will be used by the UI to show relay attempts
+                console.log(`🔄 Relay attempt ${attempt}: ${relayUrl}`);
+                onRelayAttempt?.(relayUrl, attempt);
+              }
+            });
+
+            onMultiRelayEnd?.();
+
+            if (fallbackEvents.length > 0) {
+              console.log(`✅ Found geocache on fallback relay: ${successRelay}`);
+              events.push(...fallbackEvents);
+            } else {
+              console.log(`❌ No geocache found on any relay: ${pubkey}:${dTag}`);
+              // Return null instead of throwing error - this allows the UI to handle create scenarios
+              console.log('No geocache found - returning null for potential create scenario');
+              return null;
+            }
+          }
+
+          if (events.length === 0) {
             console.log('No geocache found - returning null for potential create scenario');
             return null;
           } else {
@@ -96,7 +128,7 @@ export function useGeocacheByNaddr(naddr: string) {
             geocache = parsedGeocache;
           }
         }
-        
+
         // If we returned null early (no geocache found), skip logs/zaps processing
         if (!geocache) {
           return null;
@@ -107,25 +139,25 @@ export function useGeocacheByNaddr(naddr: string) {
         const actualKind = (geocache?.kind as number) || NIP_GC_KINDS.GEOCACHE;
         const geocacheCoordinate = `${actualKind}:${pubkey}:${dTag}`;
         const logSignal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
-        
+
         // Fetch logs
         const logEvents = await nostr.query([{
           kinds: [NIP_GC_KINDS.FOUND_LOG, NIP_GC_KINDS.COMMENT_LOG],
           '#a': [geocacheCoordinate],
           limit: 100, // Reasonable limit for logs
         }], { signal: logSignal });
-        
+
         // Fetch zaps
         const zapSignal = AbortSignal.any([AbortSignal.timeout(TIMEOUTS.QUERY)]);
         const zapEvents = await nostr.query([{
           kinds: [9735],
           '#a': [geocacheCoordinate],
         }], { signal: zapSignal });
-        
+
         let foundCount = 0;
         const logCount = logEvents.length;
         let zapTotal = 0;
-        
+
         // Count found logs (unique by pubkey)
         const uniqueFinders = new Set<string>();
         logEvents.forEach(event => {
@@ -134,7 +166,7 @@ export function useGeocacheByNaddr(naddr: string) {
           }
         });
         foundCount = uniqueFinders.size;
-        
+
         // Calculate zap total
         zapEvents.forEach(event => {
           const bolt11 = event.tags.find((t: string[]) => t[0] === 'bolt11')?.[1];
@@ -146,7 +178,7 @@ export function useGeocacheByNaddr(naddr: string) {
             }
           }
         });
-        
+
         // Construct the correct naddr based on the actual geocache's kind
         const correctNaddr = nip19.naddrEncode({
           kind: geocache?.kind || NIP_GC_KINDS.GEOCACHE,
@@ -154,12 +186,12 @@ export function useGeocacheByNaddr(naddr: string) {
           identifier: geocache?.dTag || '',
           relays: geocache?.relays || []
         });
-        
+
         // Update zap store with fetched zaps
         const zapKey = `naddr:${correctNaddr}`;
         setZaps(zapKey, zapEvents);
-        
-        
+
+
 
         const resultGeocache = {
           ...geocache,
