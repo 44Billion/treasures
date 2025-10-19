@@ -45,6 +45,7 @@ import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
 import { parseVerificationFromHash, verifyKeyPair } from "@/features/geocache/utils/verification";
 import { naddrToGeocache } from "@/shared/utils/naddr-utils";
+import { encodeGeohash } from "@/features/geocache/utils/nip-gc";
 import type { Geocache, GeocacheLog } from "@/types/geocache";
 
 export default function CacheDetail() {
@@ -789,6 +790,17 @@ export default function CacheDetail() {
                     {isEditing && editLocation ?
                       `${editLocation.lat.toFixed(6)}, ${editLocation.lng.toFixed(6)}` :
                       `${geocache.location.lat.toFixed(6)}, ${geocache.location.lng.toFixed(6)}`
+                    }
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground mt-3">
+                    Geohash {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
+                      <span className="text-orange-600 text-xs">(modified)</span>
+                    )}
+                  </p>
+                  <p className="text-xs md:text-sm font-mono mt-1 break-all text-foreground">
+                    {isEditing && editLocation ?
+                      encodeGeohash(editLocation.lat, editLocation.lng, 9) :
+                      encodeGeohash(geocache.location.lat, geocache.location.lng, 9)
                     }
                   </p>
                   <Button
