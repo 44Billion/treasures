@@ -222,7 +222,7 @@ export function LogsSection({
                     </span>
                   </div>
                   <p className="text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3">
-                    You have a valid verification key for this cache. Create an account to post a verified "Found it" log with a special verification badge!
+                    You have a valid verification key for this treasure. Create an account to post a verified "Found it" log with a special badge!
                   </p>
                   <Button
                     onClick={handleSignupClick}
@@ -236,7 +236,7 @@ export function LogsSection({
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Found this geocache? Create an account or log in to share your experience with the community!
+                  Found this treasure? Create an account or log in to share your experience!
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
@@ -268,7 +268,7 @@ export function LogsSection({
         <EmptyStateCard
           icon={MessageSquare}
           title="No logs yet"
-          description={compact ? undefined : user ? "Be the first to log this cache!" : "Log in to share your experience with this cache!"}
+          description={compact ? undefined : user ? "Be the first to log this treasure!" : "Log in to share your experience!"}
           action={!user ? <LoginArea /> : undefined}
         />
       )}

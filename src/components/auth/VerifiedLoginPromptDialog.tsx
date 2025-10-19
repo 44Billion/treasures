@@ -12,12 +12,12 @@ interface VerifiedLoginPromptDialogProps {
   geocacheName?: string;
 }
 
-export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  onLogin, 
+export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps> = ({
+  isOpen,
+  onClose,
+  onLogin,
   onSignup,
-  geocacheName 
+  geocacheName
 }) => {
   const handleLogin = () => {
     onClose();
@@ -30,8 +30,8 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
   };
 
   return (
-    <BaseDialog 
-      isOpen={isOpen} 
+    <BaseDialog
+      isOpen={isOpen}
       onOpenChange={onClose}
       size="auth"
       title={
@@ -42,7 +42,7 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
       }
       description={
         <span className="text-center">
-          You've found a verified geocache treasure!
+          You've found a verified treasure!
         </span>
       }
       headerClassName='px-6 pt-6 pb-1 relative'
@@ -58,7 +58,7 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
             <Sparkles className='absolute bottom-3 right-4 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '1s'}} />
             <Star className='absolute bottom-3 left-3 w-2 h-2 text-yellow-500 animate-pulse' style={{animationDelay: '1.5s'}} />
           </div>
-          
+
           <div className='relative z-10 text-center space-y-3'>
             <div className='flex justify-center items-center gap-2 mb-2'>
               <div className='relative'>
@@ -70,13 +70,13 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
                 </div>
               </div>
             </div>
-            
+
             <div className='space-y-2'>
               <h3 className='font-bold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200 text-lg'>
                 Congratulations, Treasure Hunter!
               </h3>
               <p className='text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300'>
-                You've discovered <span className="font-semibold">{geocacheName || 'a verified geocache'}</span> with proof of find!
+                You've discovered <span className="font-semibold">{geocacheName || 'a verified treasure'}</span>!
               </p>
             </div>
           </div>
@@ -120,7 +120,7 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
                       Track Your Adventures
                     </div>
                     <div className='text-xs text-muted-foreground'>
-                      Keep a permanent record of all your geocache discoveries
+                      Keep a permanent record of all your treasure discoveries
                     </div>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
             <Sparkles className='w-4 h-4 mr-2' />
             Create My Account & Log Find
           </Button>
-          
+
           <Button
             onClick={handleLogin}
             variant="outline"
