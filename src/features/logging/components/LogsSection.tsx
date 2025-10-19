@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { LogTypeButtonGroup } from "@/shared/components/ui/mobile-button-patterns";
@@ -140,10 +140,17 @@ export function LogsSection({
     setShowSignupDialog(false);
   };
 
+  // Auto-show verified login prompt when user has verification key but is not logged in
+  useEffect(() => {
+    if (verificationKey && isVerificationValid && !user) {
+      setShowVerifiedLoginPrompt(true);
+    }
+  }, [verificationKey, isVerificationValid, user]);
+
   return (
     <div className={`space-y-4 ${className || ''}`}>
-      {/* Show verified form if verification key is valid */}
-      {verificationKey && isVerificationValid && !hideForm && (
+      {/* Show verified form if verification key is valid and user is logged in */}
+      {user && verificationKey && isVerificationValid && !hideForm && (
         <VerifiedLogForm
           geocache={geocache}
           verificationKey={verificationKey}
@@ -221,53 +228,30 @@ export function LogsSection({
             </div>
           )}
           <div className={compact ? "p-4 space-y-3" : "lg:p-6 lg:pt-0 p-4 space-y-4 lg:pb-6 pb-2"}>
-            {/* Special prompt for verified found logs */}
-            {verificationKey && isVerificationValid ? (
-              <div className="space-y-4">
-                <div className="relative p-4 rounded-lg bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-green-200 dark:border-green-800 adventure:border-amber-200 adventure:dark:border-amber-800">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck className="h-5 w-5 text-green-600 adventure:text-amber-700" />
-                    <span className="font-semibold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200">
-                      Verified Discovery Available!
-                    </span>
-                  </div>
-                  <p className="text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3">
-                    You have a valid verification key for this treasure. Create an account to post a verified "Found it" log with a special badge!
-                  </p>
-                  <Button
-                    onClick={handleSignupClick}
-                    className="w-full bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800"
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Create Account to Log Verified Find
-                  </Button>
-                </div>
+            {/* Since we auto-show the modal for verified finds, only show normal prompt here */}
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Found this treasure? Create an account or log in to share your experience!
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={handleNormalSignupClick}
+                  variant="default"
+                  className="w-full"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create Account
+                </Button>
+                <Button
+                  onClick={handleLoginClick}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Log In
+                </Button>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Found this treasure? Create an account or log in to share your experience!
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button
-                    onClick={handleNormalSignupClick}
-                    variant="default"
-                    className="w-full"
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Create Account
-                  </Button>
-                  <Button
-                    onClick={handleLoginClick}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Log In
-                  </Button>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}
