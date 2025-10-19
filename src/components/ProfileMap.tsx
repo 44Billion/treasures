@@ -356,20 +356,8 @@ export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
     const centerLat = (minLat + maxLat) / 2;
     const centerLng = (minLng + maxLng) / 2;
 
-    // Calculate appropriate zoom based on spread
-    const latDiff = maxLat - minLat;
-    const lngDiff = maxLng - minLng;
-    const maxDiff = Math.max(latDiff, lngDiff);
-
-    let zoom = 10;
-    if (maxDiff < 0.1) zoom = 14;
-    else if (maxDiff < 0.5) zoom = 12;
-    else if (maxDiff < 2) zoom = 10;
-    else if (maxDiff < 5) zoom = 8;
-    else if (maxDiff < 10) zoom = 6;
-    else if (maxDiff < 30) zoom = 4;
-    else if (maxDiff < 60) zoom = 3;
-    else zoom = 2; // World view for very spread out geocaches
+    // Always start at world level zoom for profile map
+    let zoom = 2; // World view
 
     return {
       center: [centerLat, centerLng] as LatLngExpression,
