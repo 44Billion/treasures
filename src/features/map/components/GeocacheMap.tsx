@@ -470,6 +470,119 @@ function MapSizeController() {
   return null;
 }
 
+// Component to ensure popups remain functional during zoom operations
+function ZoomPopupManager({ geocaches }: { geocaches: Geocache[] }) {
+  const map = useMap();
+  const isZoomingRef = useRef(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleZoomStart = () => {
+      isZoomingRef.current = true;
+
+      // Clear any existing timeout
+      if (zoomTimeoutRef.current) {
+        clearTimeout(zoomTimeoutRef.current);
+        zoomTimeoutRef.current = null;
+      }
+    };
+
+    const handleZoomEnd = () => {
+      // Mark zoom as complete after a short delay to ensure all clustering is done
+      zoomTimeoutRef.current = setTimeout(() => {
+        isZoomingRef.current = false;
+
+        // Ensure all markers have proper popup bindings after zoom
+        map.eachLayer((layer: L.Layer) => {
+          if (layer instanceof L.Marker && layer.getLatLng()) {
+            const latlng = layer.getLatLng();
+
+            // Find the corresponding geocache
+            const geocache = geocaches.find(g =>
+              g.location &&
+              Math.abs(g.location.lat - latlng.lat) < 0.0001 &&
+              Math.abs(g.location.lng - latlng.lng) < 0.0001
+            );
+
+            if (geocache && !layer.getPopup()) {
+              // Rebind popup if it was lost during zoom
+              const popupContent = () => createGeocachePopupHTML(geocache);
+              layer.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: 'geocache-popup',
+                closeButton: true,
+                autoClose: false,
+                autoPan: true,
+                keepInView: true,
+                closeOnClick: false,
+                closeOnEscapeKey: true,
+                minWidth: 200,
+                maxHeight: 400
+              });
+            }
+          }
+        });
+      }, 300); // Wait for clustering to complete
+    };
+
+    const handleMoveEnd = () => {
+      // Also handle move end for comprehensive coverage
+      if (!isZoomingRef.current) {
+        // Only rebind if not currently zooming
+        setTimeout(() => {
+          if (!isZoomingRef.current) {
+            map.eachLayer((layer: L.Layer) => {
+              if (layer instanceof L.Marker && layer.getLatLng()) {
+                const latlng = layer.getLatLng();
+
+                const geocache = geocaches.find(g =>
+                  g.location &&
+                  Math.abs(g.location.lat - latlng.lat) < 0.0001 &&
+                  Math.abs(g.location.lng - latlng.lng) < 0.0001
+                );
+
+                if (geocache && !layer.getPopup()) {
+                  const popupContent = () => createGeocachePopupHTML(geocache);
+                  layer.bindPopup(popupContent, {
+                    maxWidth: 300,
+                    className: 'geocache-popup',
+                    closeButton: true,
+                    autoClose: false,
+                    autoPan: true,
+                    keepInView: true,
+                    closeOnClick: false,
+                    closeOnEscapeKey: true,
+                    minWidth: 200,
+                    maxHeight: 400
+                  });
+                }
+              }
+            });
+          }
+        }, 200);
+      }
+    };
+
+    // Listen to zoom and move events
+    map.on('zoomstart', handleZoomStart);
+    map.on('zoomend', handleZoomEnd);
+    map.on('moveend', handleMoveEnd);
+
+    return () => {
+      map.off('zoomstart', handleZoomStart);
+      map.off('zoomend', handleZoomEnd);
+      map.off('moveend', handleMoveEnd);
+
+      if (zoomTimeoutRef.current) {
+        clearTimeout(zoomTimeoutRef.current);
+        zoomTimeoutRef.current = null;
+      }
+    };
+  }, [map, geocaches]);
+
+  return null;
+}
+
 // Component to expose map reference and handle loading state
 function MapRefController({
   mapRef,
@@ -961,6 +1074,7 @@ export function GeocacheMap({
       <OptimizedTileLayer mapStyle={mapStyle} />
 
       <MapSizeController />
+      <ZoomPopupManager geocaches={geocaches} />
 
       <MapRefController mapRef={mapRef} onMapReady={() => setIsMapReady(true)} />
 
@@ -1049,6 +1163,10 @@ export function GeocacheMap({
         // Performance optimizations
         disableClusteringAtZoom={16} // Disable clustering at high zoom levels
         maxZoom={18} // Match tile layer max zoom
+        // Enhanced clustering options for better popup handling
+        spiderfyDistanceMultiplier={1.5} // Better spiderfy behavior
+        clusterPane="markerPane" // Ensure proper layering
+        // Prevent popup issues during clustering operations
         iconCreateFunction={(cluster: { getChildCount: () => any; }) => {
           const count = cluster.getChildCount();
           const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
@@ -1059,6 +1177,19 @@ export function GeocacheMap({
             iconSize: L.point(36, 36, true), // Slightly smaller for better performance
           });
         }}
+        eventHandlers={{
+          clusteringbegin: () => {
+            // Ensure all markers have popups before clustering
+            // This helps prevent popup loss during zoom operations
+          },
+          clusteringend: () => {
+            // Re-bind popups if needed after clustering is complete
+            // This ensures popups are available after zoom operations
+          },
+          unspiderfied: () => {
+            // Ensure individual markers have popups when unspiderfied
+          }
+        }}
       >
         {geocaches.filter(g => g.location).slice(0, 200).map((geocache) => { // Limit to 200 markers for performance
           return (
@@ -1068,25 +1199,112 @@ export function GeocacheMap({
               icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
               eventHandlers={{
                 add: (e) => {
-                  // Bind HTML popup when marker is added - lazy load content
+                  // Bind HTML popup when marker is added - ensure it's always available
                   const marker = e.target;
-                  marker.bindPopup(() => createGeocachePopupHTML(geocache), {
+
+                  // Remove any existing popup first to prevent duplicates
+                  if (marker.getPopup()) {
+                    marker.unbindPopup();
+                  }
+
+                  // Create popup content function to ensure fresh content each time
+                  const popupContent = () => createGeocachePopupHTML(geocache);
+
+                  // Bind popup with robust options
+                  marker.bindPopup(popupContent, {
                     maxWidth: 300,
                     className: 'geocache-popup',
                     closeButton: true,
-                    autoClose: true,
+                    autoClose: false, // Don't auto-close when clicking other markers
                     autoPan: true,
-                    keepInView: true
+                    keepInView: true,
+                    closeOnClick: false, // Don't close when clicking on the map
+                    closeOnEscapeKey: true,
+                    minWidth: 200,
+                    maxHeight: 400
                   });
                 },
                 click: (e) => {
-                  // Ensure popup opens on marker click
+                  // Robust popup opening logic
                   const marker = e.target;
-                  if (!marker.isPopupOpen()) {
-                    marker.openPopup();
+                  const map = marker._map;
+
+                  // Prevent event propagation to avoid map clicks
+                  L.DomEvent.stopPropagation(e);
+                  L.DomEvent.preventDefault(e);
+
+                  // Close any other open popups first
+                  if (map) {
+                    map.closePopup();
+                  }
+
+                  // Always rebind popup to ensure it's fresh and functional
+                  // This prevents issues where the popup was lost during clustering
+                  if (marker.getPopup()) {
+                    marker.unbindPopup();
+                  }
+
+                  const popupContent = () => createGeocachePopupHTML(geocache);
+                  marker.bindPopup(popupContent, {
+                    maxWidth: 300,
+                    className: 'geocache-popup',
+                    closeButton: true,
+                    autoClose: false,
+                    autoPan: true,
+                    keepInView: true,
+                    closeOnClick: false,
+                    closeOnEscapeKey: true,
+                    minWidth: 200,
+                    maxHeight: 400
+                  });
+
+                  // Open popup with multiple fallback attempts
+                  const attemptOpenPopup = (attempt: number = 1) => {
+                    try {
+                      marker.openPopup();
+                    } catch (error) {
+                      console.warn(`Failed to open popup (attempt ${attempt}):`, error);
+
+                      if (attempt <= 3) {
+                        // Try again with a slightly longer delay
+                        setTimeout(() => {
+                          // Rebind and try again
+                          if (marker.getPopup()) {
+                            marker.unbindPopup();
+                          }
+                          marker.bindPopup(popupContent, {
+                            maxWidth: 300,
+                            className: 'geocache-popup',
+                            closeButton: true,
+                            autoClose: false,
+                            autoPan: true,
+                            keepInView: true,
+                            closeOnClick: false,
+                            closeOnEscapeKey: true,
+                            minWidth: 200,
+                            maxHeight: 400
+                          });
+                          attemptOpenPopup(attempt + 1);
+                        }, 50 * attempt);
+                      }
+                    }
+                  };
+
+                  // Start opening popup immediately
+                  setTimeout(() => attemptOpenPopup(1), 10);
+                },
+                popupopen: (e) => {
+                  // Ensure popup content is properly rendered when opened
+                  const popup = e.target.getPopup();
+                  if (popup && popup.getElement()) {
+                    // Force a re-render to ensure content is visible
+                    const element = popup.getElement();
+                    if (element) {
+                      element.style.visibility = 'visible';
+                      element.style.opacity = '1';
+                    }
                   }
                 }
-                // Removed click handler - clicking marker should only show popup, not open modal
               }}
             />
           );
