@@ -4,6 +4,8 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useStore } from 'zustand';
 import { useZapStore } from '@/shared/stores/useZapStore';
 import { ZapButton } from "@/components/ZapButton";
+import { GeocacheLoading } from "@/components/GeocacheLoading";
+import { useDirectNavigation } from '@/shared/hooks/useDirectNavigation';
 
 import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,18 +53,36 @@ export default function CacheDetail() {
   const location = useLocation();
 
   const { user } = useCurrentUser();
-  
+  const isDirectNavigation = useDirectNavigation();
+
   // Check if we have geocache data passed from navigation state (just created)
   const navigationState = location.state as { geocacheData?: any; justCreated?: boolean } | null;
   const passedGeocacheData = navigationState?.geocacheData;
   const justCreated = navigationState?.justCreated;
-  
+
+  // State for tracking multi-relay attempts
+  const [relayAttempts, setRelayAttempts] = useState<string[]>([]);
+  const [isMultiRelayLoading, setIsMultiRelayLoading] = useState(false);
+
   // All hooks must be called unconditionally at the top level
-  const { data: fetchedGeocache, isLoading, error, isError, refetch } = useGeocacheByNaddr(naddr || "");
-  
+  const { data: fetchedGeocache, isLoading, error, isError, refetch } = useGeocacheByNaddr(naddr || "", {
+    onRelayAttempt: (relayUrl, attempt) => {
+      setRelayAttempts(prev => [...prev, relayUrl]);
+    },
+    onMultiRelayStart: () => {
+      setIsMultiRelayLoading(true);
+    },
+    onMultiRelayEnd: () => {
+      setIsMultiRelayLoading(false);
+    }
+  });
+
   // Use passed data if available, otherwise use fetched data
   const geocache = passedGeocacheData || fetchedGeocache;
-  
+
+  // Show full-page loading for direct navigation when loading
+  const shouldShowFullPageLoading = isDirectNavigation && isLoading && !passedGeocacheData && !geocache;
+
   // Create stable references for the logs query to prevent duplicate queries
   const geocacheId = geocache ? `${geocache.pubkey}:${geocache.dTag}` : '';
   const geocacheDTag = geocache?.dTag;
@@ -70,16 +90,16 @@ export default function CacheDetail() {
   const geocacheRelays = geocache?.relays;
   const geocacheVerificationPubkey = geocache?.verificationPubkey;
   const geocacheKind = geocache?.kind;
-  
+
   const { data: logs = [] } = useGeocacheLogs(
-    geocacheId, 
-    geocacheDTag, 
+    geocacheId,
+    geocacheDTag,
     geocachePubkey,
     geocacheRelays,
     geocacheVerificationPubkey,
     geocacheKind
   );
-  
+
   // Zap data should now be pre-populated by useGeocacheByNaddr hook
   // Use memoized zap totals from store for better performance
   const zapStoreKey = naddr ? `naddr:${naddr}` : `event:${geocache?.id}`;
@@ -96,9 +116,9 @@ export default function CacheDetail() {
   } = useDeleteWithConfirmation();
   const { mutate: editGeocache, isPending: isEditingGeocache } = useEditGeocache(geocache || null);
   const { toast } = useToast();
-  
+
   const author = useAuthor(geocache?.pubkey || "");
-  
+
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
   const defaults = getDefaultCacheValues();
@@ -116,25 +136,25 @@ export default function CacheDetail() {
   const [editLocation, setEditLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [editLocationVerification, setEditLocationVerification] = useState<LocationVerification | null>(null);
-  
+
   // Image gallery state
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  
+
   // Hint visibility state
   const [isHintVisible, setIsHintVisible] = useState(false);
-  
+
   // Profile dialog state
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedProfilePubkey, setSelectedProfilePubkey] = useState<string | null>(null);
-  
+
   // Regenerate QR dialog state
   const [regenerateQRDialogOpen, setRegenerateQRDialogOpen] = useState(false);
-  
+
   // Verification state
   const [verificationKey, setVerificationKey] = useState<string | null>(null);
   const [isVerificationValid, setIsVerificationValid] = useState(false);
-  
+
   // Initialize edit form when geocache loads
   useEffect(() => {
     if (geocache) {
@@ -150,7 +170,7 @@ export default function CacheDetail() {
       });
       setEditImages(geocache.images || []);
       setEditLocation(geocache.location);
-      
+
       // Show toast if we're using passed data (just created)
       if (justCreated && passedGeocacheData) {
         toast({
@@ -158,7 +178,7 @@ export default function CacheDetail() {
           description: "Your geocache is now live. We're syncing with the network in the background...",
         });
       }
-      
+
       // Note: Prefetching is now handled automatically by the store system
     }
   }, [geocache, justCreated, passedGeocacheData, toast]);
@@ -191,18 +211,18 @@ export default function CacheDetail() {
   useEffect(() => {
     const hash = window.location.hash;
     const nsec = parseVerificationFromHash(hash);
-    
+
     if (nsec && geocache?.verificationPubkey) {
       verifyKeyPair(nsec, geocache.verificationPubkey).then(isValid => {
         setVerificationKey(nsec);
         setIsVerificationValid(isValid);
-        
+
         if (isValid) {
           toast({
             title: "Verification Key Detected",
             description: "You can now submit verified logs for this cache! Scroll down to the logs section.",
           });
-          
+
           // Scroll to logs section after a short delay
           setTimeout(() => {
             const logsSection = document.querySelector('[data-logs-section]');
@@ -230,11 +250,29 @@ export default function CacheDetail() {
         console.log('🔄 Refetching geocache data from relay after creation...');
         refetch();
       }, 3000); // Wait 3 seconds before refetching
-      
+
       return () => clearTimeout(timer);
     }
     return;
   }, [justCreated, passedGeocacheData, refetch]);
+
+  // Reset relay attempts when naddr changes
+  useEffect(() => {
+    setRelayAttempts([]);
+    setIsMultiRelayLoading(false);
+  }, [naddr]);
+
+  // Show full-page loading animation for direct navigation
+  if (shouldShowFullPageLoading) {
+    return (
+      <GeocacheLoading
+        title="Loading Geocache..."
+        description="Fetching cache details from the network"
+        relayAttempts={relayAttempts}
+        isMultiRelayLoading={isMultiRelayLoading}
+      />
+    );
+  }
 
   // Handle invalid naddr parameter
   if (!naddr) {
@@ -305,7 +343,7 @@ export default function CacheDetail() {
 
     if (!editFormData.description.trim()) {
       toast({
-        title: "Description required", 
+        title: "Description required",
         description: "Please enter a description for your geocache",
         variant: "destructive",
       });
@@ -352,18 +390,18 @@ export default function CacheDetail() {
   if (isError && !geocache && !passedGeocacheData) {
     // Check if this is an invalid cache link error
     const isInvalidCacheLink = error && (error as Error).message === 'INVALID_CACHE_LINK';
-    
+
     return (
       <div className="min-h-screen bg-muted/50 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
             title={
-              isInvalidCacheLink ? "Invalid Cache Link" : 
+              isInvalidCacheLink ? "Invalid Cache Link" :
               "Connection Issue"
             }
             description={
-              isInvalidCacheLink 
+              isInvalidCacheLink
                 ? "This cache link is not valid. It may be corrupted or from an incompatible source."
                 : "Unable to load geocache. This might be a temporary network issue."
             }
@@ -395,7 +433,7 @@ export default function CacheDetail() {
       if (!user || !naddr) {
         return false;
       }
-      
+
       try {
         const decoded = naddrToGeocache(naddr);
         return decoded.pubkey === user.pubkey;
@@ -420,21 +458,21 @@ export default function CacheDetail() {
                 <CardContent className="space-y-4">
                   <div className="text-center space-y-3">
                     <p className="text-muted-foreground">
-                      This geocache doesn't exist yet, but the link belongs to you! 
+                      This geocache doesn't exist yet, but the link belongs to you!
                       You can create it now using this pre-generated claim URL.
                     </p>
-                    
+
                     <Alert>
                       <QrCode className="h-4 w-4" />
                       <AlertDescription>
-                        This appears to be from a QR code you generated in advance. 
+                        This appears to be from a QR code you generated in advance.
                         Creating the geocache will make this claim URL work for finders.
                       </AlertDescription>
                     </Alert>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Button 
+                    <Button
                       onClick={() => {
                         // Create the full claim URL to pass to the create page
                         const claimUrl = `${window.location.origin}${window.location.pathname}${window.location.hash}`;
@@ -446,10 +484,10 @@ export default function CacheDetail() {
                       <Plus className="h-4 w-4 mr-2" />
                       Create Geocache
                     </Button>
-                    
-                    <Button 
-                      onClick={() => navigate("/")} 
-                      variant="outline" 
+
+                    <Button
+                      onClick={() => navigate("/")}
+                      variant="outline"
                       className="w-full"
                     >
                       Back to Home
@@ -511,16 +549,16 @@ export default function CacheDetail() {
             <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:mt-4">
               {/* Map Banner */}
               <div className="relative h-72 lg:mb-4 lg:rounded-t-lg overflow-hidden bg-gray-100 lg:mt-0">
-                <GeocacheMap 
+                <GeocacheMap
                   geocaches={[{
                     ...geocache,
                     location: isEditing && editLocation ? editLocation : geocache.location
-                  }]} 
+                  }]}
                   center={isEditing && editLocation ? editLocation : geocache.location}
                   zoom={14}
                 />
               </div>
-              
+
               <div className="pt-6 sm:pt-0 lg:p-6 p-4 lg:pt-6">
                 <div className="flex items-start gap-2 sm:gap-4">
                   <h1 className="text-2xl break-words flex-1 font-bold text-foreground">{geocache.name}</h1>
@@ -543,9 +581,9 @@ export default function CacheDetail() {
                             <Button variant="outline" size="sm" onClick={handleEdit} disabled={isEditingGeocache}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={handleDelete}
                               disabled={isDeletingAny}
                             >
@@ -575,8 +613,8 @@ export default function CacheDetail() {
                       {authorName}
                     </button>
                     {profilePicture && (
-                      <img 
-                        src={profilePicture} 
+                      <img
+                        src={profilePicture}
                         alt={authorName}
                         className="h-4 w-4 rounded-full object-cover"
                       />
@@ -594,7 +632,7 @@ export default function CacheDetail() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="lg:p-6 lg:pt-0 p-4 pt-0 lg:pb-6 pb-2">
                 {isEditing ? (
                   // Edit form
@@ -621,8 +659,8 @@ export default function CacheDetail() {
                     {editLocationVerification && (
                       <div className="border rounded-lg p-4 bg-muted/50 dark:bg-muted">
                         <h4 className="font-medium mb-2 text-foreground">Location Information</h4>
-                        <LocationWarnings 
-                          verification={editLocationVerification} 
+                        <LocationWarnings
+                          verification={editLocationVerification}
                           className="space-y-2"
                         />
                       </div>
@@ -657,17 +695,17 @@ export default function CacheDetail() {
                       <Badge variant="secondary">{getSizeLabel(geocache.size)}</Badge>
                       <Badge variant="secondary">{getTypeLabel(geocache.type)}</Badge>
                     </div>
-                    
+
                     <div className="prose max-w-none">
                       <p className="text-foreground whitespace-pre-wrap break-words">{geocache.description}</p>
-                      
+
                       {geocache.hint && (
                         <Alert className="mt-4 py-2">
                           <AlertDescription className="break-words">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex-1">
                                 <strong>Hint:</strong>{' '}
-                                <span 
+                                <span
                                   className={`transition-all duration-200 ${
                                     isHintVisible ? '' : 'blur-sm'
                                   }`}
@@ -713,12 +751,12 @@ export default function CacheDetail() {
               </div>
             </div>
 
-            
+
 
             {/* Logs Section */}
             <div className="space-y-4 lg:mt-0 mt-2" data-logs-section>
               {/* Render logs section */}
-              <LogsSection 
+              <LogsSection
                 logs={logs as GeocacheLog[]}
                 geocache={geocache as Geocache}
                 onProfileClick={handleProfileClick}
@@ -735,12 +773,12 @@ export default function CacheDetail() {
             <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
               <h3 className="text-lg font-semibold mb-4 text-card-foreground">Cache Details</h3>
               <div className="space-y-4">
-                <DifficultyTerrainRating 
+                <DifficultyTerrainRating
                   difficulty={geocache.difficulty}
                   terrain={geocache.terrain}
                   cacheSize={geocache.size}
                 />
-                
+
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Coordinates {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
@@ -748,7 +786,7 @@ export default function CacheDetail() {
                     )}
                   </p>
                   <p className="text-xs md:text-sm font-mono mt-1 break-all text-foreground">
-                    {isEditing && editLocation ? 
+                    {isEditing && editLocation ?
                       `${editLocation.lat.toFixed(6)}, ${editLocation.lng.toFixed(6)}` :
                       `${geocache.location.lat.toFixed(6)}, ${geocache.location.lng.toFixed(6)}`
                     }
@@ -776,8 +814,8 @@ export default function CacheDetail() {
             {locationVerification && (
               <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
                 <h3 className="text-lg font-semibold mb-4 text-card-foreground">Location Information</h3>
-                <LocationWarnings 
-                  verification={locationVerification} 
+                <LocationWarnings
+                  verification={locationVerification}
                   className="space-y-2"
                   hideCreatorWarnings={true}
                 />
@@ -809,7 +847,7 @@ export default function CacheDetail() {
           </div>
         </div>
       </div>
-      
+
       {/* Image Gallery */}
       {geocache.images && (
         <ImageGallery
@@ -819,14 +857,14 @@ export default function CacheDetail() {
           initialIndex={galleryIndex}
         />
       )}
-      
+
       {/* Profile Dialog */}
       <ProfileDialog
         pubkey={selectedProfilePubkey}
         isOpen={profileDialogOpen}
         onOpenChange={setProfileDialogOpen}
       />
-      
+
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
         isOpen={isConfirmDialogOpen}
@@ -838,7 +876,7 @@ export default function CacheDetail() {
         onCancel={cancelDeletion}
         confirmText="Delete Geocache"
       />
-      
+
       {/* Regenerate QR Dialog */}
       {geocache && (
         <RegenerateQRDialog
