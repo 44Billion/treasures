@@ -246,7 +246,6 @@ export default function Profile() {
             {/* Profile Map - shows user's hidden geocaches */}
             {!isLoadingUserCaches && userGeocachesWithStats && userGeocachesWithStats.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Your Hidden Geocaches Around the World</h3>
                 <ProfileMap
                   geocaches={userGeocachesWithStats}
                   onGeocacheClick={handleGeocacheClick}

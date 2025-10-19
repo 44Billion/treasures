@@ -247,6 +247,7 @@ function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
       tileSize={256}
       zoomOffset={0}
       detectRetina={false}
+      noWrap={false}
     />
   );
 }
@@ -366,7 +367,9 @@ export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
     else if (maxDiff < 2) zoom = 10;
     else if (maxDiff < 5) zoom = 8;
     else if (maxDiff < 10) zoom = 6;
-    else zoom = 4;
+    else if (maxDiff < 30) zoom = 4;
+    else if (maxDiff < 60) zoom = 3;
+    else zoom = 2; // World view for very spread out geocaches
 
     return {
       center: [centerLat, centerLng] as LatLngExpression,
@@ -480,6 +483,9 @@ export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
+        minZoom={2}
+        maxZoom={18}
+        worldCopyJump={true}
         whenReady={() => {
           setIsMapReady(true);
         }}
