@@ -3,15 +3,14 @@
  */
 
 // Primary relay for the application
-export const DEFAULT_RELAY = 'wss://relay.primal.net';
+export const DEFAULT_RELAY = 'wss://relay.ditto.pub';
 
 // Array of relays (for compatibility)
 export const DEFAULT_RELAYS = [DEFAULT_RELAY];
 
 // Preset relays for user selection
 export const PRESET_RELAYS = [
-  { name: 'Ditto', url: 'wss://ditto.pub/relay' },
-  { name: 'Primal', url: 'wss://relay.primal.net' },
+  { name: 'Ditto', url: 'wss://relay.ditto.pub' },
   { name: 'nos.lol', url: 'wss://nos.lol' },
   { name: 'Damus', url: 'wss://relay.damus.io' },
   { name: 'Nostr.Band', url: 'wss://relay.nostr.band' },
@@ -113,7 +112,7 @@ export async function testRelayConnection(url: string, timeout = 5000): Promise<
 
   try {
     const ws = new WebSocket(url);
-    
+
     return await new Promise((resolve) => {
       const timeoutId = setTimeout(() => {
         ws.close();
