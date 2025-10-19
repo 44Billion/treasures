@@ -18,47 +18,46 @@ export function useMultiRelayQuery() {
     options: MultiRelayQueryOptions = {}
   ): Promise<{ events: NostrEvent[], successRelay?: string }> => {
     const { onRelayAttempt, timeout = TIMEOUTS.QUERY } = options;
-    
+
     // Try each relay in the preset list
     for (let i = 0; i < PRESET_RELAYS.length; i++) {
       const relay = PRESET_RELAYS[i];
       const relayUrl = relay.url;
-      
+
       // Notify about relay attempt
       onRelayAttempt?.(relayUrl, i + 1);
-      
+
       try {
-        console.log(`🔄 [MultiRelay] Trying relay ${i + 1}/${PRESET_RELAYS.length}: ${relay.name} (${relayUrl})`);
-        
         // Create direct connection to this relay
         const { NRelay1 } = await import('@nostrify/nostrify');
         const fallbackRelay = new NRelay1(relayUrl);
-        
+
         try {
           const signal = AbortSignal.timeout(timeout);
           const events = await fallbackRelay.query(filters, { signal });
-          
+
           // Close the relay connection
           fallbackRelay.close();
-          
+
           if (events && events.length > 0) {
-            console.log(`✅ [MultiRelay] Found ${events.length} events on ${relay.name}`);
+            console.log(`✅ Found geocache on ${relay.name} relay`);
             return { events, successRelay: relayUrl };
-          } else {
-            console.log(`⚪ [MultiRelay] No events found on ${relay.name}`);
           }
+          // No events found - continue to next relay silently
         } catch (queryError) {
-          console.warn(`❌ [MultiRelay] Query failed on ${relay.name}:`, queryError);
+          // Silently continue to next relay - don't log individual errors
+          // The final error screen will handle the case when all relays fail
           fallbackRelay.close();
           // Continue to next relay
         }
       } catch (connectionError) {
-        console.warn(`❌ [MultiRelay] Connection failed to ${relay.name}:`, connectionError);
+        // Silently continue to next relay - don't log individual errors
+        // The final error screen will handle the case when all relays fail
         // Continue to next relay
       }
     }
-    
-    console.log(`❌ [MultiRelay] All ${PRESET_RELAYS.length} relays exhausted, no events found`);
+
+    console.log(`No geocache found on any of the ${PRESET_RELAYS.length} relays`);
     return { events: [] };
   }, []);
 

@@ -80,11 +80,9 @@ export function useGeocacheByNaddr(naddr: string, options?: {
           }], { signal });
 
           if (events.length === 0) {
-            console.warn(`Geocache not found on primary relay: ${pubkey}:${dTag}`);
-
             // Check if this might be the owner trying to create from URL/QR
             // If we can't determine ownership, we'll try multi-relay as fallback
-            console.log(`Trying multi-relay fallback for ${pubkey}:${dTag}`);
+            console.log(`Primary relay had no data, trying multi-relay fallback for ${pubkey}:${dTag}`);
 
             onMultiRelayStart?.();
 
@@ -96,7 +94,6 @@ export function useGeocacheByNaddr(naddr: string, options?: {
             }], {
               onRelayAttempt: (relayUrl, attempt) => {
                 // This will be used by the UI to show relay attempts
-                console.log(`🔄 Relay attempt ${attempt}: ${relayUrl}`);
                 onRelayAttempt?.(relayUrl, attempt);
               }
             });
