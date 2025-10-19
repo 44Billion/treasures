@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import { useTheme } from "@/shared/hooks/useTheme";
 import { MAP_STYLES, type MapStyle } from "@/features/map/constants/mapStyles";
 import type { Geocache } from "@/shared/types";
@@ -487,35 +488,62 @@ export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
           systemTheme={systemTheme}
         />
 
-        {/* Geocache markers */}
-        {validGeocaches.map((geocache) => (
-          <Marker
-            key={geocache.dTag}
-            position={[geocache.location.lat, geocache.location.lng]}
-            icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
-            eventHandlers={{
-              add: (e) => {
-                // Bind HTML popup when marker is added
-                const marker = e.target;
-                marker.bindPopup(() => createGeocachePopupHTML(geocache), {
-                  maxWidth: 300,
-                  className: 'geocache-popup',
-                  closeButton: true,
-                  autoClose: true,
-                  autoPan: true,
-                  keepInView: true
-                });
-              },
-              click: (e) => {
-                // Ensure popup opens on marker click
-                const marker = e.target;
-                if (!marker.isPopupOpen()) {
-                  marker.openPopup();
+        {/* Geocache markers with clustering */}
+        <MarkerClusterGroup
+          chunkedLoading={true}
+          chunkInterval={50}
+          chunkDelay={10}
+          maxClusterRadius={40}
+          spiderfyOnMaxZoom={false}
+          showCoverageOnHover={false}
+          zoomToBoundsOnClick={true}
+          removeOutsideVisibleBounds={true}
+          animate={false}
+          animateAddingMarkers={false}
+          disableClusteringAtZoom={16}
+          maxZoom={18}
+          spiderfyDistanceMultiplier={1.5}
+          clusterPane="markerPane"
+          iconCreateFunction={(cluster: { getChildCount: () => any; }) => {
+            const count = cluster.getChildCount();
+            const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
+
+            return L.divIcon({
+              html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
+              className: 'custom-cluster-icon',
+              iconSize: L.point(36, 36, true),
+            });
+          }}
+        >
+          {validGeocaches.map((geocache) => (
+            <Marker
+              key={geocache.dTag}
+              position={[geocache.location.lat, geocache.location.lng]}
+              icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
+              eventHandlers={{
+                add: (e) => {
+                  // Bind HTML popup when marker is added
+                  const marker = e.target;
+                  marker.bindPopup(() => createGeocachePopupHTML(geocache), {
+                    maxWidth: 300,
+                    className: 'geocache-popup',
+                    closeButton: true,
+                    autoClose: true,
+                    autoPan: true,
+                    keepInView: true
+                  });
+                },
+                click: (e) => {
+                  // Ensure popup opens on marker click
+                  const marker = e.target;
+                  if (!marker.isPopupOpen()) {
+                    marker.openPopup();
+                  }
                 }
-              }
-            }}
-          />
-        ))}
+              }}
+            />
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );
