@@ -257,7 +257,7 @@ export default function CreateCacheLanding() {
 
         {/* QR Code Section */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-200 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 adventure:border-amber-200">
             <div className="flex items-center justify-center gap-2 mb-3">
               <QrCode className="h-5 w-5 text-green-600 adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
@@ -320,7 +320,7 @@ export default function CreateCacheLanding() {
 
         {/* Action Section */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-200 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 adventure:border-amber-200">
             <div className="flex items-center justify-center gap-2 mb-3">
               <MapPin className="h-5 w-5 text-green-600 adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
@@ -351,7 +351,7 @@ export default function CreateCacheLanding() {
                   <Button
                     variant="outline"
                     onClick={() => navigate("/")}
-                    className="border-green-200 text-green-700 hover:bg-green-50 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
+                    className="border-green-100 text-green-700 hover:bg-green-50 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
                   >
                     Later
                   </Button>
@@ -363,7 +363,7 @@ export default function CreateCacheLanding() {
 
         {/* Simplified Advanced Options */}
         {showAdvanced && (
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-green-200 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-green-100 adventure:border-amber-200">
             <div className="flex items-center gap-2 mb-3">
               <Gift className="h-4 w-4 text-green-600 adventure:text-amber-600" />
               <span className="text-sm font-medium text-green-700 adventure:text-amber-700">Giftable Cache</span>
