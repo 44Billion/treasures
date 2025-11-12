@@ -265,11 +265,8 @@ export default function CreateCacheLanding() {
               </h2>
             </div>
 
-            <p className="text-xs text-muted-foreground mb-2">
-              Optional but useful - lets finders log verified discoveries
-            </p>
-            <p className="text-xs text-muted-foreground mb-4 font-medium">
-              💡 Print this QR code and place it inside your cache container
+            <p className="text-xs text-muted-foreground mb-4">
+              Optional but useful - lets finders log verified discoveries. If you use it, print and place this QR code inside your cache container.
             </p>
 
             <div className="flex justify-center mb-4">
