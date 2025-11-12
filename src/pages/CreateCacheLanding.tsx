@@ -344,7 +344,7 @@ export default function CreateCacheLanding() {
                 <p className="text-xs text-muted-foreground mb-4">
                   Create listing now or scan QR code later when ready.
                 </p>
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-2 justify-center flex-wrap">
                   <Button
                     onClick={handleFillOutNow}
                     disabled={!qrDataUrl}
