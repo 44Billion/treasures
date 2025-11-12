@@ -248,7 +248,7 @@ export default function CreateCacheLanding() {
             <div className="bg-green-600 adventure:bg-amber-700 p-2 rounded-lg">
               <Chest className="text-white h-6 w-6" />
             </div>
-            Hide a New Geocache
+            Hide a New Treasure
           </h1>
           <p className="text-muted-foreground text-xs">
             Create a treasure for others to discover!
@@ -324,7 +324,7 @@ export default function CreateCacheLanding() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <Chest className="h-5 w-5 text-green-600 adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
-                Create Your Cache Listing
+                Create Your Treasure Listing
               </h2>
             </div>
 
