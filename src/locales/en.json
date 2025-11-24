@@ -4,6 +4,7 @@
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
+    "add": "Add",
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
@@ -36,7 +37,11 @@
       "title": "Relay Configuration",
       "description": "Select the Nostr relay for geocaching data. Used for reading and publishing geocaches and logs.",
       "currentRelay": "Current Relay",
-      "currentlyUsing": "Currently using"
+      "currentlyUsing": "Currently using",
+      "selectRelay": "Select relay...",
+      "addCustomRelay": "Add custom relay...",
+      "searchRelays": "Search relays...",
+      "noRelayFound": "No relay found."
     }
   }
 }

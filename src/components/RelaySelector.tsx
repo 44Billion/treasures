@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useTheme } from "@/shared/hooks/useTheme";
 import { RelayCombobox } from "@/components/RelayCombobox";
@@ -20,6 +21,7 @@ interface RelaySelectorProps {
 
 export function RelaySelector(props: RelaySelectorProps) {
   const { className } = props;
+  const { t } = useTranslation();
   const { config, updateConfig, presetRelays = [] } = useAppContext();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
@@ -103,12 +105,12 @@ export function RelaySelector(props: RelaySelectorProps) {
                 isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600 hover:!text-stone-100"
               )}
             >
-              <SelectValue placeholder="Select relay...">
+              <SelectValue placeholder={t('settings.relay.selectRelay')}>
                 {selectedOption
                   ? selectedOption.name
                   : isCustomRelay
                     ? selectedRelay.replace(/^wss?:\/\//, '')
-                    : "Select relay..."
+                    : t('settings.relay.selectRelay')
                 }
               </SelectValue>
             </SelectTrigger>
@@ -124,7 +126,7 @@ export function RelaySelector(props: RelaySelectorProps) {
               <SelectItem value="custom">
                 <div className="flex items-center">
                   <Plus className="mr-2 h-4 w-4" />
-                  <span>Add custom relay...</span>
+                  <span>{t('settings.relay.addCustomRelay')}</span>
                 </div>
               </SelectItem>
             </SelectContent>
@@ -176,7 +178,7 @@ export function RelaySelector(props: RelaySelectorProps) {
                 isAdventureTheme && "!bg-stone-600 !text-stone-100 hover:!bg-stone-500"
               )}
             >
-              Add
+              {t('common.add')}
             </Button>
             <Button
               variant="outline"
@@ -189,7 +191,7 @@ export function RelaySelector(props: RelaySelectorProps) {
                 isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600"
               )}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
           </div>
         )}

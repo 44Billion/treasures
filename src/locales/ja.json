@@ -4,6 +4,7 @@
     "error": "エラー",
     "success": "成功",
     "cancel": "キャンセル",
+    "add": "追加",
     "save": "保存",
     "delete": "削除",
     "edit": "編集",
@@ -36,7 +37,11 @@
       "title": "リレー設定",
       "description": "ジオキャッシングデータ用のNostrリレーを選択します。ジオキャッシュとログの読み取りと公開に使用されます。",
       "currentRelay": "現在のリレー",
-      "currentlyUsing": "現在使用中"
+      "currentlyUsing": "現在使用中",
+      "selectRelay": "リレーを選択...",
+      "addCustomRelay": "カスタムリレーを追加...",
+      "searchRelays": "リレーを検索...",
+      "noRelayFound": "リレーが見つかりませんでした。"
     }
   }
 }
