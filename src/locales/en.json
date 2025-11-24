@@ -1,0 +1,43 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "submit": "Submit"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Configure your app preferences and geocaching settings",
+    "appearance": {
+      "title": "Appearance",
+      "description": "Choose your preferred theme and visual style",
+      "theme": "Theme",
+      "themeDescription": "Adventure theme uses warm parchment colors perfect for geocaching. System follows your device settings.",
+      "light": "Light",
+      "dark": "Dark",
+      "adventure": "Adventure",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language",
+      "label": "Language"
+    },
+    "relay": {
+      "title": "Relay Configuration",
+      "description": "Select the Nostr relay for geocaching data. Used for reading and publishing geocaches and logs.",
+      "currentRelay": "Current Relay",
+      "currentlyUsing": "Currently using"
+    }
+  }
+}
+
