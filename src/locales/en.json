@@ -13,7 +13,9 @@
     "next": "Next",
     "previous": "Previous",
     "search": "Search",
-    "submit": "Submit"
+    "submit": "Submit",
+    "reset": "Reset",
+    "update": "Update"
   },
   "settings": {
     "title": "Settings",
@@ -42,6 +44,37 @@
       "addCustomRelay": "Add custom relay...",
       "searchRelays": "Search relays...",
       "noRelayFound": "No relay found."
+    },
+    "wot": {
+      "title": "Web of Trust Filter",
+      "description": "Filter geocache listings and logs based on your social network to reduce spam.",
+      "trustLevel": "Trust Level",
+      "trustLevels": {
+        "strict": "Strict",
+        "normal": "Normal",
+        "lax": "Lax",
+        "all": "All"
+      },
+      "descriptions": {
+        "strict": "Strict: Only show content from people you directly follow.",
+        "normal": "Normal: Include content from people your follows follow (recommended).",
+        "lax": "Lax: Include content from two degrees of separation.",
+        "all": "All: Show content from everyone (filter disabled)."
+      },
+      "laxWarning": "Lax mode may be slow to calculate depending on the following count.",
+      "advancedSettings": "Advanced Settings",
+      "followLimit": "Follow Limit",
+      "noLimit": "No Limit",
+      "followLimitDescription": "Ignore users with more than this many follows.",
+      "startingUser": "Starting User (npub or hex)",
+      "startingUserDescription": "The center of your trust network. Use a valid public key, or your own by default.",
+      "startingUserPlaceholder": "Enter a valid pubkey (npub or hex)",
+      "calculationProgress": "Calculation Progress",
+      "foundAuthors": "Found {{count}} trusted authors.",
+      "lastUpdated": "Last updated: {{date}}",
+      "notCalculatedYet": "Not calculated yet.",
+      "updating": "Updating...",
+      "update": "Update"
     }
   }
 }

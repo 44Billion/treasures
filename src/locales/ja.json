@@ -13,7 +13,9 @@
     "next": "次へ",
     "previous": "前へ",
     "search": "検索",
-    "submit": "送信"
+    "submit": "送信",
+    "reset": "リセット",
+    "update": "更新"
   },
   "settings": {
     "title": "設定",
@@ -42,6 +44,37 @@
       "addCustomRelay": "カスタムリレーを追加...",
       "searchRelays": "リレーを検索...",
       "noRelayFound": "リレーが見つかりませんでした。"
+    },
+    "wot": {
+      "title": "信頼の輪フィルター",
+      "description": "ソーシャルネットワークに基づいてジオキャッシュのリストとログをフィルタリングし、スパムを減らします。",
+      "trustLevel": "信頼レベル",
+      "trustLevels": {
+        "strict": "厳格",
+        "normal": "通常",
+        "lax": "緩い",
+        "all": "すべて"
+      },
+      "descriptions": {
+        "strict": "厳格：直接フォローしている人のコンテンツのみを表示します。",
+        "normal": "通常：フォローしている人がフォローしている人のコンテンツも含めます（推奨）。",
+        "lax": "緩い：2度の分離までコンテンツを含めます。",
+        "all": "すべて：すべての人のコンテンツを表示します（フィルター無効）。"
+      },
+      "laxWarning": "緩いモードは、フォロー数によって計算が遅くなる場合があります。",
+      "advancedSettings": "詳細設定",
+      "followLimit": "フォロー制限",
+      "noLimit": "制限なし",
+      "followLimitDescription": "これ以上のフォロー数を持つユーザーを無視します。",
+      "startingUser": "開始ユーザー（npubまたはhex）",
+      "startingUserDescription": "信頼ネットワークの中心。有効な公開鍵を使用するか、デフォルトで自分の鍵を使用します。",
+      "startingUserPlaceholder": "有効な公開鍵（npubまたはhex）を入力",
+      "calculationProgress": "計算の進捗",
+      "foundAuthors": "信頼できる作成者を{{count}}人見つけました。",
+      "lastUpdated": "最終更新：{{date}}",
+      "notCalculatedYet": "まだ計算されていません。",
+      "updating": "更新中...",
+      "update": "更新"
     }
   }
 }
