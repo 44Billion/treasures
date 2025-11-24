@@ -1,0 +1,16 @@
+stages:
+  - test
+
+check-translations:
+  stage: test
+  image: node:20
+  before_script:
+    - npm ci
+  script:
+    - node scripts/check-translations.js
+  only:
+    - merge_requests
+    - main
+    - master
+    - develop
+

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm i && vite",
     "build": "npm i && vite build && cp dist/index.html dist/404.html",
-    "test": "npm i && tsc -p tsconfig.app.json --noEmit && eslint && vitest run && vite build",
+    "test": "npm i && tsc -p tsconfig.app.json --noEmit && eslint && npm run check-translations && vitest run && vite build",
     "deploy": "test -n \"$DROPLET_IP\" && ./deploy.sh $DROPLET_IP || echo 'Set DROPLET_IP environment variable'",
     "deploy:nostr": "npm run build && npx -y nostr-deploy-cli deploy --skip-setup",
     "deploy:debug": "test -n \"$DROPLET_IP\" && ./deploy.sh $DROPLET_IP --debug || echo 'Set DROPLET_IP environment variable'",
@@ -18,6 +18,7 @@
     "generate-icons": "node scripts/generate-icons.js",
     "process-icon": "node scripts/process-icon.js",
     "create-og-image": "node scripts/create-og-image.js",
+    "check-translations": "node scripts/check-translations.js",
     "analyze": "npm run build && npx vite-bundle-analyzer dist",
     "build:analyze": "npm i && vite build --mode analyze && cp dist/index.html dist/404.html"
   },
