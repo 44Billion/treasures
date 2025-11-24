@@ -76,6 +76,21 @@
       "updating": "Updating...",
       "update": "Update"
     }
+  },
+  "navigation": {
+    "appName": "Treasures",
+    "explore": "Explore",
+    "exploreMap": "Explore Map",
+    "revealMap": "Reveal Map",
+    "texasRenFest": "Texas Ren Fest",
+    "claimTreasure": "Claim Treasure",
+    "claimArtifact": "Claim Artifact",
+    "generateQrCode": "Generate QR Code",
+    "hideGeocache": "Hide a Geocache",
+    "concealGeocache": "Conceal a Geocache",
+    "blog": "Blog",
+    "appSettings": "App Settings",
+    "about": "About"
   }
 }
 

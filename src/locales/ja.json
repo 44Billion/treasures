@@ -76,6 +76,21 @@
       "updating": "更新中...",
       "update": "更新"
     }
+  },
+  "navigation": {
+    "appName": "Treasures",
+    "explore": "探索",
+    "exploreMap": "マップを探索",
+    "revealMap": "マップを公開",
+    "texasRenFest": "Texas Ren Fest",
+    "claimTreasure": "宝物を請求",
+    "claimArtifact": "遺物を請求",
+    "generateQrCode": "QRコードを生成",
+    "hideGeocache": "ジオキャッシュを隠す",
+    "concealGeocache": "ジオキャッシュを隠す",
+    "blog": "ブログ",
+    "appSettings": "アプリ設定",
+    "about": "について"
   }
 }
 

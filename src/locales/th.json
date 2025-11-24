@@ -76,6 +76,21 @@
       "updating": "กำลังอัปเดต...",
       "update": "อัปเดต"
     }
+  },
+  "navigation": {
+    "appName": "Treasures",
+    "explore": "สำรวจ",
+    "exploreMap": "สำรวจแผนที่",
+    "revealMap": "เปิดเผยแผนที่",
+    "texasRenFest": "Texas Ren Fest",
+    "claimTreasure": "เรียกร้องสมบัติ",
+    "claimArtifact": "เรียกร้องสิ่งประดิษฐ์",
+    "generateQrCode": "สร้าง QR Code",
+    "hideGeocache": "ซ่อนจีโอแคช",
+    "concealGeocache": "ซ่อนจีโอแคช",
+    "blog": "บล็อก",
+    "appSettings": "การตั้งค่าแอป",
+    "about": "เกี่ยวกับ"
   }
 }
 
