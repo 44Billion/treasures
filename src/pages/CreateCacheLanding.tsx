@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, ChevronDown, Download, Printer, Settings, Gift, MapPin, Sparkles, Crown, Package, Edit } from "lucide-react";
+import { QrCode, ChevronDown, Download, Printer, Settings, Gift, Edit } from "lucide-react";
 import { Chest } from "@/features/geocache/constants/cacheIconConstants";
 import { Button } from "@/components/ui/button";
 import {
