@@ -328,5 +328,6 @@
   "editProfile.toast.error.notLoggedIn": "คุณต้องเข้าสู่ระบบเพื่ออัปเดตโปรไฟล์ของคุณ",
   "editProfile.toast.error.updateFailed": "อัปเดตโปรไฟล์ของคุณล้มเหลว โปรดลองอีกครั้ง",
   "editProfile.upload.profilePicture": "รูปภาพโปรไฟล์",
-  "editProfile.upload.banner": "แบนเนอร์"
+  "editProfile.upload.banner": "แบนเนอร์",
+  "form.uploadImage": "อัปโหลดรูปภาพ"
 }

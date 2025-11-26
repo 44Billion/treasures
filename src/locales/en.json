@@ -328,5 +328,6 @@
   "editProfile.toast.error.notLoggedIn": "You must be logged in to update your profile",
   "editProfile.toast.error.updateFailed": "Failed to update your profile. Please try again.",
   "editProfile.upload.profilePicture": "Profile picture",
-  "editProfile.upload.banner": "Banner"
+  "editProfile.upload.banner": "Banner",
+  "form.uploadImage": "Upload Image"
 }

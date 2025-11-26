@@ -328,5 +328,6 @@
   "editProfile.toast.error.notLoggedIn": "プロフィールを更新するにはログインする必要があります",
   "editProfile.toast.error.updateFailed": "プロフィールの更新に失敗しました。もう一度お試しください。",
   "editProfile.upload.profilePicture": "プロフィール画像",
-  "editProfile.upload.banner": "バナー"
+  "editProfile.upload.banner": "バナー",
+  "form.uploadImage": "画像をアップロード"
 }

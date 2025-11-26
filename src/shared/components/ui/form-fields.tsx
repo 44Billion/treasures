@@ -1,4 +1,5 @@
 import { ReactNode, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -172,6 +173,7 @@ export function ImageUploadField<TFieldValues extends FieldValues, TName extends
   previewType = 'square',
   onUpload,
 }: ImageUploadFieldProps<TFieldValues, TName>) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -211,7 +213,7 @@ export function ImageUploadField<TFieldValues extends FieldValues, TName extends
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Image
+                {t('form.uploadImage')}
               </Button>
               {field.value && (
                 <div className={`h-10 ${previewType === 'square' ? 'w-10' : 'w-24'} rounded overflow-hidden`}>
