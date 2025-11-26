@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Link, AlertCircle, CheckCircle, Smartphone, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { parseVerificationFromHash } from '@/features/geocache/utils/verificatio
 import { DesktopHeader } from '@/components/DesktopHeader';
 
 export default function Claim() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -29,13 +31,13 @@ export default function Claim() {
     setIsMobile(checkMobile());
   }, []);
 
-  const validateTreasureUrl = (url: string): { isValid: boolean; naddr?: string; nsec?: string; error?: string } => {
+  const validateTreasureUrl = (url: string): { isValid: boolean; naddr?: string; nsec?: string; errorKey?: string } => {
     try {
       const urlObj = new URL(url);
       
       // Check if it's pointing to treasures.to
       if (urlObj.hostname !== 'treasures.to') {
-        return { isValid: false, error: 'QR code must point to treasures.to' };
+        return { isValid: false, errorKey: 'claim.error.qrMustPointToTreasures' };
       }
       
       // Extract naddr from pathname (should be /{naddr})
@@ -43,19 +45,19 @@ export default function Claim() {
       const naddr = pathname.slice(1); // Remove leading slash
       
       if (!naddr || !naddr.startsWith('naddr1')) {
-        return { isValid: false, error: 'Invalid treasure URL format' };
+        return { isValid: false, errorKey: 'claim.error.invalidFormat' };
       }
       
       // Extract verification key from hash
       const nsec = parseVerificationFromHash(urlObj.hash);
       
       if (!nsec) {
-        return { isValid: false, error: 'No verification key found in QR code' };
+        return { isValid: false, errorKey: 'claim.error.noVerificationKey' };
       }
       
       return { isValid: true, naddr, nsec };
     } catch (error) {
-      return { isValid: false, error: 'Invalid URL format' };
+      return { isValid: false, errorKey: 'claim.error.invalidUrl' };
     }
   };
 
@@ -67,30 +69,31 @@ export default function Claim() {
     
     if (validation.isValid && validation.naddr && validation.nsec) {
       toast({
-        title: 'Treasure found!',
-        description: 'Redirecting to claim form...',
+        title: t('claim.toast.found.title'),
+        description: t('claim.toast.found.description'),
       });
       
       // Redirect to the cache page with verification key
       navigate(`/${validation.naddr}#verify=${validation.nsec}`);
     } else {
-      let errorMessage = validation.error || 'Invalid URL';
-      let toastDescription = validation.error || 'This URL is not a valid treasure verification link.';
+      const errorKey = validation.errorKey || 'claim.error.invalidUrl';
+      let errorMessage = t(errorKey);
+      let toastDescription = t('claim.toast.invalid.description');
       
       // Provide more specific guidance for common issues
-      if (validation.error?.includes('No verification key found')) {
-        errorMessage = 'URL missing verification key';
-        toastDescription = 'This URL appears to be incomplete. Please make sure you copied the complete link from the QR code.';
-      } else if (validation.error?.includes('Invalid treasure URL format')) {
-        errorMessage = 'Invalid treasure URL';
-        toastDescription = 'This URL may be outdated or incorrect. Please scan the QR code again and copy the complete link.';
+      if (errorKey === 'claim.error.noVerificationKey') {
+        errorMessage = t('claim.error.missingKey');
+        toastDescription = t('claim.toast.invalid.missingKey');
+      } else if (errorKey === 'claim.error.invalidFormat') {
+        errorMessage = t('claim.error.wrongFormat');
+        toastDescription = t('claim.toast.invalid.wrongFormat');
       }
       
       setError(errorMessage);
       setIsProcessing(false);
       
       toast({
-        title: 'Invalid URL',
+        title: t('claim.toast.invalid.title'),
         description: toastDescription,
         variant: 'destructive',
       });
@@ -128,14 +131,14 @@ export default function Claim() {
       
       <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">Claim Treasure</h1>
+        <h1 className="text-3xl font-bold mb-2 text-foreground">{t('claim.title')}</h1>
         <p className="text-muted-foreground">
-          To claim a treasure (log a verified find), use the QR code within the geocache.
+          {t('claim.description')}
         </p>
         <p className="text-muted-foreground">
           {isMobile 
-            ? "Use your camera to scan the QR code - it will should automatically detect it!"
-            : "Use your phone's camera to scan the QR code, then enter the link below"
+            ? t('claim.instructions.mobile')
+            : t('claim.instructions.desktop')
           }
         </p>
       </div>
@@ -146,12 +149,12 @@ export default function Claim() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {isMobile ? <Smartphone className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
-              {isMobile ? "Scan with Your Camera" : "Scan with Your Phone"}
+              {isMobile ? t('claim.scan.title.mobile') : t('claim.scan.title.desktop')}
             </CardTitle>
             <CardDescription>
               {isMobile 
-                ? "Most camera apps can automatically detect QR codes or include a 'QR Scan' mode"
-                : "Use your mobile device to scan the QR code"
+                ? t('claim.scan.description.mobile')
+                : t('claim.scan.description.desktop')
               }
             </CardDescription>
           </CardHeader>
@@ -165,10 +168,10 @@ export default function Claim() {
                   </div>
                   <div>
                     <p className="font-medium text-sm">
-                      {isMobile ? "Open your Camera app" : "Get your phone and open the Camera app"}
+                      {isMobile ? t('claim.step1.mobile') : t('claim.step1.desktop')}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {isMobile ? "The default camera app works best" : "Most phones have QR scanning built-in"}
+                      {isMobile ? t('claim.step1.hint.mobile') : t('claim.step1.hint.desktop')}
                     </p>
                   </div>
                 </div>
@@ -178,9 +181,9 @@ export default function Claim() {
                     2
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Point the camera at the QR code</p>
+                    <p className="font-medium text-sm">{t('claim.step2.title')}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Make sure the entire QR code is visible and well-lit
+                      {t('claim.step2.hint')}
                     </p>
                   </div>
                 </div>
@@ -191,12 +194,12 @@ export default function Claim() {
                   </div>
                   <div>
                     <p className="font-medium text-sm">
-                      {isMobile ? "Tap the popup that appears" : "Copy the treasure link that appears"}
+                      {isMobile ? t('claim.step3.mobile') : t('claim.step3.desktop')}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {isMobile 
-                        ? "Your phone will show a notification to open the link"
-                        : "Then paste it in the form below"
+                        ? t('claim.step3.hint.mobile')
+                        : t('claim.step3.hint.desktop')
                       }
                     </p>
                   </div>
@@ -206,12 +209,12 @@ export default function Claim() {
 
             {/* Pro Tips */}
             <div className="bg-muted/30 p-4 rounded-lg">
-              <p className="font-medium text-sm mb-2">Pro Tips:</p>
+              <p className="font-medium text-sm mb-2">{t('claim.proTips.title')}</p>
               <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Hold your phone steady about 6-12 inches from the QR code</li>
-                <li>• Make sure there's good lighting (avoid shadows and glare)</li>
-                <li>• If it doesn't work immediately, try moving slightly closer or further away</li>
-                {!isMobile && <li>• If scanning fails, you can manually type the URL below</li>}
+                <li>• {t('claim.proTips.tip1')}</li>
+                <li>• {t('claim.proTips.tip2')}</li>
+                <li>• {t('claim.proTips.tip3')}</li>
+                {!isMobile && <li>• {t('claim.proTips.tip4')}</li>}
               </ul>
             </div>
           </CardContent>
@@ -222,12 +225,12 @@ export default function Claim() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Link className="h-5 w-5" />
-              {isMobile ? "Or Enter the Link Manually" : "Enter the Treasure Link"}
+              {isMobile ? t('claim.manual.title.mobile') : t('claim.manual.title.desktop')}
             </CardTitle>
             <CardDescription>
               {isMobile 
-                ? "You can open the link from your phone's camera directly, or paste the URL provided here"
-                : "After scanning with your phone, paste the treasure link here"
+                ? t('claim.manual.description.mobile')
+                : t('claim.manual.description.desktop')
               }
             </CardDescription>
           </CardHeader>
@@ -235,13 +238,13 @@ export default function Claim() {
             <form onSubmit={handleManualSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="treasure-url" className="text-sm font-medium">
-                  Treasure Link
+                  {t('claim.manual.label')}
                 </Label>
                 <div className="relative">
                   <Input
                     id="treasure-url"
                     type="url"
-                    placeholder="Paste the treasure link here..."
+                    placeholder={t('claim.manual.placeholder')}
                     value={manualUrl}
                     onChange={handleUrlChange}
                     disabled={isProcessing}
@@ -259,7 +262,7 @@ export default function Claim() {
                       className="absolute right-1 top-1 h-8 px-2 text-xs"
                       onClick={() => setManualUrl('')}
                     >
-                      Clear
+                      {t('claim.manual.clear')}
                     </Button>
                   )}
                 </div>
@@ -274,12 +277,12 @@ export default function Claim() {
                 {isProcessing ? (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2 animate-spin" />
-                    Validating treasure link...
+                    {t('claim.manual.validating')}
                   </>
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Claim This Treasure
+                    {t('claim.manual.submit')}
                   </>
                 )}
               </Button>
@@ -288,7 +291,7 @@ export default function Claim() {
             {/* Helpful example */}
             <div className="mt-4 p-3 bg-muted/50 dark:bg-muted rounded-lg">
               <p className="text-xs font-medium text-muted-foreground mb-1">
-                The link should look like this:
+                {t('claim.manual.example')}
               </p>
               <p className="font-mono text-xs text-muted-foreground break-all">
                 https://treasures.to/naddr1qqs8x...#verify=nsec1abc...
@@ -310,7 +313,7 @@ export default function Claim() {
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              QR code detected! Validating treasure...
+              {t('claim.alert.validating')}
             </AlertDescription>
           </Alert>
         )}
