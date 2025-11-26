@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,13 +13,6 @@ import { useLoggedInAccounts } from '@/features/geocache/hooks/useLoggedInAccoun
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from '@/shared/utils/utils';
-
-const navigation = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Map', href: '/map', icon: Map },
-  { name: 'Claim', href: '/claim', icon: ScanQrCode },
-  { name: 'New', href: '/create', icon: Plus },
-];
 
 // Helper function for consistent theme-aware styling
 function getThemeClasses(isAdventureTheme: boolean) {
@@ -68,6 +62,7 @@ function NavLink({
 }
 
 export function MobileHeader() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user } = useCurrentUser();
@@ -77,6 +72,13 @@ export function MobileHeader() {
   const themeClasses = getThemeClasses(isAdventureTheme);
 
   const closeSheet = () => setIsOpen(false);
+
+  const navigation = [
+    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.map'), href: '/map', icon: Map },
+    { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
+    { name: t('navigation.new'), href: '/create', icon: Plus },
+  ];
 
   return (
     <header className={cn(
@@ -93,7 +95,7 @@ export function MobileHeader() {
               className={cn("-ml-2", themeClasses.button)}
             >
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
+              <span className="sr-only">{t('navigation.toggleMenu')}</span>
             </Button>
           </SheetTrigger>
 
@@ -106,7 +108,7 @@ export function MobileHeader() {
                 alt="Treasures"
                 className={cn("h-6 w-6 xs:h-7 xs:w-7 transition-all duration-200", themeClasses.icon)}
               />
-              <span className={cn("font-bold text-sm", isAdventureTheme && "font-adventure")}>Treasures</span>
+              <span className={cn("font-bold text-sm", isAdventureTheme && "font-adventure")}>{t('navigation.appName')}</span>
             </div>
 
             {/* Scrollable Content Area */}
@@ -132,7 +134,7 @@ export function MobileHeader() {
                     isActive={location.pathname === '/generate-qr'}
                     onClick={closeSheet}
                   >
-                    Generate QR
+                    {t('navigation.generateQrCode')}
                   </NavLink>
 
                   <NavLink
@@ -141,7 +143,7 @@ export function MobileHeader() {
                     isActive={location.pathname === '/saved'}
                     onClick={closeSheet}
                   >
-                    Saved Caches
+                    {t('navigation.savedCaches')}
                   </NavLink>
 
                   <NavLink
@@ -150,7 +152,7 @@ export function MobileHeader() {
                     isActive={location.pathname === '/texas-ren-fest'}
                     onClick={closeSheet}
                   >
-                    Texas Ren Fest
+                    {t('navigation.texasRenFest')}
                   </NavLink>
 
                   <NavLink
@@ -159,7 +161,7 @@ export function MobileHeader() {
                     isActive={location.pathname.startsWith('/blog')}
                     onClick={closeSheet}
                   >
-                    Blog
+                    {t('navigation.blog')}
                   </NavLink>
 
                   <NavLink
@@ -168,7 +170,7 @@ export function MobileHeader() {
                     isActive={location.pathname === '/about'}
                     onClick={closeSheet}
                   >
-                    About
+                    {t('navigation.about')}
                   </NavLink>
 
                   {user && (
@@ -179,7 +181,7 @@ export function MobileHeader() {
                         isActive={location.pathname === '/profile'}
                         onClick={closeSheet}
                       >
-                        My Profile
+                        {t('navigation.myProfile')}
                       </NavLink>
                       <NavLink
                         to="/settings"
@@ -187,7 +189,7 @@ export function MobileHeader() {
                         isActive={location.pathname === '/settings'}
                         onClick={closeSheet}
                       >
-                        App Settings
+                        {t('navigation.appSettings')}
                       </NavLink>
                     </>
                   )}
@@ -221,7 +223,7 @@ export function MobileHeader() {
                         closeSheet();
                       }}
                       className="h-5 w-5 xs:h-6 xs:w-6 p-0 hover:bg-destructive/20"
-                      title="Log out"
+                      title={t('navigation.logOut')}
                     >
                       <LogOut className="w-2.5 h-2.5 xs:w-3 xs:h-3" />
                     </Button>
@@ -253,7 +255,7 @@ export function MobileHeader() {
             className={cn("h-6 w-6 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)}
           />
           <h1 className={cn("text-[10px] xs:text-xs font-bold m-0 leading-none", themeClasses.text, isAdventureTheme && "font-adventure")}>
-            Treasures
+            {t('navigation.appName')}
           </h1>
         </Link>
 
@@ -305,10 +307,18 @@ function BottomNavItem({
 }
 
 export function MobileBottomNav() {
+  const { t } = useTranslation();
   const location = useLocation();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
   const themeClasses = getThemeClasses(isAdventureTheme);
+
+  const navigation = [
+    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.map'), href: '/map', icon: Map },
+    { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
+    { name: t('navigation.new'), href: '/create', icon: Plus },
+  ];
 
   return (
     <nav className={cn(
@@ -318,7 +328,7 @@ export function MobileBottomNav() {
       <div className="grid grid-cols-4 h-16 items-center">
         {navigation.map((item) => (
           <BottomNavItem
-            key={item.name}
+            key={item.href}
             to={item.href}
             icon={item.icon}
             isActive={location.pathname === item.href}
