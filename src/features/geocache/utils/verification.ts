@@ -108,9 +108,9 @@ export async function generateVerificationQR(
   naddr: string,
   nsec: string,
   qrType: 'full' | 'cutout' | 'micro' = 'full',
-  textStrings?: {
-    line1?: string;
-    line2?: string;
+  textStrings: {
+    line1: string;
+    line2: string;
   }
 ): Promise<string> {
   // Validate inputs
@@ -154,7 +154,7 @@ export async function generateVerificationQR(
 
 async function generateFullQR(
   verificationUrl: string,
-  textStrings?: { line1?: string; line2?: string }
+  textStrings: { line1: string; line2: string }
 ): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 3.5;
@@ -175,7 +175,7 @@ async function generateFullQR(
 
 async function generateCutoutQR(
   verificationUrl: string,
-  textStrings?: { line1?: string; line2?: string }
+  textStrings: { line1: string; line2: string }
 ): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 4;
@@ -211,7 +211,7 @@ async function generateCutoutQR(
 
 async function generateMicroQR(
   verificationUrl: string,
-  textStrings?: { line1?: string; line2?: string }
+  textStrings: { line1: string; line2: string }
 ): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 1.3;
@@ -251,8 +251,8 @@ async function drawCardContent(
   cardHeight: number,
   verificationUrl: string,
   dashedBorder: boolean,
-  isMicro = false,
-  textStrings?: { line1?: string; line2?: string }
+  isMicro: boolean,
+  textStrings: { line1: string; line2: string }
 ) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, cardWidth, cardHeight);
@@ -323,8 +323,8 @@ async function drawCardContent(
   }
 
   const textStartY = topPadding + qrWidth + 40;
-  const line1 = textStrings?.line1 || 'You found a treasure!';
-  const line2 = textStrings?.line2 || 'Scan this QR code to log your adventure.';
+  const line1 = textStrings.line1;
+  const line2 = textStrings.line2;
 
   ctx.fillStyle = '#1a1a1a';
   ctx.textAlign = 'center';
@@ -654,7 +654,10 @@ export function downloadQRCode(dataUrl: string, filename: string = 'geocache-ver
 /**
  * Generate a printable 3x3 grid of QR codes.
  */
-export async function generateQRGridImage(sheetData: {name: string, naddr: string, keyPair: VerificationKeyPair}[]): Promise<string> {
+export async function generateQRGridImage(
+  sheetData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
+  textStrings: { line1: string; line2: string }
+): Promise<string> {
   const dpi = 300;
   const paperWidth = 8.5 * dpi; // 2550
   const paperHeight = 11 * dpi; // 3300
@@ -684,7 +687,7 @@ export async function generateQRGridImage(sheetData: {name: string, naddr: strin
   ctx.textAlign = 'center';
   ctx.font = '32px Arial';
 
-  const qrCodePromises = sheetData.map(d => generateVerificationQR(d.naddr, d.keyPair.nsec, 'full'));
+  const qrCodePromises = sheetData.map(d => generateVerificationQR(d.naddr, d.keyPair.nsec, 'full', textStrings));
 
   const qrCodes = await Promise.all(qrCodePromises);
 

@@ -147,7 +147,10 @@ export default function CreateCacheLanding() {
         }
         const data = await Promise.all(dataPromises);
         setSheetData(data);
-        const gridUrl = await generateQRGridImage(data);
+        const gridUrl = await generateQRGridImage(data, {
+          line1: t('qrCode.foundTreasure'),
+          line2: t('qrCode.scanToLog')
+        });
         setQrDataUrl(gridUrl);
       } else {
         setSheetData([]);
