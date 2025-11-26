@@ -97,6 +97,53 @@
     "walletSettings": "Wallet Settings",
     "addAnotherAccount": "Add another account",
     "logOut": "Log out"
+  },
+  "profile": {
+    "loginRequired": "Please log in with your Nostr account to view your profile.",
+    "loadingTitle": "Loading profile...",
+    "loadingDescription": "Fetching user information from Nostr relays",
+    "editProfile": "Edit Profile",
+    "tabs": {
+      "created": "Created",
+      "found": "Found",
+      "saved": "Saved"
+    },
+    "created": {
+      "descriptionOwn": "Geocaches you've hidden for others to find",
+      "descriptionOther": "Geocaches hidden by {{name}}",
+      "loadingTitle": "Loading caches...",
+      "loadingDescription": "Fetching created caches",
+      "emptyTitleOwn": "No caches created yet",
+      "emptyTitleOther": "No caches found",
+      "emptyDescriptionOwn": "Start your geocaching journey by hiding your first one!",
+      "emptyDescriptionOther": "{{name}} hasn't created any geocaches yet.",
+      "actionButton": "Hide Your First Cache"
+    },
+    "found": {
+      "descriptionOwn": "Caches you've successfully found and logged",
+      "descriptionOther": "Caches found by {{name}}",
+      "loadingTitle": "Loading found caches...",
+      "loadingDescription": "Fetching geocaching achievements",
+      "emptyTitleOwn": "No finds yet",
+      "emptyTitleOther": "No finds found",
+      "emptyDescriptionOwn": "Start exploring and log your first find!",
+      "emptyDescriptionOther": "{{name}} hasn't logged any finds yet.",
+      "actionButton": "View Map"
+    },
+    "saved": {
+      "description": "Caches you've saved for later exploration",
+      "loadingTitle": "Loading saved caches...",
+      "loadingDescription": "Fetching your bookmarked caches",
+      "emptyTitle": "No saved caches yet",
+      "emptyDescription": "Save interesting caches to find them easily later!",
+      "actionButton": "Explore Caches"
+    },
+    "browseMore": "Browse More Caches",
+    "clipboard": {
+      "copied": "Copied!",
+      "copiedDescription": "{{field}} copied to clipboard",
+      "error": "Failed to copy to clipboard"
+    }
   }
 }
 

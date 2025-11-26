@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   User,
   MapPin,
@@ -32,6 +33,7 @@ import { ProfileMap } from '@/components/ProfileMap';
 import { useToast } from '@/shared/hooks/useToast';
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { pubkey } = useParams<{ pubkey: string }>();
   const { user: currentUser } = useCurrentUser();
   const { coords } = useGeolocation();
@@ -120,13 +122,13 @@ export default function Profile() {
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
       toast({
-        title: 'Copied!',
-        description: `${field} copied to clipboard`,
+        title: t('profile.clipboard.copied'),
+        description: t('profile.clipboard.copiedDescription', { field }),
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to copy to clipboard',
+        title: t('common.error'),
+        description: t('profile.clipboard.error'),
         variant: 'destructive',
       });
     }
@@ -147,7 +149,7 @@ export default function Profile() {
         <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
           <LoginRequiredCard
             icon={User}
-            description="Please log in with your Nostr account to view your profile."
+            description={t('profile.loginRequired')}
           />
         </div>
       </div>
@@ -158,8 +160,8 @@ export default function Profile() {
   if (isLoadingAuthor && !authorData) {
     return (
       <FullPageLoading
-        title="Loading profile..."
-        description="Fetching user information from Nostr relays"
+        title={t('profile.loadingTitle')}
+        description={t('profile.loadingDescription')}
       />
     );
   }
@@ -199,12 +201,12 @@ export default function Profile() {
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 w-8 sm:w-auto sm:h-auto p-0 sm:px-3 sm:py-2">
                       <Edit className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Edit</span>
+                      <span className="hidden sm:inline">{t('common.edit')}</span>
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Edit Profile</DialogTitle>
+                      <DialogTitle>{t('profile.editProfile')}</DialogTitle>
                     </DialogHeader>
                     <EditProfileForm onSuccess={() => setIsEditModalOpen(false)} />
                   </DialogContent>
@@ -219,18 +221,18 @@ export default function Profile() {
           <TabsList className={`grid w-full h-auto ${isOwnProfile ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="created" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
               <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span className="text-xs sm:text-sm">Created</span>
+              <span className="text-xs sm:text-sm">{t('profile.tabs.created')}</span>
               <span className="text-xs sm:text-sm">({userGeocachesWithStats?.length || 0})</span>
             </TabsTrigger>
             <TabsTrigger value="found" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
               <CheckCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="text-xs sm:text-sm">Found</span>
+              <span className="text-xs sm:text-sm">{t('profile.tabs.found')}</span>
               <span className="text-xs sm:text-sm">({foundCaches?.length || 0})</span>
             </TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger value="saved" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
                 <Bookmark className="h-4 w-4 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Saved</span>
+                <span className="text-xs sm:text-sm">{t('profile.tabs.saved')}</span>
                 <span className="text-xs sm:text-sm">({savedCaches?.length || 0})</span>
               </TabsTrigger>
             )}
@@ -239,7 +241,7 @@ export default function Profile() {
           <TabsContent value="created" className="mt-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
-                {isOwnProfile ? 'Geocaches you\'ve hidden for others to find' : `Geocaches hidden by ${displayName}`}
+                {isOwnProfile ? t('profile.created.descriptionOwn') : t('profile.created.descriptionOther', { name: displayName })}
               </p>
             </div>
 
@@ -255,19 +257,19 @@ export default function Profile() {
 
             {isLoadingUserCaches ? (
               <div className="flex items-center justify-center py-12">
-                <ComponentLoading size="sm" title="Loading caches..." description="Fetching created caches" />
+                <ComponentLoading size="sm" title={t('profile.created.loadingTitle')} description={t('profile.created.loadingDescription')} />
               </div>
             ) : !userGeocachesWithStats || userGeocachesWithStats.length === 0 ? (
               <EmptyStateCard
                 icon={MapPin}
-                title={isOwnProfile ? "No caches created yet" : "No caches found"}
-                description={isOwnProfile ? "Start your geocaching journey by hiding your first one!" : `${displayName} hasn't created any geocaches yet.`}
+                title={isOwnProfile ? t('profile.created.emptyTitleOwn') : t('profile.created.emptyTitleOther')}
+                description={isOwnProfile ? t('profile.created.emptyDescriptionOwn') : t('profile.created.emptyDescriptionOther', { name: displayName })}
                 action={
                   isOwnProfile ? (
                     <Link to="/create">
                       <Button>
                         <MapPin className="h-4 w-4 mr-2" />
-                        Hide Your First Cache
+                        {t('profile.created.actionButton')}
                       </Button>
                     </Link>
                   ) : undefined
@@ -293,25 +295,25 @@ export default function Profile() {
           <TabsContent value="found" className="mt-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
-                {isOwnProfile ? 'Caches you\'ve successfully found and logged' : `Caches found by ${displayName}`}
+                {isOwnProfile ? t('profile.found.descriptionOwn') : t('profile.found.descriptionOther', { name: displayName })}
               </p>
             </div>
 
             {isLoadingFoundCaches ? (
               <div className="flex items-center justify-center py-12">
-                <ComponentLoading size="sm" title="Loading found caches..." description="Fetching geocaching achievements" />
+                <ComponentLoading size="sm" title={t('profile.found.loadingTitle')} description={t('profile.found.loadingDescription')} />
               </div>
             ) : !foundCaches || foundCaches.length === 0 ? (
               <EmptyStateCard
                 icon={CheckCircle}
-                title={isOwnProfile ? "No finds yet" : "No finds found"}
-                description={isOwnProfile ? "Start exploring and log your first find!" : `${displayName} hasn't logged any finds yet.`}
+                title={isOwnProfile ? t('profile.found.emptyTitleOwn') : t('profile.found.emptyTitleOther')}
+                description={isOwnProfile ? t('profile.found.emptyDescriptionOwn') : t('profile.found.emptyDescriptionOther', { name: displayName })}
                 action={
                   isOwnProfile ? (
                     <Link to="/map">
                       <Button>
                         <MapPin className="h-4 w-4 mr-2" />
-                        View Map
+                        {t('profile.found.actionButton')}
                       </Button>
                     </Link>
                   ) : undefined
@@ -338,24 +340,24 @@ export default function Profile() {
             <TabsContent value="saved" className="mt-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-muted-foreground">
-                  Caches you've saved for later exploration
+                  {t('profile.saved.description')}
                 </p>
               </div>
 
               {isLoadingSavedCaches ? (
                 <div className="flex items-center justify-center py-12">
-                  <ComponentLoading size="sm" title="Loading saved caches..." description="Fetching your bookmarked caches" />
+                  <ComponentLoading size="sm" title={t('profile.saved.loadingTitle')} description={t('profile.saved.loadingDescription')} />
                 </div>
               ) : !savedCaches || savedCaches.length === 0 ? (
                 <EmptyStateCard
                   icon={Bookmark}
-                  title="No saved caches yet"
-                  description="Save interesting caches to find them easily later!"
+                  title={t('profile.saved.emptyTitle')}
+                  description={t('profile.saved.emptyDescription')}
                   action={
                     <Link to="/map">
                       <Button>
                         <MapPin className="h-4 w-4 mr-2" />
-                        Explore Caches
+                        {t('profile.saved.actionButton')}
                       </Button>
                     </Link>
                   }
@@ -382,7 +384,7 @@ export default function Profile() {
           <Link to="/map">
             <Button variant="outline">
               <MapPin className="h-4 w-4 mr-2" />
-              Browse More Caches
+              {t('profile.browseMore')}
             </Button>
           </Link>
         </div>

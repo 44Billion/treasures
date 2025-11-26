@@ -97,6 +97,53 @@
     "walletSettings": "ウォレット設定",
     "addAnotherAccount": "別のアカウントを追加",
     "logOut": "ログアウト"
+  },
+  "profile": {
+    "loginRequired": "プロフィールを表示するには、Nostrアカウントでログインしてください。",
+    "loadingTitle": "プロフィールを読み込み中...",
+    "loadingDescription": "Nostrリレーからユーザー情報を取得中",
+    "editProfile": "プロフィールを編集",
+    "tabs": {
+      "created": "作成",
+      "found": "発見",
+      "saved": "保存済み"
+    },
+    "created": {
+      "descriptionOwn": "他の人が見つけるために隠したジオキャッシュ",
+      "descriptionOther": "{{name}}が隠したジオキャッシュ",
+      "loadingTitle": "キャッシュを読み込み中...",
+      "loadingDescription": "作成されたキャッシュを取得中",
+      "emptyTitleOwn": "まだキャッシュが作成されていません",
+      "emptyTitleOther": "キャッシュが見つかりません",
+      "emptyDescriptionOwn": "最初のキャッシュを隠してジオキャッシングの旅を始めましょう！",
+      "emptyDescriptionOther": "{{name}}はまだジオキャッシュを作成していません。",
+      "actionButton": "最初のキャッシュを隠す"
+    },
+    "found": {
+      "descriptionOwn": "正常に見つけて記録したキャッシュ",
+      "descriptionOther": "{{name}}が見つけたキャッシュ",
+      "loadingTitle": "発見したキャッシュを読み込み中...",
+      "loadingDescription": "ジオキャッシングの実績を取得中",
+      "emptyTitleOwn": "まだ発見がありません",
+      "emptyTitleOther": "発見が見つかりません",
+      "emptyDescriptionOwn": "探索を始めて最初の発見を記録しましょう！",
+      "emptyDescriptionOther": "{{name}}はまだ発見を記録していません。",
+      "actionButton": "マップを表示"
+    },
+    "saved": {
+      "description": "後で探索するために保存したキャッシュ",
+      "loadingTitle": "保存されたキャッシュを読み込み中...",
+      "loadingDescription": "ブックマークしたキャッシュを取得中",
+      "emptyTitle": "まだ保存されたキャッシュがありません",
+      "emptyDescription": "興味深いキャッシュを保存して、後で簡単に見つけられるようにしましょう！",
+      "actionButton": "キャッシュを探索"
+    },
+    "browseMore": "さらにキャッシュを閲覧",
+    "clipboard": {
+      "copied": "コピーしました！",
+      "copiedDescription": "{{field}}をクリップボードにコピーしました",
+      "error": "クリップボードへのコピーに失敗しました"
+    }
   }
 }
 

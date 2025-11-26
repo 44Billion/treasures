@@ -97,6 +97,53 @@
     "walletSettings": "การตั้งค่ากระเป๋าเงิน",
     "addAnotherAccount": "เพิ่มบัญชีอื่น",
     "logOut": "ออกจากระบบ"
+  },
+  "profile": {
+    "loginRequired": "กรุณาเข้าสู่ระบบด้วยบัญชี Nostr ของคุณเพื่อดูโปรไฟล์",
+    "loadingTitle": "กำลังโหลดโปรไฟล์...",
+    "loadingDescription": "กำลังดึงข้อมูลผู้ใช้จาก Nostr relays",
+    "editProfile": "แก้ไขโปรไฟล์",
+    "tabs": {
+      "created": "สร้าง",
+      "found": "พบ",
+      "saved": "บันทึกไว้"
+    },
+    "created": {
+      "descriptionOwn": "จีโอแคชที่คุณซ่อนไว้ให้คนอื่นหา",
+      "descriptionOther": "จีโอแคชที่ {{name}} ซ่อนไว้",
+      "loadingTitle": "กำลังโหลดแคช...",
+      "loadingDescription": "กำลังดึงแคชที่สร้าง",
+      "emptyTitleOwn": "ยังไม่มีแคชที่สร้าง",
+      "emptyTitleOther": "ไม่พบแคช",
+      "emptyDescriptionOwn": "เริ่มต้นการผจญภัยจีโอแคชชิ่งของคุณโดยการซ่อนแคชแรกของคุณ!",
+      "emptyDescriptionOther": "{{name}} ยังไม่ได้สร้างจีโอแคช",
+      "actionButton": "ซ่อนแคชแรกของคุณ"
+    },
+    "found": {
+      "descriptionOwn": "แคชที่คุณพบและบันทึกสำเร็จ",
+      "descriptionOther": "แคชที่ {{name}} พบ",
+      "loadingTitle": "กำลังโหลดแคชที่พบ...",
+      "loadingDescription": "กำลังดึงความสำเร็จในการจีโอแคชชิ่ง",
+      "emptyTitleOwn": "ยังไม่มีการพบ",
+      "emptyTitleOther": "ไม่พบการพบ",
+      "emptyDescriptionOwn": "เริ่มสำรวจและบันทึกการพบครั้งแรกของคุณ!",
+      "emptyDescriptionOther": "{{name}} ยังไม่ได้บันทึกการพบ",
+      "actionButton": "ดูแผนที่"
+    },
+    "saved": {
+      "description": "แคชที่คุณบันทึกไว้เพื่อสำรวจภายหลัง",
+      "loadingTitle": "กำลังโหลดแคชที่บันทึกไว้...",
+      "loadingDescription": "กำลังดึงแคชที่บุ๊กมาร์กไว้",
+      "emptyTitle": "ยังไม่มีแคชที่บันทึกไว้",
+      "emptyDescription": "บันทึกแคชที่น่าสนใจเพื่อค้นหาได้ง่ายในภายหลัง!",
+      "actionButton": "สำรวจแคช"
+    },
+    "browseMore": "เรียกดูแคชเพิ่มเติม",
+    "clipboard": {
+      "copied": "คัดลอกแล้ว!",
+      "copiedDescription": "คัดลอก {{field}} ไปยังคลิปบอร์ดแล้ว",
+      "error": "ไม่สามารถคัดลอกไปยังคลิปบอร์ดได้"
+    }
   }
 }
 
