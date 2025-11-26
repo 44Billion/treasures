@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
@@ -28,6 +29,7 @@ import { Settings, User, Image, Globe } from 'lucide-react';
 import type { EditProfileFormProps } from '../types';
 
 export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [publishError, setPublishError] = useState<string | null>(null);
 
@@ -73,14 +75,16 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
       // The first tuple in the array contains the URL
       const [[_, url]] = await uploadFile(file);
       form.setValue(field, url);
+      const fieldName = field === 'picture' ? t('editProfile.upload.profilePicture') : t('editProfile.upload.banner');
       toast({
-        title: 'Success',
-        description: `${field === 'picture' ? 'Profile picture' : 'Banner'} uploaded successfully`,
+        title: t('editProfile.toast.success.title'),
+        description: t('editProfile.toast.success.uploaded', { field: fieldName }),
       });
     } catch (error) {
+      const fieldName = field === 'picture' ? t('editProfile.upload.profilePicture') : t('editProfile.upload.banner');
       toast({
-        title: 'Error',
-        description: `Failed to upload ${field === 'picture' ? 'profile picture' : 'banner'}. Please try again.`,
+        title: t('editProfile.toast.error.title'),
+        description: t('editProfile.toast.error.uploadFailed', { field: fieldName }),
         variant: 'destructive',
       });
     }
@@ -89,8 +93,8 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
   const onSubmit = async (values: NostrMetadata) => {
     if (!user) {
       toast({
-        title: 'Error',
-        description: 'You must be logged in to update your profile',
+        title: t('editProfile.toast.error.title'),
+        description: t('editProfile.toast.error.notLoggedIn'),
         variant: 'destructive',
       });
       return;
@@ -121,22 +125,22 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
       queryClient.invalidateQueries({ queryKey: ['author', user.pubkey] });
 
       toast({
-        title: 'Success',
-        description: 'Your profile has been updated',
+        title: t('editProfile.toast.success.title'),
+        description: t('editProfile.toast.success.updated'),
       });
 
       // Call onSuccess callback if provided (to close modal)
       onSuccess?.();
     } catch (error) {
       const errorObj = error as { message?: string };
-      const errorMessage = errorObj.message || 'Failed to update your profile. Please try again.';
+      const errorMessage = errorObj.message || t('editProfile.toast.error.updateFailed');
       
       // Set the error for the troubleshooter
       setPublishError(errorMessage);
       
       // Also show a toast for immediate feedback
       toast({
-        title: 'Error',
+        title: t('editProfile.toast.error.title'),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -157,27 +161,27 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Basic Information
+              {t('editProfile.basic.title')}
             </CardTitle>
             <CardDescription>
-              Your public profile information that others will see.
+              {t('editProfile.basic.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <TextField
               control={form.control}
               name="name"
-              label="Display Name"
-              placeholder="Your name"
-              description="This is how your name will appear to others."
+              label={t('editProfile.basic.displayName.label')}
+              placeholder={t('editProfile.basic.displayName.placeholder')}
+              description={t('editProfile.basic.displayName.description')}
             />
 
             <TextAreaField
               control={form.control}
               name="about"
-              label="Bio"
-              placeholder="Tell others about yourself..."
-              description="A short description about yourself."
+              label={t('editProfile.basic.bio.label')}
+              placeholder={t('editProfile.basic.bio.placeholder')}
+              description={t('editProfile.basic.bio.description')}
             />
           </CardContent>
         </Card>
@@ -187,10 +191,10 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Image className="h-5 w-5" />
-              Profile Images
+              {t('editProfile.images.title')}
             </CardTitle>
             <CardDescription>
-              Upload or provide URLs for your profile picture and banner.
+              {t('editProfile.images.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -198,9 +202,9 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
               <ImageUploadField
                 control={form.control}
                 name="picture"
-                label="Profile Picture"
-                placeholder="https://example.com/profile.jpg"
-                description="Square image that represents you."
+                label={t('editProfile.images.picture.label')}
+                placeholder={t('editProfile.images.picture.placeholder')}
+                description={t('editProfile.images.picture.description')}
                 previewType="square"
                 onUpload={(file) => uploadPicture(file, 'picture')}
               />
@@ -208,9 +212,9 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
               <ImageUploadField
                 control={form.control}
                 name="banner"
-                label="Banner Image"
-                placeholder="https://example.com/banner.jpg"
-                description="Wide banner image for your profile header."
+                label={t('editProfile.images.banner.label')}
+                placeholder={t('editProfile.images.banner.placeholder')}
+                description={t('editProfile.images.banner.description')}
                 previewType="wide"
                 onUpload={(file) => uploadPicture(file, 'banner')}
               />
@@ -224,7 +228,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
             <AccordionTrigger className="text-left">
               <div className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                Advanced Options
+                {t('editProfile.advanced.title')}
               </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -234,27 +238,27 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
                     <TextField
                       control={form.control}
                       name="website"
-                      label="Website"
-                      placeholder="https://yourwebsite.com"
-                      description="Your personal website or blog."
+                      label={t('editProfile.advanced.website.label')}
+                      placeholder={t('editProfile.advanced.website.placeholder')}
+                      description={t('editProfile.advanced.website.description')}
                       type="url"
                     />
 
                     <TextField
                       control={form.control}
                       name="nip05"
-                      label="NIP-05 Identifier"
-                      placeholder="you@example.com"
-                      description="Your verified Nostr address (requires domain setup)."
+                      label={t('editProfile.advanced.nip05.label')}
+                      placeholder={t('editProfile.advanced.nip05.placeholder')}
+                      description={t('editProfile.advanced.nip05.description')}
                       type="email"
                     />
 
                     <TextField
                       control={form.control}
                       name="lud16"
-                      label="Lightning Address"
-                      placeholder="you@satoshi.com"
-                      description="Your Lightning address for receiving payments."
+                      label={t('editProfile.advanced.lud16.label')}
+                      placeholder={t('editProfile.advanced.lud16.placeholder')}
+                      description={t('editProfile.advanced.lud16.description')}
                       type="email"
                     />
                   </div>
@@ -264,13 +268,13 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                       <Globe className="h-4 w-4" />
-                      Account Type
+                      {t('editProfile.advanced.accountType.title')}
                     </div>
                     <SwitchField
                       control={form.control}
                       name="bot"
-                      label="Bot Account"
-                      description="Enable this if this account is automated or represents a bot/service."
+                      label={t('editProfile.advanced.bot.label')}
+                      description={t('editProfile.advanced.bot.description')}
                     />
                   </div>
                 </CardContent>
@@ -285,9 +289,9 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
             type="submit" 
             className="flex-1 sm:flex-none sm:min-w-[120px]" 
             isLoading={isPending || isUploading}
-            loadingText="Saving..."
+            loadingText={t('editProfile.actions.saving')}
           >
-            Save Profile
+            {t('editProfile.actions.save')}
           </LoadingButton>
           
           {onSuccess && (
@@ -298,7 +302,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
               className="flex-1 sm:flex-none"
               disabled={isPending || isUploading}
             >
-              Cancel
+              {t('editProfile.actions.cancel')}
             </LoadingButton>
           )}
         </div>
