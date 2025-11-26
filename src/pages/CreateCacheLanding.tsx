@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { QrCode, ChevronDown, Download, Printer, Settings, Gift, Edit } from "lucide-react";
 import { Chest } from "@/features/geocache/constants/cacheIconConstants";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ const customConfig: Config = {
 };
 
 export default function CreateCacheLanding() {
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -68,6 +70,7 @@ export default function CreateCacheLanding() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const GiftAuthorCard = ({ npub }: { npub: string }) => {
     let authorPubkey = '';
     if (npub?.startsWith('npub')) {
@@ -110,7 +113,7 @@ export default function CreateCacheLanding() {
             <AvatarFallback>{metadata?.name?.charAt(0) || '?'}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium text-sm text-left">{metadata?.name || 'Unknown User'}</p>
+            <p className="font-medium text-sm text-left">{metadata?.name || t('createCache.unknownUser')}</p>
             <p className="text-xs text-muted-foreground text-left">
               {npub.slice(0, 12)}...{npub.slice(-4)}
             </p>
@@ -157,13 +160,13 @@ export default function CreateCacheLanding() {
       }
     } catch (error) {
       toast({
-        title: "QR Generation Failed",
+        title: t('createCache.verificationQR.generationFailed'),
         description:
-          error instanceof Error ? error.message : "Failed to generate QR code",
+          error instanceof Error ? error.message : t('createCache.verificationQR.generationFailedDescription'),
         variant: "destructive",
       });
     }
-  }, [user, qrType, toast, naddr, verificationKeyPair, getPubkeyForNaddr]);
+  }, [user, qrType, toast, naddr, verificationKeyPair, getPubkeyForNaddr, t]);
 
   useEffect(() => {
     if (!user) return;
@@ -197,8 +200,8 @@ export default function CreateCacheLanding() {
       const filename = qrType === 'sheet' ? `${safeCacheName}-qr-sheet.png` : `${safeCacheName}-qr-code.png`;
       downloadQRCode(qrDataUrl, filename);
       toast({
-        title: "QR Code Downloaded",
-        description: "The QR code has been saved to your downloads.",
+        title: t('createCache.verificationQR.downloaded'),
+        description: t('createCache.verificationQR.downloadedDescription'),
       });
     }
   };
@@ -232,7 +235,7 @@ export default function CreateCacheLanding() {
       <PageLayout maxWidth="md" className="py-16">
         <LoginRequiredCard
           icon={QrCode}
-          description="You need to be logged in to create a geocache."
+          description={t('createCache.loginRequired')}
           className="max-w-md mx-auto"
         />
       </PageLayout>
@@ -250,10 +253,10 @@ export default function CreateCacheLanding() {
             </div>
             <div className="text-left">
               <h1 className="text-foreground [@media(max-height:800px)]:text-xl text-2xl font-bold">
-                Hide a New Treasure
+                {t('createCache.title')}
               </h1>
               <p className="text-muted-foreground text-xs">
-                Create a treasure for others to discover!
+                {t('createCache.subtitle')}
               </p>
             </div>
           </div>
@@ -265,13 +268,17 @@ export default function CreateCacheLanding() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <QrCode className="h-5 w-5 text-green-600 adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
-                Verification QR Code
+                {t('createCache.verificationQR.title')}
               </h2>
             </div>
 
             <p className="text-xs text-muted-foreground mb-4">
-              Optional but useful - lets finders log verified discoveries.<br />
-              Print and put this QR code inside your geocache.
+              {t('createCache.verificationQR.description').split('\n').map((line, i) => (
+                <span key={i}>
+                  {line}
+                  {i < t('createCache.verificationQR.description').split('\n').length - 1 && <br />}
+                </span>
+              ))}
             </p>
 
             <div className="flex justify-center mb-4">
@@ -283,7 +290,7 @@ export default function CreateCacheLanding() {
                 />
               ) : (
                 <div className="w-48 h-48 flex items-center justify-center bg-green-50 dark:bg-green-950 adventure:bg-amber-50 adventure:dark:bg-amber-950 rounded-lg">
-                  <ComponentLoading size="sm" title="Generating..." />
+                  <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
                 </div>
               )}
             </div>
@@ -293,28 +300,28 @@ export default function CreateCacheLanding() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Settings className="h-4 w-4 mr-1" />
-                    Style
+                    {t('createCache.verificationQR.style')}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => setQrType("full")}>
-                    Full
+                    {t('createCache.verificationQR.styleFull')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setQrType("cutout")}>
-                    Cutout
+                    {t('createCache.verificationQR.styleCutout')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setQrType("micro")}>
-                    Micro
+                    {t('createCache.verificationQR.styleMicro')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setQrType("sheet")}>
-                    Sheet (3x3)
+                    {t('createCache.verificationQR.styleSheet')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button onClick={handleDownloadQR} disabled={!qrDataUrl} size="sm">
                 <Download className="h-4 w-4 mr-1" />
-                Save
+                {t('createCache.verificationQR.save')}
               </Button>
               <Button variant="outline" onClick={handlePrint} disabled={!qrDataUrl} size="sm">
                 <Printer className="h-4 w-4" />
@@ -329,20 +336,20 @@ export default function CreateCacheLanding() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <Chest className="h-5 w-5 text-green-600 adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
-                Create Your Treasure Listing
+                {t('createCache.listing.title')}
               </h2>
             </div>
 
             {qrType === 'sheet' ? (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  Hide each QR code in separate locations. Scan each one to create listings.
+                  {t('createCache.listing.sheetDescription')}
                 </p>
               </div>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-4">
-                  Create listing now or scan QR code later when ready.
+                  {t('createCache.listing.description')}
                 </p>
                 <div className="flex gap-2 justify-center flex-wrap">
                   <Button
@@ -351,14 +358,14 @@ export default function CreateCacheLanding() {
                     className="bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800 text-white"
                   >
                     <Edit className="h-4 w-4 mr-2" />
-                    Create Now
+                    {t('createCache.listing.createNow')}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => navigate("/")}
                     className="border-green-100 text-green-700 hover:bg-green-50 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
                   >
-                    Later
+                    {t('createCache.listing.later')}
                   </Button>
                 </div>
               </>
@@ -371,17 +378,17 @@ export default function CreateCacheLanding() {
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-green-100 adventure:border-amber-200">
             <div className="flex items-center gap-2 mb-3">
               <Gift className="h-4 w-4 text-green-600 adventure:text-amber-600" />
-              <span className="text-sm font-medium text-green-700 adventure:text-amber-700">Giftable Cache</span>
+              <span className="text-sm font-medium text-green-700 adventure:text-amber-700">{t('createCache.gift.title')}</span>
             </div>
             <input
               type="text"
-              placeholder="Recipient's npub (optional)"
+              placeholder={t('createCache.gift.placeholder')}
               value={customNpub}
               onChange={(e) => {
                 const value = e.target.value;
                 setCustomNpub(value);
                 if (value && !validateNpub(value)) {
-                  setNpubError("Invalid npub format");
+                  setNpubError(t('createCache.gift.invalidNpub'));
                 } else {
                   setNpubError("");
                 }
@@ -397,14 +404,14 @@ export default function CreateCacheLanding() {
                 onClick={async () => {
                   setSubmittedNpub(customNpub);
                   toast({
-                    title: "Giftable Cache Updated",
-                    description: "QR code updated for the gift recipient",
+                    title: t('createCache.gift.updated'),
+                    description: t('createCache.gift.updatedDescription'),
                   });
                 }}
                 className="w-full mt-2 bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800"
               >
                 <Gift className="h-4 w-4 mr-1" />
-                Create Gift QR
+                {t('createCache.gift.createQR')}
               </Button>
             )}
           </div>
@@ -419,7 +426,7 @@ export default function CreateCacheLanding() {
             className="text-xs text-muted-foreground hover:text-foreground"
           >
             <Settings className="h-3 w-3 mr-1" />
-            {showAdvanced ? 'Hide' : 'Show'} Advanced
+            {showAdvanced ? t('common.hide') : t('common.show')} {t('createCache.advanced')}
           </Button>
         </div>
       </div>
