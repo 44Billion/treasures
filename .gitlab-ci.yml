@@ -8,9 +8,4 @@ check-translations:
     - npm ci
   script:
     - node scripts/check-translations.js
-  only:
-    - merge_requests
-    - main
-    - master
-    - develop
 
