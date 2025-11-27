@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Bookmark, MapPin, Trash2, Cloud, MoreVertical, RefreshCcw } from 'lucide-react';
 import { DetailedGeocacheCard } from '@/features/geocache/components/geocache-card';
@@ -16,6 +17,7 @@ import { ComponentLoading } from '@/components/ui/loading';
 
 
 export default function MyCaches() {
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { savedCaches, unsaveCache, clearAllSaved, isNostrEnabled, isLoading: isLoadingSaved, isSyncing } = useSavedCaches();
   const { coords } = useGeolocation();
@@ -64,7 +66,7 @@ export default function MyCaches() {
           <div className="container mx-auto px-4 py-8">
             <LoginRequiredCard
               icon={Bookmark}
-              description="Please log in with your Nostr account to view your caches."
+              description={t('myCaches.loginRequired')}
             />
           </div>
         </div>
@@ -89,7 +91,7 @@ export default function MyCaches() {
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
               <Bookmark className="h-6 w-6" />
-              Saved Caches
+              {t('myCaches.title')}
             </h1>
 
             {/* Nostr sync status */}
@@ -100,19 +102,19 @@ export default function MyCaches() {
                 {isSyncing ? (
                   <>
                     <RefreshCcw className="h-4 w-4 animate-spin" />
-                    <span>Syncing...</span>
+                    <span>{t('myCaches.syncing')}</span>
                   </>
                 ) : (
                   <>
                     <Cloud className="h-4 w-4" />
-                    <span>Synced</span>
+                    <span>{t('myCaches.synced')}</span>
                   </>
                 )}
               </div>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Your saved caches are synced to your Nostr profile and available across all your devices.
+            {t('myCaches.description')}
           </p>
         </div>
 
@@ -137,20 +139,20 @@ export default function MyCaches() {
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600 focus:text-red-700">
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Clear All Saved Caches
+                      {t('myCaches.clearAll')}
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Clear all saved caches?</AlertDialogTitle>
+                      <AlertDialogTitle>{t('myCaches.clearAllConfirm.title')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently remove all {savedCaches.length} saved caches from your list.
+                        {t('myCaches.clearAllConfirm.description', { count: savedCaches.length })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t('myCaches.clearAllConfirm.cancel')}</AlertDialogCancel>
                       <AlertDialogAction onClick={handleClearAll} className="bg-red-600 hover:bg-red-700">
-                        Clear All
+                        {t('myCaches.clearAllConfirm.confirm')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -164,20 +166,20 @@ export default function MyCaches() {
           <div className="flex items-center justify-center py-12">
             <ComponentLoading
               size="sm"
-              title="Loading saved caches..."
-              description="Fetching your bookmarks from Nostr relays"
+              title={t('myCaches.loading.title')}
+              description={t('myCaches.loading.description')}
             />
           </div>
         ) : savedCaches.length === 0 ? (
           <EmptyStateCard
             icon={Bookmark}
-            title="No saved caches yet"
-            description="Start exploring and save interesting caches for later!"
+            title={t('myCaches.empty.title')}
+            description={t('myCaches.empty.description')}
             action={
               <Link to="/map">
                 <Button>
                   <MapPin className="h-4 w-4 mr-2" />
-                  View Map
+                  {t('myCaches.empty.viewMap')}
                 </Button>
               </Link>
             }
@@ -191,7 +193,7 @@ export default function MyCaches() {
                 distance={cache.distance}
                 metadata={
                   <>
-                    • saved {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
+                    • {t('myCaches.savedPrefix')} {formatDistanceToNow(new Date(cache.savedAt), { addSuffix: true })}
                   </>
                 }
                 actions={
@@ -203,7 +205,7 @@ export default function MyCaches() {
                       e.stopPropagation();
                       unsaveCache(cache.id);
                     }}
-                    title="Remove from saved caches"
+                    title={t('myCaches.removeFromSaved')}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -218,7 +220,7 @@ export default function MyCaches() {
           <Link to="/map">
             <Button variant="outline">
               <MapPin className="h-4 w-4 mr-2" />
-              Browse More Caches
+              {t('myCaches.browseMore')}
             </Button>
           </Link>
         </div>
