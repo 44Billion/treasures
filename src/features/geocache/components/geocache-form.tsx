@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu } from 'lucide-react';
 import { sneaker, treesForest } from '@lucide/lab';
@@ -73,6 +73,7 @@ interface CacheNameFieldProps {
 }
 
 export function CacheNameField({ value, onChange, required = false, fieldId = "name" }: CacheNameFieldProps) {
+  const { t } = useTranslation();
   const suggestions = [
     "Hidden Treasure at [Location]",
     "Secret of [Landmark]",
@@ -89,7 +90,7 @@ export function CacheNameField({ value, onChange, required = false, fieldId = "n
         id={fieldId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Give your cache a memorable name"
+        placeholder={t('createCache.form.name.placeholder')}
         required={required}
       />
       {!value && (
@@ -121,6 +122,7 @@ interface CacheDescriptionFieldProps {
 }
 
 export function CacheDescriptionField({ value, onChange, required = false, fieldId = "description" }: CacheDescriptionFieldProps) {
+  const { t } = useTranslation();
   return (
     <div className="text-foreground">
       <Label htmlFor={fieldId}>
@@ -130,7 +132,7 @@ export function CacheDescriptionField({ value, onChange, required = false, field
         id={fieldId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Describe your cache, its location, and any special instructions"
+        placeholder={t('createCache.form.description.placeholder')}
         rows={4}
         required={required}
       />
@@ -171,27 +173,28 @@ interface CacheSelectFieldProps {
 
 export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
   const { theme } = useTheme();
+  const { t, i18n } = useTranslation();
 
-  const typeOptions = [
+  const typeOptions = useMemo(() => [
     {
       value: "traditional",
       name: "Traditional",
-      description: "Classic geocache at given coordinates",
-      example: "Container hidden at the exact GPS location"
+      description: t('createCache.form.type.traditional.description'),
+      example: t('createCache.form.type.traditional.example')
     },
     {
       value: "multi",
       name: "Multi-Cache",
-      description: "Multiple stages leading to final cache",
-      example: "Visit several waypoints to gather final coordinates"
+      description: t('createCache.form.type.multi.description'),
+      example: t('createCache.form.type.multi.example')
     },
     {
       value: "mystery",
       name: "Mystery/Puzzle",
-      description: "Solve a puzzle to find coordinates",
-      example: "Decode clues, solve riddles, or complete challenges"
+      description: t('createCache.form.type.mystery.description'),
+      example: t('createCache.form.type.mystery.example')
     }
-  ];
+  ], [t, i18n.language]);
 
   return (
     <div className="space-y-3 text-foreground">
@@ -671,6 +674,7 @@ interface CacheImageManagerProps {
 }
 
 export function CacheImageManager({ images, onImagesChange, disabled = false, className }: CacheImageManagerProps) {
+  const { t } = useTranslation();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const { toast } = useToast();
 
@@ -680,8 +684,8 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
 
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
+        title: t('createCache.form.image.invalidFileType.title'),
+        description: t('createCache.form.image.invalidFileType.description'),
         variant: "destructive",
       });
       return;
@@ -692,8 +696,8 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
       onImagesChange([...images, url]);
     } catch (error) {
       toast({
-        title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
+        title: t('createCache.form.image.uploadFailed.title'),
+        description: t('createCache.form.image.uploadFailed.description'),
         variant: "destructive",
       });
     }
