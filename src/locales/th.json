@@ -720,5 +720,7 @@
   "blog.post.loading.title": "กำลังโหลดโพสต์บล็อก...",
   "blog.post.loading.description": "กำลังดึงเนื้อหาล่าสุด",
   "blog.post.notFound.title": "ไม่พบโพสต์บล็อก",
-  "blog.post.notFound.description": "โพสต์บล็อกที่คุณกำลังมองหาไม่มีอยู่หรือถูกลบไปแล้ว"
+  "blog.post.notFound.description": "โพสต์บล็อกที่คุณกำลังมองหาไม่มีอยู่หรือถูกลบไปแล้ว",
+  "notFound.message": "โอ๊ะ! ไม่พบหน้า",
+  "notFound.returnHome": "กลับหน้าแรก"
 }

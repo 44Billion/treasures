@@ -269,6 +269,14 @@ export default function CacheDetail() {
     setIsMultiRelayLoading(false);
   }, [naddr]);
 
+  // Handle invalid naddr parameter - redirect to NotFound if it doesn't look like a valid naddr
+  useEffect(() => {
+    if (naddr && !naddr.startsWith('naddr1')) {
+      // Invalid path - doesn't look like an naddr, redirect to NotFound
+      navigate('/404', { replace: true });
+    }
+  }, [naddr, navigate]);
+
   // Show full-page loading animation for direct navigation
   if (shouldShowFullPageLoading) {
     return (
@@ -281,24 +289,9 @@ export default function CacheDetail() {
     );
   }
 
-  // Handle invalid naddr parameter
-  if (!naddr) {
-    return (
-      <div className="min-h-screen bg-muted/50 dark:bg-muted">
-        <DesktopHeader />
-        <div className="container mx-auto px-4 py-16">
-          <ErrorState
-            title={t('cacheDetail.error.invalidLink.title')}
-            description={t('cacheDetail.error.invalidLink.description')}
-            primaryAction={
-              <Link to="/" className="block">
-                <Button className="w-full">{t('cacheDetail.error.invalidLink.browse')}</Button>
-              </Link>
-            }
-          />
-        </div>
-      </div>
-    );
+  if (!naddr || !naddr.startsWith('naddr1')) {
+    // Show nothing while redirecting, or if naddr is invalid
+    return null;
   }
 
 
