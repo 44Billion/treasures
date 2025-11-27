@@ -122,8 +122,8 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
     try {
       await navigator.clipboard.writeText(log.id);
       toast({
-        title: "Event ID copied",
-        description: "The event ID has been copied to your clipboard.",
+        title: t('logs.eventIdCopied.title'),
+        description: t('logs.eventIdCopied.description'),
       });
     } catch (error) {
       // Fallback for browsers that don't support clipboard API
@@ -135,8 +135,8 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
       document.body.removeChild(textArea);
       
       toast({
-        title: "Event ID copied",
-        description: "The event ID has been copied to your clipboard.",
+        title: t('logs.eventIdCopied.title'),
+        description: t('logs.eventIdCopied.description'),
       });
     }
     

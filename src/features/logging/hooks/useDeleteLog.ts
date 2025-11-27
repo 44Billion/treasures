@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useToast } from '@/shared/hooks/useToast';
 import type { GeocacheLog } from '@/types/geocache';
 
 export function useDeleteLog() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
@@ -58,8 +60,8 @@ export function useDeleteLog() {
     },
     onSuccess: (_event, logId) => {
       toast({
-        title: "Log deleted",
-        description: "Your log has been removed and the deletion request sent to relays.",
+        title: t('logs.delete.success.title'),
+        description: t('logs.delete.success.description'),
       });
       
       // Optimistically remove the log from all relevant caches
@@ -83,21 +85,21 @@ export function useDeleteLog() {
       // Only show destructive errors for signing issues
       if (errorObj.message?.includes('User rejected') || errorObj.message?.includes('cancelled')) {
         toast({
-          title: "Deletion cancelled",
-          description: "The log deletion was cancelled.",
+          title: t('logs.delete.cancelled.title'),
+          description: t('logs.delete.cancelled.description'),
           variant: "destructive",
         });
       } else if (errorObj.message?.includes('not logged in') || errorObj.message?.includes('No signer')) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to delete logs.",
+          title: t('logs.delete.authRequired.title'),
+          description: t('logs.delete.authRequired.description'),
           variant: "destructive",
         });
       } else {
         // For network/relay errors, show a softer message
         toast({
-          title: "Deletion request sent",
-          description: "The deletion request was created but may take longer to propagate to all relays.",
+          title: t('logs.delete.requestSent.title'),
+          description: t('logs.delete.requestSent.description'),
         });
       }
     },

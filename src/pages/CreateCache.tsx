@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, AlertTriangle, CheckCircle, Check, QrCode, Edit3 } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
@@ -83,6 +84,7 @@ function MapResizer({ location }: { location: { lat: number; lng: number } }) {
 //   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
 
 export default function CreateCache() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useCurrentUser();
@@ -376,7 +378,7 @@ export default function CreateCache() {
   const handleCreateGeocache = async () => {
     if (!formData.name.trim()) {
       toast({
-        title: "Cache name required",
+        title: t('createCache.validation.nameRequired.title'),
         description: "Please enter a name for your geocache",
         variant: "destructive",
       });
@@ -385,8 +387,8 @@ export default function CreateCache() {
 
     if (!formData.description.trim()) {
       toast({
-        title: "Description required",
-        description: "Please enter a description for your geocache",
+        title: t('createCache.validation.descriptionRequired.title'),
+        description: t('createCache.validation.descriptionRequired.description'),
         variant: "destructive",
       });
       return;
@@ -394,8 +396,8 @@ export default function CreateCache() {
 
     if (!location) {
       toast({
-        title: "Location required",
-        description: "Please select a location for your geocache",
+        title: t('createCache.validation.locationRequired.title'),
+        description: t('createCache.validation.locationRequired.description'),
         variant: "destructive",
       });
       return;
@@ -779,8 +781,8 @@ export default function CreateCache() {
                       }
                       if (currentStep === 1 && location && !locationVerification) {
                         toast({
-                          title: "Verifying location",
-                          description: "Please wait while we verify your location",
+                          title: t('createCache.locationVerification.title'),
+                          description: t('createCache.locationVerification.description'),
                           variant: "default",
                         });
                         return;
@@ -1015,8 +1017,8 @@ export default function CreateCache() {
                     }
                     if (currentStep === 1 && location && !locationVerification) {
                       toast({
-                        title: "Verifying location",
-                        description: "Please wait while we verify your location",
+                        title: t('createCache.locationVerification.title'),
+                        description: t('createCache.locationVerification.description'),
                         variant: "default",
                       });
                       return;

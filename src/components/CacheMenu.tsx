@@ -52,7 +52,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             }}
           >
             <MoreVertical className={iconSize} />
-            <span className="sr-only">More options</span>
+            <span className="sr-only">{t('geocacheCard.moreOptions')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
