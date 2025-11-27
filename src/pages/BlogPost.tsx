@@ -1,4 +1,5 @@
 import { useParams, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { FullPageLoading } from '@/components/ui/loading';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function BlogPost() {
+  const { t } = useTranslation();
   const { pubkey, dTag } = useParams<{ pubkey: string; dTag: string }>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -59,16 +61,16 @@ export default function BlogPost() {
       });
       
       toast({
-        title: 'Success',
-        description: 'Blog post deleted successfully',
+        title: t('blog.delete.success.title'),
+        description: t('blog.delete.success.description'),
       });
       
       navigate('/blog');
     } catch (error) {
       const errorObj = error as { message?: string };
       toast({
-        title: 'Error',
-        description: errorObj.message || 'Failed to delete blog post',
+        title: t('blog.delete.error.title'),
+        description: errorObj.message || t('blog.delete.error.description'),
         variant: 'destructive',
       });
     } finally {
@@ -89,8 +91,8 @@ export default function BlogPost() {
       <PageLayout>
         <div className="container mx-auto px-4 py-8">
           <FullPageLoading 
-            title="Loading blog post..."
-            description="Fetching the latest content"
+            title={t('blog.post.loading.title')}
+            description={t('blog.post.loading.description')}
           />
         </div>
       </PageLayout>
@@ -103,9 +105,9 @@ export default function BlogPost() {
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-semibold mb-2">Blog post not found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('blog.post.notFound.title')}</h3>
               <p className="text-muted-foreground">
-                The blog post you're looking for doesn't exist or has been removed.
+                {t('blog.post.notFound.description')}
               </p>
             </CardContent>
           </Card>
@@ -136,18 +138,18 @@ export default function BlogPost() {
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Blog Post</AlertDialogTitle>
+              <AlertDialogTitle>{t('blog.delete.confirm.title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete "{post.title}"? This action cannot be undone.
+                {t('blog.delete.confirm.description', { title: post.title })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
+                {t('common.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function BlogList() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useCurrentUser();
   const { data: posts, isLoading, error } = useBlogPosts();
@@ -100,14 +102,14 @@ export function BlogList() {
       });
       
       toast({
-        title: 'Success',
-        description: 'Blog post deleted successfully',
+        title: t('blog.delete.success.title'),
+        description: t('blog.delete.success.description'),
       });
     } catch (error) {
       const errorObj = error as { message?: string };
       toast({
-        title: 'Error',
-        description: errorObj.message || 'Failed to delete blog post',
+        title: t('blog.delete.error.title'),
+        description: errorObj.message || t('blog.delete.error.description'),
         variant: 'destructive',
       });
     } finally {
@@ -138,8 +140,8 @@ export function BlogList() {
   if (isLoading) {
     return (
       <FullPageLoading 
-        title="Loading blog posts..."
-        description="Fetching the latest stories"
+        title={t('blog.loading.title')}
+        description={t('blog.loading.description')}
       />
     );
   }
@@ -148,9 +150,9 @@ export function BlogList() {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <h3 className="text-lg font-semibold mb-2">Failed to load blog posts</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('blog.error.title')}</h3>
           <p className="text-muted-foreground">
-            There was an error loading the blog. Please try again later.
+            {t('blog.error.description')}
           </p>
         </CardContent>
       </Card>
@@ -169,7 +171,7 @@ export function BlogList() {
         {isAuthorized && (
           <Button onClick={() => setShowEditor(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            New Post
+            {t('blog.newPost')}
           </Button>
         )}
       </div>
@@ -179,7 +181,7 @@ export function BlogList() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search posts or tags..."
+            placeholder={t('blog.search.placeholder')}
             value={searchTerm}
             onChange={handleSearchChange}
             className="pl-10"
@@ -209,7 +211,7 @@ export function BlogList() {
               className="cursor-pointer flex-shrink-0"
               onClick={() => setSelectedTag(null)}
             >
-              All
+              {t('blog.filters.all')}
             </Badge>
             {allTags.slice(0, 10).map(tag => (
               <Badge
@@ -229,11 +231,11 @@ export function BlogList() {
       {filteredPosts.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <h3 className="text-lg font-semibold mb-2">No posts found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('blog.empty.title')}</h3>
             <p className="text-muted-foreground">
               {searchTerm || selectedTag 
-                ? 'Try adjusting your search or filter criteria.'
-                : 'No blog posts have been published yet.'
+                ? t('blog.empty.descriptionFiltered')
+                : t('blog.empty.descriptionNoPosts')
               }
             </p>
           </CardContent>
@@ -256,18 +258,18 @@ export function BlogList() {
       <AlertDialog open={!!deletingPost} onOpenChange={() => setDeletingPost(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Blog Post</AlertDialogTitle>
+            <AlertDialogTitle>{t('blog.delete.confirm.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingPost?.title}"? This action cannot be undone.
+              {t('blog.delete.confirm.description', { title: deletingPost?.title })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

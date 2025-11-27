@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export function BlogPostCard({
   onEdit, 
   onDelete 
 }: BlogPostCardProps) {
+  const { t } = useTranslation();
   const author = useAuthor(post.pubkey);
   const metadata = author.data?.metadata;
 
@@ -107,7 +109,7 @@ export function BlogPostCard({
         <div className="mt-4 text-center">
           <Link to={`/blog/${post.pubkey}/${post.dTag}`}>
             <Button variant="outline" className="w-full sm:w-auto">
-              Read More
+              {t('blog.card.readMore')}
             </Button>
           </Link>
         </div>

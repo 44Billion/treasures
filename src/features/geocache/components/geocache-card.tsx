@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
 import { useZapStore } from '@/shared/stores/useZapStore';
 import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, BookmarkX, Zap } from 'lucide-react';
@@ -14,6 +15,7 @@ import { formatDistance } from '@/features/map/utils/geo';
 import { CacheIcon } from '@/features/geocache/utils/cacheIcons';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useTheme } from "@/shared/hooks/useTheme";
+import { getSizeLabel } from '@/features/geocache/utils/geocache-utils';
 import type { Geocache } from '@/types/geocache';
 import {
   Tooltip,
@@ -115,6 +117,7 @@ export function GeocacheCard({
   showStats = true,
   statsLoading = false
 }: GeocacheCardProps) {
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { theme } = useTheme();
   const { navigateToGeocache } = useGeocacheNavigation();
@@ -163,7 +166,7 @@ export function GeocacheCard({
   const renderAuthorInfo = () => showAuthor && (
     <div className="text-xs sm:text-sm text-muted-foreground mb-1">
       <div className="flex items-center gap-1 min-w-0">
-        <span className="shrink-0">by</span>
+        <span className="shrink-0">{t('geocacheCard.by')}</span>
         <span className="truncate font-medium">{authorName}</span>
         {profilePicture && !avatarError && (
           <img
@@ -218,7 +221,7 @@ export function GeocacheCard({
           T{cache.terrain}
         </Badge>
         <Badge variant="secondary" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-1.5 py-0.5 sm:px-2'} shrink-0`}>
-          {cache.size}
+          {getSizeLabel(cache.size)}
         </Badge>
         {distance !== undefined && (
           <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-1.5 py-0.5 sm:px-2'} flex items-center gap-1 shrink-0`}>
@@ -236,7 +239,7 @@ export function GeocacheCard({
         {'foundAt' in cache && (
           <Badge variant="default" className={`flex items-center gap-1 bg-green-600 adventure:bg-stone-700 text-xs ${isCompact ? 'py-0 px-1.5' : 'px-1.5 py-0.5 sm:px-2'} shrink-0`}>
             <CheckCircle className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
-            Found
+            {t('geocacheCard.found')}
           </Badge>
         )}
       </div>
@@ -428,7 +431,7 @@ export function GeocacheCard({
                 {'foundAt' in cache && (
                   <Badge variant="default" className="flex items-center gap-1 bg-green-600 adventure:bg-stone-700 text-xs py-0 px-1.5 shrink-0">
                     <CheckCircle className="h-2 w-2" />
-                    Found
+                    {t('geocacheCard.found')}
                   </Badge>
                 )}
               </div>

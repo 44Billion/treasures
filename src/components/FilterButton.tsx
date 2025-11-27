@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,6 +45,7 @@ export function FilterButton({
   className,
   compact = false,
 }: FilterButtonProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   // Helper functions for consistent value handling
@@ -85,7 +87,7 @@ export function FilterButton({
           )}
         >
           <Filter className={cn("h-4 w-4", !compact && "mr-2")} />
-          {!compact && "Filters"}
+          {!compact && t('filters.button')}
           {activeFilterCount > 0 && (
             <Badge 
               variant="secondary" 
@@ -99,7 +101,7 @@ export function FilterButton({
       <PopoverContent className="w-80" align="start">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium">Filters</h4>
+            <h4 className="font-medium">{t('filters.title')}</h4>
             {activeFilterCount > 0 && (
               <Button
                 variant="ghost"
@@ -108,7 +110,7 @@ export function FilterButton({
                 className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3 w-3 mr-1" />
-                Clear all
+                {t('filters.clearAll')}
               </Button>
             )}
           </div>
@@ -116,7 +118,7 @@ export function FilterButton({
           <div className="space-y-4">
             {/* Difficulty Filter */}
             <ComparisonFilter
-              label="Difficulty"
+              label={t('filters.difficulty')}
               value={getValueForDisplay(difficulty)}
               onValueChange={createValueChangeHandler(onDifficultyChange)}
               operator={difficultyOperator}
@@ -126,7 +128,7 @@ export function FilterButton({
 
             {/* Terrain Filter */}
             <ComparisonFilter
-              label="Terrain"
+              label={t('filters.terrain')}
               value={getValueForDisplay(terrain)}
               onValueChange={createValueChangeHandler(onTerrainChange)}
               operator={terrainOperator}
@@ -137,7 +139,7 @@ export function FilterButton({
             {/* Cache Type Filter */}
             <div className="space-y-1">
               <Label className="text-sm font-medium text-foreground">
-                Cache Type
+                {t('filters.cacheType')}
               </Label>
               <Select 
                 value={cacheType || "all"} 
@@ -146,14 +148,14 @@ export function FilterButton({
                 <SelectTrigger className="h-9">
                   <SelectValue>
                     {cacheType === undefined || cacheType === "all" ? (
-                      "All Types"
+                      t('filters.allTypes')
                     ) : (
                       CACHE_TYPE_OPTIONS.find(opt => opt.value === cacheType)?.label || cacheType
                     )}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
                   {CACHE_TYPE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}

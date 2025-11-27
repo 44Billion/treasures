@@ -38,37 +38,37 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
   
   // Positive features
   if (verification.accessibility.wheelchair) {
-    locationFeatures.push({ label: "Wheelchair accessible", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.wheelchairAccessible'), type: "positive" });
   }
   if (verification.accessibility.parking) {
-    locationFeatures.push({ label: "Parking available", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.parkingAvailable'), type: "positive" });
   }
   if (verification.accessibility.publicTransport) {
-    locationFeatures.push({ label: "Public transport", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.publicTransport'), type: "positive" });
   }
   if (verification.terrain.lit) {
-    locationFeatures.push({ label: "Well lit", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.wellLit'), type: "positive" });
   }
   
   // Neutral info
   if (verification.terrain.surface) {
-    locationFeatures.push({ label: `${verification.terrain.surface} surface`, type: "neutral" });
+    locationFeatures.push({ label: t('locationInfo.features.surface', { surface: verification.terrain.surface }), type: "neutral" });
   }
   
   // Heads up items (yellow - important to know but not impediments)
   if (verification.accessibility.fee) {
-    hindrances.push({ label: "Entry fee required", type: "headsup" });
+    hindrances.push({ label: t('locationInfo.features.entryFeeRequired'), type: "headsup" });
   }
   
   // Hindrances (yellow - things that might affect everyone negatively)
   if (verification.accessibility.wheelchair === false) {
-    hindrances.push({ label: "Not wheelchair accessible", type: "hindrance" });
+    hindrances.push({ label: t('locationInfo.features.notWheelchairAccessible'), type: "hindrance" });
   }
   if (verification.terrain.lit === false) {
-    hindrances.push({ label: "Not lit at night", type: "hindrance" });
+    hindrances.push({ label: t('locationInfo.features.notLitAtNight'), type: "hindrance" });
   }
   if (verification.safety?.cellCoverage === false) {
-    hindrances.push({ label: "Poor cell coverage", type: "hindrance" });
+    hindrances.push({ label: t('locationInfo.features.poorCellCoverage'), type: "hindrance" });
   }
   
   // Combine for display (show positives and neutrals first, then hindrances)
@@ -77,13 +77,13 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
   // Add hazards to other warnings instead of features
   if (verification.terrain.hazards && verification.terrain.hazards.length > 0) {
     verification.terrain.hazards.forEach(hazard => {
-      categorizedWarnings.other.push(`Safety hazard: ${hazard}`);
+      categorizedWarnings.other.push(t('locationInfo.features.safetyHazard', { hazard }));
     });
   }
 
   // Add restricted hours as heads up item
   if (verification.accessibility.openingHours && verification.accessibility.openingHours !== '24/7') {
-    hindrances.push({ label: `Hours: ${verification.accessibility.openingHours}`, type: "headsup" });
+    hindrances.push({ label: t('locationInfo.features.hours', { hours: verification.accessibility.openingHours }), type: "headsup" });
   }
 
   const StatusIcon = summary.status === 'safe' ? CheckCircle : 
@@ -100,7 +100,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
   // Add overflow features to other considerations
   if (overflowFeatures.length > 0) {
     overflowFeatures.forEach(feature => {
-      categorizedWarnings.other.push(`Location feature: ${feature.label}`);
+      categorizedWarnings.other.push(t('locationInfo.features.locationFeature', { feature: feature.label }));
     });
   }
 
@@ -212,7 +212,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
                     {categorizedWarnings.other.slice(0, 5).map((warning, idx) => (
                       <div key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
                         <span className="text-muted-foreground mt-0.5">•</span>
-                        <span>{warning.replace(/⚠️\s*/, '').replace(/Area has restricted hours: /, 'Hours: ')}</span>
+                        <span>{warning.replace(/⚠️\s*/, '').replace(new RegExp(t('locationInfo.features.areaRestrictedHoursPrefix', { defaultValue: 'Area has restricted hours: ' })), t('locationInfo.features.hoursPrefix', { defaultValue: 'Hours: ' }))}</span>
                       </div>
                     ))}
                     {categorizedWarnings.other.length > 5 && (
