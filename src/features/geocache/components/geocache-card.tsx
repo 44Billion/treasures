@@ -385,7 +385,7 @@ export function GeocacheCard({
                 {showAuthor && (
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                     <span className="flex items-center gap-1">
-                      by {authorName}
+                      {t('geocacheCard.by')} {authorName}
                       {profilePicture && !avatarError && (
                         <img
                           src={profilePicture}

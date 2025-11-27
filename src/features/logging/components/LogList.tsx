@@ -28,6 +28,7 @@ import { formatDistanceToNow } from "@/shared/utils/date";
 import { useLogStore } from "@/shared/stores/useLogStore";
 import { ZapButton } from "@/components/ZapButton";
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { nip57 } from "nostr-tools";
 
 import type { GeocacheLog } from "@/types/geocache";
@@ -59,6 +60,7 @@ interface LogCardProps {
 
 function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
   // The log is always signed by the actual user now
+  const { t } = useTranslation();
   const author = useAuthor(log.pubkey);
   const { user } = useCurrentUser();
   const { mutate: deleteLog, isPending: isDeleting } = useDeleteLog();
@@ -175,11 +177,15 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
   const getLogTypeLabel = () => {
     switch (log.type) {
       case "found":
-        return "Found it";
+        return t('logs.type.found');
       case "dnf":
-        return "Didn't find it";
+        return t('logs.type.dnf');
       case "note":
-        return "Note";
+        return t('logs.type.note');
+      case "maintenance":
+        return t('logs.type.maintenance');
+      case "archive":
+        return t('logs.type.archive');
       default:
         return log.type;
     }

@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComparisonFilter, type ComparisonOperator } from "@/components/ui/comparison-filter";
-import { CACHE_TYPE_OPTIONS } from "@/features/geocache/utils/geocache-constants";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +54,13 @@ export function FilterButton({
     { value: "3", label: `3 - ${t('geocache.difficulty.hard')}` },
     { value: "4", label: `4 - ${t('geocache.difficulty.veryHard')}` },
     { value: "5", label: `5 - ${t('geocache.difficulty.expert')}` },
+  ], [t, i18n.language]);
+
+  // Create translated cache type options that update when language changes
+  const cacheTypeOptions = useMemo(() => [
+    { value: "traditional", label: t('geocache.type.traditional') },
+    { value: "multi", label: t('geocache.type.multi') },
+    { value: "mystery", label: t('geocache.type.mystery') },
   ], [t, i18n.language]);
 
   // Helper functions for consistent value handling
@@ -159,13 +165,13 @@ export function FilterButton({
                     {cacheType === undefined || cacheType === "all" ? (
                       t('filters.allTypes')
                     ) : (
-                      CACHE_TYPE_OPTIONS.find(opt => opt.value === cacheType)?.label || cacheType
+                      cacheTypeOptions.find(opt => opt.value === cacheType)?.label || cacheType
                     )}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
-                  {CACHE_TYPE_OPTIONS.map((option) => (
+                  {cacheTypeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
