@@ -12,12 +12,12 @@ import { PageLayout } from "@/components/layout";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { useToast } from "@/shared/hooks/useToast";
-import { 
-  generateVerificationKeyPair, 
+import {
+  generateVerificationKeyPair,
   downloadQRCode,
   generateVerificationQR,
   generateQRGridImage,
-  type VerificationKeyPair 
+  type VerificationKeyPair
 } from "@/features/geocache/utils/verification";
 import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
 import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
@@ -102,8 +102,64 @@ export default function GenerateQR() {
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       document.body.appendChild(iframe);
-      iframe.contentDocument?.write(`<img src="${qrDataUrl}" onload="window.print();setTimeout(() => document.body.removeChild(iframe), 100)" />`);
-      iframe.contentDocument?.close();
+
+      const iframeDoc = iframe.contentDocument;
+      if (!iframeDoc) return;
+
+      // Write proper HTML with print styles for mobile compatibility
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            @page {
+              size: auto;
+              margin: 0.5cm;
+            }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            html, body {
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: white;
+            }
+            img {
+              max-width: 100%;
+              max-height: 100vh;
+              width: auto;
+              height: auto;
+              display: block;
+              object-fit: contain;
+              page-break-inside: avoid;
+            }
+            @media print {
+              html, body {
+                width: 100%;
+                height: 100%;
+              }
+              img {
+                max-width: 100% !important;
+                max-height: 100vh !important;
+                width: auto !important;
+                height: auto !important;
+                page-break-inside: avoid !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${qrDataUrl}" onload="window.print(); setTimeout(() => window.parent.document.body.removeChild(window.frameElement), 500)" />
+        </body>
+        </html>
+      `);
+      iframeDoc.close();
     }
   };
 
@@ -131,7 +187,7 @@ export default function GenerateQR() {
       // Clear current QR code immediately to show loading state
       setQrDataUrl('');
       setIsGenerating(true);
-      
+
       // Small delay to ensure state updates are processed
       setTimeout(() => {
         generateQR();
@@ -160,7 +216,7 @@ export default function GenerateQR() {
             Generate QR Code
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Create a QR code that links to the treasure claim page. Just enter a name 
+            Create a QR code that links to the treasure claim page. Just enter a name
             and get a QR code you can print and place with your cache.
           </p>
         </div>
@@ -172,9 +228,9 @@ export default function GenerateQR() {
                 <ComponentLoading size="sm" title="Generating..." />
               </div>
             ) : qrDataUrl ? (
-              <img 
-                src={qrDataUrl} 
-                alt="Verification QR Code" 
+              <img
+                src={qrDataUrl}
+                alt="Verification QR Code"
                 className="w-full h-auto rounded max-w-xs object-contain"
               />
             ) : (

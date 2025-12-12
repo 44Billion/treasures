@@ -1,9 +1,11 @@
 @media print {
+  /* Ensure exact color reproduction */
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
+  /* Grid container for multi-QR printing */
   .printable-qr-grid-container {
     position: absolute;
     left: 0;
@@ -23,6 +25,7 @@
     page-break-inside: avoid;
   }
 
+  /* Print utilities */
   .print\:hidden {
     display: none !important;
   }
@@ -33,5 +36,30 @@
 
   .print\:border-none {
     border: none !important;
+  }
+
+  /* QR code print styling - ensures proper sizing on mobile */
+  .qr-print-image {
+    max-width: 100% !important;
+    max-height: 100vh !important;
+    width: auto !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Page setup for mobile print */
+  @page {
+    size: auto;
+    margin: 0.5cm;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 }
