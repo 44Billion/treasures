@@ -234,7 +234,7 @@ export function ImageUploadField<TFieldValues extends FieldValues, TName extends
                  {uploading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
+                    {t('form.uploading')}
                   </>
                 ) : (
                   <>

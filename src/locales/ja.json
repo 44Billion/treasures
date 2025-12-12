@@ -409,6 +409,7 @@
   "editProfile.upload.profilePicture": "プロフィール画像",
   "editProfile.upload.banner": "バナー",
   "form.uploadImage": "画像をアップロード",
+  "form.uploading": "アップロード中...",
   "cacheDetail.loading.title": "ジオキャッシュを読み込み中...",
   "cacheDetail.loading.description": "ネットワークからキャッシュの詳細を取得中",
   "cacheDetail.error.invalidLink.title": "無効なキャッシュリンク",

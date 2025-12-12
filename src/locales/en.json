@@ -409,6 +409,7 @@
   "editProfile.upload.profilePicture": "Profile picture",
   "editProfile.upload.banner": "Banner",
   "form.uploadImage": "Upload Image",
+  "form.uploading": "Uploading...",
   "cacheDetail.loading.title": "Loading Geocache...",
   "cacheDetail.loading.description": "Fetching cache details from the network",
   "cacheDetail.error.invalidLink.title": "Invalid Cache Link",

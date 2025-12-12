@@ -409,6 +409,7 @@
   "editProfile.upload.profilePicture": "รูปภาพโปรไฟล์",
   "editProfile.upload.banner": "แบนเนอร์",
   "form.uploadImage": "อัปโหลดรูปภาพ",
+  "form.uploading": "กำลังอัปโหลด...",
   "cacheDetail.loading.title": "กำลังโหลด Geocache...",
   "cacheDetail.loading.description": "กำลังดึงข้อมูล cache จากเครือข่าย",
   "cacheDetail.error.invalidLink.title": "ลิงก์ Cache ไม่ถูกต้อง",
