@@ -91,19 +91,70 @@ export default function CreateCache() {
   const { toast } = useToast();
   const { theme, systemTheme } = useTheme();
 
-  const [formData, setFormData] = useState<GeocacheFormData>(createDefaultGeocacheFormData());
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [images, setImages] = useState<string[]>([]);
+  // Persistent form state - survives browser backgrounding
+  const STORAGE_KEY = 'treasures-create-cache-draft';
+
+  // Load saved draft on mount
+  const loadDraft = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        return {
+          formData: draft.formData || createDefaultGeocacheFormData(),
+          location: draft.location || null,
+          images: draft.images || [],
+          currentStep: draft.currentStep || 1,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load draft:', error);
+    }
+    return null;
+  };
+
+  const draft = loadDraft();
+  const [formData, setFormData] = useState<GeocacheFormData>(draft?.formData || createDefaultGeocacheFormData());
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(draft?.location || null);
+  const [images, setImages] = useState<string[]>(draft?.images || []);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(draft?.currentStep || 1);
   const totalSteps = 4;
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Save draft to localStorage whenever form data changes
+  useEffect(() => {
+    const draft = {
+      formData,
+      location,
+      images,
+      currentStep,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+  }, [formData, location, images, currentStep]);
+
+  // Clear draft when successfully creating geocache
+  const clearDraft = () => {
+    localStorage.removeItem(STORAGE_KEY);
+  };
 
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
   const [importedKind, setImportedKind] = useState<number | null>(null);
   const [showQROverlay, setShowQROverlay] = useState(false);
+  const [showDraftNotice, setShowDraftNotice] = useState(!!draft);
+
+  // Function to start fresh by clearing the draft
+  const startFresh = () => {
+    clearDraft();
+    setFormData(createDefaultGeocacheFormData());
+    setLocation(null);
+    setImages([]);
+    setCurrentStep(1);
+    setShowDraftNotice(false);
+  };
 
   // Map style management for confirmation dialog - using same logic as GeocacheMap
   const getDefaultMapStyle = () => {
@@ -368,6 +419,13 @@ export default function CreateCache() {
     }
   };
 
+  // Re-verify location from draft when component mounts
+  useEffect(() => {
+    if (draft?.location && currentStep === 1) {
+      handleLocationChange(draft.location);
+    }
+  }, []); // Only run once on mount
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Prevent default form submission - we handle creation in handleCreateGeocache
@@ -454,6 +512,9 @@ export default function CreateCache() {
           title: "Cache Published Successfully!",
           description: "Your geocache is now live. Redirecting...",
         });
+
+        // Clear the draft since cache was created successfully
+        clearDraft();
 
         // Navigate to the newly created cache with the data we already have
         // This prevents the "not found" issue while relay propagation happens
@@ -599,6 +660,25 @@ export default function CreateCache() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Draft Notice */}
+              {showDraftNotice && (
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                  <WifiOff className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between">
+                    <span className="text-sm">Continuing your draft from where you left off.</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={startFresh}
+                      className="ml-2"
+                    >
+                      Start Fresh
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Progress Indicator */}
               <div className="flex items-center justify-center mb-4 px-4 overflow-hidden create-cache-progress">
                 <div className="flex items-center w-full max-w-xs min-w-0">
@@ -835,6 +915,25 @@ export default function CreateCache() {
             {/* Mobile Form - no card wrapper */}
             <div className="md:hidden px-4 pb-4 bg-background">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Draft Notice */}
+            {showDraftNotice && (
+              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                <WifiOff className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span className="text-sm">Continuing your draft.</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={startFresh}
+                    className="ml-2"
+                  >
+                    Start Fresh
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-4 px-2 overflow-hidden create-cache-progress">
               <div className="flex items-center w-full max-w-xs min-w-0">
