@@ -1,5 +1,5 @@
-import React from 'react';
-import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2 } from 'lucide-react';
 import { sneaker, treesForest } from '@lucide/lab';
 
 // Create React components from Lucide Lab icons
@@ -671,6 +671,7 @@ interface CacheImageManagerProps {
 export function CacheImageManager({ images, onImagesChange, disabled = false, className }: CacheImageManagerProps) {
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const { toast } = useToast();
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -685,15 +686,42 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
       return;
     }
 
+    // Show uploading toast
+    toast({
+      title: "Uploading image...",
+      description: `Uploading ${file.name}...`,
+    });
+
+    // Add a temporary placeholder
+    const tempIndex = images.length;
+    setUploadingIndex(tempIndex);
+    onImagesChange([...images, '']); // Add empty string as placeholder
+
     try {
       const [[_, url]] = await uploadFile(file);
-      onImagesChange([...images, url]);
+      // Replace the placeholder with the actual URL
+      const newImages = [...images];
+      newImages[tempIndex] = url;
+      onImagesChange(newImages);
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
     } catch (error) {
+      const errorObj = error as { message?: string };
+      // Remove the placeholder on error
+      onImagesChange(images);
+
       toast({
         title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
+        description: errorObj.message || "Failed to upload image. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setUploadingIndex(null);
+      // Reset the file input
+      e.target.value = '';
     }
   };
 
@@ -707,24 +735,37 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
 
       {/* Image List */}
       {images.map((url, index) => (
-        <div key={index} className="flex items-center gap-2 p-2 border rounded">
-          <div className="h-16 w-16 rounded overflow-hidden">
-            <BlurredImage
-              src={url}
-              alt={`Cache image ${index + 1}`}
-              className="h-full w-full"
-              blurIntensity="light"
-              defaultBlurred={true}
-              showToggle={true}
-            />
+        <div key={index} className="flex items-center gap-2 p-2 border rounded relative">
+          <div className="h-16 w-16 rounded overflow-hidden relative">
+            {url ? (
+              <BlurredImage
+                src={url}
+                alt={`Cache image ${index + 1}`}
+                className="h-full w-full"
+                blurIntensity="light"
+                defaultBlurred={true}
+                showToggle={true}
+              />
+            ) : (
+              <div className="h-full w-full bg-muted flex items-center justify-center">
+                <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+              </div>
+            )}
+            {uploadingIndex === index && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+            )}
           </div>
-          <span className="flex-1 text-sm truncate">{url}</span>
+          <span className="flex-1 text-sm truncate">
+            {url || "Uploading..."}
+          </span>
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => removeImage(index)}
-            disabled={disabled}
+            disabled={disabled || uploadingIndex === index}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -743,10 +784,22 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
         />
         <Label
           htmlFor="cache-image-upload"
-          className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+          className={cn(
+            "cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2",
+            (disabled || isUploading) && "pointer-events-none opacity-50"
+          )}
         >
-          <Upload className="h-4 w-4 mr-2" />
-          {isUploading ? "Uploading..." : "Upload Image"}
+          {isUploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Image
+            </>
+          )}
         </Label>
       </div>
     </div>

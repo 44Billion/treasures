@@ -6,13 +6,13 @@ import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
 import { useToast } from '@/shared/hooks/useToast';
 import { Form } from '@/shared/components/ui/form';
 import { LoadingButton } from '@/shared/components/ui/button-extensions';
-import { 
-  TextField, 
-  TextAreaField, 
-  SwitchField, 
-  ImageUploadField 
+import {
+  TextField,
+  TextAreaField,
+  SwitchField,
+  ImageUploadField
 } from '@/shared/components/ui/form-fields';
-import { 
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -69,20 +69,30 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
 
   // Handle file uploads for profile picture and banner
   const uploadPicture = async (file: File, field: 'picture' | 'banner') => {
+    const fieldName = field === 'picture' ? 'Profile picture' : 'Banner';
+
+    // Show upload starting toast
+    toast({
+      title: 'Uploading...',
+      description: `Uploading ${fieldName.toLowerCase()}...`,
+    });
+
     try {
       // The first tuple in the array contains the URL
       const [[_, url]] = await uploadFile(file);
       form.setValue(field, url);
       toast({
         title: 'Success',
-        description: `${field === 'picture' ? 'Profile picture' : 'Banner'} uploaded successfully`,
+        description: `${fieldName} uploaded successfully`,
       });
     } catch (error) {
+      const errorObj = error as { message?: string };
       toast({
-        title: 'Error',
-        description: `Failed to upload ${field === 'picture' ? 'profile picture' : 'banner'}. Please try again.`,
+        title: 'Upload failed',
+        description: errorObj.message || `Failed to upload ${fieldName.toLowerCase()}. Please try again.`,
         variant: 'destructive',
       });
+      throw error; // Re-throw to let the ImageUploadField handle the loading state
     }
   };
 
@@ -130,10 +140,10 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
     } catch (error) {
       const errorObj = error as { message?: string };
       const errorMessage = errorObj.message || 'Failed to update your profile. Please try again.';
-      
+
       // Set the error for the troubleshooter
       setPublishError(errorMessage);
-      
+
       // Also show a toast for immediate feedback
       toast({
         title: 'Error',
@@ -203,6 +213,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
                 description="Square image that represents you."
                 previewType="square"
                 onUpload={(file) => uploadPicture(file, 'picture')}
+                isUploading={isUploading}
               />
 
               <ImageUploadField
@@ -213,6 +224,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
                 description="Wide banner image for your profile header."
                 previewType="wide"
                 onUpload={(file) => uploadPicture(file, 'banner')}
+                isUploading={isUploading}
               />
             </div>
           </CardContent>
@@ -282,14 +294,14 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <LoadingButton
-            type="submit" 
-            className="flex-1 sm:flex-none sm:min-w-[120px]" 
+            type="submit"
+            className="flex-1 sm:flex-none sm:min-w-[120px]"
             isLoading={isPending || isUploading}
             loadingText="Saving..."
           >
             Save Profile
           </LoadingButton>
-          
+
           {onSuccess && (
             <LoadingButton
               type="button"
@@ -306,8 +318,8 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
 
       {publishError && (
         <div className="mt-6">
-          <PublishTroubleshooter 
-            error={publishError} 
+          <PublishTroubleshooter
+            error={publishError}
             onRetry={handleRetry}
             isRetrying={isPending}
           />
