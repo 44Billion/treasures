@@ -557,6 +557,31 @@ export default function CacheDetail() {
     <div className="min-h-screen lg:bg-muted bg-card">
       <DesktopHeader />
 
+      {/* Sticky footer for edit mode on mobile */}
+      {isEditing && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg z-50 p-4">
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSaveEdit}
+              disabled={isEditingGeocache}
+              className="flex-1"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isEditingGeocache ? t('cacheDetail.edit.saving') : t('cacheDetail.edit.save')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCancelEdit}
+              disabled={isEditingGeocache}
+              className="flex-1"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              {t('cacheDetail.edit.cancel')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="sm:container mx-auto lg:px-2 sm:px-4 lg:py-8 py-0">
         <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Main Content */}
@@ -652,7 +677,7 @@ export default function CacheDetail() {
               <div className="lg:p-6 lg:pt-0 p-4 pt-0 lg:pb-6 pb-2">
                 {isEditing ? (
                   // Edit form
-                  <div className="space-y-6">
+                  <div className="space-y-6 pb-20 lg:pb-6">
                     <GeocacheForm
                       formData={editFormData}
                       onFormDataChange={setEditFormData}
