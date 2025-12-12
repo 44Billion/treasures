@@ -663,9 +663,11 @@ export default function CreateCache() {
               {/* Draft Notice */}
               {showDraftNotice && (
                 <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                  <FileEdit className="h-4 w-4" />
                   <AlertDescription className="flex items-center justify-between">
-                    <span className="text-sm">Continuing your draft from where you left off.</span>
+                    <span className="text-sm flex items-center gap-2">
+                      <FileEdit className="h-4 w-4" />
+                      Continuing your draft from where you left off.
+                    </span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -918,9 +920,11 @@ export default function CreateCache() {
             {/* Draft Notice */}
             {showDraftNotice && (
               <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                <FileEdit className="h-4 w-4" />
                 <AlertDescription className="flex items-center justify-between">
-                  <span className="text-sm">Continuing your draft.</span>
+                  <span className="text-sm flex items-center gap-2">
+                    <FileEdit className="h-4 w-4" />
+                    Continuing your draft.
+                  </span>
                   <Button
                     type="button"
                     variant="ghost"
