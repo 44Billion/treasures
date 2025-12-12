@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download, Copy, QrCode, ChevronDown, Printer } from 'lucide-react';
 import {
   DropdownMenu,
@@ -27,6 +28,7 @@ export function VerificationQRDialog({
   verificationKeyPair,
   cacheName
 }: VerificationQRDialogProps) {
+  const { t } = useTranslation();
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrType, setQrType] = useState<'full' | 'cutout' | 'micro'>('full');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -38,7 +40,10 @@ export function VerificationQRDialog({
       setIsGenerating(true);
       setQrDataUrl(''); // Clear previous QR code
       
-      generateVerificationQR(naddr, verificationKeyPair.nsec, qrType)
+      generateVerificationQR(naddr, verificationKeyPair.nsec, qrType, {
+        line1: t('qrCode.foundTreasure'),
+        line2: t('qrCode.scanToLog')
+      })
         .then((dataUrl) => {
           setQrDataUrl(dataUrl);
         })
@@ -51,7 +56,7 @@ export function VerificationQRDialog({
         })
         .finally(() => setIsGenerating(false));
     }
-  }, [isOpen, naddr, verificationKeyPair.nsec, toast, qrType]);
+  }, [isOpen, naddr, verificationKeyPair.nsec, toast, qrType, t]);
 
   // Separate effect to handle QR type changes when dialog is already open
   useEffect(() => {
@@ -61,7 +66,10 @@ export function VerificationQRDialog({
       
       // Small delay to ensure state update is processed
       setTimeout(() => {
-        generateVerificationQR(naddr, verificationKeyPair.nsec, qrType)
+        generateVerificationQR(naddr, verificationKeyPair.nsec, qrType, {
+          line1: t('qrCode.foundTreasure'),
+          line2: t('qrCode.scanToLog')
+        })
           .then((dataUrl) => {
             setQrDataUrl(dataUrl);
           })

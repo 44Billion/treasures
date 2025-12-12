@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { getDifficultyLabel, getSizeLabel, getSizeLevel } from '@/features/geocache/utils/geocache-utils';
 import { useTheme } from "@/shared/hooks/useTheme";
 
@@ -15,6 +16,7 @@ export function DifficultyTerrainRating({
   showLabels?: boolean;
   size?: 'small' | 'default';
 }) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
 
@@ -31,7 +33,7 @@ export function DifficultyTerrainRating({
   return (
     <div className="space-y-2">
       <div>
-        <p className={`font-medium text-muted-foreground ${textSize}`}>Difficulty</p>
+        <p className={`font-medium text-muted-foreground ${textSize}`}>{t('cacheDetail.details.difficulty')}</p>
         <div className="flex items-center gap-2 mt-1">
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -48,7 +50,7 @@ export function DifficultyTerrainRating({
       </div>
 
       <div>
-        <p className={`font-medium text-muted-foreground ${textSize}`}>Terrain</p>
+        <p className={`font-medium text-muted-foreground ${textSize}`}>{t('cacheDetail.details.terrain')}</p>
         <div className="flex items-center gap-2 mt-1">
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -66,7 +68,7 @@ export function DifficultyTerrainRating({
 
       {cacheSize && (
         <div>
-          <p className={`font-medium text-muted-foreground ${textSize}`}>Size</p>
+          <p className={`font-medium text-muted-foreground ${textSize}`}>{t('cacheDetail.details.size')}</p>
           <div className="flex items-center gap-2 mt-1">
             <div className="flex gap-1 items-end">
               {[1, 2, 3, 4].map((i) => (

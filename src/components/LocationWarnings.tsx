@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle, XCircle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { LocationVerification, getVerificationSummary } from "@/features/geocache/utils/osmVerification";
@@ -10,6 +11,7 @@ interface LocationWarningsProps {
 }
 
 export function LocationWarnings({ verification, className, hideCreatorWarnings = false }: LocationWarningsProps) {
+  const { t } = useTranslation();
   const [showDetails, setShowDetails] = useState(false);
   const summary = getVerificationSummary(verification);
   
@@ -36,37 +38,37 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
   
   // Positive features
   if (verification.accessibility.wheelchair) {
-    locationFeatures.push({ label: "Wheelchair accessible", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.wheelchairAccessible'), type: "positive" });
   }
   if (verification.accessibility.parking) {
-    locationFeatures.push({ label: "Parking available", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.parkingAvailable'), type: "positive" });
   }
   if (verification.accessibility.publicTransport) {
-    locationFeatures.push({ label: "Public transport", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.publicTransport'), type: "positive" });
   }
   if (verification.terrain.lit) {
-    locationFeatures.push({ label: "Well lit", type: "positive" });
+    locationFeatures.push({ label: t('locationInfo.features.wellLit'), type: "positive" });
   }
   
   // Neutral info
   if (verification.terrain.surface) {
-    locationFeatures.push({ label: `${verification.terrain.surface} surface`, type: "neutral" });
+    locationFeatures.push({ label: t('locationInfo.features.surface', { surface: verification.terrain.surface }), type: "neutral" });
   }
   
   // Heads up items (yellow - important to know but not impediments)
   if (verification.accessibility.fee) {
-    hindrances.push({ label: "Entry fee required", type: "headsup" });
+    hindrances.push({ label: t('locationInfo.features.entryFeeRequired'), type: "headsup" });
   }
   
   // Hindrances (yellow - things that might affect everyone negatively)
   if (verification.accessibility.wheelchair === false) {
-    hindrances.push({ label: "Not wheelchair accessible", type: "hindrance" });
+    hindrances.push({ label: t('locationInfo.features.notWheelchairAccessible'), type: "hindrance" });
   }
   if (verification.terrain.lit === false) {
-    hindrances.push({ label: "Not lit at night", type: "hindrance" });
+    hindrances.push({ label: t('locationInfo.features.notLitAtNight'), type: "hindrance" });
   }
   if (verification.safety?.cellCoverage === false) {
-    hindrances.push({ label: "Poor cell coverage", type: "hindrance" });
+    hindrances.push({ label: t('locationInfo.features.poorCellCoverage'), type: "hindrance" });
   }
   
   // Combine for display (show positives and neutrals first, then hindrances)
@@ -75,13 +77,13 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
   // Add hazards to other warnings instead of features
   if (verification.terrain.hazards && verification.terrain.hazards.length > 0) {
     verification.terrain.hazards.forEach(hazard => {
-      categorizedWarnings.other.push(`Safety hazard: ${hazard}`);
+      categorizedWarnings.other.push(t('locationInfo.features.safetyHazard', { hazard }));
     });
   }
 
   // Add restricted hours as heads up item
   if (verification.accessibility.openingHours && verification.accessibility.openingHours !== '24/7') {
-    hindrances.push({ label: `Hours: ${verification.accessibility.openingHours}`, type: "headsup" });
+    hindrances.push({ label: t('locationInfo.features.hours', { hours: verification.accessibility.openingHours }), type: "headsup" });
   }
 
   const StatusIcon = summary.status === 'safe' ? CheckCircle : 
@@ -98,7 +100,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
   // Add overflow features to other considerations
   if (overflowFeatures.length > 0) {
     overflowFeatures.forEach(feature => {
-      categorizedWarnings.other.push(`Location feature: ${feature.label}`);
+      categorizedWarnings.other.push(t('locationInfo.features.locationFeature', { feature: feature.label }));
     });
   }
 
@@ -113,7 +115,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
             <div className="flex items-start gap-3">
               <XCircle className="h-4 w-4 mt-0.5 text-destructive flex-shrink-0" />
               <div className="flex-1">
-                <div className="font-medium text-sm text-foreground mb-1">Critical Issues</div>
+                <div className="font-medium text-sm text-foreground mb-1">{t('locationInfo.criticalIssues')}</div>
                 <div className="space-y-1">
                   {categorizedWarnings.critical.map((warning, idx) => (
                     <div key={idx} className="text-xs text-foreground">
@@ -137,7 +139,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
               <StatusIcon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${statusColor}`} />
               <div className="flex-1">
                 <div className="font-medium text-sm text-foreground mb-1">
-                  {summary.status === 'restricted' ? 'Location Warning' : 'Location Notice'}
+                  {summary.status === 'restricted' ? t('locationInfo.locationWarning') : t('locationInfo.locationNotice')}
                 </div>
                 <div className="text-sm text-foreground">{summary.message}</div>
               </div>
@@ -151,7 +153,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
             <div className="flex items-start gap-3">
               <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
               <div className="flex-1">
-                <div className="font-medium text-sm text-foreground mb-2">Location Info</div>
+                <div className="font-medium text-sm text-foreground mb-2">{t('locationInfo.title')}</div>
                 <div className="flex flex-wrap gap-1">
                   {visibleFeatures.slice(0, 4).map((feature, idx) => (
                     <Badge 
@@ -171,7 +173,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
                       onClick={() => setShowDetails(!showDetails)}
                       className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showDetails ? 'Show less' : `+${Math.max(0, visibleFeatures.length - 4 + overflowFeatures.length + categorizedWarnings.other.length)} more`}
+                      {showDetails ? t('locationInfo.showLess') : t('locationInfo.showMore', { count: Math.max(0, visibleFeatures.length - 4 + overflowFeatures.length + categorizedWarnings.other.length) })}
                     </button>
                   )}
                 </div>
@@ -187,7 +189,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
               {/* Remaining visible features */}
               {visibleFeatures.length > 4 && (
                 <div className="space-y-1">
-                  <div className="text-xs font-medium text-muted-foreground">Additional Features</div>
+                  <div className="text-xs font-medium text-muted-foreground">{t('locationInfo.additionalFeatures')}</div>
                   <div className="flex flex-wrap gap-1">
                     {visibleFeatures.slice(4).map((feature, idx) => (
                       <Badge 
@@ -205,17 +207,27 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
               {/* Other details */}
               {categorizedWarnings.other.length > 0 && (
                 <div className="space-y-1">
-                  <div className="text-xs font-medium text-muted-foreground">Other Details</div>
+                  <div className="text-xs font-medium text-muted-foreground">{t('locationInfo.otherDetails')}</div>
                   <div className="space-y-1">
-                    {categorizedWarnings.other.slice(0, 5).map((warning, idx) => (
-                      <div key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
-                        <span className="text-muted-foreground mt-0.5">•</span>
-                        <span>{warning.replace(/⚠️\s*/, '').replace(/Area has restricted hours: /, 'Hours: ')}</span>
-                      </div>
-                    ))}
+                    {categorizedWarnings.other.slice(0, 5).map((warning, idx) => {
+                      // Warnings come from osmVerification.ts in English, so we need to match English patterns
+                      // and replace with translated versions
+                      let translatedWarning = warning.replace(/⚠️\s*/, '');
+                      // Replace English "Area has restricted hours: " with translated "Hours: "
+                      const englishPattern = 'Area has restricted hours: ';
+                      if (translatedWarning.includes(englishPattern)) {
+                        translatedWarning = translatedWarning.replace(englishPattern, t('locationInfo.features.hoursPrefix'));
+                      }
+                      return (
+                        <div key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                          <span className="text-muted-foreground mt-0.5">•</span>
+                          <span>{translatedWarning}</span>
+                        </div>
+                      );
+                    })}
                     {categorizedWarnings.other.length > 5 && (
                       <div className="text-xs text-muted-foreground">
-                        ... and {categorizedWarnings.other.length - 5} more details
+                        {t('locationInfo.andMore', { count: categorizedWarnings.other.length - 5 })}
                       </div>
                     )}
                   </div>

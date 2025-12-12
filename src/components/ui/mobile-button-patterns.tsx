@@ -1,4 +1,5 @@
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LucideIcon, Shield, Trophy, MessageSquare, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -179,15 +180,16 @@ export function LoginMethodTabs({
   children, 
   className 
 }: LoginMethodTabsProps) {
-  const loginMethods: MobileTabItem[] = [
+  const { t } = useTranslation();
+  const loginMethods: MobileTabItem[] = useMemo(() => [
     { 
       value: 'extension', 
-      label: 'Extension',
+      label: t('login.tab.extension'),
       icon: Shield
     },
-    { value: 'key', label: 'Nsec' },
-    { value: 'bunker', label: 'Bunker' },
-  ];
+    { value: 'key', label: t('login.tab.nsec') },
+    { value: 'bunker', label: t('login.tab.bunker') },
+  ], [t]);
 
   // Check if extension is available
   const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
@@ -250,10 +252,12 @@ interface MapViewTabsProps {
 }
 
 export function MapViewTabs({ children, className, value, onValueChange, defaultValue = "list" }: MapViewTabsProps) {
-  const mapTabs: MobileTabItem[] = [
-    { value: 'list', label: 'List' },
-    { value: 'map', label: 'Map' },
-  ];
+  const { t, i18n } = useTranslation();
+  
+  const mapTabs: MobileTabItem[] = useMemo(() => [
+    { value: 'list', label: t('map.tabs.list') },
+    { value: 'map', label: t('map.tabs.map') },
+  ], [t, i18n.language]);
 
   // If controlled (value prop provided), use controlled mode
   if (value !== undefined && onValueChange) {

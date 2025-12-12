@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
 import { useAppContext } from '@/shared/hooks/useAppContext';
@@ -21,6 +22,7 @@ export function useZaps(
 ) {
   const { nostr } = useNostr();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { config } = useAppContext();
   const queryClient = useQueryClient();
@@ -143,8 +145,8 @@ export function useZaps(
 
     if (!user) {
       toast({
-        title: 'Login required',
-        description: 'You must be logged in to send a zap.',
+        title: t('zap.toast.loginRequired.title'),
+        description: t('zap.toast.loginRequired.description'),
         variant: 'destructive',
       });
       setIsZapping(false);
@@ -153,8 +155,8 @@ export function useZaps(
 
     if (!actualTarget) {
       toast({
-        title: 'Event not found',
-        description: 'Could not find the event to zap.',
+        title: t('zap.toast.eventNotFound.title'),
+        description: t('zap.toast.eventNotFound.description'),
         variant: 'destructive',
       });
       setIsZapping(false);
@@ -164,8 +166,8 @@ export function useZaps(
     try {
       if (!author.data || !author.data?.metadata || !author.data?.event ) {
         toast({
-          title: 'Author not found',
-          description: 'Could not find the author of this item.',
+          title: t('zap.toast.authorNotFound.title'),
+          description: t('zap.toast.authorNotFound.description'),
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -175,8 +177,8 @@ export function useZaps(
       const { lud06, lud16 } = author.data.metadata;
       if (!lud06 && !lud16) {
         toast({
-          title: 'Lightning address not found',
-          description: 'The author does not have a lightning address configured.',
+          title: t('zap.toast.lightningAddressNotFound.title'),
+          description: t('zap.toast.lightningAddressNotFound.description'),
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -187,8 +189,8 @@ export function useZaps(
       const zapEndpoint = await nip57.getZapEndpoint(author.data.event);
       if (!zapEndpoint) {
         toast({
-          title: 'Zap endpoint not found',
-          description: 'Could not find a zap endpoint for the author.',
+          title: t('zap.toast.endpointNotFound.title'),
+          description: t('zap.toast.endpointNotFound.description'),
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -198,23 +200,24 @@ export function useZaps(
       // Create zap request - use appropriate event format based on kind
       // For addressable events (30000-39999), pass the object to get 'a' tag
       // For all other events, pass the ID string to get 'e' tag
-      const event = (actualTarget.kind >= 30000 && actualTarget.kind < 40000)
+      const eventParam = (actualTarget.kind >= 30000 && actualTarget.kind < 40000)
         ? actualTarget
         : actualTarget.id;
 
       const zapAmount = amount * 1000; // convert to millisats
 
+      // nip57.makeZapRequest has strict types but accepts both profile and event
       const zapRequest = nip57.makeZapRequest({
         profile: actualTarget.pubkey,
-        event: event,
+        event: eventParam as any,
         amount: zapAmount,
         relays: [config.relayUrl],
         comment
-      });
+      } as any);
 
       // Sign the zap request (but don't publish to relays - only send to LNURL endpoint)
       if (!user.signer) {
-        throw new Error('No signer available');
+        throw new Error(t('zap.toast.noSigner'));
       }
       const signedZapRequest = await user.signer.signEvent(zapRequest);
 
@@ -228,7 +231,7 @@ export function useZaps(
 
             const newInvoice = responseData.pr;
             if (!newInvoice || typeof newInvoice !== 'string') {
-              throw new Error('Lightning service did not return a valid invoice');
+              throw new Error(t('zap.toast.invalidInvoice'));
             }
 
             // Get the current active NWC connection dynamically
@@ -244,8 +247,8 @@ export function useZaps(
                 setInvoice(null);
 
                 toast({
-                  title: 'Zap successful!',
-                  description: `You sent ${amount} sats via NWC to the author.`,
+                  title: t('zap.toast.success.title'),
+                  description: t('zap.toast.success.nwcDescription', { amount }),
                 });
 
                 // Invalidate zap queries to refresh counts
@@ -260,8 +263,8 @@ export function useZaps(
                 // Show specific NWC error to user for debugging
                 const errorMessage = nwcError instanceof Error ? nwcError.message : 'Unknown NWC error';
                 toast({
-                  title: 'NWC payment failed',
-                  description: `${errorMessage}. Falling back to other payment methods...`,
+                  title: t('zap.toast.nwcFailed.title'),
+                  description: t('zap.toast.nwcFailed.description', { errorMessage }),
                   variant: 'destructive',
                 });
               }
@@ -276,8 +279,8 @@ export function useZaps(
                 setInvoice(null);
 
                 toast({
-                  title: 'Zap successful!',
-                  description: `You sent ${amount} sats to the author.`,
+                  title: t('zap.toast.success.title'),
+                  description: t('zap.toast.success.weblnDescription', { amount }),
                 });
 
                 // Invalidate zap queries to refresh counts
@@ -291,8 +294,8 @@ export function useZaps(
                 // Show specific WebLN error to user for debugging
                 const errorMessage = weblnError instanceof Error ? weblnError.message : 'Unknown WebLN error';
                 toast({
-                  title: 'WebLN payment failed',
-                  description: `${errorMessage}. Falling back to other payment methods...`,
+                  title: t('zap.toast.weblnFailed.title'),
+                  description: t('zap.toast.weblnFailed.description', { errorMessage }),
                   variant: 'destructive',
                 });
 
@@ -306,7 +309,7 @@ export function useZaps(
           } catch (err) {
             console.error('Zap error:', err);
             toast({
-              title: 'Zap failed',
+              title: t('zap.toast.failed.title'),
               description: (err as Error).message,
               variant: 'destructive',
             });
@@ -315,7 +318,7 @@ export function useZaps(
     } catch (err) {
       console.error('Zap error:', err);
       toast({
-        title: 'Zap failed',
+        title: t('zap.toast.failed.title'),
         description: (err as Error).message,
         variant: 'destructive',
       });

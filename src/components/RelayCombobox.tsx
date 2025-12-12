@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useTheme } from "@/shared/hooks/useTheme";
 
@@ -25,6 +26,7 @@ interface RelayComboboxProps {
 
 export function RelayCombobox(props: RelayComboboxProps) {
   const { className } = props;
+  const { t } = useTranslation();
   const { config, updateConfig, presetRelays = [] } = useAppContext();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
@@ -100,7 +102,7 @@ export function RelayCombobox(props: RelayComboboxProps) {
     if (isCustomRelay) {
       return selectedRelay.replace(/^wss?:\/\//, '');
     }
-    return "Select relay...";
+    return t('settings.relay.selectRelay');
   };
 
   return (
@@ -124,9 +126,9 @@ export function RelayCombobox(props: RelayComboboxProps) {
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search relays..." />
+              <CommandInput placeholder={t('settings.relay.searchRelays')} />
               <CommandList>
-                <CommandEmpty>No relay found.</CommandEmpty>
+                <CommandEmpty>{t('settings.relay.noRelayFound')}</CommandEmpty>
                 <CommandGroup>
                   {presetRelays.map((relay) => (
                     <CommandItem
@@ -151,7 +153,7 @@ export function RelayCombobox(props: RelayComboboxProps) {
                     onSelect={() => handlePresetSelection("custom")}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    <span>Add custom relay...</span>
+                    <span>{t('settings.relay.addCustomRelay')}</span>
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
@@ -205,7 +207,7 @@ export function RelayCombobox(props: RelayComboboxProps) {
               isAdventureTheme && "!bg-stone-600 !text-stone-100 hover:!bg-stone-500"
             )}
           >
-            Add
+            {t('common.add')}
           </Button>
           <Button
             variant="outline"
@@ -218,7 +220,7 @@ export function RelayCombobox(props: RelayComboboxProps) {
               isAdventureTheme && "!bg-stone-700 !border-stone-600 !text-stone-200 hover:!bg-stone-600"
             )}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
       )}

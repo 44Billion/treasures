@@ -17,6 +17,7 @@ import { NWCProvider } from '@/components/NWCProvider';
 import { initializeCacheCleanup } from '@/features/geocache/utils/cacheCleanup';
 import { DEFAULT_RELAY, PRESET_RELAYS } from '@/shared/config/relays';
 import { useEffect } from 'react';
+import './lib/i18n';
 import './styles/leaflet-overrides.css';
 import './styles/print.css';
 

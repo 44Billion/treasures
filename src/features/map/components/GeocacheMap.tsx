@@ -12,11 +12,9 @@ import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavi
 import { useMapController } from "@/features/map/hooks/useMapController";
 import type { Geocache } from "@/shared/types";
 import { getTypeLabel, getSizeLabel } from "@/features/geocache/utils/geocache-utils";
-
 import { getCacheIconSvg, getCacheColor } from "@/features/geocache/utils/cacheIconUtils";
-
-
 import { CACHE_NAMES } from "@/shared/config";
+import i18n from "@/lib/i18n";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
@@ -47,12 +45,12 @@ const createGeocachePopupHTML = (geocache: Geocache) => {
           class="flex-1 bg-blue-600 text-white text-xs px-3 py-2 rounded hover:bg-blue-700 transition-colors"
           onclick="window.dispatchEvent(new CustomEvent('geocache-view-details', { detail: '${geocache.dTag}' }))"
         >
-          View Details
+          ${i18n.t('map.popup.viewDetails')}
         </button>
         <button
           class="inline-flex items-center justify-center p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
           onclick="window.open('https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}', '_blank')"
-          title="Get directions"
+          title="${i18n.t('map.popup.getDirections')}"
         >
           <svg class="h-3 w-3" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2">
             <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, AlertTriangle, CheckCircle, Check, QrCode, Edit3, FileEdit } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
@@ -83,6 +84,7 @@ function MapResizer({ location }: { location: { lat: number; lng: number } }) {
 //   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
 
 export default function CreateCache() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useCurrentUser();
@@ -326,8 +328,8 @@ export default function CreateCache() {
               setImportedKind(decodedNaddr.kind);
 
               toast({
-                title: "Claim URL Imported",
-                description: "Your pre-generated cache settings have been loaded. Please fill in the location and other details.",
+                title: t('createCache.claimUrl.imported.title'),
+                description: t('createCache.claimUrl.imported.description'),
               });
             } else {
               console.log('❌ Pubkey mismatch:', {
@@ -335,39 +337,39 @@ export default function CreateCache() {
                 userPubkey: user.pubkey
               });
               toast({
-                title: "Invalid Claim URL",
-                description: "This claim URL doesn't belong to your account.",
+                title: t('createCache.claimUrl.invalid.title'),
+                description: t('createCache.claimUrl.invalid.wrongAccount'),
                 variant: "destructive",
               });
             }
           } catch (decodeError) {
             console.error('❌ Failed to decode naddr:', naddr, decodeError);
             toast({
-              title: "Invalid Claim URL",
-              description: "Unable to decode the cache identifier.",
+              title: t('createCache.claimUrl.invalid.title'),
+              description: t('createCache.claimUrl.invalid.decodeFailed'),
               variant: "destructive",
             });
           }
         } else {
           console.log('❌ Missing naddr or nsec:', { naddr, nsec });
           toast({
-            title: "Invalid Claim URL",
-            description: "The claim URL is missing required information.",
+            title: t('createCache.claimUrl.invalid.title'),
+            description: t('createCache.claimUrl.invalid.missingInfo'),
             variant: "destructive",
           });
         }
       } catch (error) {
         console.error('❌ Failed to parse claim URL:', { claimUrlParam, error });
         toast({
-          title: "Invalid Claim URL",
-          description: "The provided claim URL is not valid.",
+          title: t('createCache.claimUrl.invalid.title'),
+          description: t('createCache.claimUrl.invalid.notValid'),
           variant: "destructive",
         });
       }
     };
 
     processClaimUrl();
-  }, [searchParams, user, importedDTag, importedVerificationKeyPair, toast]); // Add all dependencies
+  }, [searchParams, user, importedDTag, importedVerificationKeyPair, toast, t]); // Add all dependencies
 
   // Handle location verification when location changes
   const handleLocationChange = async (newLocation: { lat: number; lng: number } | null) => {
@@ -434,8 +436,8 @@ export default function CreateCache() {
   const handleCreateGeocache = async () => {
     if (!formData.name.trim()) {
       toast({
-        title: "Cache name required",
-        description: "Please enter a name for your geocache",
+        title: t('createCache.validation.nameRequired.title'),
+        description: t('createCache.validation.nameRequired.description'),
         variant: "destructive",
       });
       return;
@@ -443,8 +445,8 @@ export default function CreateCache() {
 
     if (!formData.description.trim()) {
       toast({
-        title: "Description required",
-        description: "Please enter a description for your geocache",
+        title: t('createCache.validation.descriptionRequired.title'),
+        description: t('createCache.validation.descriptionRequired.description'),
         variant: "destructive",
       });
       return;
@@ -452,8 +454,8 @@ export default function CreateCache() {
 
     if (!location) {
       toast({
-        title: "Location required",
-        description: "Please select a location for your geocache",
+        title: t('createCache.validation.locationRequired.title'),
+        description: t('createCache.validation.locationRequired.description'),
         variant: "destructive",
       });
       return;
@@ -509,8 +511,8 @@ export default function CreateCache() {
         console.log('📡 Include relays:', includeRelays);
 
         toast({
-          title: "Cache Published Successfully!",
-          description: "Your geocache is now live. Redirecting...",
+          title: t('createCache.publish.success.title'),
+          description: t('createCache.publish.success.redirecting'),
         });
 
         // Clear the draft since cache was created successfully
@@ -528,8 +530,8 @@ export default function CreateCache() {
         console.error('❌ No dTag found in event tags:', event.tags);
         // Fallback: navigate to home if we can't generate naddr
         toast({
-          title: "Cache Published Successfully!",
-          description: "Your geocache is now live, but we couldn't generate the direct link.",
+          title: t('createCache.publish.success.title'),
+          description: t('createCache.publish.success.noLink'),
         });
         navigate('/');
       }
@@ -537,8 +539,8 @@ export default function CreateCache() {
       console.error('❌ Failed to create geocache:', error);
       // Show more detailed error to user
       toast({
-        title: "Failed to create geocache",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        title: t('createCache.publish.failed.title'),
+        description: error instanceof Error ? error.message : t('createCache.publish.failed.unknown'),
         variant: "destructive",
       });
     }
@@ -560,7 +562,7 @@ export default function CreateCache() {
       <PageLayout maxWidth="md" className="py-16">
         <LoginRequiredCard
           icon={MapPin}
-          description="You need to be logged in to create a geocache."
+          description={t('createCache.loginRequired')}
           className="max-w-md mx-auto"
         />
       </PageLayout>
@@ -576,8 +578,8 @@ export default function CreateCache() {
         <div className="h-full flex items-center justify-center">
           <div className="max-w-lg mx-auto space-y-4 px-4">
               <div className="text-center mb-8">
-                <h2 className="text-2xl text-foreground font-bold mb-2">Create a Geocache</h2>
-                <p className="text-sm text-muted-foreground">Choose how you'd like to get started. Create a QR code that you can scan to create your geocache later, or create your full listing now.</p>
+                <h2 className="text-2xl text-foreground font-bold mb-2">{t('createCache.overlay.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('createCache.overlay.description')}</p>
               </div>
 
               <div className="space-y-4">
@@ -591,9 +593,9 @@ export default function CreateCache() {
                         <QrCode className="h-6 w-6 text-green-600 dark:text-green-400" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1">QR code now!</h3>
+                        <h3 className="text-xl font-bold mb-1">{t('createCache.overlay.qrOption.title')}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Quick and easy - get a Treasures Claim QR code instantly. Scan your QR code later to create your geocache.
+                          {t('createCache.overlay.qrOption.description')}
                         </p>
                       </div>
                     </div>
@@ -610,9 +612,9 @@ export default function CreateCache() {
                         <Edit3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1">I'll fill it out here.</h3>
+                        <h3 className="text-xl font-bold mb-1">{t('createCache.overlay.formOption.title')}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Already set? Create and publish your geocache listing for the world to find.
+                          {t('createCache.overlay.formOption.description')}
                         </p>
                       </div>
                     </div>
@@ -627,7 +629,7 @@ export default function CreateCache() {
             <div className="md:hidden px-4 py-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-foreground">Hide a New Geocache</h1>
+                  <h1 className="text-2xl font-bold text-foreground">{t('createCache.title')}</h1>
                 </div>
                 <div className="flex gap-2 ml-4">
                   <Button
@@ -640,8 +642,7 @@ export default function CreateCache() {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully -
-                they help seekers know what to expect and prepare appropriately.
+                {t('createCache.description')}
               </p>
             </div>
 
@@ -650,7 +651,7 @@ export default function CreateCache() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-foreground">Hide a New Geocache</CardTitle>
+                <CardTitle className="text-foreground">{t('createCache.title')}</CardTitle>
                 <CardDescription>
                   Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully -
                   they help seekers know what to expect and prepare appropriately.
@@ -707,8 +708,8 @@ export default function CreateCache() {
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">Choose the location</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Where will seekers find your geocache?</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step1.title')}</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step1.description')}</p>
                   </div>
 
                   <LocationPicker
@@ -719,7 +720,7 @@ export default function CreateCache() {
                   {isVerifying && (
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 dark:bg-muted rounded-lg p-3">
                       <CompassSpinner size={16} variant="component" />
-                      Checking location restrictions...
+                      {t('createCache.step1.checking')}
                     </div>
                   )}
 
@@ -732,7 +733,7 @@ export default function CreateCache() {
 
                   <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
                     <AlertDescription className="text-sm">
-                      Ensure you have permission to place a cache here and that it's publicly accessible.
+                      {t('createCache.step1.permissionWarning')}
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -741,8 +742,8 @@ export default function CreateCache() {
               {currentStep === 2 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">Tell us about your cache</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Give your geocache a name and description</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step2.title')}</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step2.description')}</p>
                   </div>
 
                   <CacheNameField
@@ -767,8 +768,8 @@ export default function CreateCache() {
               {currentStep === 3 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">Set the challenge level</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers know what to expect</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step3.title')}</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step3.description')}</p>
                   </div>
 
                   <CacheTypeField
@@ -800,8 +801,8 @@ export default function CreateCache() {
               {currentStep === 4 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">Add photos & final touches</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers identify the area</p>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step4.title')}</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step4.description')}</p>
                   </div>
 
                   <CacheImageManager
@@ -817,7 +818,7 @@ export default function CreateCache() {
 
                   {/* Preview */}
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview: How your cache will appear</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.preview.title')}</h4>
                     <div className="space-y-2">
                       <h5 className="font-medium text-foreground">{formData.name || "Your Cache Name"}</h5>
                       <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
@@ -842,7 +843,7 @@ export default function CreateCache() {
                     onClick={() => setCurrentStep(currentStep - 1)}
                     className="flex-1"
                   >
-                    ← Previous
+                    ← {t('common.previous')}
                   </Button>
                 )}
 
@@ -853,16 +854,16 @@ export default function CreateCache() {
                       // Validate current step
                       if (currentStep === 1 && !location) {
                         toast({
-                          title: "Please select a location",
-                          description: "Location is required to continue",
+                          title: t('createCache.stepValidation.locationRequired.title'),
+                          description: t('createCache.stepValidation.locationRequired.description'),
                           variant: "destructive",
                         });
                         return;
                       }
                       if (currentStep === 1 && location && !locationVerification) {
                         toast({
-                          title: "Verifying location",
-                          description: "Please wait while we verify your location",
+                          title: t('createCache.locationVerification.title'),
+                          description: t('createCache.locationVerification.description'),
                           variant: "default",
                         });
                         return;
@@ -874,8 +875,8 @@ export default function CreateCache() {
                       }
                       if (currentStep === 2 && (!formData.name.trim() || !formData.description.trim())) {
                         toast({
-                          title: "Please complete required fields",
-                          description: "Name and description are required",
+                          title: t('createCache.stepValidation.fieldsRequired.title'),
+                          description: t('createCache.stepValidation.fieldsRequired.description'),
                           variant: "destructive",
                         });
                         return;
@@ -884,7 +885,7 @@ export default function CreateCache() {
                     }}
                     className="flex-1"
                   >
-                    Next →
+                    {t('common.next')} →
                   </Button>
                 ) : (
                   <Button
@@ -896,18 +897,18 @@ export default function CreateCache() {
                     {isVerifying ? (
                       <>
                         <CompassSpinner size={16} variant="component" className="mr-2" />
-                        Verifying Location...
+                        {t('createCache.verifyingLocation')}
                       </>
                     ) : isPending ? (
-                      "Creating..."
+                      t('createCache.creating')
                     ) : (
-                      "Create"
+                      t('createCache.createButton')
                     )}
                   </Button>
                 )}
 
                 <Button type="button" variant="outline" onClick={() => navigate("/")}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
               </div>
             </form>
@@ -1074,7 +1075,7 @@ export default function CreateCache() {
 
                 {/* Preview */}
                 <div className="bg-muted/20 border border-muted rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview: How your cache will appear</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.preview.title')}</h4>
                   <div className="space-y-2">
                     <h5 className="font-medium text-foreground">{formData.name || "Your Cache Name"}</h5>
                     <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
@@ -1118,8 +1119,8 @@ export default function CreateCache() {
                     }
                     if (currentStep === 1 && location && !locationVerification) {
                       toast({
-                        title: "Verifying location",
-                        description: "Please wait while we verify your location",
+                        title: t('createCache.locationVerification.title'),
+                        description: t('createCache.locationVerification.description'),
                         variant: "default",
                       });
                       return;
@@ -1153,12 +1154,12 @@ export default function CreateCache() {
                   {isVerifying ? (
                     <>
                       <CompassSpinner size={16} variant="component" className="mr-2" />
-                      Verifying Location...
+                      {t('createCache.verifyingLocation')}
                     </>
                   ) : isPending ? (
-                    "Creating..."
+                    t('createCache.creating')
                   ) : (
-                    "Create"
+                    t('createCache.createButton')
                   )}
                 </Button>
               )}
@@ -1174,7 +1175,7 @@ export default function CreateCache() {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Cache Location</AlertDialogTitle>
+            <AlertDialogTitle>{t('createCache.confirmLocation.title')}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3">
                 {location && (
@@ -1218,23 +1219,23 @@ export default function CreateCache() {
                     {/* Confirmation */}
                     <div className="flex items-center">
                       <div className="text-sm">
-                        <div className="font-medium mb-2 text-foreground">Please confirm:</div>
+                        <div className="font-medium mb-2 text-foreground">{t('createCache.confirmLocation.confirmLabel')}</div>
                         <div className="space-y-1 text-xs text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-green-600" />
-                            <span>You have permission to place this cache</span>
+                            <span>{t('createCache.confirmLocation.permission')}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-green-600" />
-                            <span>The location is publicly accessible</span>
+                            <span>{t('createCache.confirmLocation.accessible')}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-green-600" />
-                            <span>The location is safe and appropriate</span>
+                            <span>{t('createCache.confirmLocation.safe')}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-green-600" />
-                            <span>The coordinates are accurate</span>
+                            <span>{t('createCache.confirmLocation.accurate')}</span>
                           </div>
                         </div>
                       </div>
@@ -1256,7 +1257,7 @@ export default function CreateCache() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel onClick={handleLocationReview}>Review Location</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleLocationReview}>{t('createCache.confirmLocation.review')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleLocationConfirm}
               className={`flex items-center gap-2 ${
@@ -1268,12 +1269,12 @@ export default function CreateCache() {
               {locationVerification && getVerificationSummary(locationVerification).status === 'restricted' ? (
                 <>
                   <AlertTriangle className="h-4 w-4" />
-                  Use Despite Warnings
+                  {t('createCache.confirmLocation.useDespiteWarnings')}
                 </>
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4" />
-                  Use This Location
+                  {t('createCache.confirmLocation.useLocation')}
                 </>
               )}
             </AlertDialogAction>

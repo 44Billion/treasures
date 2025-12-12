@@ -107,7 +107,11 @@ async function loadAndResizeImage(src: string, size: number): Promise<HTMLCanvas
 export async function generateVerificationQR(
   naddr: string,
   nsec: string,
-  qrType: 'full' | 'cutout' | 'micro' = 'full'
+  qrType: 'full' | 'cutout' | 'micro' = 'full',
+  textStrings: {
+    line1: string;
+    line2: string;
+  }
 ): Promise<string> {
   // Validate inputs
   if (!naddr || !nsec) {
@@ -123,12 +127,12 @@ export async function generateVerificationQR(
   try {
     switch (qrType) {
       case 'cutout':
-        return await generateCutoutQR(verificationUrl);
+        return await generateCutoutQR(verificationUrl, textStrings);
       case 'micro':
-        return await generateMicroQR(verificationUrl);
+        return await generateMicroQR(verificationUrl, textStrings);
       case 'full':
       default:
-        return await generateFullQR(verificationUrl);
+        return await generateFullQR(verificationUrl, textStrings);
     }
   } catch (error) {
     console.error('QR generation error:', error);
@@ -148,7 +152,10 @@ export async function generateVerificationQR(
   }
 }
 
-async function generateFullQR(verificationUrl: string): Promise<string> {
+async function generateFullQR(
+  verificationUrl: string,
+  textStrings: { line1: string; line2: string }
+): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 3.5;
   const cardHeightInches = 3.5;
@@ -161,12 +168,15 @@ async function generateFullQR(verificationUrl: string): Promise<string> {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
 
-  await drawCardContent(ctx, cardWidth, cardHeight, verificationUrl, false);
+  await drawCardContent(ctx, cardWidth, cardHeight, verificationUrl, false, false, textStrings);
 
   return canvas.toDataURL('image/png', 1.0);
 }
 
-async function generateCutoutQR(verificationUrl: string): Promise<string> {
+async function generateCutoutQR(
+  verificationUrl: string,
+  textStrings: { line1: string; line2: string }
+): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 4;
   const cardHeightInches = 4;
@@ -190,7 +200,7 @@ async function generateCutoutQR(verificationUrl: string): Promise<string> {
   const cardCtx = cardCanvas.getContext('2d');
   if (!cardCtx) throw new Error('Could not get canvas context');
 
-  await drawCardContent(cardCtx, cardWidth, cardHeight, verificationUrl, true);
+  await drawCardContent(cardCtx, cardWidth, cardHeight, verificationUrl, true, false, textStrings);
 
   const cardX = (pageWidth - cardWidth) / 2;
   const cardY = (pageHeight - cardHeight) / 2;
@@ -199,7 +209,10 @@ async function generateCutoutQR(verificationUrl: string): Promise<string> {
   return pageCanvas.toDataURL('image/png', 1.0);
 }
 
-async function generateMicroQR(verificationUrl: string): Promise<string> {
+async function generateMicroQR(
+  verificationUrl: string,
+  textStrings: { line1: string; line2: string }
+): Promise<string> {
   const dpi = 300;
   const cardWidthInches = 1.3;
   const cardHeightInches = 11;
@@ -223,7 +236,7 @@ async function generateMicroQR(verificationUrl: string): Promise<string> {
   const cardCtx = cardCanvas.getContext('2d');
   if (!cardCtx) throw new Error('Could not get canvas context');
 
-  await drawCardContent(cardCtx, cardWidth, cardHeight, verificationUrl, false, true);
+  await drawCardContent(cardCtx, cardWidth, cardHeight, verificationUrl, false, true, textStrings);
 
   const cardX = (pageWidth - cardWidth) / 2;
   const cardY = (pageHeight - cardHeight) / 2;
@@ -238,7 +251,8 @@ async function drawCardContent(
   cardHeight: number,
   verificationUrl: string,
   dashedBorder: boolean,
-  isMicro = false
+  isMicro: boolean,
+  textStrings: { line1: string; line2: string }
 ) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, cardWidth, cardHeight);
@@ -309,8 +323,8 @@ async function drawCardContent(
   }
 
   const textStartY = topPadding + qrWidth + 40;
-  const line1 = 'You found a treasure!';
-  const line2 = 'Scan this QR code to log your adventure.';
+  const line1 = textStrings.line1;
+  const line2 = textStrings.line2;
 
   ctx.fillStyle = '#1a1a1a';
   ctx.textAlign = 'center';
@@ -641,7 +655,11 @@ export function downloadQRCode(dataUrl: string, filename: string = 'geocache-ver
  * Generate a printable 3x3 grid of QR codes.
  * Uses adaptive DPI based on device capabilities for better mobile support.
  */
-export async function generateQRGridImage(sheetData: {name: string, naddr: string, keyPair: VerificationKeyPair}[]): Promise<string> {
+export async function generateQRGridImage(
+  sheetData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
+  textStrings: { line1: string; line2: string }
+): Promise<string> {
+
   // Use lower DPI for mobile devices to prevent print overflow
   // Mobile needs significantly lower DPI (120) to fit within print preview
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -680,7 +698,7 @@ export async function generateQRGridImage(sheetData: {name: string, naddr: strin
   ctx.textAlign = 'center';
   ctx.font = `${fontSize}px Arial`;
 
-  const qrCodePromises = sheetData.map(d => generateVerificationQR(d.naddr, d.keyPair.nsec, 'full'));
+  const qrCodePromises = sheetData.map(d => generateVerificationQR(d.naddr, d.keyPair.nsec, 'full', textStrings));
 
   const qrCodes = await Promise.all(qrCodePromises);
 

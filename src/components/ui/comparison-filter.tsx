@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export function ComparisonFilter({
   className,
   compact = false,
 }: ComparisonFilterProps) {
+  const { t } = useTranslation();
   const hasSpecificValue = value && value !== "" && value !== "all";
   const selectedOption = options.find(opt => opt.value === value);
   
@@ -80,7 +82,7 @@ export function ComparisonFilter({
           )}>
             <SelectValue>
               {value === "all" || !value ? (
-                compact ? label : "All"
+                compact ? label : t('filters.all')
               ) : selectedOption ? (
                 selectedOption.label
               ) : `Select ${label.toLowerCase()}`}
@@ -88,7 +90,7 @@ export function ComparisonFilter({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">
-              All
+              {t('filters.all')}
             </SelectItem>
             {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>

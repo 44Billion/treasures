@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ExternalLink, MapPin, Compass, Zap, Globe, Users, Shield } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageLayout } from "@/components/layout";
@@ -8,6 +9,7 @@ import { useTheme } from "@/shared/hooks/useTheme";
 import { NIP_GC_KINDS } from "@/features/geocache/utils/nip-gc";
 
 export default function About() {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   return (
     <PageLayout maxWidth="2xl" background="muted">
@@ -23,10 +25,10 @@ export default function About() {
               />
             </div>
             <CardTitle className="text-4xl font-bold mb-4 text-foreground">
-              About Treasures
+              {t('about.title')}
             </CardTitle>
             <CardDescription className="text-xl max-w-2xl mx-auto">
-              Decentralized geocaching on the Nostr protocol
+              {t('about.subtitle')}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -36,20 +38,15 @@ export default function About() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-6 w-6" />
-              What is Geocaching?
+              {t('about.geocaching.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              Geocaching is a real-world treasure hunting game where participants use GPS coordinates
-              to find hidden containers called "geocaches" or "caches." These containers are placed
-              by other geocachers and can be found in urban areas, parks, forests, and remote locations
-              around the world.
+              {t('about.geocaching.description1')}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Each geocache contains a logbook where finders can record their visit, and larger caches
-              may contain small trinkets for trading. The game combines outdoor adventure, problem-solving,
-              and exploration, encouraging people to discover new places and hidden gems in their communities.
+              {t('about.geocaching.description2')}
             </p>
           </CardContent>
         </Card>
@@ -59,49 +56,43 @@ export default function About() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-6 w-6" />
-              What is Treasures?
+              {t('about.treasures.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              Treasures is a decentralized geocaching platform built on the Nostr protocol. Unlike
-              traditional geocaching platforms that rely on centralized servers, Treasures uses a
-              network of relays to store and distribute geocache data, making it censorship-resistant
-              and globally accessible.
+              {t('about.treasures.description1')}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              With Treasures, you can create, find, and log geocaches using your Nostr identity.
-              The platform supports real-time updates and seamless integration
-              with the broader Nostr ecosystem. Your geocaching activity is tied to your cryptographic
-              identity, ensuring authenticity while maintaining privacy.
+              {t('about.treasures.description2')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               <div className="flex items-start gap-3">
                 <Globe className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Decentralized</h4>
-                  <p className="text-sm text-muted-foreground">No single point of failure</p>
+                  <h4 className="font-medium">{t('about.treasures.feature1.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.treasures.feature1.description')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Shield className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Censorship Resistant</h4>
-                  <p className="text-sm text-muted-foreground">Cannot be taken down</p>
+                  <h4 className="font-medium">{t('about.treasures.feature2.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.treasures.feature2.description')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Users className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Community Owned</h4>
-                  <p className="text-sm text-muted-foreground">Built by geocachers, for geocachers</p>
+                  <h4 className="font-medium">{t('about.treasures.feature3.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.treasures.feature3.description')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Zap className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Real-time Updates</h4>
-                  <p className="text-sm text-muted-foreground">Instant synchronization</p>
+                  <h4 className="font-medium">{t('about.treasures.feature4.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.treasures.feature4.description')}</p>
                 </div>
               </div>
             </div>
@@ -113,10 +104,10 @@ export default function About() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Compass className="h-6 w-6" />
-              Supported Cache Types
+              {t('about.cacheTypes.title')}
             </CardTitle>
             <CardDescription>
-              Treasures supports the most popular geocache types
+              {t('about.cacheTypes.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -127,13 +118,12 @@ export default function About() {
                   <CacheIcon type="traditional" size="lg" theme={theme} />
                 </div>
                 <div>
-                  <h4 className="font-semibold">Traditional</h4>
+                  <h4 className="font-semibold">{t('about.cacheTypes.traditional.title')}</h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    The classic geocache type. A container hidden at the given coordinates
-                    with a logbook inside.
+                    {t('about.cacheTypes.traditional.description')}
                   </p>
                 </div>
-                <Badge variant="outline">Most Common</Badge>
+                <Badge variant="outline">{t('about.cacheTypes.traditional.badge')}</Badge>
               </div>
 
               {/* Multi-Cache */}
@@ -142,13 +132,12 @@ export default function About() {
                   <CacheIcon type="multi" size="lg" theme={theme} />
                 </div>
                 <div>
-                  <h4 className="font-semibold">Multi-Cache</h4>
+                  <h4 className="font-semibold">{t('about.cacheTypes.multi.title')}</h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    A sequence of locations leading to the final cache. Solve clues
-                    at each stage to find the next.
+                    {t('about.cacheTypes.multi.description')}
                   </p>
                 </div>
-                <Badge variant="outline">Adventure</Badge>
+                <Badge variant="outline">{t('about.cacheTypes.multi.badge')}</Badge>
               </div>
 
               {/* Mystery Cache */}
@@ -157,13 +146,12 @@ export default function About() {
                   <CacheIcon type="mystery" size="lg" theme={theme} />
                 </div>
                 <div>
-                  <h4 className="font-semibold">Mystery</h4>
+                  <h4 className="font-semibold">{t('about.cacheTypes.mystery.title')}</h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Puzzle caches that require solving a mystery or puzzle to
-                    determine the final coordinates.
+                    {t('about.cacheTypes.mystery.description')}
                   </p>
                 </div>
-                <Badge variant="outline">Puzzle</Badge>
+                <Badge variant="outline">{t('about.cacheTypes.mystery.badge')}</Badge>
               </div>
             </div>
 
@@ -176,26 +164,27 @@ export default function About() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-6 w-6" />
-              What is Treasures built with?
+              {t('about.tech.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-muted-foreground leading-relaxed">
-              Treasures is built on the Nostr protocol, a simple, open protocol that enables global,
-              decentralized, and censorship-resistant communication. Nostr leverages a network of relays
-              to create applications that can't be shut down or controlled by any single entity.
+              {t('about.tech.description1')}
             </p>
 
             <p className="text-muted-foreground leading-relaxed">
-              The application was created using the <code className="bg-muted px-2 py-1 rounded text-sm">stacks</code> command
-              in combination with <a
+              {t('about.tech.description2.prefix')}{' '}
+              <code className="bg-muted px-2 py-1 rounded text-sm">stacks</code>
+              {' '}{t('about.tech.description2.middle')}{' '}
+              <a
                 href="https://getstacks.dev/stack/naddr1qvzqqqrhl5pzqprpljlvcnpnw3pejvkkhrc3y6wvmd7vjuad0fg2ud3dky66gaxaqqrk66mnw3skx6c4g6ltw"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:text-primary/80 underline font-medium"
               >
                 mkstack
-              </a>, a powerful toolkit for building Nostr applications with modern web technologies.
+              </a>
+              {', '}{t('about.tech.description2.suffix')}
             </p>
 
             <div className="flex justify-center">
@@ -207,7 +196,7 @@ export default function About() {
                   className="flex items-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  Learn more at GetStacks.dev
+                  {t('about.tech.learnMore')}
                 </a>
               </Button>
             </div>
@@ -216,29 +205,29 @@ export default function About() {
               <div className="flex items-start gap-3">
                 <Globe className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Nostr Protocol</h4>
-                  <p className="text-sm text-muted-foreground">Decentralized, censorship-resistant</p>
+                  <h4 className="font-medium">{t('about.tech.feature1.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.tech.feature1.description')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Shield className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Modern Stack</h4>
-                  <p className="text-sm text-muted-foreground">React, TypeScript, TailwindCSS</p>
+                  <h4 className="font-medium">{t('about.tech.feature2.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.tech.feature2.description')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Users className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Open Source</h4>
-                  <p className="text-sm text-muted-foreground">Community-driven development</p>
+                  <h4 className="font-medium">{t('about.tech.feature3.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.tech.feature3.description')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Zap className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h4 className="font-medium">Real-time</h4>
-                  <p className="text-sm text-muted-foreground">Instant updates via relays</p>
+                  <h4 className="font-medium">{t('about.tech.feature4.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('about.tech.feature4.description')}</p>
                 </div>
               </div>
             </div>
@@ -250,38 +239,37 @@ export default function About() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-6 w-6" />
-              What kind of events does this site use? Is there a NIP?
+              {t('about.nip.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-muted-foreground leading-relaxed">
-              Treasures uses custom Nostr event kinds defined in NIP-GC (Geocaching Events).
-              This specification defines how geocaches and logs are stored and shared across the Nostr network.
+              {t('about.nip.description')}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.GEOCACHE}</h4>
+                <h4 className="font-semibold mb-2">{t('about.nip.kind1.title', { kind: NIP_GC_KINDS.GEOCACHE })}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Geocache listings with location, difficulty, terrain, and cache details
+                  {t('about.nip.kind1.description')}
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.FOUND_LOG}</h4>
+                <h4 className="font-semibold mb-2">{t('about.nip.kind2.title', { kind: NIP_GC_KINDS.FOUND_LOG })}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Found logs recording successful geocache visits
+                  {t('about.nip.kind2.description')}
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.VERIFICATION}</h4>
+                <h4 className="font-semibold mb-2">{t('about.nip.kind3.title', { kind: NIP_GC_KINDS.VERIFICATION })}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Verification events providing cryptographic proof of cache finds
+                  {t('about.nip.kind3.description')}
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Kind {NIP_GC_KINDS.COMMENT_LOG}</h4>
+                <h4 className="font-semibold mb-2">{t('about.nip.kind4.title', { kind: NIP_GC_KINDS.COMMENT_LOG })}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Comment logs for DNF, notes, and maintenance reports
+                  {t('about.nip.kind4.description')}
                 </p>
               </div>
             </div>
@@ -295,7 +283,7 @@ export default function About() {
                   className="flex items-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  Read the full NIP-GC specification
+                  {t('about.nip.readSpec')}
                 </a>
               </Button>
             </div>
@@ -307,7 +295,7 @@ export default function About() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">
-                Treasures is open source and community-driven.
+                {t('about.footer.description')}
               </p>
               <div className="flex justify-center">
                 <Button variant="outline" asChild>
@@ -318,7 +306,7 @@ export default function About() {
                     className="flex items-center gap-2"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    View Source Code
+                    {t('about.footer.viewSource')}
                   </a>
                 </Button>
               </div>

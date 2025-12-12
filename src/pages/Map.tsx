@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useSearchParams } from "react-router-dom";
 import { MapPin, X, Locate, RefreshCw, Sparkles } from "lucide-react";
@@ -27,7 +28,7 @@ import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 
 
 export default function Map() {
-
+  const { t } = useTranslation();
   const { config } = useAppContext();
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
@@ -427,7 +428,7 @@ export default function Map() {
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Search caches..."
+                  placeholder={t('map.search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1"
@@ -451,7 +452,7 @@ export default function Map() {
                   <div className="flex-1">
                     <LocationSearch 
                       onLocationSelect={handleLocationSelect}
-                      placeholder="Search city or zip..."
+                      placeholder={t('map.locationSearch.placeholder')}
                     />
                   </div>
                   
@@ -460,7 +461,7 @@ export default function Map() {
                     className="h-9 w-9 p-0 flex-shrink-0"
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
-                    title={isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me active" : "Near Me"}
+                    title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
                   >
                     <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
@@ -469,18 +470,18 @@ export default function Map() {
                 {(showNearMe || searchLocation || searchInView) && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Search radius:</span>
+                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
                         <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue placeholder="25km" />
+                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">1km</SelectItem>
-                          <SelectItem value="5">5km</SelectItem>
-                          <SelectItem value="10">10km</SelectItem>
-                          <SelectItem value="25">25km</SelectItem>
-                          <SelectItem value="50">50km</SelectItem>
-                          <SelectItem value="100">100km</SelectItem>
+                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -496,7 +497,7 @@ export default function Map() {
                       }}
                     >
                       <X className="h-3 w-3 mr-1" />
-                      Clear
+                      {t('map.clear')}
                     </Button>
                   </div>
                 )}
@@ -555,8 +556,11 @@ export default function Map() {
                   <div className="text-sm text-muted-foreground">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span>
-                        {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
-                        {isProximitySearchActive && ` • ${searchRadius}km radius`}
+                        {filteredGeocaches.length === 1 
+                          ? t('map.results.count', { count: filteredGeocaches.length })
+                          : t('map.results.countPlural', { count: filteredGeocaches.length })
+                        }
+                        {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
                       </span>
                       
 
@@ -564,13 +568,13 @@ export default function Map() {
                       {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
                         <div className="flex items-center gap-1 text-xs">
                           <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                          <span>searching...</span>
+                          <span>{t('map.loading.searching')}</span>
                         </div>
                       )}
                       {baseGeocaches.isFetching && (
                         <div className="flex items-center gap-1 text-xs">
                           <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                          <span>updating</span>
+                          <span>{t('map.loading.updating')}</span>
                         </div>
                       )}
                     </div>
@@ -582,11 +586,11 @@ export default function Map() {
                       size="sm"
                       onClick={handleRetry}
                       className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
-                      title="Refresh geocaches (R)"
+                      title={t('map.refresh.title')}
                       disabled={isRetrying}
                     >
                       <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-                      <span className="text-xs">Refresh</span>
+                      <span className="text-xs">{t('map.refresh')}</span>
                     </Button>
                   </div>
                 </div>
@@ -630,7 +634,7 @@ export default function Map() {
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground/30 border-t-primary"></div>
-                <span>Finding geocaches...</span>
+                <span>{t('map.loading.finding')}</span>
               </div>
             </div>
           )}
@@ -647,7 +651,7 @@ export default function Map() {
             <div className="space-y-3">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Search caches..."
+                  placeholder={t('map.search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1"
@@ -672,7 +676,7 @@ export default function Map() {
                   <div className="flex-1">
                     <LocationSearch 
                       onLocationSelect={handleLocationSelect}
-                      placeholder="Search city or zip..."
+                      placeholder={t('map.locationSearch.placeholder')}
                     />
                   </div>
                   
@@ -681,7 +685,7 @@ export default function Map() {
                     className="h-9 w-9 p-0 flex-shrink-0"
                     onClick={handleNearMe}
                     disabled={isGettingLocation}
-                    title={isGettingLocation ? "Locating..." : showNearMe && userLocation ? "Near Me active" : "Near Me"}
+                    title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
                   >
                     <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
                   </Button>
@@ -692,7 +696,7 @@ export default function Map() {
                       size="sm"
                       className="h-9 w-9 p-0 flex-shrink-0"
                       onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
-                      title={showMobileSearchOptions ? "Hide search options" : "Show search options"}
+                      title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
                     >
                       <svg 
                         className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`} 
@@ -709,18 +713,18 @@ export default function Map() {
                 {(showNearMe || searchLocation || searchInView) && showMobileSearchOptions && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Search radius:</span>
+                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
                       <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
                         <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue placeholder="25km" />
+                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">1km</SelectItem>
-                          <SelectItem value="5">5km</SelectItem>
-                          <SelectItem value="10">10km</SelectItem>
-                          <SelectItem value="25">25km</SelectItem>
-                          <SelectItem value="50">50km</SelectItem>
-                          <SelectItem value="100">100km</SelectItem>
+                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -737,7 +741,7 @@ export default function Map() {
                       }}
                     >
                       <X className="h-3 w-3 mr-1" />
-                      Clear
+                      {t('map.clear')}
                     </Button>
                   </div>
                 )}
@@ -775,10 +779,10 @@ export default function Map() {
                       <RefreshCw className={`h-4 w-4 ${(isPullRefreshing || pullDistance >= pullThreshold) ? 'animate-spin' : ''}`} />
                       <span>
                         {isPullRefreshing 
-                          ? 'Refreshing...' 
+                          ? t('map.pullToRefresh.refreshing')
                           : pullDistance >= pullThreshold 
-                            ? 'Release to refresh' 
-                            : 'Pull to refresh'
+                            ? t('map.pullToRefresh.release')
+                            : t('map.pullToRefresh.pull')
                         }
                       </span>
                     </div>
@@ -805,20 +809,23 @@ export default function Map() {
                     <div className="text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <span>
-                          {filteredGeocaches.length} cache{filteredGeocaches.length !== 1 ? 's' : ''}
-                          {isProximitySearchActive && ` • ${searchRadius}km radius`}
-                          {searchInView && ' • in view'}
+                          {filteredGeocaches.length === 1 
+                            ? t('map.results.count', { count: filteredGeocaches.length })
+                            : t('map.results.countPlural', { count: filteredGeocaches.length })
+                          }
+                          {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+                          {searchInView && ` • ${t('map.results.inView')}`}
                         </span>
                         {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
                           <div className="flex items-center gap-1 text-xs">
                             <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                            <span>searching...</span>
+                            <span>{t('map.loading.searching')}</span>
                           </div>
                         )}
                         {baseGeocaches.isFetching && (
                           <div className="flex items-center gap-1 text-xs">
                             <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                            <span>updating</span>
+                            <span>{t('map.loading.updating')}</span>
                           </div>
                         )}
                       </div>
@@ -829,20 +836,20 @@ export default function Map() {
                         size="sm"
                         onClick={handleRetry}
                         className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
-                        title="Refresh geocaches (R)"
+                        title={t('map.refresh.title')}
                         disabled={isRetrying}
                       >
                         <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-                        <span className="text-xs">Refresh</span>
+                        <span className="text-xs">{t('map.refresh')}</span>
                       </Button>
                       {isProximitySearchActive && (
                         <Badge 
                           variant={proximitySuccessful ? "secondary" : "outline"} 
                           className="text-xs flex items-center gap-1"
-                          title={proximityAttempted ? (proximitySuccessful ? "Proximity search successful" : "Proximity search failed, using fallback") : "Using broad search"}
+                          title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
                         >
                           <Sparkles className="h-2 w-2" />
-                          {proximitySuccessful ? "Smart" : searchStrategy === "fallback" ? "Fallback" : "Broad"}
+                          {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
                         </Badge>
                       )}
                     </div>
@@ -888,7 +895,7 @@ export default function Map() {
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground/30 border-t-primary"></div>
-                      <span>Finding geocaches...</span>
+                      <span>{t('map.loading.finding')}</span>
                     </div>
                   </div>
                 )}

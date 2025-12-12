@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Map as MapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,12 +13,21 @@ interface MapStyleSelectorProps {
 }
 
 export function MapStyleSelector({ currentStyle, onStyleChange, className }: MapStyleSelectorProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   
   const currentStyleData = MAP_STYLES[currentStyle] || MAP_STYLES.original;
   const isAdventureTheme = currentStyle === 'adventure';
 
   const adventureColors = ADVENTURE_COLORS;
+
+  const getTranslatedName = (styleKey: string): string => {
+    return t(`mapStyle.${styleKey}`) || MAP_STYLES[styleKey]?.name || 'Original';
+  };
+
+  const getTranslatedDescription = (styleKey: string): string => {
+    return t(`mapStyle.${styleKey}.description`) || MAP_STYLES[styleKey]?.description || '';
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -28,7 +38,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
           className={`h-10 w-10 sm:w-auto gap-0 sm:gap-2 bg-background/90 backdrop-blur-sm border hover:bg-background/95 ${isAdventureTheme ? 'adventure-map-style-button' : ''} ${className}`}
         >
           {currentStyleData?.icon || <MapIcon className="h-4 w-4" />}
-          <span className="hidden sm:inline">{currentStyleData?.name || 'Original'}</span>
+          <span className="hidden sm:inline">{getTranslatedName(currentStyle)}</span>
           <MapIcon className="h-3 w-3 opacity-50 hidden sm:inline" />
         </Button>
       </PopoverTrigger>
@@ -55,7 +65,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
             } : {}} />
             <h4 className="font-semibold text-sm" style={isAdventureTheme ? {
               color: adventureColors.text,
-            } : {}}>Map Styles</h4>
+            } : {}}>{t('mapStyle.title')}</h4>
           </div>
           
           <div className="grid gap-2">
@@ -109,7 +119,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                           color: adventureColors.text,
                         } : {}}
                       >
-                        {style.name}
+                        {getTranslatedName(style.key)}
                       </span>
                       {isActive && (
                         <Badge 
@@ -121,7 +131,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                             borderColor: adventureColors.accent,
                           } : {}}
                         >
-                          Active
+                          {t('mapStyle.active')}
                         </Badge>
                       )}
                     </div>
@@ -131,7 +141,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                         color: adventureColors.textMuted,
                       } : {}}
                     >
-                      {style.description}
+                      {getTranslatedDescription(style.key)}
                     </p>
                   </div>
                 </button>
@@ -145,7 +155,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
             <p className={`text-xs ${!isAdventureTheme ? 'text-muted-foreground' : ''}`} style={isAdventureTheme ? {
               color: adventureColors.textMuted,
             } : {}}>
-              Choose between clean, dark, or adventure-themed styles for your adventure.
+              {t('mapStyle.footer')}
             </p>
           </div>
         </div>

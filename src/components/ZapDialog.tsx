@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Zap, Copy, Check, ExternalLink, ArrowLeft, X, BadgeCent, Coins, Gem, HandCoins } from 'lucide-react';
 import { chest } from '@lucide/lab';
 import { Button } from '@/components/ui/button';
@@ -110,7 +111,9 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
   setComment,
   inputRef,
   zap,
-}, ref) => (
+}, ref) => {
+  const { t } = useTranslation();
+  return (
   <div ref={ref}>
     {invoice ? (
       <div className="flex flex-col h-full min-h-0">
@@ -129,7 +132,7 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
                 {qrCodeUrl ? (
                   <img
                     src={qrCodeUrl}
-                    alt="Lightning Invoice QR Code"
+                    alt={t('zap.dialog.qrCodeAlt')}
                     className="w-full h-auto aspect-square max-w-full object-contain"
                   />
                 ) : (
@@ -141,7 +144,7 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
 
           {/* Invoice input */}
           <div className="space-y-2 mt-4">
-            <Label htmlFor="invoice">Lightning Invoice</Label>
+            <Label htmlFor="invoice">{t('zap.dialog.invoiceLabel')}</Label>
             <div className="flex gap-2 min-w-0">
               <Input
                 id="invoice"
@@ -178,7 +181,7 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
                 size="lg"
               >
                 <Zap className="h-4 w-4 mr-2" />
-                {isZapping ? "Processing..." : "Pay with WebLN"}
+                {isZapping ? t('zap.dialog.processing') : t('zap.dialog.payWithWebLN')}
               </Button>
             )}
 
@@ -189,11 +192,11 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
               size="lg"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
-              Open in Lightning Wallet
+              {t('zap.dialog.openInWallet')}
             </Button>
 
             <div className="text-xs sm:text-[.65rem] text-muted-foreground text-center">
-              Scan the QR code or copy the invoice to pay with any Lightning wallet.
+              {t('zap.dialog.scanQR')}
             </div>
           </div>
         </div>
@@ -231,14 +234,14 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
             ref={inputRef}
             id="custom-amount"
             type="number"
-            placeholder="Custom amount"
+            placeholder={t('zap.dialog.customAmount')}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="w-full text-sm"
           />
           <Textarea
             id="custom-comment"
-            placeholder="Add a comment (optional)"
+            placeholder={t('zap.dialog.commentPlaceholder')}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             className="w-full resize-none text-sm"
@@ -248,11 +251,11 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
         <div className="px-4 pb-4">
           <Button onClick={handleZap} className="w-full" disabled={isZapping} size="default">
             {isZapping ? (
-              'Creating invoice...'
+              t('zap.dialog.creatingInvoice')
             ) : (
               <>
                 <Zap className="h-4 w-4 mr-2" />
-                Zap {amount} sats
+                {t('zap.dialog.zapAmount', { amount })}
               </>
             )}
           </Button>
@@ -260,12 +263,14 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
       </>
     )}
   </div>
-));
+  );
+});
 ZapContent.displayName = 'ZapContent';
 
 
 export function ZapDialog({ target, children, className }: ZapDialogProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { data: author } = useAuthor(target.pubkey);
   const { toast } = useToast();
@@ -366,8 +371,8 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
       await navigator.clipboard.writeText(invoice);
       setCopied(true);
       toast({
-        title: 'Invoice copied',
-        description: 'Lightning invoice copied to clipboard',
+        title: t('zap.dialog.invoiceCopied.title'),
+        description: t('zap.dialog.invoiceCopied.description'),
       });
       setTimeout(() => setCopied(false), 2000);
     }
@@ -478,18 +483,18 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
                 className="absolute right-4 top-4"
               >
                 <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
+                <span className="sr-only">{t('zap.dialog.close')}</span>
               </Button>
             </DrawerClose>
 
             <DrawerTitle className="text-lg break-words pt-2">
-              {invoice ? 'Lightning Payment' : 'Send a Zap'}
+              {invoice ? t('zap.dialog.paymentTitle') : t('zap.dialog.title')}
             </DrawerTitle>
             <DrawerDescription className="text-sm break-words text-center">
               {invoice ? (
-                'Pay with Bitcoin Lightning Network'
+                t('zap.dialog.paymentDescription')
               ) : (
-                'Zaps are small Bitcoin payments that support the creator of this item. If you enjoyed this, consider sending a zap!'
+                t('zap.dialog.description')
               )}
             </DrawerDescription>
           </DrawerHeader>
@@ -511,14 +516,14 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
       <DialogContent className="sm:max-w-[425px] max-h-[95vh] overflow-hidden" data-testid="zap-modal">
         <DialogHeader>
           <DialogTitle className="text-lg break-words">
-            {invoice ? 'Lightning Payment' : 'Send a Zap'}
+            {invoice ? t('zap.dialog.paymentTitle') : t('zap.dialog.title')}
           </DialogTitle>
           <DialogDescription className="text-sm text-center break-words">
             {invoice ? (
-              'Pay with Bitcoin Lightning Network'
+              t('zap.dialog.paymentDescription')
             ) : (
               <>
-                Zaps are small Bitcoin payments that support the creator of this item. If you enjoyed this, consider sending a zap!
+                {t('zap.dialog.description')}
               </>
             )}
           </DialogDescription>

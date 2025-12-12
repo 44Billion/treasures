@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MoreVertical, Share2, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -19,6 +20,7 @@ interface CacheMenuProps {
 }
 
 export function CacheMenu({ geocache, variant = 'default', className }: CacheMenuProps) {
+  const { t } = useTranslation();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             }}
           >
             <MoreVertical className={iconSize} />
-            <span className="sr-only">More options</span>
+            <span className="sr-only">{t('geocacheCard.moreOptions')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
@@ -77,7 +79,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             }}
           >
             <MapPin className="h-4 w-4 mr-2" />
-            View on Map
+            {t('geocacheCard.viewOnMap')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
@@ -92,7 +94,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             }}
           >
             <Share2 className="h-4 w-4 mr-2" />
-            Share
+            {t('geocacheCard.share')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

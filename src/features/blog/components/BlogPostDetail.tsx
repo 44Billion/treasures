@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ export function BlogPostDetail({
   onEdit, 
   onDelete 
 }: BlogPostDetailProps) {
+  const { t } = useTranslation();
   const author = useAuthor(post.pubkey);
   const metadata = author.data?.metadata;
 
@@ -35,7 +37,7 @@ export function BlogPostDetail({
         <Link to="/blog">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Back to Blog
+            {t('blog.post.backToBlog')}
           </Button>
         </Link>
       </div>
@@ -87,7 +89,7 @@ export function BlogPostDetail({
                   className="gap-2"
                 >
                   <Edit className="w-4 h-4" />
-                  Edit
+                  {t('common.edit')}
                 </Button>
                 <Button
                   variant="outline"
@@ -96,7 +98,7 @@ export function BlogPostDetail({
                   className="gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete
+                  {t('common.delete')}
                 </Button>
               </div>
             )}

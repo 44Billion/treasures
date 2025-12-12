@@ -1,4 +1,5 @@
 // import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Crown, Sparkles } from 'lucide-react';
 import { BaseDialog } from '@/shared/components/ui/base-dialog';
 import { Button } from '@/shared/components/ui/button';
@@ -10,6 +11,7 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModalProps) {
+  const { t } = useTranslation();
   // Debug logging in development
   if (process.env.NODE_ENV === 'development') {
     console.log('WelcomeModal render:', { isOpen, isNewUser });
@@ -23,14 +25,14 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
       title={
         <span className='font-semibold text-center text-lg flex items-center justify-center gap-2'>
           <Crown className="w-5 h-5 text-green-600 adventure:text-amber-700" />
-          {isNewUser ? 'Welcome, Adventurer!' : 'Welcome Back!'}
+          {isNewUser ? t('welcomeModal.title.newUser') : t('welcomeModal.title.returningUser')}
         </span>
       }
       description={
         <div className="text-center text-muted-foreground">
           {isNewUser 
-            ? 'Your quest begins now!' 
-            : 'Ready to continue your quest?'
+            ? t('welcomeModal.description.newUser')
+            : t('welcomeModal.description.returningUser')
           }
         </div>
       }
@@ -51,12 +53,12 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
           <div className='space-y-2'>
             <h3 className='text-2xl font-bold text-green-700 adventure:text-amber-700 flex items-center justify-center gap-2'>
               <Sparkles className='w-6 h-6' />
-              {isNewUser ? 'Welcome, Adventurer!' : 'Welcome Back!'}
+              {isNewUser ? t('welcomeModal.title.newUser') : t('welcomeModal.title.returningUser')}
             </h3>
             <p className='text-muted-foreground px-5'>
               {isNewUser 
-                ? 'Go forth, epic quests and hidden geocaches await your discovery!' 
-                : 'Your geocaches and quests await you!'
+                ? t('welcomeModal.message.newUser')
+                : t('welcomeModal.message.returningUser')
               }
             </p>
           </div>
@@ -65,7 +67,7 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
             onClick={onClose}
             className='mt-6 rounded-full py-3 px-6 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg'
           >
-            {isNewUser ? 'Begin My Quest!' : 'Continue Adventure!'}
+            {isNewUser ? t('welcomeModal.button.newUser') : t('welcomeModal.button.returningUser')}
           </Button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { MapPin, User, CheckCircle, ShieldCheck, Copy, Check, AlertCircle, Clock, Bookmark, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { CompassSpinner } from "@/shared/components/ui/loading";
 
 import { useNip05Status } from "../hooks/useNip05Verification";
@@ -18,6 +19,7 @@ export function ProfileHeader({
   onCopy,
   showExtendedDetails = false
 }: ProfileHeaderProps) {
+  const { t } = useTranslation();
   const [copiedField, setCopiedField] = useState<string | null>(null);
   
   const displayName = metadata?.display_name || metadata?.name || pubkey.slice(0, 8);
@@ -92,7 +94,7 @@ export function ProfileHeader({
                 <button
                   onClick={() => handleCopy(pubkey, 'npub')}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group -mt-1"
-                  title="Click to copy npub"
+                  title={t('profile.header.copyNpub')}
                 >
                 {isLoadingNip05 ? (
                   <CompassSpinner size={12} variant="component" />
@@ -121,7 +123,7 @@ export function ProfileHeader({
                 <button
                   onClick={() => handleCopy(metadata.lud16 || metadata.lud06 || '', 'lud')}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group"
-                  title="Click to copy Lightning address"
+                  title={t('profile.header.copyLightningAddress')}
                 >
                   <Zap className="h-3 w-3 text-yellow-500" />
                   <span className="font-mono">{metadata.lud16 || metadata.lud06}</span>
@@ -145,16 +147,16 @@ export function ProfileHeader({
 
           <span className="flex items-center gap-1">
             <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-            {hiddenCount} Hidden
+            {hiddenCount} {t('profile.header.hidden')}
           </span>
           <span className="flex items-center gap-1">
             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-            {foundCount} Found
+            {foundCount} {t('profile.header.found')}
           </span>
           {savedCount !== undefined && (
             <span className="flex items-center gap-1">
               <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
-              {savedCount} Saved
+              {savedCount} {t('profile.header.saved')}
             </span>
           )}
         </div>

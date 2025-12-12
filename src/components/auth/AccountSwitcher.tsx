@@ -2,6 +2,7 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Wallet } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ interface AccountSwitcherProps {
 }
 
 export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
+  const { t } = useTranslation();
   const { currentUser, otherUsers, setLogin, removeLogin, isLoadingCurrentUser } = useLoggedInAccounts();
   const navigate = useNavigate();
 
@@ -54,7 +56,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
       >
         {otherUsers.length > 0 && (
           <>
-            <div className='font-medium text-sm px-2 py-1.5'>Switch Account</div>
+            <div className='font-medium text-sm px-2 py-1.5'>{t('navigation.switchAccount')}</div>
             {otherUsers.map((user) => (
               <DropdownMenuItem
                 key={user.id}
@@ -95,21 +97,21 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
         >
           <UserIcon className='w-4 h-4' />
-          <span>My Profile</span>
+          <span>{t('navigation.myProfile')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => navigate('/saved')}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
         >
           <Bookmark className='w-4 h-4' />
-          <span>Saved Caches</span>
+          <span>{t('navigation.savedCaches')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => navigate('/settings')}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
         >
           <Settings className='w-4 h-4' />
-          <span>App Settings</span>
+          <span>{t('navigation.appSettings')}</span>
         </DropdownMenuItem>
         <WalletModal>
           <DropdownMenuItem
@@ -117,7 +119,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
             onSelect={(e) => e.preventDefault()}
           >
             <Wallet className='w-4 h-4' />
-            <span>Wallet Settings</span>
+            <span>{t('navigation.walletSettings')}</span>
           </DropdownMenuItem>
         </WalletModal>
         <DropdownMenuItem
@@ -125,14 +127,14 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
         >
           <UserPlus className='w-4 h-4' />
-          <span>Add another account</span>
+          <span>{t('navigation.addAnotherAccount')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => removeLogin(currentUser.id)}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md text-red-500'
         >
           <LogOut className='w-4 h-4' />
-          <span>Log out</span>
+          <span>{t('navigation.logOut')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

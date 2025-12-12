@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useStore } from 'zustand';
 import { HintDisplay } from "@/components/ui/hint-display";
 import { Navigation, Calendar, User, ExternalLink, Zap, Bookmark, BookmarkCheck } from "lucide-react";
@@ -36,6 +37,7 @@ import { ProfileDialog } from "@/components/ProfileDialog";
 
 export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialogProps) {
   // All hooks must be called before any conditional logic
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: logsData = {} } = useGeocacheLogs(
     geocache ? `${geocache.pubkey}:${geocache.dTag}` : '', 
@@ -93,8 +95,8 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
 
     if (!isNostrEnabled) {
       toast({
-        title: 'Login required',
-        description: 'Please log in with your Nostr account to save caches.',
+        title: t('geocacheDialog.toast.loginRequired.title'),
+        description: t('geocacheDialog.toast.loginRequired.description'),
         variant: 'destructive',
       });
       return;
@@ -106,15 +108,15 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
       await toggleSaveCache(geocache);
       
       toast({
-        title: isSaved ? 'Cache removed from saved list' : 'Cache saved for later',
+        title: isSaved ? t('geocacheDialog.toast.removed.title') : t('geocacheDialog.toast.saved.title'),
         description: isSaved 
-          ? `"${geocache.name}" has been removed from your saved caches.`
-          : `"${geocache.name}" has been saved to your Nostr profile.`,
+          ? t('geocacheDialog.toast.removed.description', { name: geocache.name })
+          : t('geocacheDialog.toast.saved.description', { name: geocache.name }),
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save cache. Please try again.';
+      const errorMessage = error instanceof Error ? error.message : t('geocacheDialog.toast.error.description');
       toast({
-        title: 'Error saving cache',
+        title: t('geocacheDialog.toast.error.title'),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -134,7 +136,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
         <div className="text-gray-600 dark:text-gray-400 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm mb-2 -mt-2">
           <span className="flex items-center gap-1">
             <User className="h-4 w-4" />
-            Hidden by{' '}
+            {t('cacheDetail.author.hiddenBy')}{' '}
             <button
               onClick={() => handleProfileClick(geocache.pubkey)}
               className="hover:underline cursor-pointer"
@@ -225,7 +227,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
           {/* Sidebar */}
           <div className="space-y-4 lg:-mt-4">
             {/* Cache Details Card */}
-            <DetailsCard title="Cache Details">
+            <DetailsCard title={t('cacheDetail.details.title')}>
               <DifficultyTerrainRating 
                 difficulty={geocache.difficulty}
                 terrain={geocache.terrain}
@@ -234,7 +236,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
               />
               
               <div>
-                <p className="text-xs font-medium text-gray-600">Coordinates</p>
+                <p className="text-xs font-medium text-gray-600">{t('cacheDetail.details.coordinates')}</p>
                 <p className="text-xs font-mono mt-1">
                   {geocache.location.lat.toFixed(6)}, {geocache.location.lng.toFixed(6)}
                 </p>
@@ -243,18 +245,18 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
 
             {/* Statistics Card */}
             <StatsCard
-              title="Statistics"
+              title={t('cacheDetail.stats.title')}
               stats={[
                 {
-                  label: "Total Finds",
+                  label: t('cacheDetail.stats.totalFinds'),
                   value: logs.filter(log => log.type === "found").length
                 },
                 {
-                  label: "DNFs",
+                  label: t('cacheDetail.stats.dnfs'),
                   value: logs.filter(log => log.type === "dnf").length
                 },
                 {
-                  label: "Total Logs",
+                  label: t('cacheDetail.stats.totalLogs'),
                   value: logs.length
                 }
               ]}
@@ -268,7 +270,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 onClick={handleViewFullDetails}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
-                View Full Details
+                {t('geocacheDialog.actions.viewFullDetails')}
               </Button>
               <Button
                 size="sm"
@@ -282,7 +284,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 }}
               >
                 <Navigation className="h-4 w-4 mr-2" />
-                Get Directions
+                {t('cacheDetail.details.getDirections')}
               </Button>
               <Button
                 size="sm"
@@ -293,12 +295,12 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 {isCacheSaved(geocache.id, geocache.dTag, geocache.pubkey) ? (
                   <>
                     <BookmarkCheck className="h-4 w-4 mr-2" />
-                    Remove from Saved
+                    {t('geocacheDialog.actions.removeFromSaved')}
                   </>
                 ) : (
                   <>
                     <Bookmark className="h-4 w-4 mr-2" />
-                    Save for Later
+                    {t('geocacheDialog.actions.saveForLater')}
                   </>
                 )}
               </Button>
@@ -306,7 +308,7 @@ export function GeocacheDialog({ geocache, isOpen, onOpenChange }: GeocacheDialo
                 target={geocache}
                 className="w-full"
               >
-                Support this geocache
+                {t('geocacheDialog.actions.support')}
               </ZapButton>
             </div>
           </div>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { Link } from "react-router-dom";
 import { MapPin, Plus, Search, Compass, Scroll, Crown, Shield, Users, Globe, ScanQrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import LoginDialog from "@/components/auth/LoginDialog";
+import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
@@ -14,6 +15,7 @@ import { GeocacheCard } from "@/components/ui/geocache-card";
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";
 
 export default function Home() {
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { config } = useAppContext();
 
@@ -289,37 +291,31 @@ export default function Home() {
             <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-green-900 adventure:bg-[#4682B4] text-green-700 dark:text-green-300 adventure:text-white px-4 py-1.5 rounded-full text-base adventure:text-[16px] font-medium hover:bg-green-200 dark:hover:bg-green-800 adventure:hover:bg-stone-700 transition-colors">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4" />
-                <span className="adventure:hidden">Join the Quest</span>
-                <span className="hidden adventure:inline">Begin Your Journey</span>
+                <span className="adventure:hidden">{t("home.install.badge")}</span>
+                <span className="hidden adventure:inline">{t("home.install.badgeAdventure")}</span>
               </div>
               <span className="text-[10px] adventure:text-[12px] opacity-75 leading-none">
-                <span className="adventure:hidden">Install the PWA</span>
-                <span className="hidden adventure:inline">Forge Your Tools</span>
+                <span className="adventure:hidden">{t("home.install.subtitle")}</span>
+                <span className="hidden adventure:inline">{t("home.install.subtitleAdventure")}</span>
               </span>
             </Link>
           </div>
 
           <h2 className="adventure:text-4xl text-2xl xs:text-3xl md:text-5xl adventure:xs:text-5xl adventure:md:text-7xl font-bold text-foreground mb-4 md:mb-6 animate-slide-up">
-            <span className="adventure:hidden">Discover Hidden</span>
-            <span className="hidden adventure:inline">Embark on Epic</span>
+            <span className="adventure:hidden">{t("home.hero.title1")}</span>
+            <span className="hidden adventure:inline">{t("home.hero.title1Adventure")}</span>
             <span className="relative inline-block mx-2">
               <span className="text-green-600 adventure:text-stone-800">
-                <span className="adventure:hidden">Treasures</span>
-                <span className="hidden adventure:inline">Quests</span>
+                <span className="adventure:hidden">{t("home.hero.title2")}</span>
+                <span className="hidden adventure:inline">{t("home.hero.title2Adventure")}</span>
               </span>
               <span className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600 adventure:from-stone-600 adventure:to-stone-800 transform scale-x-0 animate-expand-line"></span>
             </span>
           </h2>
 
-          <p className="text-md xs:text-sm md:text-xl text-stone-600 dark:text-stone-400 mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay">
-            <span className="adventure:hidden">
-              Join the decentralized geocaching adventure powered by Nostr.
-              Hide geocaches, find them, and connect with explorers worldwide.
-            </span>
-            <span className="hidden adventure:inline">
-              Join a fellowship of geocachers on an ancient quest powered by mystical networks.
-              Conceal geocaches, discover legendary geocaches, and forge bonds with fellow adventurers across the realm.
-            </span>
+          <p className="text-md xs:text-sm md:text-xl text-stone-600 dark:text-stone-400 mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line">
+            <span className="adventure:hidden">{t("home.hero.description")}</span>
+            <span className="hidden adventure:inline">{t("home.hero.descriptionAdventure")}</span>
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
@@ -328,12 +324,12 @@ export default function Home() {
                 <Search className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
                 <Compass className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
-                  <span className="hidden xs:inline">Start Exploring</span>
-                  <span className="xs:hidden">Explore</span>
+                  <span className="hidden xs:inline">{t("home.cta.explore")}</span>
+                  <span className="xs:hidden">{t("home.cta.exploreShort")}</span>
                 </span>
                 <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">Reveal Map</span>
-                  <span className="xs:hidden">Find</span>
+                  <span className="hidden xs:inline">{t("home.cta.exploreAdventure")}</span>
+                  <span className="xs:hidden">{t("home.cta.exploreAdventureShort")}</span>
                 </span>
               </Button>
             </Link>
@@ -342,12 +338,12 @@ export default function Home() {
                 <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
                 <Scroll className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
-                  <span className="hidden xs:inline">Claim Treasure</span>
-                  <span className="xs:hidden">Claim</span>
+                  <span className="hidden xs:inline">{t("home.cta.claim")}</span>
+                  <span className="xs:hidden">{t("home.cta.claimShort")}</span>
                 </span>
                 <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">Claim Artifact</span>
-                  <span className="xs:hidden">Claim</span>
+                  <span className="hidden xs:inline">{t("home.cta.claimAdventure")}</span>
+                  <span className="xs:hidden">{t("home.cta.claimShort")}</span>
                 </span>
               </Button>
             </Link>
@@ -357,12 +353,12 @@ export default function Home() {
                   <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
                   <Crown className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
                   <span className="adventure:hidden">
-                    <span className="hidden xs:inline">Hide a Treasure</span>
-                    <span className="xs:hidden">Hide</span>
+                    <span className="hidden xs:inline">{t("home.cta.hide")}</span>
+                    <span className="xs:hidden">{t("home.cta.hideShort")}</span>
                   </span>
                   <span className="hidden adventure:inline">
-                    <span className="hidden xs:inline">Conceal a Treasure</span>
-                    <span className="xs:hidden">Conceal</span>
+                    <span className="hidden xs:inline">{t("home.cta.hideAdventure")}</span>
+                    <span className="xs:hidden">{t("home.cta.hideAdventureShort")}</span>
                   </span>
                 </Button>
               </Link>
@@ -376,12 +372,12 @@ export default function Home() {
                 <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />
                 <Shield className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
                 <span className="adventure:hidden">
-                  <span className="hidden xs:inline">Login to Hide Treasures</span>
-                  <span className="xs:hidden">Login</span>
+                  <span className="hidden xs:inline">{t("home.cta.login")}</span>
+                  <span className="xs:hidden">{t("home.cta.loginShort")}</span>
                 </span>
                 <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">Join the Guild</span>
-                  <span className="xs:hidden">Join</span>
+                  <span className="hidden xs:inline">{t("home.cta.loginAdventure")}</span>
+                  <span className="xs:hidden">{t("home.cta.loginAdventureShort")}</span>
                 </span>
               </Button>
             )}
@@ -393,22 +389,22 @@ export default function Home() {
       <section className="py-8 xs:py-14 md:py-16 px-3 xs:px-4 bg-background border-t">
         <div className="container mx-auto">
           <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-center mb-8 md:mb-12 text-foreground">
-            <span className="adventure:hidden">Why Treasures?</span>
-            <span className="hidden adventure:inline">The Ancient Ways</span>
+            <span className="adventure:hidden">{t("home.features.title")}</span>
+            <span className="hidden adventure:inline">{t("home.features.titleAdventure")}</span>
           </h3>
           <div className="grid gap-6 md:grid-cols-3 md:gap-8">
             <FeatureCard
               icon={Shield}
               title={
                 <span>
-                  <span className="adventure:hidden">Decentralized</span>
-                  <span className="hidden adventure:inline">Protected by Ancient Magic</span>
+                  <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
                 </span>
               }
               description={
                 <span>
-                  <span className="adventure:hidden">Your geocaches are stored on the Nostr network, ensuring they're always accessible and censorship-resistant.</span>
-                  <span className="hidden adventure:inline">Your geocaches are safeguarded by mystical networks, ensuring they remain eternal and beyond the reach of dark forces.</span>
+                  <span className="adventure:hidden">{t("home.features.decentralized.description")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.decentralized.descriptionAdventure")}</span>
                 </span>
               }
               iconColor="text-green-600 adventure:text-stone-700"
@@ -418,14 +414,14 @@ export default function Home() {
               icon={Users}
               title={
                 <span>
-                  <span className="adventure:hidden">Community Driven</span>
-                  <span className="hidden adventure:inline">Fellowship of Adventurers</span>
+                  <span className="adventure:hidden">{t("home.features.community.title")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
                 </span>
               }
               description={
                 <span>
-                  <span className="adventure:hidden">Connect with fellow geocachers, share experiences, and build lasting friendships through adventure.</span>
-                  <span className="hidden adventure:inline">Unite with fellow adventurers, share tales of glory, and forge unbreakable bonds through epic quests.</span>
+                  <span className="adventure:hidden">{t("home.features.community.description")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.community.descriptionAdventure")}</span>
                 </span>
               }
               iconColor="text-green-600 adventure:text-stone-700"
@@ -435,14 +431,14 @@ export default function Home() {
               icon={Globe}
               title={
                 <span>
-                  <span className="adventure:hidden">Global Adventure</span>
-                  <span className="hidden adventure:inline">Realm-Wide Expeditions</span>
+                  <span className="adventure:hidden">{t("home.features.global.title")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
                 </span>
               }
               description={
                 <span>
-                  <span className="adventure:hidden">Discover caches hidden by explorers from around the world, each with its own unique story and challenge.</span>
-                  <span className="hidden adventure:inline">Uncover geocaches concealed by legendary explorers across distant lands, each bearing ancient secrets and trials.</span>
+                  <span className="adventure:hidden">{t("home.features.global.description")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.global.descriptionAdventure")}</span>
                 </span>
               }
               iconColor="text-green-600 adventure:text-stone-700"
@@ -458,16 +454,12 @@ export default function Home() {
           {/* Section Header */}
           <div className="text-center mb-8 md:mb-12">
             <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-foreground mb-3">
-              <span className="adventure:hidden">Recently Hidden Geocaches</span>
-              <span className="hidden adventure:inline">Newly Concealed Geocaches</span>
+              <span className="adventure:hidden">{t("home.recent.title")}</span>
+              <span className="hidden adventure:inline">{t("home.recent.titleAdventure")}</span>
             </h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              <span className="adventure:hidden">
-                Discover the newest geocaches hidden by adventurers around the world. Each one waiting for you to find it.
-              </span>
-              <span className="hidden adventure:inline">
-                Uncover the latest geocaches concealed by legendary explorers across the realm. Each one holds ancient secrets awaiting discovery.
-              </span>
+              <span className="adventure:hidden">{t("home.recent.description")}</span>
+              <span className="hidden adventure:inline">{t("home.recent.descriptionAdventure")}</span>
             </p>
 
             {/* Action buttons */}
@@ -476,8 +468,8 @@ export default function Home() {
                 <Button variant="outline" className="flex items-center gap-2">
                   <Search className="h-4 w-4 adventure:hidden" />
                   <Compass className="h-4 w-4 hidden adventure:inline" />
-                  <span className="adventure:hidden">Explore All</span>
-                  <span className="hidden adventure:inline">Survey the Realm</span>
+                  <span className="adventure:hidden">{t("home.recent.exploreAll")}</span>
+                  <span className="hidden adventure:inline">{t("home.recent.exploreAllAdventure")}</span>
                 </Button>
               </Link>
             </div>
@@ -543,8 +535,8 @@ export default function Home() {
                   <Button variant="outline" className="w-full">
                     <Search className="h-4 w-4 mr-2 adventure:hidden" />
                     <Compass className="h-4 w-4 mr-2 hidden adventure:inline" />
-                    <span className="adventure:hidden">View All Geocaches</span>
-                    <span className="hidden adventure:inline">Survey All Geocaches</span>
+                    <span className="adventure:hidden">{t("home.recent.viewAll")}</span>
+                    <span className="hidden adventure:inline">{t("home.recent.viewAllAdventure")}</span>
                   </Button>
                 </Link>
               </div>

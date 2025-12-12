@@ -53,6 +53,7 @@ export function AppRouter() {
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
           <Route path="/:naddr" element={<CacheDetail />} />
+          <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

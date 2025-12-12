@@ -1,4 +1,5 @@
 import { UserCheck, Users, Globe, Swords, ChevronDown, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useWotStore } from '../shared/stores/useWotStore';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '../features/auth/hooks/useCurrentUser';
@@ -13,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collap
 import { useState } from 'react';
 
 export function WotSettings() {
+  const { t } = useTranslation();
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const {
@@ -53,14 +55,14 @@ export function WotSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Web of Trust Filter</CardTitle>
+        <CardTitle>{t('settings.wot.title')}</CardTitle>
         <CardDescription>
-          Filter geocache listings and logs based on your social network to reduce spam.
+          {t('settings.wot.description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label>Trust Level</Label>
+          <Label>{t('settings.wot.trustLevel')}</Label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Button
               variant={trustLevel === 1 ? 'secondary' : 'outline'}
@@ -70,7 +72,7 @@ export function WotSettings() {
               className="flex-1 flex-col md:flex-row h-auto py-2 items-center"
             >
               <UserCheck className="h-6 w-6 mb-1 md:mb-0 md:mr-2" />
-              <span className="text-base">Strict</span>
+              <span className="text-base">{t('settings.wot.trustLevels.strict')}</span>
             </Button>
             <Button
               variant={trustLevel === 2 ? 'secondary' : 'outline'}
@@ -80,7 +82,7 @@ export function WotSettings() {
               className="flex-1 flex-col md:flex-row h-auto py-2 items-center"
             >
               <Users className="h-6 w-6 mb-1 md:mb-0 md:mr-2" />
-              <span className="text-base">Normal</span>
+              <span className="text-base">{t('settings.wot.trustLevels.normal')}</span>
             </Button>
             <Button
               variant={trustLevel === 3 ? 'secondary' : 'outline'}
@@ -90,7 +92,7 @@ export function WotSettings() {
               className="flex-1 flex-col md:flex-row h-auto py-2 items-center"
             >
               <Globe className="h-6 w-6 mb-1 md:mb-0 md:mr-2" />
-              <span className="text-base">Lax</span>
+              <span className="text-base">{t('settings.wot.trustLevels.lax')}</span>
             </Button>
             <Button
               variant={trustLevel === 0 ? 'secondary' : 'outline'}
@@ -100,20 +102,20 @@ export function WotSettings() {
               className="flex-1 flex-col md:flex-row h-auto py-2 items-center"
             >
               <Swords className="h-6 w-6 mb-1 md:mb-0 md:mr-2" />
-              <span className="text-base">All</span>
+              <span className="text-base">{t('settings.wot.trustLevels.all')}</span>
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            {trustLevel === 1 && "Strict: Only show content from people you directly follow."}
-            {trustLevel === 2 && "Normal: Include content from people your follows follow (recommended)."}
-            {trustLevel === 3 && "Lax: Include content from two degrees of separation."}
-            {trustLevel === 0 && "All: Show content from everyone (filter disabled)."}
+            {trustLevel === 1 && t('settings.wot.descriptions.strict')}
+            {trustLevel === 2 && t('settings.wot.descriptions.normal')}
+            {trustLevel === 3 && t('settings.wot.descriptions.lax')}
+            {trustLevel === 0 && t('settings.wot.descriptions.all')}
           </p>
           {trustLevel === 3 && (
             <div className="flex items-center gap-2 text-sm text-foreground bg-background border rounded-lg p-3 mt-2">
               <Info className="h-5 w-5 flex-shrink-0" />
               <p>
-                Lax mode may be slow to calculate depending on the following count.
+                {t('settings.wot.laxWarning')}
               </p>
             </div>
           )}
@@ -122,16 +124,16 @@ export function WotSettings() {
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full flex justify-between items-center">
-              Advanced Settings
+              {t('settings.wot.advancedSettings')}
               <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-6 pt-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Follow Limit</Label>
+                <Label>{t('settings.wot.followLimit')}</Label>
                 <span className="text-sm font-medium">
-                  {followLimit === 0 ? 'No Limit' : followLimit}
+                  {followLimit === 0 ? t('settings.wot.noLimit') : followLimit}
                 </span>
               </div>
               <div className="relative flex flex-col gap-2 pt-4">
@@ -156,20 +158,20 @@ export function WotSettings() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Ignore users with more than this many follows.
+                {t('settings.wot.followLimitDescription')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="starting-point">Starting User (npub or hex)</Label>
+              <Label htmlFor="starting-point">{t('settings.wot.startingUser')}</Label>
               <p className="text-sm text-muted-foreground">
-                The center of your trust network. Use a valid public key, or your own by default.
+                {t('settings.wot.startingUserDescription')}
               </p>
               {(startingPoint || user?.pubkey) && <WotAuthorCard pubkey={startingPoint || user?.pubkey || ""} />}
               <div className="flex gap-2">
                 <Input
                   id="starting-point"
-                  placeholder='Enter a valid pubkey (npub or hex)'
+                  placeholder={t('settings.wot.startingUserPlaceholder')}
                   value={startingPoint}
                   onChange={handleStartingPointChange}
                   disabled={!isFilterEnabled || isLoading}
@@ -180,7 +182,7 @@ export function WotSettings() {
                   disabled={!isFilterEnabled || isLoading}
                   variant="ghost"
                 >
-                  Reset
+                  {t('common.reset')}
                 </Button>
               </div>
             </div>
@@ -189,7 +191,7 @@ export function WotSettings() {
 
         {isLoading && (
           <div className="space-y-2">
-            <Label>Calculation Progress</Label>
+            <Label>{t('settings.wot.calculationProgress')}</Label>
             <Progress value={progress} className="w-full" />
             <p className="text-sm text-muted-foreground text-center">{Math.round(progress)}%</p>
           </div>
@@ -198,22 +200,22 @@ export function WotSettings() {
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div>
             <p className="text-sm font-medium">
-              {`Found ${wotPubkeys.size} trusted authors.`}
+              {t('settings.wot.foundAuthors', { count: wotPubkeys.size })}
             </p>
             <p className="text-sm text-muted-foreground">
               {lastCalculated
-                ? `Last updated: ${new Date(lastCalculated).toLocaleString()}`
-                : 'Not calculated yet.'}
+                ? t('settings.wot.lastUpdated', { date: new Date(lastCalculated).toLocaleString() })
+                : t('settings.wot.notCalculatedYet')}
             </p>
           </div>
           <div className="flex gap-2 mt-4 sm:mt-0">
             {isLoading && (
               <Button onClick={cancelCalculation} variant="outline">
-                Cancel
+                {t('common.cancel')}
               </Button>
             )}
             <Button onClick={handleCalculate} disabled={!isFilterEnabled || isLoading}>
-              {isLoading ? 'Updating...' : 'Update'}
+              {isLoading ? t('settings.wot.updating') : t('settings.wot.update')}
             </Button>
           </div>
         </div>

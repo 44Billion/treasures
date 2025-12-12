@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Copy, Check } from "lucide-react";
 
@@ -50,6 +51,7 @@ import { encodeGeohash } from "@/features/geocache/utils/nip-gc";
 import type { Geocache, GeocacheLog } from "@/types/geocache";
 
 export default function CacheDetail() {
+  const { t } = useTranslation();
   const { naddr } = useParams<{ naddr: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,7 +70,7 @@ export default function CacheDetail() {
 
   // All hooks must be called unconditionally at the top level
   const { data: fetchedGeocache, isLoading, error, isError, refetch } = useGeocacheByNaddr(naddr || "", {
-    onRelayAttempt: (relayUrl, attempt) => {
+    onRelayAttempt: (relayUrl) => {
       setRelayAttempts(prev => [...prev, relayUrl]);
     },
     onMultiRelayStart: () => {
@@ -179,14 +181,14 @@ export default function CacheDetail() {
       // Show toast if we're using passed data (just created)
       if (justCreated && passedGeocacheData) {
         toast({
-          title: "Cache Created Successfully!",
-          description: "Your geocache is now live. We're syncing with the network in the background...",
+          title: t('cacheDetail.toast.created.title'),
+          description: t('cacheDetail.toast.created.description'),
         });
       }
 
       // Note: Prefetching is now handled automatically by the store system
     }
-  }, [geocache, justCreated, passedGeocacheData, toast]);
+  }, [geocache, justCreated, passedGeocacheData, toast, t]);
 
   // Verify location when geocache loads
   useEffect(() => {
@@ -224,8 +226,8 @@ export default function CacheDetail() {
 
         if (isValid) {
           toast({
-            title: "Verification Key Detected",
-            description: "You can now submit verified logs for this cache! Scroll down to the logs section.",
+            title: t('cacheDetail.toast.verificationDetected.title'),
+            description: t('cacheDetail.toast.verificationDetected.description'),
           });
 
           // Scroll to logs section after a short delay
@@ -238,14 +240,14 @@ export default function CacheDetail() {
         } else {
           // Check if this is an outdated verification key
           toast({
-            title: "Outdated QR Code",
-            description: "This QR code has been replaced by the cache owner. Please look for a newer QR code at the cache location.",
+            title: t('cacheDetail.toast.outdatedQR.title'),
+            description: t('cacheDetail.toast.outdatedQR.description'),
             variant: "destructive",
           });
         }
       });
     }
-  }, [geocache?.verificationPubkey, toast]);
+  }, [geocache?.verificationPubkey, toast, t]);
 
   // If we have passed geocache data (just created), trigger a refetch after a short delay
   // to ensure we eventually sync with the relay data
@@ -267,36 +269,29 @@ export default function CacheDetail() {
     setIsMultiRelayLoading(false);
   }, [naddr]);
 
+  // Handle invalid naddr parameter - redirect to NotFound if it doesn't look like a valid naddr
+  useEffect(() => {
+    if (naddr && !naddr.startsWith('naddr1')) {
+      // Invalid path - doesn't look like an naddr, redirect to NotFound
+      navigate('/404', { replace: true });
+    }
+  }, [naddr, navigate]);
+
   // Show full-page loading animation for direct navigation
   if (shouldShowFullPageLoading) {
     return (
       <GeocacheLoading
-        title="Loading Geocache..."
-        description="Fetching cache details from the network"
+        title={t('cacheDetail.loading.title')}
+        description={t('cacheDetail.loading.description')}
         relayAttempts={relayAttempts}
         isMultiRelayLoading={isMultiRelayLoading}
       />
     );
   }
 
-  // Handle invalid naddr parameter
-  if (!naddr) {
-    return (
-      <div className="min-h-screen bg-muted/50 dark:bg-muted">
-        <DesktopHeader />
-        <div className="container mx-auto px-4 py-16">
-          <ErrorState
-            title="Invalid Cache Link"
-            description="No cache identifier provided in the URL."
-            primaryAction={
-              <Link to="/" className="block">
-                <Button className="w-full">Browse Caches</Button>
-              </Link>
-            }
-          />
-        </div>
-      </div>
-    );
+  if (!naddr || !naddr.startsWith('naddr1')) {
+    // Show nothing while redirecting, or if naddr is invalid
+    return null;
   }
 
 
@@ -307,7 +302,7 @@ export default function CacheDetail() {
         id: geocache.id,
         name: geocache.name,
       },
-      'Deleted by cache owner',
+      t('cacheDetail.delete.reason'),
       () => navigate("/")
     );
   };
@@ -339,8 +334,8 @@ export default function CacheDetail() {
   const handleSaveEdit = () => {
     if (!editFormData.name.trim()) {
       toast({
-        title: "Cache name required",
-        description: "Please enter a name for your geocache",
+        title: t('cacheDetail.toast.nameRequired.title'),
+        description: t('cacheDetail.toast.nameRequired.description'),
         variant: "destructive",
       });
       return;
@@ -348,8 +343,8 @@ export default function CacheDetail() {
 
     if (!editFormData.description.trim()) {
       toast({
-        title: "Description required",
-        description: "Please enter a description for your geocache",
+        title: t('cacheDetail.toast.descriptionRequired.title'),
+        description: t('cacheDetail.toast.descriptionRequired.description'),
         variant: "destructive",
       });
       return;
@@ -357,8 +352,8 @@ export default function CacheDetail() {
 
     if (!editLocation) {
       toast({
-        title: "Location required",
-        description: "Please select a location for your geocache",
+        title: t('cacheDetail.toast.locationRequired.title'),
+        description: t('cacheDetail.toast.locationRequired.description'),
         variant: "destructive",
       });
       return;
@@ -396,14 +391,14 @@ export default function CacheDetail() {
       await navigator.clipboard.writeText(text);
       setCopiedItem(itemType);
       toast({
-        title: "Copied!",
-        description: `${itemType} copied to clipboard`,
+        title: t('cacheDetail.toast.copied.title'),
+        description: t('cacheDetail.toast.copied.description', { item: itemType }),
       });
       setTimeout(() => setCopiedItem(null), 2000);
     } catch (error) {
       toast({
-        title: "Copy Failed",
-        description: "Failed to copy to clipboard",
+        title: t('cacheDetail.toast.copyFailed.title'),
+        description: t('cacheDetail.toast.copyFailed.description'),
         variant: "destructive",
       });
     }
@@ -420,19 +415,19 @@ export default function CacheDetail() {
         <div className="container mx-auto px-4 py-16">
           <ErrorState
             title={
-              isInvalidCacheLink ? "Invalid Cache Link" :
-              "Connection Issue"
+              isInvalidCacheLink ? t('cacheDetail.error.invalidLink.title') :
+              t('cacheDetail.error.connection.title')
             }
             description={
               isInvalidCacheLink
-                ? "This cache link is not valid. It may be corrupted or from an incompatible source."
-                : "Unable to load geocache. This might be a temporary network issue."
+                ? t('cacheDetail.error.invalidLink.corrupted')
+                : t('cacheDetail.error.connection.description')
             }
             error={error}
             primaryAction={
               <Link to="/" className="block">
                 <Button className="w-full">
-                  {isInvalidCacheLink ? "Browse Caches" : "Back to Home"}
+                  {isInvalidCacheLink ? t('cacheDetail.error.invalidLink.browse') : t('cacheDetail.error.connection.backHome')}
                 </Button>
               </Link>
             }
@@ -440,7 +435,7 @@ export default function CacheDetail() {
               !isInvalidCacheLink ? (
                 <Button onClick={() => refetch()} variant="outline" className="w-full">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Try Again
+                  {t('cacheDetail.error.connection.tryAgain')}
                 </Button>
               ) : undefined
             }
@@ -475,21 +470,19 @@ export default function CacheDetail() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="h-5 w-5" />
-                    Create This Geocache
+                    {t('cacheDetail.create.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center space-y-3">
-                    <p className="text-muted-foreground">
-                      This geocache doesn't exist yet, but the link belongs to you!
-                      You can create it now using this pre-generated claim URL.
+                    <p className="text-muted-foreground whitespace-pre-line">
+                      {t('cacheDetail.create.description')}
                     </p>
 
                     <Alert>
                       <QrCode className="h-4 w-4" />
-                      <AlertDescription>
-                        This appears to be from a QR code you generated in advance.
-                        Creating the geocache will make this claim URL work for finders.
+                      <AlertDescription className="whitespace-pre-line">
+                        {t('cacheDetail.create.qrAlert')}
                       </AlertDescription>
                     </Alert>
                   </div>
@@ -505,7 +498,7 @@ export default function CacheDetail() {
                       className="w-full"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Create Geocache
+                      {t('cacheDetail.create.button')}
                     </Button>
 
                     <Button
@@ -513,7 +506,7 @@ export default function CacheDetail() {
                       variant="outline"
                       className="w-full"
                     >
-                      Back to Home
+                      {t('cacheDetail.create.backHome')}
                     </Button>
                   </div>
                 </CardContent>
@@ -529,17 +522,17 @@ export default function CacheDetail() {
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
           <ErrorState
-            title="Geocache Not Found"
-            description="This geocache may have been removed or doesn't exist."
+            title={t('cacheDetail.error.notFound.title')}
+            description={t('cacheDetail.error.notFound.description')}
             primaryAction={
               <Link to="/" className="block">
-                <Button className="w-full">Back to Home</Button>
+                <Button className="w-full">{t('cacheDetail.error.notFound.backHome')}</Button>
               </Link>
             }
             secondaryAction={
               <Button onClick={() => refetch()} variant="outline" className="w-full">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Check Again
+                {t('cacheDetail.error.notFound.checkAgain')}
               </Button>
             }
           />
@@ -628,7 +621,7 @@ export default function CacheDetail() {
                 <div className="text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm pt-2">
                   <span className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    Hidden by{' '}
+                    {t('cacheDetail.author.hiddenBy')}{' '}
                     <button
                       onClick={() => handleProfileClick(geocache.pubkey)}
                       className="hover:underline cursor-pointer"
@@ -671,7 +664,7 @@ export default function CacheDetail() {
 
                     {/* Location */}
                     <div>
-                      <Label>Location *</Label>
+                      <Label>{t('cacheDetail.details.coordinates')} *</Label>
                       <LocationPicker
                         value={editLocation}
                         onChange={setEditLocation}
@@ -681,7 +674,7 @@ export default function CacheDetail() {
                     {/* Location Verification for Edit */}
                     {editLocationVerification && (
                       <div className="border rounded-lg p-4 bg-muted/50 dark:bg-muted">
-                        <h4 className="font-medium mb-2 text-foreground">Location Information</h4>
+                        <h4 className="font-medium mb-2 text-foreground">{t('cacheDetail.location.title')}</h4>
                         <LocationWarnings
                           verification={editLocationVerification}
                           className="space-y-2"
@@ -692,9 +685,9 @@ export default function CacheDetail() {
                     {/* QR Code Management Section */}
                     {isOwner && geocache && (
                       <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4">
-                        <h3 className="text-lg font-semibold mb-4 text-card-foreground">QR Code Management</h3>
+                        <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t('cacheDetail.qrManagement.title')}</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                          This is a creator-only tool to manage the verification QR code for this geocache. Regenerating will invalidate the previous QR code.
+                          {t('cacheDetail.qrManagement.description')}
                         </p>
                         <Button
                           type="button"
@@ -704,7 +697,7 @@ export default function CacheDetail() {
                           className="w-full sm:w-auto"
                         >
                           <QrCode className="h-4 w-4 mr-2" />
-                          Regenerate QR Code
+                          {t('cacheDetail.qrManagement.regenerate')}
                         </Button>
                       </div>
                     )}
@@ -727,7 +720,7 @@ export default function CacheDetail() {
                           <AlertDescription className="break-words">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex-1">
-                                <strong>Hint:</strong>{' '}
+                                <strong>{t('cacheDetail.hint.label')}</strong>{' '}
                                 <span
                                   className={`transition-all duration-200 ${
                                     isHintVisible ? '' : 'blur-sm'
@@ -739,7 +732,7 @@ export default function CacheDetail() {
                               <button
                                 onClick={() => setIsHintVisible(!isHintVisible)}
                                 className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-muted transition-colors"
-                                title={isHintVisible ? "Hide hint" : "Reveal hint"}
+                                title={isHintVisible ? t('cacheDetail.hint.hide') : t('cacheDetail.hint.reveal')}
                                 type="button"
                               >
                                 {isHintVisible ? (
@@ -794,7 +787,7 @@ export default function CacheDetail() {
           <div className="space-y-4 lg:space-y-6 lg:mt-4">
             {/* Cache Details - Mobile: No card wrapper, Desktop: Card wrapper */}
             <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
-              <h3 className="text-lg font-semibold mb-4 text-card-foreground">Cache Details</h3>
+              <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t('cacheDetail.details.title')}</h3>
               <div className="space-y-4">
                 <DifficultyTerrainRating
                   difficulty={geocache.difficulty}
@@ -804,8 +797,8 @@ export default function CacheDetail() {
 
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Coordinates {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
-                      <span className="text-orange-600 text-xs">(modified)</span>
+                    {t('cacheDetail.details.coordinates')} {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
+                      <span className="text-orange-600 text-xs">{t('cacheDetail.details.coordinatesModified')}</span>
                     )}
                   </p>
                   <button
@@ -813,11 +806,11 @@ export default function CacheDetail() {
                       const location = isEditing && editLocation ? editLocation : geocache.location;
                       handleCopyToClipboard(
                         `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,
-                        "Coordinates"
+                        t('cacheDetail.details.coordinates')
                       );
                     }}
                     className="flex items-center gap-2 text-xs md:text-sm font-mono mt-1 break-all text-foreground hover:bg-muted/50 p-1 rounded transition-colors w-full text-left"
-                    title="Click to copy coordinates"
+                    title={t('cacheDetail.details.clickToCopy', { item: t('cacheDetail.details.coordinates') })}
                   >
                     <span className="flex-1">
                       {isEditing && editLocation ?
@@ -825,15 +818,15 @@ export default function CacheDetail() {
                         `${geocache.location.lat.toFixed(6)}, ${geocache.location.lng.toFixed(6)}`
                       }
                     </span>
-                    {copiedItem === "Coordinates" ? (
+                    {copiedItem === t('cacheDetail.details.coordinates') ? (
                       <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
                     ) : (
                       <Copy className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                     )}
                   </button>
                   <p className="text-xs font-medium text-muted-foreground mt-3">
-                    Geohash {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
-                      <span className="text-orange-600 text-xs">(modified)</span>
+                    {t('cacheDetail.details.geohash')} {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
+                      <span className="text-orange-600 text-xs">{t('cacheDetail.details.geohashModified')}</span>
                     )}
                   </p>
                   <button
@@ -841,11 +834,11 @@ export default function CacheDetail() {
                       const location = isEditing && editLocation ? editLocation : geocache.location;
                       handleCopyToClipboard(
                         encodeGeohash(location.lat, location.lng, 9),
-                        "Geohash"
+                        t('cacheDetail.details.geohash')
                       );
                     }}
                     className="flex items-center gap-2 text-xs md:text-sm font-mono mt-1 break-all text-foreground hover:bg-muted/50 p-1 rounded transition-colors w-full text-left"
-                    title="Click to copy geohash"
+                    title={t('cacheDetail.details.clickToCopy', { item: t('cacheDetail.details.geohash') })}
                   >
                     <span className="flex-1">
                       {isEditing && editLocation ?
@@ -853,7 +846,7 @@ export default function CacheDetail() {
                         encodeGeohash(geocache.location.lat, geocache.location.lng, 9)
                       }
                     </span>
-                    {copiedItem === "Geohash" ? (
+                    {copiedItem === t('cacheDetail.details.geohash') ? (
                       <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
                     ) : (
                       <Copy className="h-3 w-3 text-muted-foreground flex-shrink-0" />
@@ -872,7 +865,7 @@ export default function CacheDetail() {
                     }}
                   >
                     <Navigation className="h-4 w-4 mr-2" />
-                    Get Directions
+                    {t('cacheDetail.details.getDirections')}
                   </Button>
                 </div>
               </div>
@@ -881,7 +874,7 @@ export default function CacheDetail() {
             {/* Location Information - Mobile: No card wrapper, Desktop: Card wrapper */}
             {locationVerification && (
               <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
-                <h3 className="text-lg font-semibold mb-4 text-card-foreground">Location Information</h3>
+                <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t('cacheDetail.location.title')}</h3>
                 <LocationWarnings
                   verification={locationVerification}
                   className="space-y-2"
@@ -892,22 +885,22 @@ export default function CacheDetail() {
 
             {/* Statistics - Mobile: No card wrapper, Desktop: Card wrapper */}
             <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
-              <h3 className="text-lg font-semibold mb-4 text-card-foreground">Statistics</h3>
+              <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t('cacheDetail.stats.title')}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Total Finds</span>
+                  <span className="text-sm text-muted-foreground">{t('cacheDetail.stats.totalFinds')}</span>
                   <span className="font-medium text-card-foreground">
                     {(logs as GeocacheLog[])?.filter((log: GeocacheLog) => log.type === "found").length || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">DNFs</span>
+                  <span className="text-sm text-muted-foreground">{t('cacheDetail.stats.dnfs')}</span>
                   <span className="font-medium text-card-foreground">
                     {(logs as GeocacheLog[])?.filter((log: GeocacheLog) => log.type === "dnf").length || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Total Logs</span>
+                  <span className="text-sm text-muted-foreground">{t('cacheDetail.stats.totalLogs')}</span>
                   <span className="font-medium text-card-foreground">{(logs as GeocacheLog[])?.length || 0}</span>
                 </div>
               </div>
@@ -942,7 +935,7 @@ export default function CacheDetail() {
         isDeleting={isDeletingAny}
         onConfirm={executeDeletion}
         onCancel={cancelDeletion}
-        confirmText="Delete Geocache"
+        confirmText={t('cacheDetail.delete.confirmText')}
       />
 
       {/* Regenerate QR Dialog */}

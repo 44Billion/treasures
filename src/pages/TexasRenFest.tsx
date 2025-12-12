@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useAppContext } from "@/shared/hooks/useAppContext";
+import { useTranslation } from 'react-i18next';
 import { MapPin, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { DesktopHeader } from "@/components/DesktopHeader";
@@ -39,7 +39,7 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 export default function TexasRenFest() {
-  const { config } = useAppContext();
+  const { t } = useTranslation();
   const { setTheme, theme } = useTheme();
   const isMobile = useIsMobile();
 
@@ -125,13 +125,13 @@ export default function TexasRenFest() {
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-amber-300 animate-pulse flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-0 sm:mb-1 truncate">Texas Renaissance Festival</h1>
-                <p className="text-amber-200 text-xs sm:text-sm hidden xs:block">Discover hidden treasures at the festival grounds</p>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-0 sm:mb-1 truncate">{t('texasRenFest.title')}</h1>
+                <p className="text-amber-200 text-xs sm:text-sm hidden xs:block">{t('texasRenFest.subtitle')}</p>
               </div>
             </div>
             <Badge variant="secondary" className="bg-amber-700 text-white border-amber-600 hidden sm:flex items-center gap-2 flex-shrink-0">
               <MapPin className="h-4 w-4" />
-              Todd Mission, TX
+              {t('texasRenFest.location')}
             </Badge>
           </div>
         </div>
@@ -163,10 +163,10 @@ export default function TexasRenFest() {
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-amber-600" />
-                        Festival Area
+                        {t('texasRenFest.festivalArea')}
                       </h3>
                       <span className="text-xs text-muted-foreground">
-                        {nearbyCaches.length} cache{nearbyCaches.length !== 1 ? 's' : ''}
+                        {t('texasRenFest.cacheCount', { count: nearbyCaches.length })}
                       </span>
                     </div>
                     <div className="space-y-3">
@@ -174,7 +174,6 @@ export default function TexasRenFest() {
                         <CompactGeocacheCard
                           key={cache.id}
                           cache={cache}
-                          distance={cache.distance}
                           onClick={() => handleCardClick(cache)}
                           statsLoading={baseGeocaches.isStatsLoading}
                         />
@@ -188,7 +187,7 @@ export default function TexasRenFest() {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-muted-foreground">
-                        ...treasures elsewhere in the world
+                        {t('texasRenFest.elsewhere')}
                       </h3>
                       <span className="text-xs text-muted-foreground">
                         {elsewhereCaches.length}
@@ -199,7 +198,6 @@ export default function TexasRenFest() {
                         <CompactGeocacheCard
                           key={cache.id}
                           cache={cache}
-                          distance={cache.distance}
                           onClick={() => handleCardClick(cache)}
                           statsLoading={baseGeocaches.isStatsLoading}
                         />
@@ -211,7 +209,7 @@ export default function TexasRenFest() {
                 {/* No caches message */}
                 {nearbyCaches.length === 0 && elsewhereCaches.length === 0 && !isLoading && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">No caches found</p>
+                    <p className="text-sm">{t('texasRenFest.noCaches')}</p>
                   </div>
                 )}
               </div>
@@ -292,10 +290,10 @@ export default function TexasRenFest() {
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                             <Sparkles className="h-4 w-4 text-amber-600" />
-                            Festival Area
+                            {t('texasRenFest.festivalArea')}
                           </h3>
                           <span className="text-xs text-muted-foreground">
-                            {nearbyCaches.length} cache{nearbyCaches.length !== 1 ? 's' : ''}
+                            {t('texasRenFest.cacheCount', { count: nearbyCaches.length })}
                           </span>
                         </div>
                         <div className="space-y-3">
@@ -303,7 +301,6 @@ export default function TexasRenFest() {
                             <CompactGeocacheCard
                               key={cache.id}
                               cache={cache}
-                              distance={cache.distance}
                               onClick={() => handleCardClick(cache)}
                               statsLoading={baseGeocaches.isStatsLoading}
                             />
@@ -317,7 +314,7 @@ export default function TexasRenFest() {
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="text-sm font-semibold text-muted-foreground">
-                            ...treasures elsewhere in the world
+                            {t('texasRenFest.elsewhere')}
                           </h3>
                           <span className="text-xs text-muted-foreground">
                             {elsewhereCaches.length}
@@ -328,7 +325,6 @@ export default function TexasRenFest() {
                             <CompactGeocacheCard
                               key={cache.id}
                               cache={cache}
-                              distance={cache.distance}
                               onClick={() => handleCardClick(cache)}
                               statsLoading={baseGeocaches.isStatsLoading}
                             />
@@ -340,7 +336,7 @@ export default function TexasRenFest() {
                     {/* No caches message */}
                     {nearbyCaches.length === 0 && elsewhereCaches.length === 0 && !isLoading && (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p className="text-sm">No caches found</p>
+                        <p className="text-sm">{t('texasRenFest.noCaches')}</p>
                       </div>
                     )}
                   </div>

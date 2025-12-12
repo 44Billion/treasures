@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import L from 'leaflet';
@@ -10,6 +11,7 @@ interface SearchInViewButtonProps {
 }
 
 export function SearchInViewButton({ map, onSearchInView, isAdventureTheme = false }: SearchInViewButtonProps) {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -76,10 +78,10 @@ export function SearchInViewButton({ map, onSearchInView, isAdventureTheme = fal
       `}
       onClick={handleSearchInView}
       disabled={isSearching}
-      title="Search for geocaches in the current map view"
+      title={t('map.searchInView.title')}
     >
       <MapPin className={`h-3 w-3 mr-1 ${isSearching ? 'animate-spin' : ''}`} />
-      {isSearching ? 'Searching...' : 'Search Here'}
+      {isSearching ? t('map.searchInView.searching') : t('map.searchInView.button')}
     </Button>
   );
 }

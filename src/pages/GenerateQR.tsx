@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { QrCode, Download, Copy, ChevronDown, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ const customConfig: Config = {
 };
 
 export default function GenerateQR() {
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -56,12 +58,15 @@ export default function GenerateQR() {
       setCacheName(finalCacheName);
       setNaddr(naddr);
       setVerificationKeyPair(keyPair);
-      const dataUrl = await generateVerificationQR(naddr, keyPair.nsec, 'full');
+      const dataUrl = await generateVerificationQR(naddr, keyPair.nsec, 'full', {
+        line1: t('qrCode.foundTreasure'),
+        line2: t('qrCode.scanToLog')
+      });
       setQrDataUrl(dataUrl);
     };
 
     generateInitialQR();
-  }, [user, searchParams]);
+  }, [user, searchParams, t]);
 
 
   const generateQR = useCallback(async () => {
@@ -79,23 +84,29 @@ export default function GenerateQR() {
         }
         const data = await Promise.all(dataPromises);
         setSheetData(data);
-        const gridUrl = await generateQRGridImage(data);
+        const gridUrl = await generateQRGridImage(data, {
+          line1: t('qrCode.foundTreasure'),
+          line2: t('qrCode.scanToLog')
+        });
         setQrDataUrl(gridUrl);
       } else {
         setSheetData([]);
-        const dataUrl = await generateVerificationQR(naddr, verificationKeyPair!.nsec, qrType);
+        const dataUrl = await generateVerificationQR(naddr, verificationKeyPair!.nsec, qrType, {
+          line1: t('qrCode.foundTreasure'),
+          line2: t('qrCode.scanToLog')
+        });
         setQrDataUrl(dataUrl);
       }
     } catch (error) {
       toast({
-        title: "QR Generation Failed",
-        description: error instanceof Error ? error.message : "Failed to generate QR code",
+        title: t('generateQR.toast.generationFailed.title'),
+        description: error instanceof Error ? error.message : t('generateQR.toast.generationFailed.description'),
         variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
     }
-  }, [user, qrType, toast, naddr, verificationKeyPair]);
+  }, [user, qrType, toast, naddr, verificationKeyPair, t]);
 
   const handlePrint = () => {
     if (qrDataUrl) {
@@ -180,8 +191,8 @@ export default function GenerateQR() {
       const filename = qrType === 'sheet' ? `${safeCacheName}-qr-sheet.png` : `${safeCacheName}-qr-code.png`;
       downloadQRCode(qrDataUrl, filename);
       toast({
-        title: "QR Code Downloaded",
-        description: "The QR code has been saved to your downloads.",
+        title: t('generateQR.toast.downloaded.title'),
+        description: t('generateQR.toast.downloaded.description'),
       });
     }
   };
@@ -204,6 +215,7 @@ export default function GenerateQR() {
         generateQR();
       }, 100);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrType]); // Only trigger on qrType changes
 
   if (!user) {
@@ -211,7 +223,7 @@ export default function GenerateQR() {
       <PageLayout maxWidth="md" className="py-16">
         <LoginRequiredCard
           icon={QrCode}
-          description="You need to be logged in to generate QR codes for geocaches."
+          description={t('generateQR.loginRequired')}
           className="max-w-md mx-auto"
         />
       </PageLayout>
@@ -224,11 +236,10 @@ export default function GenerateQR() {
         <div>
           <h1 className="text-foreground text-2xl font-bold flex items-center justify-center gap-2">
             <QrCode className="text-foreground h-8 w-8" />
-            Generate QR Code
+            {t('generateQR.title')}
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Create a QR code that links to the treasure claim page. Just enter a name
-            and get a QR code you can print and place with your cache.
+            {t('generateQR.description')}
           </p>
         </div>
 
@@ -236,17 +247,17 @@ export default function GenerateQR() {
           <div className="flex justify-center p-4 bg-white rounded-lg border shadow-sm">
             {isGenerating ? (
               <div className="w-64 h-64 flex items-center justify-center bg-muted rounded">
-                <ComponentLoading size="sm" title="Generating..." />
+                <ComponentLoading size="sm" title={t('generateQR.generating')} />
               </div>
             ) : qrDataUrl ? (
-              <img
-                src={qrDataUrl}
-                alt="Verification QR Code"
+              <img 
+                src={qrDataUrl} 
+                alt={t('generateQR.qrCodeAlt')} 
                 className="w-full h-auto rounded max-w-xs object-contain"
               />
             ) : (
               <div className="w-64 h-64 flex items-center justify-center bg-muted rounded">
-                <p className="text-sm text-muted-foreground text-center">QR code will appear here</p>
+                <p className="text-sm text-muted-foreground text-center">{t('generateQR.placeholder')}</p>
               </div>
             )}
           </div>
@@ -254,24 +265,24 @@ export default function GenerateQR() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
-                  Style
+                  {t('generateQR.style')}
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setQrType('full')}>Full</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('cutout')}>Cutout</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('micro')}>Micro</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('sheet')}>Sheet (3x3)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType('full')}>{t('generateQR.styleFull')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType('cutout')}>{t('generateQR.styleCutout')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType('micro')}>{t('generateQR.styleMicro')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType('sheet')}>{t('generateQR.styleSheet')}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button onClick={handleDownloadQR} disabled={!qrDataUrl}>
               <Download className="h-4 w-4 mr-2" />
-              Download
+              {t('generateQR.download')}
             </Button>
             <Button variant="outline" onClick={handlePrint} disabled={!qrDataUrl}>
               <Printer className="h-4 w-4 mr-2" />
-              Print
+              {t('generateQR.print')}
             </Button>
           </div>
         </div>
@@ -279,8 +290,8 @@ export default function GenerateQR() {
         <div className="space-y-4 text-left">
           {qrType === 'sheet' ? (
             <div>
-              <h2 className="text-foreground text-lg font-semibold">Generated Caches (Sheet)</h2>
-              <p className="text-sm text-muted-foreground mb-4">A 3x3 grid of unique QR codes has been generated.</p>
+              <h2 className="text-foreground text-lg font-semibold">{t('generateQR.sheet.title')}</h2>
+              <p className="text-sm text-muted-foreground mb-4">{t('generateQR.sheet.description')}</p>
               <ul className="space-y-2">
                 {sheetData.map((data, index) => (
                   <li key={index} className="flex items-center justify-between gap-2 p-2 border rounded-md bg-muted/50">
@@ -292,9 +303,9 @@ export default function GenerateQR() {
                         try {
                           const claimUrl = `https://treasures.to/${data.naddr}#verify=${data.keyPair.nsec}`;
                           await navigator.clipboard.writeText(claimUrl);
-                          toast({ title: "Claim URL copied" });
+                          toast({ title: t('generateQR.toast.claimUrlCopied') });
                         } catch (error) {
-                          toast({ title: "Failed to copy", variant: "destructive" });
+                          toast({ title: t('generateQR.toast.copyFailed'), variant: "destructive" });
                         }
                       }}
                     >
@@ -307,15 +318,15 @@ export default function GenerateQR() {
           ) : (
             <div className="space-y-4">
               <div>
-                <h2 className="text-foreground text-lg font-semibold">Generated Cache Details</h2>
-                <p className="text-sm text-muted-foreground">This is the information for the generated QR code.</p>
+                <h2 className="text-foreground text-lg font-semibold">{t('generateQR.details.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('generateQR.details.description')}</p>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">Cache Name</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('generateQR.details.cacheName')}</label>
                 <p className="text-foreground font-mono p-2 border rounded-md text-sm bg-muted/50">{cacheName}</p>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">Claim URL</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('generateQR.details.claimUrl')}</label>
                 <div className="flex items-center gap-2">
                   <code className="text-foreground bg-muted/50 px-2 py-1 rounded-md text-xs break-all flex-1 overflow-x-auto whitespace-nowrap">
                     https://treasures.to/{naddr}#verify={verificationKeyPair?.nsec}
@@ -327,9 +338,9 @@ export default function GenerateQR() {
                       try {
                         const claimUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair?.nsec}`;
                         await navigator.clipboard.writeText(claimUrl);
-                        toast({ title: "Claim URL copied" });
+                        toast({ title: t('generateQR.toast.claimUrlCopied') });
                       } catch (error) {
-                        toast({ title: "Failed to copy", variant: "destructive" });
+                        toast({ title: t('generateQR.toast.copyFailed'), variant: "destructive" });
                       }
                     }}
                   >

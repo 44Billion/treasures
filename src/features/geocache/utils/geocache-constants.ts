@@ -1,4 +1,5 @@
 // Shared constants for geocache ratings and options
+import i18next from 'i18next';
 
 export const DIFFICULTY_TERRAIN_OPTIONS = [
   { value: "1", label: "1 - Easy" },
@@ -22,25 +23,42 @@ export const CACHE_TYPE_OPTIONS = [
   { value: "mystery", label: "Mystery/Puzzle" },
 ];
 
-// Helper functions to extract labels from options
+// Helper functions to extract labels from options with i18n support
 export function getDifficultyLabel(difficulty: number): string {
-  const option = DIFFICULTY_TERRAIN_OPTIONS.find(opt => opt.value === difficulty.toString());
-  return option?.label.split(' - ')[1] || ""; // Return just "Easy", "Hard", etc.
+  const difficultyMap: Record<number, string> = {
+    1: i18next.t('geocache.difficulty.easy'),
+    2: i18next.t('geocache.difficulty.moderate'),
+    3: i18next.t('geocache.difficulty.hard'),
+    4: i18next.t('geocache.difficulty.veryHard'),
+    5: i18next.t('geocache.difficulty.expert'),
+  };
+  return difficultyMap[difficulty] || "";
 }
 
 export function getTerrainLabel(terrain: number): string {
-  const option = DIFFICULTY_TERRAIN_OPTIONS.find(opt => opt.value === terrain.toString());
-  return option?.label.split(' - ')[1] || ""; // Return just "Easy", "Hard", etc.
+  return getDifficultyLabel(terrain); // Same mapping for terrain
 }
 
 export function getCacheSizeLabel(size: string): string {
-  const option = CACHE_SIZE_OPTIONS.find(opt => opt.value === size.toLowerCase());
-  return option?.label || size.charAt(0).toUpperCase() + size.slice(1);
+  const sizeMap: Record<string, string> = {
+    micro: i18next.t('geocache.size.micro'),
+    small: i18next.t('geocache.size.small'),
+    regular: i18next.t('geocache.size.regular'),
+    large: i18next.t('geocache.size.large'),
+    other: i18next.t('geocache.size.other'),
+  };
+  const normalizedSize = size?.toLowerCase()?.trim() || '';
+  return sizeMap[normalizedSize] || size.charAt(0).toUpperCase() + size.slice(1);
 }
 
 export function getCacheTypeLabel(type: string): string {
-  const option = CACHE_TYPE_OPTIONS.find(opt => opt.value === type.toLowerCase());
-  return option?.label || type;
+  const typeMap: Record<string, string> = {
+    traditional: i18next.t('geocache.type.traditional'),
+    multi: i18next.t('geocache.type.multi'),
+    mystery: i18next.t('geocache.type.mystery'),
+  };
+  const normalizedType = type?.toLowerCase()?.trim() || '';
+  return typeMap[normalizedType] || type;
 }
 
 // Default values for new geocaches  

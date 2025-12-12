@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MapPin, User, MessageSquare } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { BaseDialog } from "@/shared/components/ui/base-dialog";
@@ -14,6 +15,7 @@ import { GeocacheCard } from "@/features/geocache/components/geocache-card";
 import type { ProfileDialogProps } from "../types";
 
 export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const author = useAuthor(pubkey || "");
   const { data: geocachesData = [], isStatsLoading } = useGeocaches();
@@ -69,7 +71,7 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
           className="h-8"
         >
           <User className="h-4 w-4 mr-2" />
-          View Full Profile
+          {t('profileDialog.viewFullProfile')}
         </Button>
       </ProfileHeader>
 
@@ -79,13 +81,13 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
             items={[
               {
                 value: "caches",
-                label: "Geocaches",
+                label: t('profileDialog.tabs.geocaches'),
                 icon: MapPin,
                 count: userGeocaches.length
               },
               {
                 value: "activity", 
-                label: "Activity",
+                label: t('profileDialog.tabs.activity'),
                 icon: MessageSquare
               }
             ]}
@@ -114,15 +116,15 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
                   })}
                   {userGeocaches.length > 10 && (
                     <p className="text-xs text-gray-500 text-center py-2">
-                      And {userGeocaches.length - 10} more...
+                      {t('profileDialog.geocaches.more', { count: userGeocaches.length - 10 })}
                     </p>
                   )}
                 </div>
               ) : (
                 <EmptyStateCard
                   icon={MapPin}
-                  title="No geocaches yet"
-                  description="This user hasn't created any geocaches"
+                  title={t('profileDialog.geocaches.empty.title')}
+                  description={t('profileDialog.geocaches.empty.description')}
                 />
               )}
             </TabsContent>
@@ -130,8 +132,8 @@ export function ProfileDialog({ pubkey, isOpen, onOpenChange }: ProfileDialogPro
             <TabsContent value="activity" className="space-y-3 max-h-80 overflow-y-auto">
               <EmptyStateCard
                 icon={MessageSquare}
-                title="Activity coming soon"
-                description="Recent logs and activity will be shown here"
+                title={t('profileDialog.activity.empty.title')}
+                description={t('profileDialog.activity.empty.description')}
               />
             </TabsContent>
           </MobileTabs>

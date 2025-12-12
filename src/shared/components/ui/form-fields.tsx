@@ -1,5 +1,6 @@
 import { ReactNode, useRef, useState } from 'react';
-import { Upload, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Upload, Loader2} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -174,6 +175,7 @@ export function ImageUploadField<TFieldValues extends FieldValues, TName extends
   onUpload,
   isUploading = false,
 }: ImageUploadFieldProps<TFieldValues, TName>) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localUploading, setLocalUploading] = useState(false);
 
@@ -229,15 +231,15 @@ export function ImageUploadField<TFieldValues extends FieldValues, TName extends
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
               >
-                {uploading ? (
+                 {uploading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
+                    {t('form.uploading')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload Image
+                    {t('form.uploadImage')}
                   </>
                 )}
               </Button>

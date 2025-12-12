@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -8,6 +9,7 @@ interface HintDisplayProps {
 }
 
 export function HintDisplay({ hint, className = "" }: HintDisplayProps) {
+  const { t } = useTranslation();
   const [isHintVisible, setIsHintVisible] = useState(false);
 
   return (
@@ -15,7 +17,7 @@ export function HintDisplay({ hint, className = "" }: HintDisplayProps) {
       <AlertDescription className="break-words">
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1">
-            <strong className="text-foreground-muted">Hint:</strong>{' '}
+            <strong className="text-foreground-muted">{t('cacheDetail.hint.label')}</strong>{' '}
             <span 
               className={`transition-all duration-200 ${
                 isHintVisible ? '' : 'blur-sm'
@@ -27,7 +29,7 @@ export function HintDisplay({ hint, className = "" }: HintDisplayProps) {
           <button
             onClick={() => setIsHintVisible(!isHintVisible)}
             className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-gray-100 transition-colors"
-            title={isHintVisible ? "Hide hint" : "Reveal hint"}
+            title={isHintVisible ? t('cacheDetail.hint.hide') : t('cacheDetail.hint.reveal')}
             type="button"
           >
             {isHintVisible ? (

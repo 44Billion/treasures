@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { MessageSquare, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { LogTypeButtonGroup } from "@/shared/components/ui/mobile-button-patterns";
@@ -7,7 +8,7 @@ import { Checkbox } from "@/shared/components/ui/checkbox";
 import { EmptyStateCard } from "@/shared/components/ui/card-patterns";
 import { LogList } from "@/features/logging/components/LogList";
 import { LoginArea } from "@/features/auth/components/LoginArea";
-import LoginDialog from "@/components/auth/LoginDialog";
+import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { VerifiedLoginPromptDialog } from "@/components/auth/VerifiedLoginPromptDialog";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
@@ -47,7 +48,7 @@ export function LogsSection({
   hideForm = false
 }: LogsSectionProps) {
   // Logs received from parent component
-
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { mutate: createLog, isPending: isCreatingLog } = useCreateLog();
   const { shareLogAsEvent, isPublishing: isSharing } = useShareLogAsEvent();
@@ -163,7 +164,7 @@ export function LogsSection({
         <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
           {!compact && (
             <div className="lg:p-6 lg:pb-0 px-4 sm:p-4 lg:pt-6 sm:pt-2">
-              <h3 className="text-lg font-semibold text-card-foreground">Post a Log</h3>
+              <h3 className="text-lg font-semibold text-card-foreground">{t('logs.post.title')}</h3>
             </div>
           )}
           <div className={compact ? "p-4 space-y-3" : "lg:p-6 lg:pt-0 p-4 space-y-4 lg:pb-6 pb-2"}>
@@ -175,7 +176,7 @@ export function LogsSection({
             />
 
             <Textarea
-              placeholder="Share your experience..."
+              placeholder={t('logs.post.placeholder')}
               value={logText}
               onChange={(e) => setLogText(e.target.value)}
               rows={compact ? 3 : 4}
@@ -196,7 +197,7 @@ export function LogsSection({
                   className={`flex items-center gap-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${compact ? "text-xs" : ""}`}
                 >
                   <Share2 className="h-3 w-3" />
-                  Share to my feed
+                  {t('logs.post.shareToFeed')}
                 </label>
               </div>
             )}
@@ -207,7 +208,7 @@ export function LogsSection({
               size={compact ? "sm" : "default"}
               className="w-full"
             >
-              {isCreatingLog || isSharing ? "Posting..." : "Post Log"}
+              {isCreatingLog || isSharing ? t('logs.post.posting') : t('logs.post.button')}
             </Button>
 
             {postingStatus && (
@@ -224,7 +225,7 @@ export function LogsSection({
         <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
           {!compact && (
             <div className="lg:p-6 lg:pb-0 px-4 sm:p-4 lg:pt-6 sm:pt-2">
-              <h3 className="text-lg font-semibold text-card-foreground">Log Your Find</h3>
+              <h3 className="text-lg font-semibold text-card-foreground">{t('logs.logYourFind.title')}</h3>
             </div>
           )}
           <div className={compact ? "p-4 space-y-3" : "lg:p-6 lg:pt-0 p-4 space-y-4 lg:pb-6 pb-2"}>
@@ -235,25 +236,25 @@ export function LogsSection({
                   <div className="flex items-center gap-2 mb-2">
                     <ShieldCheck className="h-5 w-5 text-green-600 adventure:text-amber-700" />
                     <span className="font-semibold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200">
-                      Verified Discovery Available!
+                      {t('logs.verified.available')}
                     </span>
                   </div>
                   <p className="text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3">
-                    You have a valid verification key for this treasure. Create an account to post a verified "Found it" log with a special badge!
+                    {t('logs.verified.description')}
                   </p>
                   <Button
                     onClick={handleSignupClick}
                     className="w-full bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Create Account to Log Verified Find
+                    {t('logs.verified.createAccount')}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Found this treasure? Create an account or log in to share your experience!
+                  {t('logs.logYourFind.description')}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
@@ -262,7 +263,7 @@ export function LogsSection({
                     className="w-full"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Create Account
+                    {t('logs.logYourFind.createAccount')}
                   </Button>
                   <Button
                     onClick={handleLoginClick}
@@ -270,7 +271,7 @@ export function LogsSection({
                     className="w-full"
                   >
                     <LogIn className="h-4 w-4 mr-2" />
-                    Log In
+                    {t('logs.logYourFind.logIn')}
                   </Button>
                 </div>
               </div>
@@ -284,8 +285,8 @@ export function LogsSection({
       ) : (
         <EmptyStateCard
           icon={MessageSquare}
-          title="No logs yet"
-          description={compact ? undefined : user ? "Be the first to log this treasure!" : "Log in to share your experience!"}
+          title={t('logs.empty.title')}
+          description={compact ? undefined : user ? t('logs.empty.description') : t('logs.empty.descriptionNotLoggedIn')}
           action={!user ? <LoginArea /> : undefined}
         />
       )}

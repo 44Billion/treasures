@@ -2,6 +2,7 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import LoginDialog from './LoginDialog';
@@ -16,6 +17,7 @@ interface LoginAreaProps {
 }
 
 export function LoginArea({ compact = false }: LoginAreaProps) {
+  const { t } = useTranslation();
   const { currentUser } = useLoggedInAccounts();
   const { user } = useCurrentUser(); // Alternative user detection
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -119,7 +121,7 @@ export function LoginArea({ compact = false }: LoginAreaProps) {
           size={compact ? "sm" : "default"}
         >
           <User className='w-3 h-3 xs:w-4 xs:h-4' />
-          {!compact && <span className="text-xs xs:text-sm">Log in</span>}
+          {!compact && <span className="text-xs xs:text-sm">{t('login.button')}</span>}
         </Button>
       )}
 

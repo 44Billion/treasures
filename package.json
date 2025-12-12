@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm i && vite",
     "build": "npm i && vite build && cp dist/index.html dist/404.html",
-    "test": "npm i && tsc -p tsconfig.app.json --noEmit && eslint && vitest run && vite build",
+    "test": "npm i && tsc -p tsconfig.app.json --noEmit && eslint && npm run check-translations && vitest run && vite build",
     "deploy": "test -n \"$DROPLET_IP\" && ./deploy.sh $DROPLET_IP || echo 'Set DROPLET_IP environment variable'",
     "deploy:nostr": "npm run build && npx -y nostr-deploy-cli deploy --skip-setup",
     "deploy:debug": "test -n \"$DROPLET_IP\" && ./deploy.sh $DROPLET_IP --debug || echo 'Set DROPLET_IP environment variable'",
@@ -18,6 +18,7 @@
     "generate-icons": "node scripts/generate-icons.js",
     "process-icon": "node scripts/process-icon.js",
     "create-og-image": "node scripts/create-og-image.js",
+    "check-translations": "node scripts/check-translations.js",
     "analyze": "npm run build && npx vite-bundle-analyzer dist",
     "build:analyze": "npm i && vite build --mode analyze && cp dist/index.html dist/404.html"
   },
@@ -62,6 +63,8 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "i18next": "^25.6.3",
+    "i18next-browser-languagedetector": "^8.2.0",
     "input-otp": "^1.2.4",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
@@ -72,6 +75,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
+    "react-i18next": "^16.3.5",
     "react-leaflet": "^4.2.1",
     "react-leaflet-cluster": "^2.1.0",
     "react-markdown": "^10.1.0",

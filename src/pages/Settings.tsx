@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon } from "lucide-react";
+import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Globe } from "lucide-react";
 import { useTheme } from "@/shared/hooks/useTheme";
+import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { PageLayout } from "../components/layout";
 import { Label } from "../components/ui/label";
 
 import { RelaySelector } from "../components/RelaySelector";
+import { LanguageSelector } from "../components/LanguageSelector";
 import { WotSettings } from "../components/WotSettings";
 
 import { useRelayConfig } from "@/features/geocache/hooks/useRelayConfig";
@@ -14,6 +16,7 @@ import { useRelayConfig } from "@/features/geocache/hooks/useRelayConfig";
 export default function Settings() {
   const { setTheme, theme } = useTheme();
   const { relayUrl } = useRelayConfig();
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch for theme
@@ -29,10 +32,10 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <SettingsIcon className="h-5 w-5" />
-              Settings
+              {t('settings.title')}
             </CardTitle>
             <CardDescription>
-              Configure your app preferences and geocaching settings
+              {t('settings.description')}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -42,18 +45,18 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Appearance
+              {t('settings.appearance.title')}
             </CardTitle>
             <CardDescription>
-              Choose your preferred theme and visual style
+              {t('settings.appearance.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="theme">Theme</Label>
+                <Label htmlFor="theme">{t('settings.appearance.theme')}</Label>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Adventure theme uses warm parchment colors perfect for geocaching. System follows your device settings.
+                  {t('settings.appearance.themeDescription')}
                 </p>
                 {mounted ? (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -63,7 +66,7 @@ export default function Settings() {
                       className="flex items-center gap-2 h-10 px-4"
                     >
                       <Sun className="h-4 w-4" />
-                      <span className="text-sm">Light</span>
+                      <span className="text-sm">{t('settings.appearance.light')}</span>
                     </Button>
                     <Button
                       variant={theme === "dark" ? "default" : "outline"}
@@ -71,7 +74,7 @@ export default function Settings() {
                       className="flex items-center gap-2 h-10 px-4"
                     >
                       <Moon className="h-4 w-4" />
-                      <span className="text-sm">Dark</span>
+                      <span className="text-sm">{t('settings.appearance.dark')}</span>
                     </Button>
                     <Button
                       variant={theme === "adventure" ? "default" : "outline"}
@@ -79,7 +82,7 @@ export default function Settings() {
                       className="flex items-center gap-2 h-10 px-4"
                     >
                       <Compass className="h-4 w-4" />
-                      <span className="text-sm">Adventure</span>
+                      <span className="text-sm">{t('settings.appearance.adventure')}</span>
                     </Button>
                     <Button
                       variant={theme === "system" ? "default" : "outline"}
@@ -87,16 +90,16 @@ export default function Settings() {
                       className="flex items-center gap-2 h-10 px-4"
                     >
                       <Monitor className="h-4 w-4" />
-                      <span className="text-sm">System</span>
+                      <span className="text-sm">{t('settings.appearance.system')}</span>
                     </Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { icon: Sun, label: "Light" },
-                      { icon: Moon, label: "Dark" },
-                      { icon: Compass, label: "Adventure" },
-                      { icon: Monitor, label: "System" }
+                      { icon: Sun, label: t('settings.appearance.light') },
+                      { icon: Moon, label: t('settings.appearance.dark') },
+                      { icon: Compass, label: t('settings.appearance.adventure') },
+                      { icon: Monitor, label: t('settings.appearance.system') }
                     ].map(({ icon: Icon, label }) => (
                       <Button
                         key={label}
@@ -115,23 +118,46 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Language Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              {t('settings.language.title')}
+            </CardTitle>
+            <CardDescription>
+              {t('settings.language.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label>{t('settings.language.label')}</Label>
+                <div className="mt-2">
+                  <LanguageSelector className="w-full" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Relay Configuration */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wifi className="h-5 w-5" />
-              Relay Configuration
+              {t('settings.relay.title')}
             </CardTitle>
             <CardDescription>
-              Select the Nostr relay for geocaching data. Used for reading and publishing geocaches and logs.
+              {t('settings.relay.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Label>Current Relay</Label>
+              <Label>{t('settings.relay.currentRelay')}</Label>
               <RelaySelector className="w-full" />
               <div className="text-sm text-muted-foreground">
-                Currently using: <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{relayUrl}</code>
+                {t('settings.relay.currentlyUsing')}: <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{relayUrl}</code>
               </div>
             </div>
           </CardContent>

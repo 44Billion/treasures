@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ interface TreasureMapWelcomeModalProps {
 }
 
 export function TreasureMapWelcomeModal({ onClose }: TreasureMapWelcomeModalProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [hasSeenModal, setHasSeenModal] = useState(false);
 
@@ -39,9 +41,9 @@ export function TreasureMapWelcomeModal({ onClose }: TreasureMapWelcomeModalProp
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl p-0 overflow-hidden border-4 border-amber-700 bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 dark:from-amber-950 dark:via-yellow-950 dark:to-amber-900">
         <VisuallyHidden>
-          <DialogTitle>Treasure Map Discovery</DialogTitle>
+          <DialogTitle>{t('treasureMapWelcome.title')}</DialogTitle>
           <DialogDescription>
-            You have discovered a treasure map for the Texas Renaissance Festival. Begin your adventure to find hidden geocaches.
+            {t('treasureMapWelcome.description')}
           </DialogDescription>
         </VisuallyHidden>
 
@@ -73,10 +75,10 @@ export function TreasureMapWelcomeModal({ onClose }: TreasureMapWelcomeModalProp
 
           {/* Title */}
           <h2 className="text-4xl md:text-5xl font-bold mb-3 font-serif tracking-wide">
-            You Found a Treasure Map!
+            {t('treasureMapWelcome.heading')}
           </h2>
           <p className="text-xl text-amber-200 font-serif italic">
-            A mystical discovery awaits...
+            {t('treasureMapWelcome.subheading')}
           </p>
         </div>
 
@@ -85,11 +87,16 @@ export function TreasureMapWelcomeModal({ onClose }: TreasureMapWelcomeModalProp
           {/* Welcome message */}
           <div className="text-center space-y-4">
             <p className="text-lg text-foreground/90 leading-relaxed font-serif">
-              Brave adventurer, ye have stumbled upon a <span className="font-bold text-amber-800 dark:text-amber-400">legendary treasure map</span> of the{" "}
-              <span className="font-bold">Texas Renaissance Festival</span> grounds!
+              {t('treasureMapWelcome.message1.prefix')}{' '}
+              <span className="font-bold text-amber-800 dark:text-amber-400">{t('treasureMapWelcome.message1.legendary')}</span>
+              {' '}{t('treasureMapWelcome.message1.middle')}{' '}
+              <span className="font-bold">{t('treasureMapWelcome.message1.festival')}</span>
+              {' '}{t('treasureMapWelcome.message1.suffix')}
             </p>
             <p className="text-base text-muted-foreground leading-relaxed">
-              Hidden throughout the festival grounds lie <span className="font-semibold text-amber-700 dark:text-amber-400">secret geocaches</span> waiting to be discovered. Each treasure marks a spot of wonder, mystery, and adventure.
+              {t('treasureMapWelcome.message2.prefix')}{' '}
+              <span className="font-semibold text-amber-700 dark:text-amber-400">{t('treasureMapWelcome.message2.secret')}</span>
+              {' '}{t('treasureMapWelcome.message2.suffix')}
             </p>
           </div>
 
@@ -101,7 +108,7 @@ export function TreasureMapWelcomeModal({ onClose }: TreasureMapWelcomeModalProp
               className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:via-amber-800 hover:to-amber-900 text-white font-bold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all border-2 border-amber-900"
             >
               <Sparkles className="mr-2 h-5 w-5" />
-              Begin the Adventure
+              {t('treasureMapWelcome.button')}
             </Button>
           </div>
         </div>

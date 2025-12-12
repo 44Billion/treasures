@@ -2,6 +2,7 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Shield, Upload, AlertTriangle, Sparkles, Crown, Gem, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ interface LoginDialogProps {
 }
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onSignup }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [isFileLoading, setIsFileLoading] = useState(false);
   const [nsec, setNsec] = useState('');
@@ -39,7 +41,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     
     try {
       if (!('nostr' in window)) {
-        throw new Error('Nostr extension not found. Please install a NIP-07 extension.');
+        throw new Error(t('login.extension.notFound'));
       }
       await login.extension();
       onLogin();
@@ -47,7 +49,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 
-        extension: error instanceof Error ? error.message : 'Extension login failed' 
+        extension: error instanceof Error ? error.message : t('login.extension.failed')
       }));
     } finally {
       setIsLoading(false);
@@ -56,12 +58,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
 
   const handleKeyLogin = () => {
     if (!nsec.trim()) {
-      setErrors(prev => ({ ...prev, nsec: 'Please enter your secret key' }));
+      setErrors(prev => ({ ...prev, nsec: t('login.key.enterKey') }));
       return;
     }
     
     if (!validateNsec(nsec)) {
-      setErrors(prev => ({ ...prev, nsec: 'Invalid secret key format. Must be a valid nsec starting with nsec1.' }));
+      setErrors(prev => ({ ...prev, nsec: t('login.key.invalidFormat') }));
       return;
     }
 
@@ -77,7 +79,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 
-        nsec: 'Failed to login with this key. Please check that it\'s correct.' 
+        nsec: t('login.key.failed')
       }));
     } finally {
       setIsLoading(false);
@@ -86,12 +88,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
 
   const handleBunkerLogin = async () => {
     if (!bunkerUri.trim()) {
-      setErrors(prev => ({ ...prev, bunker: 'Please enter a bunker URI' }));
+      setErrors(prev => ({ ...prev, bunker: t('login.bunker.enterUri') }));
       return;
     }
     
     if (!validateBunkerUri(bunkerUri)) {
-      setErrors(prev => ({ ...prev, bunker: 'Invalid bunker URI format. Must start with bunker://' }));
+      setErrors(prev => ({ ...prev, bunker: t('login.bunker.invalidFormat') }));
       return;
     }
 
@@ -107,7 +109,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 
-        bunker: 'Failed to connect to bunker. Please check the URI.' 
+        bunker: t('login.bunker.failed')
       }));
     } finally {
       setIsLoading(false);
@@ -129,15 +131,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
         if (validateNsec(trimmedContent)) {
           setNsec(trimmedContent);
         } else {
-          setErrors(prev => ({ ...prev, file: 'File does not contain a valid secret key.' }));
+          setErrors(prev => ({ ...prev, file: t('login.key.fileInvalid') }));
         }
       } else {
-        setErrors(prev => ({ ...prev, file: 'Could not read file content.' }));
+        setErrors(prev => ({ ...prev, file: t('login.key.fileReadError') }));
       }
       setIsFileLoading(false);
     };
     reader.onerror = () => {
-      setErrors(prev => ({ ...prev, file: 'Failed to read file.' }));
+      setErrors(prev => ({ ...prev, file: t('login.key.fileFailed') }));
       setIsFileLoading(false);
     };
     reader.readAsText(file);
@@ -155,8 +157,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       isOpen={isOpen} 
       onOpenChange={onClose}
       size="auth"
-      title={<span className='font-semibold text-center'>Welcome, Traveler!</span>}
-      description="Start your quest, or login to return to your adventure"
+      title={<span className='font-semibold text-center'>{t('login.title')}</span>}
+      description={t('login.description')}
       headerClassName='px-6 pt-6 pb-1 relative'
       contentClassName='flex flex-col max-h-[90vh]'
     >
@@ -174,17 +176,17 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
             <div className='flex justify-center items-center gap-2 mb-2'>
               <Crown className='w-5 h-5 text-green-600 adventure:text-amber-700' />
               <span className='font-semibold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200'>
-                <span className='adventure:hidden'>New to Geocaching?</span>
-                <span className='hidden adventure:inline'>New to the Quest?</span>
+                <span className='adventure:hidden'>{t('login.newToGeocaching')}</span>
+                <span className='hidden adventure:inline'>{t('login.newToQuest')}</span>
               </span>
             </div>
             
             <p className='text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3'>
               <span className='adventure:hidden'>
-                Join the guild of adventurers discovering hidden geocaches worldwide!
+                {t('login.joinGuild')}
               </span>
               <span className='hidden adventure:inline'>
-                Join the ancient guild of geocache seekers on legendary quests!
+                {t('login.joinGuildAdventure')}
               </span>
             </p>
             
@@ -193,8 +195,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               className='w-full rounded-full py-3 text-base font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg border-0'
             >
               <Sparkles className='w-4 h-4 mr-2' />
-              <span className='adventure:hidden'>Start Your Adventure!</span>
-              <span className='hidden adventure:inline'>Begin Your Quest!</span>
+              <span className='adventure:hidden'>{t('login.startAdventure')}</span>
+              <span className='hidden adventure:inline'>{t('login.beginQuest')}</span>
             </Button>
           </div>
         </div>
@@ -206,7 +208,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
           </div>
           <div className='relative flex justify-center text-sm'>
             <span className='px-3 bg-background text-muted-foreground'>
-              <span>Or return to your adventure</span>
+              <span>{t('login.orReturn')}</span>
             </span>
           </div>
         </div>
@@ -223,7 +225,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               <div className='text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800'>
                 <Shield className='w-12 h-12 mx-auto mb-3 text-primary' />
                 <p className='text-sm text-gray-600 dark:text-gray-300 mb-4'>
-                  Login with one click using the browser extension
+                  {t('login.extension.title')}
                 </p>
                 <div className="flex justify-center">
                   <Button
@@ -231,7 +233,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     onClick={handleExtensionLogin}
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Logging in...' : 'Login with Extension'}
+                    {isLoading ? t('login.extension.loggingIn') : t('login.extension.button')}
                   </Button>
                 </div>
               </div>
@@ -241,7 +243,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               <div className='space-y-4'>
                 <div className='space-y-2'>
                   <label htmlFor='nsec' className='text-sm font-medium'>
-                    Secret Key (nsec)
+                    {t('login.key.label')}
                   </label>
                   <Input
                     id='nsec'
@@ -254,7 +256,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     className={`rounded-lg ${
                       errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''
                     }`}
-                    placeholder='nsec1...'
+                    placeholder={t('login.key.placeholder')}
                     autoComplete="off"
                   />
                   {errors.nsec && (
@@ -267,7 +269,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   onClick={handleKeyLogin}
                   disabled={isLoading || !nsec.trim()}
                 >
-                  {isLoading ? 'Verifying...' : 'Log In'}
+                  {isLoading ? t('login.key.verifying') : t('login.key.logIn')}
                 </Button>
 
                 <div className='relative'>
@@ -276,7 +278,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   </div>
                   <div className='relative flex justify-center text-xs'>
                     <span className='px-2 bg-background text-muted-foreground'>
-                      or
+                      {t('login.key.or')}
                     </span>
                   </div>
                 </div>
@@ -296,7 +298,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     disabled={isLoading || isFileLoading}
                   >
                     <Upload className='w-4 h-4 mr-2' />
-                    {isFileLoading ? 'Reading File...' : 'Upload Your Key File'}
+                    {isFileLoading ? t('login.key.readingFile') : t('login.key.upload')}
                   </Button>
                   {errors.file && (
                     <p className="text-sm text-red-500 mt-2">{errors.file}</p>
@@ -308,7 +310,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
             <TabsContent value='bunker' className='space-y-3 bg-muted'>
               <div className='space-y-2'>
                 <label htmlFor='bunkerUri' className='text-sm font-medium text-gray-700 dark:text-gray-400'>
-                  Bunker URI
+                  {t('login.bunker.label')}
                 </label>
                 <Input
                   id='bunkerUri'
@@ -320,7 +322,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   className={`rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary ${
                     errors.bunker ? 'border-red-500' : ''
                   }`}
-                  placeholder='bunker://'
+                  placeholder={t('login.bunker.placeholder')}
                   autoComplete="off"
                 />
                 {errors.bunker && (
@@ -334,7 +336,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   onClick={handleBunkerLogin}
                   disabled={isLoading || !bunkerUri.trim()}
                 >
-                  {isLoading ? 'Connecting...' : 'Login with Bunker'}
+                  {isLoading ? t('login.bunker.connecting') : t('login.bunker.button')}
                 </Button>
               </div>
             </TabsContent>

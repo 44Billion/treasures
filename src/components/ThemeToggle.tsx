@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Moon, Sun, Sword, Monitor } from "lucide-react"
 import { useTheme } from "@/shared/hooks/useTheme"
 import { useEffect, useState } from "react"
@@ -16,6 +17,7 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
+  const { t } = useTranslation();
   const { setTheme, theme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
@@ -35,11 +37,11 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
   // Get theme display name
   const getThemeDisplayName = () => {
     switch (theme) {
-      case 'light': return 'Light';
-      case 'dark': return 'Dark';
-      case 'adventure': return 'Adventure';
-      case 'system': return 'System';
-      default: return 'System';
+      case 'light': return t('theme.light');
+      case 'dark': return t('theme.dark');
+      case 'adventure': return t('theme.adventure');
+      case 'system': return t('theme.system');
+      default: return t('theme.system');
     }
   };
 
@@ -58,7 +60,7 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
         {variant === 'mobile-sheet' ? (
           <>
             <Monitor className="h-4 w-4" />
-            System
+            {t('theme.system')}
           </>
         ) : variant === 'compact-icon' ? (
           <Monitor className="h-3 w-3" />
@@ -94,19 +96,19 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
     <>
       <DropdownMenuItem onClick={() => setTheme("light")}>
         <Sun className="mr-2 h-4 w-4" />
-        Light
+        {t('theme.light')}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => setTheme("dark")}>
         <Moon className="mr-2 h-4 w-4" />
-        Dark
+        {t('theme.dark')}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => setTheme("adventure")}>
         <Sword className="mr-2 h-4 w-4" />
-        Adventure
+        {t('theme.adventure')}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => setTheme("system")}>
         <Monitor className="mr-2 h-4 w-4" />
-        System
+        {t('theme.system')}
       </DropdownMenuItem>
     </>
   );
@@ -144,7 +146,7 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
               // Ensure proper contrast in light mode - stronger borders and text
               "border-border text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground bg-transparent"
             )}
-            title={`Theme: ${getThemeDisplayName()}`}
+            title={`${t('theme.toggle')}: ${getThemeDisplayName()}`}
           >
             {mounted ? (
               <>
@@ -193,7 +195,7 @@ export function ThemeToggle({ variant = 'default' }: ThemeToggleProps) {
             "absolute h-[1.2rem] w-[1.2rem] transition-all",
             resolvedTheme === 'adventure' ? "rotate-0 scale-100" : "rotate-90 scale-0"
           )} />
-          <span className="sr-only">Toggle theme</span>
+          <span className="sr-only">{t('theme.toggle')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent {...dropdownMenuProps}>

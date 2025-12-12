@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComparisonFilter, type ComparisonOperator } from "@/components/ui/comparison-filter";
-import { DIFFICULTY_TERRAIN_OPTIONS, CACHE_TYPE_OPTIONS } from "@/features/geocache/utils/geocache-constants";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +44,24 @@ export function FilterButton({
   className,
   compact = false,
 }: FilterButtonProps) {
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Create translated difficulty/terrain options that update when language changes
+  const difficultyTerrainOptions = useMemo(() => [
+    { value: "1", label: `1 - ${t('geocache.difficulty.easy')}` },
+    { value: "2", label: `2 - ${t('geocache.difficulty.moderate')}` },
+    { value: "3", label: `3 - ${t('geocache.difficulty.hard')}` },
+    { value: "4", label: `4 - ${t('geocache.difficulty.veryHard')}` },
+    { value: "5", label: `5 - ${t('geocache.difficulty.expert')}` },
+  ], [t, i18n.language]);
+
+  // Create translated cache type options that update when language changes
+  const cacheTypeOptions = useMemo(() => [
+    { value: "traditional", label: t('geocache.type.traditional') },
+    { value: "multi", label: t('geocache.type.multi') },
+    { value: "mystery", label: t('geocache.type.mystery') },
+  ], [t, i18n.language]);
 
   // Helper functions for consistent value handling
   const createValueChangeHandler = (setter: (value: number | undefined) => void) => 
@@ -85,7 +102,7 @@ export function FilterButton({
           )}
         >
           <Filter className={cn("h-4 w-4", !compact && "mr-2")} />
-          {!compact && "Filters"}
+          {!compact && t('filters.button')}
           {activeFilterCount > 0 && (
             <Badge 
               variant="secondary" 
@@ -99,7 +116,7 @@ export function FilterButton({
       <PopoverContent className="w-80" align="start">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium">Filters</h4>
+            <h4 className="font-medium">{t('filters.title')}</h4>
             {activeFilterCount > 0 && (
               <Button
                 variant="ghost"
@@ -108,7 +125,7 @@ export function FilterButton({
                 className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3 w-3 mr-1" />
-                Clear all
+                {t('filters.clearAll')}
               </Button>
             )}
           </div>
@@ -116,28 +133,28 @@ export function FilterButton({
           <div className="space-y-4">
             {/* Difficulty Filter */}
             <ComparisonFilter
-              label="Difficulty"
+              label={t('filters.difficulty')}
               value={getValueForDisplay(difficulty)}
               onValueChange={createValueChangeHandler(onDifficultyChange)}
               operator={difficultyOperator}
               onOperatorChange={onDifficultyOperatorChange}
-              options={DIFFICULTY_TERRAIN_OPTIONS}
+              options={difficultyTerrainOptions}
             />
 
             {/* Terrain Filter */}
             <ComparisonFilter
-              label="Terrain"
+              label={t('filters.terrain')}
               value={getValueForDisplay(terrain)}
               onValueChange={createValueChangeHandler(onTerrainChange)}
               operator={terrainOperator}
               onOperatorChange={onTerrainOperatorChange}
-              options={DIFFICULTY_TERRAIN_OPTIONS}
+              options={difficultyTerrainOptions}
             />
 
             {/* Cache Type Filter */}
             <div className="space-y-1">
               <Label className="text-sm font-medium text-foreground">
-                Cache Type
+                {t('filters.cacheType')}
               </Label>
               <Select 
                 value={cacheType || "all"} 
@@ -146,15 +163,15 @@ export function FilterButton({
                 <SelectTrigger className="h-9">
                   <SelectValue>
                     {cacheType === undefined || cacheType === "all" ? (
-                      "All Types"
+                      t('filters.allTypes')
                     ) : (
-                      CACHE_TYPE_OPTIONS.find(opt => opt.value === cacheType)?.label || cacheType
+                      cacheTypeOptions.find(opt => opt.value === cacheType)?.label || cacheType
                     )}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {CACHE_TYPE_OPTIONS.map((option) => (
+                  <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
+                  {cacheTypeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
