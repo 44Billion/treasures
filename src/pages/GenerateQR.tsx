@@ -109,6 +109,10 @@ export default function GenerateQR() {
       // Detect if this is a grid (sheet) type
       const isGrid = qrType === 'sheet';
 
+      // Detect mobile for adjusted margins
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const gridMargin = isMobile ? '0.4in' : '0.25in';
+
       // Write proper HTML with print styles for mobile compatibility
       iframeDoc.write(`
         <!DOCTYPE html>
@@ -118,7 +122,7 @@ export default function GenerateQR() {
           <style>
             @page {
               size: ${isGrid ? 'letter portrait' : 'auto'};
-              margin: ${isGrid ? '0.25in' : '0.5cm'};
+              margin: ${isGrid ? gridMargin : '0.5cm'};
             }
             * {
               margin: 0;
@@ -136,11 +140,12 @@ export default function GenerateQR() {
             img {
               max-width: 100%;
               max-height: ${isGrid ? '100%' : '100vh'};
-              width: ${isGrid ? '100%' : 'auto'};
+              width: ${isGrid ? (isMobile ? '95%' : '100%') : 'auto'};
               height: auto;
               display: block;
-              object-fit: ${isGrid ? 'fill' : 'contain'};
+              object-fit: contain;
               page-break-inside: avoid;
+              margin: 0 auto;
             }
             @media print {
               html, body {
@@ -151,10 +156,11 @@ export default function GenerateQR() {
               img {
                 max-width: 100% !important;
                 max-height: ${isGrid ? '100%' : '100vh'} !important;
-                width: ${isGrid ? '100%' : 'auto'} !important;
+                width: ${isGrid ? (isMobile ? '95%' : '100%') : 'auto'} !important;
                 height: auto !important;
-                object-fit: ${isGrid ? 'fill' : 'contain'} !important;
+                object-fit: contain !important;
                 page-break-inside: avoid !important;
+                margin: 0 auto !important;
               }
             }
           </style>

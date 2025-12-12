@@ -643,13 +643,14 @@ export function downloadQRCode(dataUrl: string, filename: string = 'geocache-ver
  */
 export async function generateQRGridImage(sheetData: {name: string, naddr: string, keyPair: VerificationKeyPair}[]): Promise<string> {
   // Use lower DPI for mobile devices to prevent print overflow
-  // Desktop can handle 300 DPI, but mobile needs 150 DPI or lower
+  // Mobile needs significantly lower DPI (120) to fit within print preview
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const dpi = isMobile ? 150 : 300;
+  const dpi = isMobile ? 120 : 300;
 
   const paperWidth = 8.5 * dpi;
   const paperHeight = 11 * dpi;
-  const margin = 0.5 * dpi;
+  // Increase margins on mobile for better fit
+  const margin = isMobile ? 0.7 * dpi : 0.5 * dpi;
 
   const canvas = document.createElement('canvas');
   canvas.width = paperWidth;
