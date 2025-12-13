@@ -726,6 +726,27 @@ export default function CacheDetail() {
                         </Button>
                       </div>
                     )}
+
+                    {/* Save/Cancel buttons at bottom (desktop only, mobile has sticky footer) */}
+                    <div className="hidden lg:flex gap-2 pt-4 border-t">
+                      <Button
+                        onClick={handleSaveEdit}
+                        disabled={isEditingGeocache}
+                        className="flex-1"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        {isEditingGeocache ? t('cacheDetail.edit.saving') : t('cacheDetail.edit.save')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        disabled={isEditingGeocache}
+                        className="flex-1"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        {t('cacheDetail.edit.cancel')}
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   // View mode
