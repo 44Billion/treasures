@@ -63,26 +63,6 @@ export function autocorrectCoordinates(lat: number, lng: number): { lat: number;
     corrected = true;
   }
 
-  // Common correction: North America positive longitude
-  // Only flip if longitude is in the range that would make sense for North America (60-130)
-  // This avoids incorrectly flipping Asian coordinates (100-180)
-  if (newLat > 20 && newLat < 50 && newLng > 60 && newLng < 100) {
-    newLng = -newLng;
-    corrected = true;
-  }
-
-  // Common correction: Asian coordinates with negative longitude
-  // If latitude suggests Asia and longitude is negative but would make sense as positive
-  // Asia is roughly lat 0-50, lng 60-180 (Eastern hemisphere)
-  if (newLat > 0 && newLat < 50 && newLng < 0 && newLng > -180) {
-    const potentialAsianLng = -newLng; // Flip to positive
-    // Check if this would place it in Asia (60-180)
-    if (potentialAsianLng > 60 && potentialAsianLng < 180) {
-      newLng = potentialAsianLng;
-      corrected = true;
-    }
-  }
-
   return { lat: newLat, lng: newLng, corrected };
 }
 
