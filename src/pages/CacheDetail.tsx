@@ -567,7 +567,7 @@ export default function CacheDetail() {
               className="flex-1"
             >
               <Save className="h-4 w-4 mr-2" />
-              {isEditingGeocache ? t('cacheDetail.edit.saving') : t('cacheDetail.edit.save')}
+              {isEditingGeocache ? t('common.loading') : t('common.save')}
             </Button>
             <Button
               variant="outline"
@@ -576,7 +576,7 @@ export default function CacheDetail() {
               className="flex-1"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              {t('cacheDetail.edit.cancel')}
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -735,7 +735,7 @@ export default function CacheDetail() {
                         className="flex-1"
                       >
                         <Save className="h-4 w-4 mr-2" />
-                        {isEditingGeocache ? t('cacheDetail.edit.saving') : t('cacheDetail.edit.save')}
+                        {isEditingGeocache ? t('common.loading') : t('common.save')}
                       </Button>
                       <Button
                         variant="outline"
@@ -744,7 +744,7 @@ export default function CacheDetail() {
                         className="flex-1"
                       >
                         <RotateCcw className="h-4 w-4 mr-2" />
-                        {t('cacheDetail.edit.cancel')}
+                        {t('common.cancel')}
                       </Button>
                     </div>
                   </div>
