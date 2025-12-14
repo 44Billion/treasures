@@ -393,7 +393,7 @@ export default function Home() {
           <div className="absolute top-[20%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg] origin-center"></div>
 
           {/* Second stripe - slanting down-left behind Community */}
-          <div className="absolute top-[45%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg] origin-center"></div>
+          <div className="absolute top-[44%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg] origin-center"></div>
 
           {/* Third stripe - slanting down-right behind Global */}
           <div className="absolute top-[68%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg] origin-center"></div>
