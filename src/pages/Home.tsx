@@ -130,7 +130,7 @@ export default function Home() {
         {/* Modern background elements (default and dark themes) */}
         <div className="absolute inset-0 pointer-events-none">
           <div
-            className="absolute inset-0 bg-center bg-no-repeat opacity-30 dark:opacity-20 adventure:opacity-25 adventure:sepia"
+            className="absolute inset-0 bg-center bg-no-repeat opacity-30 dark:opacity-20 mix-blend-multiply dark:mix-blend-normal adventure:opacity-25 adventure:sepia adventure:mix-blend-multiply"
             style={{
               backgroundImage: 'url(/hero-background.webp)',
               backgroundSize: '120%',
