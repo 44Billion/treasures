@@ -389,7 +389,9 @@ export default function Home() {
       </section>
 
       {/* Features - Why Treasures? */}
-      <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 bg-gradient-to-b from-muted/20 to-transparent overflow-hidden">
+      <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 overflow-hidden">
+        {/* Smooth gradient fade from hero section */}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/15 via-muted/10 via-muted/5 via-muted/2 to-transparent pointer-events-none"></div>
         {/* Arc path lines connecting features - treasure map style - Desktop */}
         <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
           <div className="relative w-full max-w-3xl h-full">
