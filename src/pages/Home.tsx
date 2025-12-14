@@ -393,14 +393,14 @@ export default function Home() {
         {/* Z-shaped ribbon stripes - three diagonal bands */}
         <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
           <div className="relative w-full max-w-2xl h-full">
-            {/* First stripe - right side taller (rotate down from left to right) */}
-            <div className="absolute top-[20%] -left-[10%] w-[120%] h-48 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[6deg]"></div>
+            {/* First stripe - slanting down-right behind Decentralized */}
+            <div className="absolute top-[20%] -left-[10%] w-[120%] h-48 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg]"></div>
 
-            {/* Second stripe - left side taller (rotate down from right to left) */}
-            <div className="absolute top-[44%] -left-[10%] w-[120%] h-48 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[6deg]"></div>
+            {/* Second stripe - slanting down-left behind Community */}
+            <div className="absolute top-[44%] -left-[10%] w-[120%] h-48 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg]"></div>
 
-            {/* Third stripe - right side taller (rotate down from left to right) */}
-            <div className="absolute top-[68%] -left-[10%] w-[120%] h-48 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[6deg]"></div>
+            {/* Third stripe - slanting down-right behind Global */}
+            <div className="absolute top-[68%] -left-[10%] w-[120%] h-48 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg]"></div>
           </div>
         </div>
 
