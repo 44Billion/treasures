@@ -124,9 +124,9 @@ export default function Home() {
         }}></div>
 
         {/* Full-width top depth shadow with better fade - adventure mode only */}
-        <div className="absolute top-0 left-0 right-0 h-16 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
-        {/* Full-width bottom depth shadow with better fade - adventure mode only */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 left-0 right-0 h-32 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/15 adventure:via-black/10 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
+        {/* Full-width bottom depth shadow with better fade - adventure mode only - taller and smoother */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 md:h-64 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/15 adventure:via-black/10 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
         {/* Modern background elements (default and dark themes) */}
         <div className="absolute inset-0 flex justify-center adventure:hidden">
           <div className="relative w-full max-w-screen-2xl h-full">
