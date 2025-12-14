@@ -390,8 +390,8 @@ export default function Home() {
 
       {/* Features - Why Treasures? */}
       <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 bg-gradient-to-b from-muted/20 to-background overflow-hidden">
-        {/* Arc path lines connecting features - treasure map style */}
-        <div className="absolute inset-0 pointer-events-none flex justify-center">
+        {/* Arc path lines connecting features - treasure map style - Desktop */}
+        <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
           <div className="relative w-full max-w-3xl h-full">
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {/* Arc from Decentralized (left) to Community (right) */}
@@ -423,6 +423,43 @@ export default function Home() {
               <circle cx="25" cy="25" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
               <circle cx="75" cy="47" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
               <circle cx="25" cy="73" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Arc path lines connecting features - treasure map style - Mobile */}
+        <div className="absolute inset-0 pointer-events-none flex md:hidden justify-center">
+          <div className="relative w-full max-w-3xl h-full">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* Arc from Decentralized (left) to Community (right) - lower on mobile */}
+              <path
+                d="M 25,28 Q 50,38 75,50"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                fill="none"
+                strokeDasharray="3,2"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
+              />
+
+              {/* Arc from Community (right) to Global (left) - lower on mobile */}
+              <path
+                d="M 75,55 Q 50,65 25,75"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                fill="none"
+                strokeDasharray="3,2"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
+              />
+
+              {/* Decorative waypoint dots at feature positions */}
+              <circle cx="25" cy="28" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-amber-600/70" />
+              <circle cx="75" cy="50" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-yellow-600/70" />
+              <circle cx="25" cy="75" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-orange-600/70" />
+
+              {/* Subtle glow effect on waypoints */}
+              <circle cx="25" cy="28" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
+              <circle cx="75" cy="50" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
+              <circle cx="25" cy="75" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
             </svg>
           </div>
         </div>
