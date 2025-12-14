@@ -58,7 +58,7 @@
       /* Minimal loading styles to prevent FOUC */
       #root {
         min-height: 100vh;
-        background-color: #ffffff;
+        background-color: #f9fafb;
       }
 
       /* Dark mode support */
@@ -69,22 +69,52 @@
         }
       }
 
-      /* Loading spinner for initial load */
+      /* Loading spinner for initial load - Compass style */
       .initial-loading {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         min-height: 100vh;
         font-family: system-ui, -apple-system, sans-serif;
+        gap: 1rem;
       }
 
-      .loading-spinner {
-        width: 32px;
-        height: 32px;
-        border: 3px solid #e2e8f0;
-        border-top: 3px solid #10b981;
-        border-radius: 50%;
+      .compass-spinner {
+        width: 48px;
+        height: 48px;
+        color: #10b981;
         animation: spin 1s linear infinite;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .compass-spinner {
+          color: #10b981;
+        }
+      }
+
+      .loading-text {
+        color: #1f2937;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .loading-text {
+          color: #f9fafb;
+        }
+      }
+
+      .loading-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .loading-description {
+          color: #9ca3af;
+        }
       }
 
       @keyframes spin {
@@ -99,7 +129,18 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Initial loading state with compass -->
+      <div class="initial-loading">
+        <!-- Compass SVG icon -->
+        <svg class="compass-spinner" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+        </svg>
+        <p class="loading-text">Loading Treasures...</p>
+        <p class="loading-description">Preparing your adventure</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
