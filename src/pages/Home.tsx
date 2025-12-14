@@ -396,7 +396,7 @@ export default function Home() {
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {/* Arc from Decentralized (left) to Community (right) */}
               <path
-                d="M 20,25 Q 50,35 80,47"
+                d="M 25,25 Q 50,35 75,47"
                 stroke="currentColor"
                 strokeWidth="0.5"
                 fill="none"
@@ -406,7 +406,7 @@ export default function Home() {
 
               {/* Arc from Community (right) to Global (left) */}
               <path
-                d="M 80,52 Q 50,62 20,73"
+                d="M 75,52 Q 50,62 25,73"
                 stroke="currentColor"
                 strokeWidth="0.5"
                 fill="none"
@@ -415,14 +415,14 @@ export default function Home() {
               />
 
               {/* Decorative waypoint dots at feature positions */}
-              <circle cx="20" cy="25" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-amber-600/70" />
-              <circle cx="80" cy="47" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-yellow-600/70" />
-              <circle cx="20" cy="73" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-orange-600/70" />
+              <circle cx="25" cy="25" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-amber-600/70" />
+              <circle cx="75" cy="47" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-yellow-600/70" />
+              <circle cx="25" cy="73" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-orange-600/70" />
 
               {/* Subtle glow effect on waypoints */}
-              <circle cx="20" cy="25" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
-              <circle cx="80" cy="47" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
-              <circle cx="20" cy="73" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
+              <circle cx="25" cy="25" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
+              <circle cx="75" cy="47" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
+              <circle cx="25" cy="73" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
             </svg>
           </div>
         </div>
