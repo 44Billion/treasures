@@ -558,8 +558,19 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="py-6 xs:py-12 md:py-16 px-3 xs:px-4 bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto">
+      <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden">
+        {/* Forest skyline background - anchored to bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-[600px] md:h-[800px] pointer-events-none">
+          <img
+            src="/forest-skyline.webp"
+            alt=""
+            className="absolute bottom-0 left-0 w-full h-full object-cover object-bottom"
+          />
+          {/* Gradient fade at top */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/50 to-transparent" />
+        </div>
+
+        <div className="container mx-auto relative z-10">
           {/* Section Header */}
           <div className="text-center mb-8 md:mb-12">
             <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-foreground mb-3">
@@ -653,15 +664,6 @@ export default function Home() {
           )}
         </div>
       </section>
-
-      {/* Wind Waker Forest Adventure - Anchored to bottom */}
-      <div className="relative w-full h-[400px] md:h-[600px] overflow-hidden">
-        <img
-          src="/forest-adventure.webp"
-          alt="Wind Waker style forest adventure"
-          className="absolute bottom-0 left-0 w-full h-full object-cover object-bottom"
-        />
-      </div>
 
       {/* Login and Signup Dialogs */}
       <LoginDialog
