@@ -413,16 +413,6 @@ export default function Home() {
                 strokeDasharray="3,2"
                 className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
               />
-
-              {/* Decorative waypoint dots at feature positions */}
-              <circle cx="25" cy="25" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-amber-600/70" />
-              <circle cx="75" cy="47" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-yellow-600/70" />
-              <circle cx="25" cy="73" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-orange-600/70" />
-
-              {/* Subtle glow effect on waypoints */}
-              <circle cx="25" cy="25" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
-              <circle cx="75" cy="47" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
-              <circle cx="25" cy="73" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
             </svg>
           </div>
         </div>
@@ -450,16 +440,6 @@ export default function Home() {
                 strokeDasharray="3,2"
                 className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
               />
-
-              {/* Decorative waypoint dots at feature positions */}
-              <circle cx="25" cy="32" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-amber-600/70" />
-              <circle cx="75" cy="52" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-yellow-600/70" />
-              <circle cx="25" cy="72" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-orange-600/70" />
-
-              {/* Subtle glow effect on waypoints */}
-              <circle cx="25" cy="32" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
-              <circle cx="75" cy="52" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
-              <circle cx="25" cy="72" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
             </svg>
           </div>
         </div>
@@ -504,13 +484,10 @@ export default function Home() {
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-green-600 dark:text-green-400 adventure:text-stone-700" />
-                  <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                    <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
-                    <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
-                  </h4>
-                </div>
+                <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+                  <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
+                </h4>
                 <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
                   <span className="adventure:hidden">{t("home.features.decentralized.description")}</span>
                   <span className="hidden adventure:inline">{t("home.features.decentralized.descriptionAdventure")}</span>
@@ -530,13 +507,10 @@ export default function Home() {
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-green-600 dark:text-green-400 adventure:text-stone-700" />
-                  <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                    <span className="adventure:hidden">{t("home.features.community.title")}</span>
-                    <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
-                  </h4>
-                </div>
+                <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+                  <span className="adventure:hidden">{t("home.features.community.title")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
+                </h4>
                 <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
                   <span className="adventure:hidden">{t("home.features.community.description")}</span>
                   <span className="hidden adventure:inline">{t("home.features.community.descriptionAdventure")}</span>
@@ -556,13 +530,10 @@ export default function Home() {
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-green-600 dark:text-green-400 adventure:text-stone-700" />
-                  <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                    <span className="adventure:hidden">{t("home.features.global.title")}</span>
-                    <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
-                  </h4>
-                </div>
+                <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+                  <span className="adventure:hidden">{t("home.features.global.title")}</span>
+                  <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
+                </h4>
                 <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
                   <span className="adventure:hidden">{t("home.features.global.description")}</span>
                   <span className="hidden adventure:inline">{t("home.features.global.descriptionAdventure")}</span>
