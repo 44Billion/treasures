@@ -128,12 +128,12 @@ export default function Home() {
         {/* Full-width bottom depth shadow with better fade - adventure mode only - taller and smoother */}
         <div className="absolute bottom-0 left-0 right-0 h-48 md:h-64 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/15 adventure:via-black/10 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
         {/* Modern background elements (default and dark themes) */}
-        <div className="absolute inset-0 adventure:hidden pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none">
           <div
-            className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-40 dark:opacity-30"
+            className="absolute inset-0 bg-center bg-no-repeat opacity-30 dark:opacity-20 adventure:opacity-25 adventure:sepia"
             style={{
               backgroundImage: 'url(/hero-background.webp)',
-              backgroundSize: 'cover',
+              backgroundSize: '120%',
               backgroundPosition: 'center'
             }}
           />
