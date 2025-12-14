@@ -21,10 +21,10 @@ interface SearchResult {
   display_name?: string;
 }
 
-export function LocationSearch({ 
-  onLocationSelect, 
-  placeholder = "Search by city, zip code, or coordinates...", 
-  mobilePlaceholder 
+export function LocationSearch({
+  onLocationSelect,
+  placeholder = "Search by city, zip code, or coordinates...",
+  mobilePlaceholder
 }: LocationSearchProps) {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -77,22 +77,16 @@ export function LocationSearch({
       const match = cleaned.match(pattern);
       if (match) {
         let lat: number, lng: number;
-        
+
         if (pattern === patterns[0] || pattern === patterns[3]) {
           // Simple decimal format
           lat = parseFloat(match[1] || '0');
           lng = parseFloat(match[2] || '0');
-          
+
           // Auto-detect if coordinates are swapped
           // If "latitude" is > 90 or < -90, they're probably swapped
           if (Math.abs(lat) > 90 && Math.abs(lng) <= 90) {
             [lat, lng] = [lng, lat];
-          }
-          
-          // Common mistake: positive longitude for western hemisphere
-          // If user enters US coordinates with positive longitude, fix it
-          if (lat > 20 && lat < 50 && lng > 0 && lng < 130) {
-            lng = -lng;
           }
         } else if (pattern === patterns[1]) {
           // N/S E/W format
@@ -104,33 +98,33 @@ export function LocationSearch({
           const latMin = parseInt(match[2] || '0');
           const latSec = parseFloat(match[3] || '0');
           const latDir = match[4]?.toUpperCase() === 'S' ? -1 : 1;
-          
+
           const lngDeg = parseInt(match[5] || '0');
           const lngMin = parseInt(match[6] || '0');
           const lngSec = parseFloat(match[7] || '0');
           const lngDir = match[8]?.toUpperCase() === 'W' ? -1 : 1;
-          
+
           lat = (latDeg + latMin / 60 + latSec / 3600) * latDir;
           lng = (lngDeg + lngMin / 60 + lngSec / 3600) * lngDir;
         } else {
           continue;
         }
-        
+
         // Validate and autocorrect coordinates
         if (!isNaN(lat) && !isNaN(lng)) {
           // Clamp latitude to valid range
           if (lat > 90) lat = 90;
           if (lat < -90) lat = -90;
-          
+
           // Wrap longitude to valid range
           while (lng > 180) lng -= 360;
           while (lng < -180) lng += 360;
-          
+
           return { lat, lng };
         }
       }
     }
-    
+
     return null;
   };
 
@@ -161,14 +155,14 @@ export function LocationSearch({
     if (abortController.current) {
       abortController.current.abort();
     }
-    
+
     // Create new abort controller
     abortController.current = new AbortController();
-    
+
     // Use Nominatim API directly
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` + 
+        `https://nominatim.openstreetmap.org/search?` +
         new URLSearchParams({
           q: searchQuery,
           format: 'json',
@@ -188,7 +182,7 @@ export function LocationSearch({
       }
 
       const data = await response.json();
-      
+
       const searchResults: SearchResult[] = data.map((item: unknown) => {
         const obj = item as Record<string, unknown>;
         return {
@@ -200,7 +194,7 @@ export function LocationSearch({
           type: (obj.type as string) || (obj.class as string) || 'place'
         };
       });
-      
+
       setResults(searchResults);
       setIsSearching(false);
     } catch (error: unknown) {
@@ -230,12 +224,12 @@ export function LocationSearch({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      
+
       // Clear timeout to prevent double search
       if (searchTimeout.current) {
         clearTimeout(searchTimeout.current);
       }
-      
+
       // If we have results, select the first one
       if (results.length > 0 && !isSearching) {
         const firstResult = results[0];
