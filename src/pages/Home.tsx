@@ -562,16 +562,22 @@ export default function Home() {
       {/* Recent Caches */}
       <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden bg-transparent">
         {/* Forest skyline background - anchored to bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-[600px] md:h-[800px] pointer-events-none opacity-30">
+        <div className="absolute inset-x-0 bottom-0 h-[600px] md:h-[800px] pointer-events-none">
           <img
             src="/forest-skyline.webp"
             alt=""
             className="absolute bottom-0 left-0 w-full h-full object-cover object-bottom adventure:sepia"
           />
-          {/* Multi-step gradient fade for smoother transition */}
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 via-background/85 via-background/70 via-background/50 via-background/30 via-background/15 to-transparent" />
-          {/* Subtle white overlay for more subtlety */}
-          <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" />
+          {/* Multi-step gradient fade for smoother transition - masks the image to transparent at top */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent/5 via-transparent/15 via-transparent/30 via-transparent/50 via-transparent/70 via-transparent/85 to-transparent" style={{
+            maskImage: 'linear-gradient(to bottom, transparent 0%, transparent 5%, black 20%, black 80%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, transparent 5%, black 20%, black 80%, transparent 100%)'
+          }} />
+          {/* Subtle overlay for tone adjustment */}
+          <div className="absolute inset-0 bg-white/25 dark:bg-white/10 adventure:bg-amber-50/15" style={{
+            maskImage: 'linear-gradient(to bottom, transparent 0%, transparent 5%, black 20%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, transparent 5%, black 20%, black 100%)'
+          }} />
         </div>
 
         <div className="container mx-auto relative z-10">
