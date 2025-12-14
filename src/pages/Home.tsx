@@ -417,7 +417,7 @@ export default function Home() {
           </div>
 
           {/* Zig-zag layout */}
-          <div className="space-y-12 md:space-y-16">
+          <div className="space-y-20 md:space-y-28">
             {/* Decentralized - Image Left */}
             <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
               <div className="w-full md:w-5/12 flex justify-center">
