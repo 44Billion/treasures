@@ -154,49 +154,43 @@ export default function Home() {
                 {/* Top latitude line */}
                 <path
                   d="M 10,25 Q 50,22 90,25"
-                  stroke="currentColor"
+                  stroke="rgb(74 222 128 / 0.7)"
                   strokeWidth="0.4"
                   fill="none"
-                  className="text-green-400/70"
                 />
                 {/* Middle latitude line */}
                 <path
                   d="M 5,50 Q 50,48 95,50"
-                  stroke="currentColor"
+                  stroke="rgb(34 197 94 / 0.8)"
                   strokeWidth="0.5"
                   fill="none"
-                  className="text-green-500/80"
                 />
                 {/* Bottom latitude line */}
                 <path
                   d="M 10,75 Q 50,78 90,75"
-                  stroke="currentColor"
+                  stroke="rgb(74 222 128 / 0.7)"
                   strokeWidth="0.4"
                   fill="none"
-                  className="text-green-400/70"
                 />
 
                 {/* Vertical longitude lines - curved to show globe curvature */}
                 <path
                   d="M 25,10 Q 22,50 25,90"
-                  stroke="currentColor"
+                  stroke="rgb(134 239 172 / 0.6)"
                   strokeWidth="0.3"
                   fill="none"
-                  className="text-green-300/60"
                 />
                 <path
                   d="M 50,5 Q 48,50 50,95"
-                  stroke="currentColor"
+                  stroke="rgb(74 222 128 / 0.7)"
                   strokeWidth="0.3"
                   fill="none"
-                  className="text-green-400/70"
                 />
                 <path
                   d="M 75,10 Q 78,50 75,90"
-                  stroke="currentColor"
+                  stroke="rgb(134 239 172 / 0.6)"
                   strokeWidth="0.3"
                   fill="none"
-                  className="text-green-300/60"
                 />
               </svg>
             </div>
