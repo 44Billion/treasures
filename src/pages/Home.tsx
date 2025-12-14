@@ -390,13 +390,13 @@ export default function Home() {
         {/* Z-shaped ribbon stripes - three diagonal bands */}
         <div className="absolute inset-0 pointer-events-none hidden md:block overflow-visible">
           {/* First stripe - slanting down-right behind Decentralized */}
-          <div className="absolute top-[20%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-6 origin-center"></div>
+          <div className="absolute top-[20%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg] origin-center"></div>
 
           {/* Second stripe - slanting down-left behind Community */}
-          <div className="absolute top-[46%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-6 origin-center"></div>
+          <div className="absolute top-[46%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg] origin-center"></div>
 
           {/* Third stripe - slanting down-right behind Global */}
-          <div className="absolute top-[68%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-6 origin-center"></div>
+          <div className="absolute top-[68%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg] origin-center"></div>
         </div>
 
         <div className="container mx-auto max-w-5xl relative z-10">
