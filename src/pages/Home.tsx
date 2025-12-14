@@ -385,65 +385,139 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-8 xs:py-14 md:py-16 px-3 xs:px-4 bg-background border-t">
-        <div className="container mx-auto">
-          <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-center mb-8 md:mb-12 text-foreground">
-            <span className="adventure:hidden">{t("home.features.title")}</span>
-            <span className="hidden adventure:inline">{t("home.features.titleAdventure")}</span>
-          </h3>
-          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
-            <FeatureCard
-              icon={Shield}
-              title={
-                <span>
-                  <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
-                </span>
-              }
-              description={
-                <span>
+      {/* Features - Why Treasures? */}
+      <section className="relative py-16 xs:py-20 md:py-24 px-3 xs:px-4 overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50/80 via-emerald-100/60 to-teal-50/80 dark:from-slate-900 dark:via-green-950/40 dark:to-emerald-950/40 adventure:from-amber-50 adventure:via-yellow-100/50 adventure:to-orange-50"></div>
+
+        {/* Decorative pattern overlay */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-10 left-1/4 w-64 h-64 bg-green-300/20 dark:bg-green-500/10 adventure:bg-amber-300/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-emerald-300/20 dark:bg-emerald-500/10 adventure:bg-yellow-300/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container mx-auto relative z-10">
+          {/* Section header */}
+          <div className="text-center mb-12 md:mb-16">
+            <h3 className="text-3xl md:text-4xl adventure:text-4xl adventure:md:text-5xl font-bold text-foreground mb-4 animate-fade-in">
+              <span className="adventure:hidden">{t("home.features.title")}</span>
+              <span className="hidden adventure:inline">{t("home.features.titleAdventure")}</span>
+            </h3>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover what makes Treasures.to the ultimate geocaching platform
+            </p>
+          </div>
+
+          {/* Feature cards grid */}
+          <div className="grid gap-8 md:grid-cols-3 md:gap-10 max-w-6xl mx-auto">
+            {/* Decentralized Feature */}
+            <div className="group relative bg-white/90 dark:bg-slate-800/90 adventure:bg-amber-50/95 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-green-100 dark:border-green-900/30 adventure:border-amber-200 overflow-hidden animate-slide-up">
+              {/* Decorative corner accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-400/20 to-transparent dark:from-green-500/20 adventure:from-amber-400/20 rounded-bl-full"></div>
+
+              {/* Image container */}
+              <div className="relative mb-6 flex justify-center">
+                <div className="w-32 h-32 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 adventure:from-amber-100 adventure:to-yellow-100 rounded-2xl p-4 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                  <img
+                    src="/feature-decentralized.webp"
+                    alt="Decentralized"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Shield className="w-5 h-5 text-green-600 dark:text-green-400 adventure:text-stone-700" />
+                  <h4 className="text-xl font-bold text-foreground">
+                    <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
+                    <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
+                  </h4>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
                   <span className="adventure:hidden">{t("home.features.decentralized.description")}</span>
                   <span className="hidden adventure:inline">{t("home.features.decentralized.descriptionAdventure")}</span>
-                </span>
-              }
-              iconColor="text-green-600 adventure:text-stone-700"
-              centered={true}
-            />
-            <FeatureCard
-              icon={Users}
-              title={
-                <span>
-                  <span className="adventure:hidden">{t("home.features.community.title")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
-                </span>
-              }
-              description={
-                <span>
+                </p>
+              </div>
+            </div>
+
+            {/* Community Feature */}
+            <div className="group relative bg-white/90 dark:bg-slate-800/90 adventure:bg-amber-50/95 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-green-100 dark:border-green-900/30 adventure:border-amber-200 overflow-hidden animate-slide-up-delay">
+              {/* Decorative corner accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-transparent dark:from-emerald-500/20 adventure:from-yellow-400/20 rounded-bl-full"></div>
+
+              {/* Image container */}
+              <div className="relative mb-6 flex justify-center">
+                <div className="w-32 h-32 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 adventure:from-yellow-100 adventure:to-amber-100 rounded-2xl p-4 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                  <img
+                    src="/feature-community.webp"
+                    alt="Community"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-green-600 dark:text-green-400 adventure:text-stone-700" />
+                  <h4 className="text-xl font-bold text-foreground">
+                    <span className="adventure:hidden">{t("home.features.community.title")}</span>
+                    <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
+                  </h4>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
                   <span className="adventure:hidden">{t("home.features.community.description")}</span>
                   <span className="hidden adventure:inline">{t("home.features.community.descriptionAdventure")}</span>
-                </span>
-              }
-              iconColor="text-green-600 adventure:text-stone-700"
-              centered={true}
-            />
-            <FeatureCard
-              icon={Globe}
-              title={
-                <span>
-                  <span className="adventure:hidden">{t("home.features.global.title")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
-                </span>
-              }
-              description={
-                <span>
+                </p>
+              </div>
+            </div>
+
+            {/* Global Feature */}
+            <div className="group relative bg-white/90 dark:bg-slate-800/90 adventure:bg-amber-50/95 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-green-100 dark:border-green-900/30 adventure:border-amber-200 overflow-hidden animate-slide-up-delay-2">
+              {/* Decorative corner accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-teal-400/20 to-transparent dark:from-teal-500/20 adventure:from-orange-400/20 rounded-bl-full"></div>
+
+              {/* Image container */}
+              <div className="relative mb-6 flex justify-center">
+                <div className="w-32 h-32 bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/50 dark:to-cyan-900/50 adventure:from-orange-100 adventure:to-amber-100 rounded-2xl p-4 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                  <img
+                    src="/feature-global.webp"
+                    alt="Global Adventure"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Globe className="w-5 h-5 text-green-600 dark:text-green-400 adventure:text-stone-700" />
+                  <h4 className="text-xl font-bold text-foreground">
+                    <span className="adventure:hidden">{t("home.features.global.title")}</span>
+                    <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
+                  </h4>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
                   <span className="adventure:hidden">{t("home.features.global.description")}</span>
                   <span className="hidden adventure:inline">{t("home.features.global.descriptionAdventure")}</span>
-                </span>
-              }
-              iconColor="text-green-600 adventure:text-stone-700"
-              centered={true}
-            />
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to action */}
+          <div className="text-center mt-12 md:mt-16">
+            <Link to="/map">
+              <Button
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 adventure:bg-stone-700 adventure:hover:bg-stone-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+              >
+                <Compass className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                Start Your Adventure Today
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
