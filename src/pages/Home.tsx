@@ -468,8 +468,8 @@ export default function Home() {
               </div>
               <div className="w-full md:w-7/12 text-center md:text-left space-y-3">
                 <div className="flex items-center justify-center md:justify-start gap-2">
-                  <Shield className="w-5 h-5 text-green-600 dark:text-green-400 adventure:text-stone-700" />
-                  <h4 className="text-xl md:text-2xl font-bold text-foreground">
+                  <Shield className="w-6 h-6 md:w-7 md:h-7 text-green-600 dark:text-green-400 adventure:text-stone-700" />
+                  <h4 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
                     <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
                     <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
                   </h4>
@@ -494,8 +494,8 @@ export default function Home() {
               </div>
               <div className="w-full md:w-7/12 text-center md:text-left space-y-3">
                 <div className="flex items-center justify-center md:justify-start gap-2">
-                  <Users className="w-5 h-5 text-green-600 dark:text-green-400 adventure:text-stone-700" />
-                  <h4 className="text-xl md:text-2xl font-bold text-foreground">
+                  <Users className="w-6 h-6 md:w-7 md:h-7 text-green-600 dark:text-green-400 adventure:text-stone-700" />
+                  <h4 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
                     <span className="adventure:hidden">{t("home.features.community.title")}</span>
                     <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
                   </h4>
@@ -520,8 +520,8 @@ export default function Home() {
               </div>
               <div className="w-full md:w-7/12 text-center md:text-left space-y-3">
                 <div className="flex items-center justify-center md:justify-start gap-2">
-                  <Globe className="w-5 h-5 text-green-600 dark:text-green-400 adventure:text-stone-700" />
-                  <h4 className="text-xl md:text-2xl font-bold text-foreground">
+                  <Globe className="w-6 h-6 md:w-7 md:h-7 text-green-600 dark:text-green-400 adventure:text-stone-700" />
+                  <h4 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
                     <span className="adventure:hidden">{t("home.features.global.title")}</span>
                     <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
                   </h4>
