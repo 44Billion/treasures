@@ -390,6 +390,43 @@ export default function Home() {
 
       {/* Features - Why Treasures? */}
       <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 bg-gradient-to-b from-background to-muted/20 overflow-hidden">
+        {/* Arc path lines connecting features - treasure map style */}
+        <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
+          <div className="relative w-full max-w-3xl h-full">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* Arc from Decentralized (left) to Community (right) */}
+              <path
+                d="M 20,25 Q 50,35 80,47"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                fill="none"
+                strokeDasharray="3,2"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
+              />
+
+              {/* Arc from Community (right) to Global (left) */}
+              <path
+                d="M 80,52 Q 50,62 20,73"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                fill="none"
+                strokeDasharray="3,2"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
+              />
+
+              {/* Decorative waypoint dots at feature positions */}
+              <circle cx="20" cy="25" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-amber-600/70" />
+              <circle cx="80" cy="47" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-yellow-600/70" />
+              <circle cx="20" cy="73" r="1.2" className="fill-green-600/60 dark:fill-green-400/50 adventure:fill-orange-600/70" />
+
+              {/* Subtle glow effect on waypoints */}
+              <circle cx="20" cy="25" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-amber-600/25" />
+              <circle cx="80" cy="47" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-yellow-600/25" />
+              <circle cx="20" cy="73" r="2.5" className="fill-green-600/20 dark:fill-green-400/15 adventure:fill-orange-600/25" />
+            </svg>
+          </div>
+        </div>
+
         {/* Z-shaped ribbon stripes - three diagonal bands */}
         <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
           <div className="relative w-full max-w-2xl h-full">
