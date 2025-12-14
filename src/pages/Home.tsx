@@ -388,18 +388,20 @@ export default function Home() {
       {/* Features - Why Treasures? */}
       <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 bg-gradient-to-b from-background to-muted/20 overflow-hidden">
         {/* Z-shaped ribbon stripes - three diagonal bands */}
-        <div className="absolute inset-0 pointer-events-none hidden md:block overflow-visible">
-          {/* First stripe - slanting down-right behind Decentralized */}
-          <div className="absolute top-[20%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg] origin-center"></div>
+        <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
+          <div className="relative w-full max-w-3xl h-full">
+            {/* First stripe - slanting down-right behind Decentralized */}
+            <div className="absolute top-[20%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg]"></div>
 
-          {/* Second stripe - slanting down-left behind Community */}
-          <div className="absolute top-[44%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg] origin-center"></div>
+            {/* Second stripe - slanting down-left behind Community */}
+            <div className="absolute top-[44%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg]"></div>
 
-          {/* Third stripe - slanting down-right behind Global */}
-          <div className="absolute top-[68%] w-[150%] -left-[25%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg] origin-center"></div>
+            {/* Third stripe - slanting down-right behind Global */}
+            <div className="absolute top-[68%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg]"></div>
+          </div>
         </div>
 
-        <div className="container mx-auto max-w-5xl relative z-10">
+        <div className="container mx-auto max-w-3xl relative z-10">
           {/* Section header */}
           <div className="text-center mb-10 md:mb-14">
             <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-foreground mb-3">
