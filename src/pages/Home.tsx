@@ -115,16 +115,181 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative min-h-[calc(100vh-8rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
-        {/* Hero map background */}
-        <div className="absolute inset-0 pointer-events-none opacity-40">
-          <img
-            src="/hero-map-bg.webp"
-            alt=""
-            className="w-full h-full object-cover adventure:sepia"
-          />
+        {/* Parchment background for adventure mode only - behind everything */}
+        <div className="absolute inset-0 hidden adventure:block" style={{
+          backgroundImage: 'url(/parchment-300.jpg)',
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px 300px',
+          opacity: 0.4
+        }}></div>
+
+        {/* Full-width top depth shadow with better fade - adventure mode only */}
+        <div className="absolute top-0 left-0 right-0 h-16 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
+        {/* Full-width bottom depth shadow with better fade - adventure mode only */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/12 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
+        {/* Modern background elements (default and dark themes) */}
+        <div className="absolute inset-0 flex justify-center adventure:hidden">
+          <div className="relative w-full max-w-screen-2xl h-full">
+            {/* Map markers - replacing dots */}
+            <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
+              <MapPin className="w-6 h-6 text-green-500 dark:text-emerald-400 opacity-70 drop-shadow-sm" />
+            </div>
+            <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '1s'}}>
+              <MapPin className="w-5 h-5 text-green-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
+            </div>
+            <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '2s'}}>
+              <MapPin className="w-6 h-6 text-emerald-500 dark:text-emerald-400 opacity-60 drop-shadow-sm" />
+            </div>
+            <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '0.5s'}}>
+              <MapPin className="w-4 h-4 text-green-700 dark:text-emerald-500 opacity-55 drop-shadow-sm" />
+            </div>
+            <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '1.5s'}}>
+              <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
+            </div>
+          </div>
         </div>
 
-        <div className="container mx-auto text-center relative flex-1 flex flex-col justify-center md:block z-10">
+        {/* Globe-style curved grid lines - separate from pulsing elements */}
+        <div className="absolute inset-0 flex justify-center adventure:hidden pointer-events-none">
+          <div className="relative w-full max-w-screen-2xl h-full">
+            <div className="absolute inset-0 pointer-events-none opacity-60">
+              {/* Horizontal latitude lines - curved to appear like globe */}
+              <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Top latitude line */}
+                <path
+                  d="M 10,25 Q 50,22 90,25"
+                  stroke="rgb(74 222 128 / 0.7)"
+                  strokeWidth="0.4"
+                  fill="none"
+                />
+                {/* Middle latitude line */}
+                <path
+                  d="M 5,50 Q 50,48 95,50"
+                  stroke="rgb(34 197 94 / 0.8)"
+                  strokeWidth="0.5"
+                  fill="none"
+                />
+                {/* Bottom latitude line */}
+                <path
+                  d="M 10,75 Q 50,78 90,75"
+                  stroke="rgb(74 222 128 / 0.7)"
+                  strokeWidth="0.4"
+                  fill="none"
+                />
+
+                {/* Vertical longitude lines - curved to show globe curvature */}
+                <path
+                  d="M 25,10 Q 22,50 25,90"
+                  stroke="rgb(134 239 172 / 0.6)"
+                  strokeWidth="0.3"
+                  fill="none"
+                />
+                <path
+                  d="M 50,5 Q 48,50 50,95"
+                  stroke="rgb(74 222 128 / 0.7)"
+                  strokeWidth="0.3"
+                  fill="none"
+                />
+                <path
+                  d="M 75,10 Q 78,50 75,90"
+                  stroke="rgb(134 239 172 / 0.6)"
+                  strokeWidth="0.3"
+                  fill="none"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Subtle background texture - properly themed - empty placeholder */}
+        <div className="absolute inset-0 flex justify-center adventure:hidden pointer-events-none">
+          <div className="relative w-full max-w-screen-2xl h-full">
+            {/* Subtle background texture */}
+          </div>
+        </div>
+
+        {/* Adventure theme background - quest-style treasure map elements */}
+        <div className="absolute inset-0 hidden adventure:flex justify-center">
+          <div className="relative w-full max-w-screen-2xl h-full" style={{ opacity: 0.4 }}>
+            {/* Vintage compass roses - with darker parchment colors */}
+            <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
+              <Compass className="w-8 h-8 text-stone-700/80 opacity-85 drop-shadow-sm transform rotate-12" />
+            </div>
+            <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '2s'}}>
+              <Compass className="w-6 h-6 text-stone-800/70 opacity-80 drop-shadow-sm transform -rotate-45" />
+            </div>
+            <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '1s'}}>
+              <Compass className="w-7 h-7 text-stone-700/80 opacity-75 drop-shadow-sm transform rotate-90" />
+            </div>
+            <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '1.5s'}}>
+              <Compass className="w-5 h-5 text-stone-800/70 opacity-70 drop-shadow-sm transform -rotate-12" />
+            </div>
+            <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '0.5s'}}>
+              <Compass className="w-6 h-6 text-stone-800/80 opacity-80 drop-shadow-sm transform rotate-180" />
+            </div>
+
+            {/* Vintage map elements - hand-drawn treasure paths */}
+            <div className="absolute inset-0 pointer-events-none">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Meandering treasure paths - irregular, hand-drawn style */}
+                <path
+                  d="M 15,20 Q 25,18 35,22 T 55,25 Q 65,28 75,24 T 90,28"
+                  stroke="currentColor"
+                  strokeWidth="0.4"
+                  fill="none"
+                  strokeDasharray="2,1"
+                  className="text-stone-600/60"
+                />
+                <path
+                  d="M 10,45 Q 20,42 30,48 T 50,52 Q 60,55 70,50 T 85,53"
+                  stroke="currentColor"
+                  strokeWidth="0.3"
+                  fill="none"
+                  strokeDasharray="1.5,0.5"
+                  className="text-stone-700/50"
+                />
+                <path
+                  d="M 20,70 Q 30,68 40,72 T 60,75 Q 70,78 80,74"
+                  stroke="currentColor"
+                  strokeWidth="0.4"
+                  fill="none"
+                  strokeDasharray="2,1"
+                  className="text-stone-600/55"
+                />
+
+                {/* Vertical treasure routes - winding paths */}
+                <path
+                  d="M 25,15 Q 22,25 28,35 T 25,55 Q 22,65 28,75 T 25,85"
+                  stroke="currentColor"
+                  strokeWidth="0.3"
+                  fill="none"
+                  strokeDasharray="1,0.5"
+                  className="text-stone-800/45"
+                />
+                <path
+                  d="M 50,10 Q 48,20 52,30 T 50,50 Q 48,60 52,70 T 50,90"
+                  stroke="currentColor"
+                  strokeWidth="0.4"
+                  fill="none"
+                  strokeDasharray="1.5,1"
+                  className="text-stone-700/55"
+                />
+                <path
+                  d="M 75,12 Q 78,22 72,32 T 75,52 Q 78,62 72,72 T 75,88"
+                  stroke="currentColor"
+                  strokeWidth="0.3"
+                  fill="none"
+                  strokeDasharray="1,0.5"
+                  className="text-stone-800/45"
+                />
+              </svg>
+            </div>
+
+
+          </div>
+        </div>
+
+        <div className="container mx-auto text-center relative flex-1 flex flex-col justify-center md:block">
           <div className="mb-6 animate-fade-in">
             <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-green-900 adventure:bg-[#4682B4] text-green-700 dark:text-green-300 adventure:text-white px-4 py-1.5 rounded-full text-base adventure:text-[16px] font-medium hover:bg-green-200 dark:hover:bg-green-800 adventure:hover:bg-stone-700 transition-colors">
               <div className="flex items-center gap-2">
