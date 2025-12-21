@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
 import { useZapStore } from '@/shared/stores/useZapStore';
-import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, BookmarkX, Zap } from 'lucide-react';
+import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, BookmarkX, Zap, MapPin } from 'lucide-react';
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SaveButton } from '@/shared/components/common/SaveButton';
 import { CacheMenu } from '@/components/CacheMenu';
+import { BlurredImage } from '@/components/BlurredImage';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
 import { useGeocacheNavigation } from '@/features/geocache/hooks/useGeocacheNavigation';
 import { formatDistanceToNow } from '@/shared/utils/date';
@@ -16,6 +17,7 @@ import { CacheIcon } from '@/features/geocache/utils/cacheIcons';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useTheme } from "@/shared/hooks/useTheme";
 import { getSizeLabel } from '@/features/geocache/utils/geocache-utils';
+import { reverseGeocode } from '@/features/map/utils/reverseGeocode';
 import type { Geocache } from '@/types/geocache';
 import {
   Tooltip,
@@ -43,6 +45,9 @@ interface BaseGeocacheCardProps {
     type: string;
     relays?: string[];
     hidden?: boolean;
+    images?: string[];
+    contentWarning?: string;
+    city?: string;
   };
   distance?: number;
   variant?: 'compact' | 'default' | 'detailed' | 'featured';
@@ -140,6 +145,22 @@ export function GeocacheCard({
     console.warn('Avatar failed to load for:', authorName);
   }, [authorName]);
 
+  // Fetch city name from coordinates if not already cached
+  const [cityName, setCityName] = useState<string>(cache.city || '');
+  useEffect(() => {
+    if (!cache.city && cache.location) {
+      reverseGeocode(cache.location.lat, cache.location.lng)
+        .then(location => {
+          if (location) {
+            setCityName(location);
+          }
+        })
+        .catch(() => {
+          // Silently fail - city is optional
+        });
+    }
+  }, [cache.city, cache.location]);
+
   // Use stats that are now included in the geocache data from useGeocaches
   const stats = {
     foundCount: cache.foundCount || 0,
@@ -183,8 +204,17 @@ export function GeocacheCard({
   );
 
   const renderCreatedTime = () => 'created_at' in cache && cache.created_at && (
-    <div className="text-xs sm:text-sm text-muted-foreground/80 mb-3">
-      {formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}
+    <div className="text-xs sm:text-sm text-muted-foreground/80 mb-3 flex items-center gap-2">
+      {cityName && (
+        <>
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {cityName}
+          </span>
+          <span className="text-muted-foreground/50">•</span>
+        </>
+      )}
+      <span>{formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}</span>
     </div>
   );
 
@@ -291,27 +321,61 @@ export function GeocacheCard({
   );
 
   // Shared standard layout for default, detailed, and featured variants
-  const renderStandardLayout = (buttonSize: string, showMetadata = false) => (
-    <InteractiveCard
-      onClick={() => handleNavigate()}
-      className="group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col"
-    >
-      <CardContent className="p-3 sm:p-4 flex-1 flex flex-col">
-        <div className="flex items-start gap-3 sm:gap-4 h-full">
-          {/* Icon with hidden indicator */}
-          <div className="relative shrink-0">
-            <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
-              <CacheIcon type={cache.type} size="sm" className="sm:w-5 sm:h-5" theme={theme} />
-            </div>
-            {isHiddenByCreator && (
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                <EyeOff className="h-3 w-3 text-white" />
+  const renderStandardLayout = (buttonSize: string, showMetadata = false) => {
+    // Get preview image (first image if available)
+    const previewImage = cache.images && cache.images.length > 0 ? cache.images[0] : undefined;
+    const hasSpoiler = !!cache.contentWarning;
+
+    return (
+      <InteractiveCard
+        onClick={() => handleNavigate()}
+        className="group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col overflow-hidden"
+      >
+        <CardContent className="p-0 flex-1 flex flex-col">
+          <div className="flex items-stretch h-full relative">
+            {/* Preview image as full left side background with gradient */}
+            {previewImage && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="relative w-full h-full">
+                  {hasSpoiler ? (
+                    <BlurredImage
+                      src={previewImage}
+                      alt={cache.name}
+                      className="w-full h-full"
+                      blurIntensity="heavy"
+                      showToggle={true}
+                      defaultBlurred={true}
+                    />
+                  ) : (
+                    <img
+                      src={previewImage}
+                      alt={cache.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                  {/* Gradient overlay - fade to transparent to the right */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-card/60 to-card"></div>
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0 flex flex-col h-full">
+            {/* Icon with hidden indicator - overlaid on image */}
+            <div className="relative shrink-0 z-10 p-3 sm:p-4">
+              <div className="relative">
+                <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ${isAdventureTheme ? '' : 'rounded-full bg-muted/80 backdrop-blur-sm'} ${previewImage ? 'shadow-lg' : ''}`}>
+                  <CacheIcon type={cache.type} size="sm" className="sm:w-5 sm:h-5" theme={theme} />
+                </div>
+                {isHiddenByCreator && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+                    <EyeOff className="h-3 w-3 text-white" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
               <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
@@ -357,19 +421,45 @@ export function GeocacheCard({
         </div>
       </CardContent>
     </InteractiveCard>
-  );
+    );
+  };
 
   // Compact variant - minimal layout for sidebars
   if (variant === 'compact') {
+    const previewImage = cache.images && cache.images.length > 0 ? cache.images[0] : undefined;
+    const hasSpoiler = !!cache.contentWarning;
+
     return (
       <InteractiveCard onClick={() => handleNavigate()} compact={true} className="group hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-3">
           <div className="flex flex-col h-full">
             <div className="flex items-start gap-3">
               <div className="relative shrink-0">
-                <div className={`flex items-center justify-center w-8 h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
-                  <CacheIcon type={cache.type} size="sm" theme={theme} />
-                </div>
+                {previewImage ? (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden">
+                    {hasSpoiler ? (
+                      <BlurredImage
+                        src={previewImage}
+                        alt={cache.name}
+                        className="w-full h-full"
+                        blurIntensity="heavy"
+                        showToggle={true}
+                        defaultBlurred={true}
+                      />
+                    ) : (
+                      <img
+                        src={previewImage}
+                        alt={cache.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className={`flex items-center justify-center w-8 h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
+                    <CacheIcon type={cache.type} size="sm" theme={theme} />
+                  </div>
+                )}
                 {isHiddenByCreator && (
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
                     <EyeOff className="h-2 w-2 text-white" />
@@ -401,8 +491,21 @@ export function GeocacheCard({
                   </p>
                 )}
 
-                {/* Created time */}
-                {renderCreatedTime()}
+                {/* Created time and location */}
+                {'created_at' in cache && cache.created_at && (
+                  <div className="text-xs text-muted-foreground/80 mt-1 flex items-center gap-1.5">
+                    {cityName && (
+                      <>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {cityName}
+                        </span>
+                        <span className="text-muted-foreground/50">•</span>
+                      </>
+                    )}
+                    <span>{formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col items-end gap-1 shrink-0">

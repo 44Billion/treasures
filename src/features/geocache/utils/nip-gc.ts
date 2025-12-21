@@ -151,15 +151,15 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const name = event.tags.find(t => t[0] === 'name')?.[1];
     // Get the most precise geohash (longest one) for location parsing
     const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]).filter(Boolean);
-    const geohash = geohashes.length > 0 ? geohashes.reduce((longest, current) => 
+    const geohash = geohashes.length > 0 ? geohashes.reduce((longest, current) =>
       (current && current.length > (longest?.length || 0)) ? current : longest
     ) : undefined;
-    
+
     // Handle both new (37516) and legacy (37515) tag formats
     let difficulty: string | undefined;
     let terrain: string | undefined;
     let size: string | undefined;
-    
+
     if (event.kind === NIP_GC_KINDS.GEOCACHE) {
       // New format uses T, D, S tags
       difficulty = event.tags.find(t => t[0] === 'D')?.[1];
@@ -171,7 +171,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       terrain = event.tags.find(t => t[0] === 'terrain')?.[1];
       size = event.tags.find(t => t[0] === 'size')?.[1];
     }
-    
+
     // Type tag is 't' according to NIP-GC, defaults to 'traditional' if not specified
     // Look for cache type in 't' tags, excluding 'hidden'
     const cacheType = event.tags.find(t => t[0] === 't' && t[1] !== 'hidden')?.[1] || 'traditional';
@@ -206,10 +206,11 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     // Parse optional tags
     const hint = event.tags.find(t => t[0] === 'hint')?.[1];
     const images = event.tags.filter(t => t[0] === 'image').map(t => t[1] || '');
+    const contentWarning = event.tags.find(t => t[0] === 'content-warning')?.[1];
     const relays = event.tags.filter(t => t[0] === 'r').map(t => t[1] || '');
     const client = event.tags.find(t => t[0] === 'client')?.[1];
     const verificationPubkey = event.tags.find(t => t[0] === 'verification')?.[1];
-    
+
     // Check if cache is hidden (has 't' tag with 'hidden' value)
     const hidden = event.tags.some(t => t[0] === 't' && t[1] === 'hidden');
 
@@ -236,6 +237,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       size,
       type: cacheType,
       images,
+      contentWarning,
       relays,
       client,
       verificationPubkey,
@@ -252,7 +254,7 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
     if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
       return parseFoundLogEvent(event);
     }
-    
+
     // Handle Comment Log Events (Kind 1111)
     if (event.kind === NIP_GC_KINDS.COMMENT_LOG) {
       return parseCommentLogEvent(event);
@@ -267,11 +269,11 @@ export function parseLogEvent(event: NostrEvent): GeocacheLog | null {
 
 /**
  * Parse found log events (kind 7516)
- * 
+ *
  * IMPORTANT: This function does NOT validate embedded verification events.
  * It only parses the structure. Actual verification validation happens in
  * useGeocacheLogs hook using the geocache's verification pubkey.
- * 
+ *
  * This prevents false positives where malicious logs could embed fake
  * verification events and appear verified without proper signature validation.
  */
@@ -293,7 +295,7 @@ function parseFoundLogEvent(event: NostrEvent): GeocacheLog | null {
   // Parse optional tags
   const images = event.tags.filter(t => t[0] === 'image').map(t => t[1] || '');
   const verificationTag = event.tags.find(t => t[0] === 'verification')?.[1];
-  
+
   // Check if this log has embedded verification data (but don't mark as verified yet)
   // The actual verification will be done in useGeocacheLogs with the geocache's verification pubkey
   if (verificationTag) {
@@ -327,7 +329,7 @@ function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
   const ATag = event.tags.find(t => t[0] === 'A')?.[1]; // Root reference
   const kTag = event.tags.find(t => t[0] === 'k')?.[1]; // Parent kind
   const KTag = event.tags.find(t => t[0] === 'K')?.[1]; // Root kind
-  
+
   if (!aTag || !ATag || !kTag || !KTag) {
     return null;
   }
@@ -340,7 +342,7 @@ function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
 
   // Extract geocache reference from a-tag (should be same as A-tag for top-level comments)
   const [kind, pubkey, dTag] = aTag.split(':');
-  
+
   if ((kind !== NIP_GC_KINDS.GEOCACHE.toString() && kind !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) || !pubkey || !dTag) {
     return null;
   }
@@ -349,7 +351,7 @@ function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
 
   // Parse log type from 't' tag, default to 'note' if not specified
   const logType = event.tags.find(t => t[0] === 't')?.[1] || 'note';
-  
+
   // Validate comment log type
   if (!validateCommentLogType(logType) && logType !== 'note') {
     return null;
@@ -381,6 +383,7 @@ export function buildGeocacheTags(data: {
   type: ValidCacheType;
   hint?: string;
   images?: string[];
+  contentWarning?: string;
   relays?: string[];
   verificationPubkey?: string;
   hidden?: boolean;
@@ -399,7 +402,7 @@ export function buildGeocacheTags(data: {
 
   // Determine which tag format to use based on original kind
   const isLegacy = data.kind === NIP_GC_KINDS.GEOCACHE_LEGACY;
-  
+
   const tags: string[][] = [
     ['d', data.dTag],
     ['name', data.name],
@@ -419,10 +422,10 @@ export function buildGeocacheTags(data: {
   // Add multiple geohash tags at precision levels appropriate for the coordinate specificity
   // This enables efficient filtering while avoiding overly precise geohashes for imprecise coordinates
   const { lat, lng } = data.location;
-  
+
   // Determine appropriate precision levels based on coordinate specificity
   const precisionLevels = getGeohashPrecisionLevels(lat, lng);
-  
+
   // Generate geohashes at the determined precision levels
   for (const precision of precisionLevels) {
     const geohash = encodeGeohash(lat, lng, precision);
@@ -443,6 +446,11 @@ export function buildGeocacheTags(data: {
     data.images.forEach(image => {
       tags.push(['image', image]);
     });
+  }
+
+  // Add content-warning tag for spoilers (NIP-36)
+  if (data.contentWarning?.trim()) {
+    tags.push(['content-warning', data.contentWarning.trim()]);
   }
 
   if (data.relays && data.relays.length > 0) {

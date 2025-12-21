@@ -7,6 +7,7 @@ export interface GeocacheFormData {
   size: string;
   type: string;
   hidden?: boolean;
+  contentWarning?: string;
 }
 
 export interface GeocacheFormProps {

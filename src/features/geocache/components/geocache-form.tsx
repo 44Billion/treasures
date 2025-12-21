@@ -161,6 +161,35 @@ export function CacheHintField({ value, onChange, fieldId = "hint" }: CacheHintF
   );
 }
 
+interface ContentWarningFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  fieldId?: string;
+}
+
+export function ContentWarningField({ value, onChange, fieldId = "contentWarning" }: ContentWarningFieldProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="text-foreground">
+      <Label htmlFor={fieldId}>
+        Content Warning (Spoiler)
+        <span className="ml-2 text-xs text-muted-foreground font-normal">
+          Optional - Blur images until revealed
+        </span>
+      </Label>
+      <Input
+        id={fieldId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="e.g., 'Spoiler', 'Contains solution', or leave blank for no warning"
+      />
+      <p className="text-xs text-muted-foreground mt-1">
+        If set, images will be blurred by default. Useful for puzzle caches or when images reveal the hiding spot.
+      </p>
+    </div>
+  );
+}
+
 // === SELECT FIELD COMPONENTS ===
 
 interface CacheSelectFieldProps {

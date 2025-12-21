@@ -32,6 +32,7 @@ import {
   CacheNameField,
   CacheDescriptionField,
   CacheHintField,
+  ContentWarningField,
   CacheDifficultyField,
   CacheTerrainField,
   CacheTypeField,
@@ -809,6 +810,11 @@ export default function CreateCache() {
                     images={images}
                     onImagesChange={setImages}
                     disabled={isPending || isVerifying}
+                  />
+
+                  <ContentWarningField
+                    value={formData.contentWarning || ""}
+                    onChange={(value) => setFormData({...formData, contentWarning: value})}
                   />
 
                   <CacheHiddenField

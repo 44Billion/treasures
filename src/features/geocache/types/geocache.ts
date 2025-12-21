@@ -17,6 +17,7 @@ export interface Geocache {
   size: "micro" | "small" | "regular" | "large" | "other";
   type: "traditional" | "multi" | "mystery";
   images?: string[];
+  contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
   foundCount?: number;
   logCount?: number;
   zapTotal?: number;
@@ -25,6 +26,7 @@ export interface Geocache {
   client?: string; // The client that created this event
   verificationPubkey?: string; // Public key for verification
   hidden?: boolean; // Whether the cache is hidden from public listings
+  city?: string; // Cached city/location name for display
   // Additional metadata from OSM verification
   accessibility?: {
     wheelchair?: boolean;
@@ -81,6 +83,7 @@ export interface CreateGeocacheData {
   size: string;
   type: string;
   images?: string[];
+  contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
   hidden?: boolean;
   dTag?: string; // Optional pre-generated dTag for matching QR codes
   verificationKeyPair?: any; // Optional pre-generated verification keypair

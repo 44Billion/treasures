@@ -135,6 +135,7 @@ export default function CacheDetail() {
     size: defaults.size,
     type: defaults.type,
     hidden: false,
+    contentWarning: "",
   });
   const [editImages, setEditImages] = useState<string[]>([]);
   const [editLocation, setEditLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -174,6 +175,7 @@ export default function CacheDetail() {
         size: geocache.size,
         type: geocache.type,
         hidden: geocache.hidden || false,
+        contentWarning: geocache.contentWarning || "",
       });
       setEditImages(geocache.images || []);
       setEditLocation(geocache.location);

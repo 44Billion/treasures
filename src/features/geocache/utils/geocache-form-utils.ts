@@ -12,19 +12,20 @@ export function createDefaultGeocacheFormData(): GeocacheFormData {
     size: defaults.size,
     type: defaults.type,
     hidden: false,
+    contentWarning: "",
   };
 }
 
 export function validateGeocacheForm(formData: GeocacheFormData): string[] {
   const errors: string[] = [];
-  
+
   if (!formData.name.trim()) {
     errors.push("Cache name is required");
   }
-  
+
   if (!formData.description.trim()) {
     errors.push("Description is required");
   }
-  
+
   return errors;
 }
