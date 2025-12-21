@@ -335,7 +335,7 @@ export function GeocacheCard({
           <div className="flex items-stretch h-full relative">
             {/* Preview image as full left side background with gradient */}
             {previewImage && (
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute left-0 top-0 bottom-0 w-1/3 sm:w-2/5 pointer-events-none">
                 <div className="relative w-full h-full">
                   {hasSpoiler ? (
                     <BlurredImage
@@ -355,7 +355,7 @@ export function GeocacheCard({
                     />
                   )}
                   {/* Gradient overlay - fade to transparent to the right */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-card/60 to-card"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-card"></div>
                 </div>
               </div>
             )}
@@ -375,7 +375,7 @@ export function GeocacheCard({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0">
+            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
               <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
