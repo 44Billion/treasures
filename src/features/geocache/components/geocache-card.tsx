@@ -377,7 +377,7 @@ export function GeocacheCard({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0 bg-card">
+            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
               <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
