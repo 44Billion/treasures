@@ -561,22 +561,21 @@ export default function Home() {
 
       {/* Recent Caches */}
       <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden bg-transparent">
-        {/* Forest skyline background - only show bottom portion (tree trunks) */}
-        <div className="absolute inset-x-0 bottom-0 h-[400px] sm:h-[450px] md:h-[500px] pointer-events-none opacity-30 overflow-hidden">
-          {/* Gentle top fade to blend with background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-transparent" style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, transparent 15%)'
-          }} />
-
-          <img
-            src="/forest-skyline.webp"
-            alt=""
-            className="absolute bottom-0 left-0 w-full min-h-full object-cover adventure:sepia"
-            style={{ objectPosition: 'center bottom' }}
-          />
-
+        {/* Forest skyline background - positioned at bottom, fades naturally into page */}
+        <div
+          className="absolute inset-x-0 bottom-0 pointer-events-none opacity-30"
+          style={{
+            height: 'clamp(400px, 50vh, 600px)',
+            background: `url(/forest-skyline.webp) center bottom / cover no-repeat`,
+            maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)'
+          }}
+        >
           {/* Subtle overlay for tone adjustment */}
           <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" />
+          <div className="absolute inset-0 adventure:sepia" style={{
+            background: `url(/forest-skyline.webp) center bottom / cover no-repeat`
+          }} />
         </div>
 
         <div className="container mx-auto relative z-10">
