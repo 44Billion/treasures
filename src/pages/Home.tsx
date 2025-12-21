@@ -561,23 +561,22 @@ export default function Home() {
 
       {/* Recent Caches */}
       <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden bg-transparent">
-        {/* Forest skyline background - anchored to bottom with fade mask */}
-        <div className="absolute inset-x-0 bottom-0 h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px] xl:h-[900px] pointer-events-none opacity-30">
-          <div className="absolute inset-0" style={{
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 5%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,0.5) 15%, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.85) 25%, black 35%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 5%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,0.5) 15%, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.85) 25%, black 35%)'
-          }}>
-            <img
-              src="/forest-skyline.webp"
-              alt=""
-              className="absolute bottom-0 left-0 w-full h-full object-cover object-bottom adventure:sepia"
-            />
-          </div>
-          {/* Subtle overlay for tone adjustment */}
-          <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" style={{
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 5%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,0.5) 15%, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.85) 25%, black 35%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 5%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,0.5) 15%, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.85) 25%, black 35%)'
+        {/* Forest skyline background - only show bottom portion (tree trunks) */}
+        <div className="absolute inset-x-0 bottom-0 h-[400px] sm:h-[450px] md:h-[500px] pointer-events-none opacity-30 overflow-hidden">
+          {/* Gentle top fade to blend with background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-transparent" style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, transparent 15%)'
           }} />
+
+          <img
+            src="/forest-skyline.webp"
+            alt=""
+            className="absolute bottom-0 left-0 w-full min-h-full object-cover adventure:sepia"
+            style={{ objectPosition: 'center bottom' }}
+          />
+
+          {/* Subtle overlay for tone adjustment */}
+          <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" />
         </div>
 
         <div className="container mx-auto relative z-10">
