@@ -244,6 +244,18 @@ export function GeocacheCard({
   const renderBadgesAndStats = (isCompact = false) => (
     <div className="flex items-center justify-between gap-2 mt-auto">
       <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-1.5 py-0.5 sm:px-2'} flex items-center gap-1 shrink-0`}>
+                <CacheIcon type={cache.type} size="xs" className="h-2.5 w-2.5" theme={theme} />
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{cache.type}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-1.5 py-0.5 sm:px-2'} shrink-0`}>
           D{cache.difficulty}
         </Badge>
@@ -333,47 +345,37 @@ export function GeocacheCard({
       >
         <CardContent className="p-0 flex-1 flex flex-col">
           <div className="flex items-stretch h-full relative">
-            {/* Preview image rectangle on left side */}
+            {/* Preview image on left side */}
             {previewImage && (
-              <div className="absolute left-0 top-0 bottom-0 pointer-events-none">
-                <div className="relative w-full h-full">
-                  {hasSpoiler ? (
-                    <BlurredImage
-                      src={previewImage}
-                      alt={cache.name}
-                      className="w-full h-full object-cover object-center"
-                      blurIntensity="heavy"
-                      showToggle={true}
-                      defaultBlurred={true}
-                    />
-                  ) : (
-                    <img
-                      src={previewImage}
-                      alt={cache.name}
-                      className="w-full h-full object-cover object-center"
-                      loading="lazy"
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Icon with hidden indicator - overlaid on image */}
-            <div className="relative shrink-0 z-10 p-3 sm:p-4">
-              <div className="relative">
-                <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ${isAdventureTheme ? '' : 'rounded-full bg-muted/80 backdrop-blur-sm'} ${previewImage ? 'shadow-lg' : ''}`}>
-                  <CacheIcon type={cache.type} size="sm" className="sm:w-5 sm:h-5" theme={theme} />
-                </div>
+              <div className="relative shrink-0 w-32 sm:w-40">
+                {hasSpoiler ? (
+                  <BlurredImage
+                    src={previewImage}
+                    alt={cache.name}
+                    className="w-full h-full object-cover object-center"
+                    blurIntensity="heavy"
+                    showToggle={true}
+                    defaultBlurred={true}
+                  />
+                ) : (
+                  <img
+                    src={previewImage}
+                    alt={cache.name}
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                  />
+                )}
+                {/* Hidden indicator overlaid on image */}
                 {isHiddenByCreator && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
                     <EyeOff className="h-3 w-3 text-white" />
                   </div>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0 bg-card">
+            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
               <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
@@ -434,12 +436,12 @@ export function GeocacheCard({
             <div className="flex items-start gap-3">
               <div className="relative shrink-0">
                 {previewImage ? (
-                  <div className="w-12 h-12 rounded-lg overflow-hidden">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden">
                     {hasSpoiler ? (
                       <BlurredImage
                         src={previewImage}
                         alt={cache.name}
-                        className="w-full h-full"
+                        className="w-full h-full object-cover"
                         blurIntensity="heavy"
                         showToggle={true}
                         defaultBlurred={true}
@@ -454,8 +456,8 @@ export function GeocacheCard({
                     )}
                   </div>
                 ) : (
-                  <div className={`flex items-center justify-center w-8 h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
-                    <CacheIcon type={cache.type} size="sm" theme={theme} />
+                  <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+                    <span className="text-muted-foreground text-xs">No image</span>
                   </div>
                 )}
                 {isHiddenByCreator && (
@@ -514,6 +516,18 @@ export function GeocacheCard({
             {/* Bottom row with badges and stats */}
             <div className="flex items-center justify-between gap-2 mt-3">
               <div className="flex flex-wrap gap-1 min-w-0">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-xs py-0 px-1.5 flex items-center gap-1 shrink-0">
+                        <CacheIcon type={cache.type} size="xs" className="h-2.5 w-2.5" theme={theme} />
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{cache.type}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <Badge variant="outline" className="text-xs py-0 px-1.5 shrink-0">
                   D{cache.difficulty}
                 </Badge>
