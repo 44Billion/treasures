@@ -335,7 +335,7 @@ export function GeocacheCard({
           <div className="flex items-stretch h-full relative">
             {/* Preview image rectangle on left side */}
             {previewImage && (
-              <div className="w-3/4 sm:w-4/5 shrink-0">
+              <div className="absolute left-0 top-0 bottom-0 w-3/4 sm:w-4/5 pointer-events-none">
                 <div className="relative w-full h-full">
                   {hasSpoiler ? (
                     <BlurredImage
@@ -359,7 +359,7 @@ export function GeocacheCard({
             )}
 
             {/* Icon with hidden indicator - overlaid on image */}
-            <div className={`absolute left-0 top-0 z-10 p-3 sm:p-4 ${!previewImage ? 'relative' : ''}`}>
+            <div className="relative shrink-0 z-10 p-3 sm:p-4">
               <div className="relative">
                 <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ${isAdventureTheme ? '' : 'rounded-full bg-muted/80 backdrop-blur-sm'} ${previewImage ? 'shadow-lg' : ''}`}>
                   <CacheIcon type={cache.type} size="sm" className="sm:w-5 sm:h-5" theme={theme} />
@@ -373,7 +373,7 @@ export function GeocacheCard({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0">
+            <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 pl-0 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
               <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
