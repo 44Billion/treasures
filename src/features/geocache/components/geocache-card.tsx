@@ -185,7 +185,7 @@ export function GeocacheCard({
 
   // Shared components for all variants
   const renderAuthorInfo = () => showAuthor && (
-    <div className="text-xs sm:text-sm text-muted-foreground mb-1">
+    <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">
       <div className="flex items-center gap-1 min-w-0">
         <span className="shrink-0">{t('geocacheCard.by')}</span>
         <span className="truncate font-medium">{authorName}</span>
@@ -193,7 +193,7 @@ export function GeocacheCard({
           <img
             src={profilePicture}
             alt={authorName}
-            className="h-3 w-3 sm:h-4 sm:w-4 rounded-full object-cover shrink-0 ml-1"
+            className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full object-cover shrink-0 ml-1"
             onError={handleAvatarError}
             loading="lazy"
             decoding="async"
@@ -204,11 +204,11 @@ export function GeocacheCard({
   );
 
   const renderCreatedTime = () => 'created_at' in cache && cache.created_at && (
-    <div className="text-xs sm:text-sm text-muted-foreground/80 mb-3 flex items-center gap-2">
+    <div className="text-[10px] sm:text-xs text-muted-foreground/80 mb-2 flex items-center gap-1.5">
       {cityName && (
         <>
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
+          <span className="flex items-center gap-0.5">
+            <MapPin className="h-2.5 w-2.5" />
             {cityName}
           </span>
           <span className="text-muted-foreground/50">•</span>
@@ -219,7 +219,7 @@ export function GeocacheCard({
   );
 
   const renderDescription = () => 'description' in cache && cache.description && (
-    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+    <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 mb-2">
       {cache.description}
     </p>
   );
@@ -347,7 +347,7 @@ export function GeocacheCard({
           <div className="flex items-stretch h-full relative">
             {/* Preview image on left side */}
             {previewImage && (
-              <div className="relative shrink-0 w-32 sm:w-40 max-h-48">
+              <div className="relative shrink-0 w-40 sm:w-48 max-h-48">
                 {hasSpoiler ? (
                   <BlurredImage
                     src={previewImage}
@@ -378,7 +378,7 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
+              <h3 className="font-semibold text-sm sm:text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
                 {cache.name}
               </h3>
               {variant !== 'detailed' && renderActionButtons(buttonSize)}
@@ -389,7 +389,7 @@ export function GeocacheCard({
 
             {/* Metadata for detailed variant */}
             {showMetadata && metadata && (
-              <p className="text-xs sm:text-sm text-muted-foreground/80 mb-3">
+              <p className="text-[10px] sm:text-xs text-muted-foreground/80 mb-2">
                 {metadata}
               </p>
             )}
@@ -402,7 +402,7 @@ export function GeocacheCard({
 
             {/* Log text for found caches */}
             {'logText' in cache && cache.logText && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3 italic">"{cache.logText}"</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 mb-2 italic">"{cache.logText}"</p>
             )}
 
             {/* Spacer to push badges to bottom */}
@@ -467,20 +467,20 @@ export function GeocacheCard({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors">
+                <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors">
                   {cache.name}
                 </h3>
 
                 {/* Author and metadata */}
                 {showAuthor && (
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                     <span className="flex items-center gap-1">
                       {t('geocacheCard.by')} {authorName}
                       {profilePicture && !avatarError && (
                         <img
                           src={profilePicture}
                           alt={authorName}
-                          className="h-3 w-3 rounded-full object-cover"
+                          className="h-2.5 w-2.5 rounded-full object-cover"
                           onError={handleAvatarError}
                           loading="lazy"
                           decoding="async"
@@ -493,10 +493,10 @@ export function GeocacheCard({
 
                 {/* Created time and location */}
                 {'created_at' in cache && cache.created_at && (
-                  <div className="text-xs text-muted-foreground/80 mt-1 flex items-center gap-1.5">
+                  <div className="text-[10px] text-muted-foreground/80 mt-1 flex items-center gap-1">
                     {cityName && (
                       <>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-0.5">
                           <MapPin className="h-2.5 w-2.5" />
                           {cityName}
                         </span>
