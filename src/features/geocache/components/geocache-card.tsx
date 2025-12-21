@@ -354,8 +354,8 @@ export function GeocacheCard({
                       loading="lazy"
                     />
                   )}
-                  {/* Gradient overlay - fade to transparent to the right */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent via-70% to-card"></div>
+                  {/* Gradient overlay - fade to card background to the right */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent via-50% to-card"></div>
                 </div>
               </div>
             )}
