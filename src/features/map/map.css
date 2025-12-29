@@ -108,6 +108,65 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* Enhanced close button styling for better visibility against images */
+.leaflet-popup-close-button {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  color: white !important;
+  font-size: 24px !important;
+  line-height: 28px !important;
+  font-weight: 400 !important;
+  text-align: center !important;
+  z-index: 10 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-color: white !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.leaflet-popup-close-button:active {
+  transform: scale(0.95) !important;
+}
+
+/* Dark theme adjustments */
+.leaflet-container.dark-theme .leaflet-popup-close-button,
+.leaflet-container.system-dark-theme .leaflet-popup-close-button {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.9) !important;
+  color: #1f2937 !important;
+}
+
+.leaflet-container.dark-theme .leaflet-popup-close-button:hover,
+.leaflet-container.system-dark-theme .leaflet-popup-close-button:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: black !important;
+}
+
+/* Adventure theme adjustments */
+.leaflet-container.adventure-theme .leaflet-popup-close-button {
+  background: rgba(139, 69, 19, 0.9) !important;
+  border-color: #d4af37 !important;
+  color: #f5f1e8 !important;
+}
+
+.leaflet-container.adventure-theme .leaflet-popup-close-button:hover {
+  background: rgba(101, 67, 33, 0.95) !important;
+  border-color: #f4e4bc !important;
+}
+
 /* Popup text colors */
 .leaflet-popup-content h3,
 .leaflet-popup-content h4,
