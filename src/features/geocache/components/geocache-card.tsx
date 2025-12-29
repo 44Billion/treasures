@@ -443,151 +443,172 @@ export function GeocacheCard({
     const hasSpoiler = !!cache.contentWarning;
 
     return (
-      <InteractiveCard onClick={() => handleNavigate()} compact={true} className="group hover:shadow-md transition-shadow duration-200">
-        <CardContent className="p-3">
-          <div className="flex flex-col h-full">
-            <div className="flex items-start gap-3">
-              <div className="relative shrink-0">
-                {previewImage ? (
-                  <div className="w-12 h-12 rounded-lg overflow-hidden">
-                    {hasSpoiler ? (
-                      <BlurredImage
-                        src={previewImage}
-                        alt={cache.name}
-                        className="w-full h-full"
-                        blurIntensity="heavy"
-                        showToggle={true}
-                        defaultBlurred={true}
-                      />
-                    ) : (
-                      <img
-                        src={previewImage}
-                        alt={cache.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    )}
+      <InteractiveCard onClick={() => handleNavigate()} compact={true} className="group hover:shadow-md transition-shadow duration-200 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="flex relative">
+            {/* Preview image on left side with icon overlay */}
+            {previewImage && (
+              <div className="shrink-0 w-16 sm:w-20 aspect-square overflow-hidden bg-muted">
+                <div className="relative w-full h-full">
+                  {hasSpoiler ? (
+                    <BlurredImage
+                      src={previewImage}
+                      alt={cache.name}
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                      blurIntensity="heavy"
+                      showToggle={true}
+                      defaultBlurred={true}
+                    />
+                  ) : (
+                    <img
+                      src={previewImage}
+                      alt={cache.name}
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                      loading="lazy"
+                    />
+                  )}
+                  {/* Icon at bottom left */}
+                  <div className="absolute bottom-1.5 left-1.5 z-10">
+                    <div className="relative">
+                      <div className={`flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 ${isAdventureTheme ? '' : 'rounded-full bg-muted/80 backdrop-blur-sm'} shadow-lg`}>
+                        <CacheIcon type={cache.type} size="sm" className="w-3 h-3 sm:w-3.5 sm:h-3.5" theme={theme} />
+                      </div>
+                      {isHiddenByCreator && (
+                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+                          <EyeOff className="h-1.5 w-1.5 text-white" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div className={`flex items-center justify-center w-8 h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted'}`}>
-                    <CacheIcon type={cache.type} size="sm" theme={theme} />
-                  </div>
-                )}
-                {isHiddenByCreator && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
-                    <EyeOff className="h-2 w-2 text-white" />
-                  </div>
-                )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors">
+            )}
+
+            {/* Icon when no image - at bottom left with absolute positioning */}
+            {!previewImage && (
+              <div className="absolute bottom-2 left-2 z-10">
+                <div className="relative">
+                  <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 ${isAdventureTheme ? '' : 'rounded-full bg-muted/80 backdrop-blur-sm'}`}>
+                    <CacheIcon type={cache.type} size="sm" className="w-3.5 h-3.5 sm:w-4 sm:h-4" theme={theme} />
+                  </div>
+                  {isHiddenByCreator && (
+                    <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+                      <EyeOff className="h-2 w-2 text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Content */}
+            <div className={`flex-1 min-w-0 flex flex-col p-2.5 sm:p-3 ${!previewImage ? 'pl-12 sm:pl-14' : ''}`}>
+              {/* Title row with action buttons */}
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold text-sm sm:text-base leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1">
                   {cache.name}
                 </h3>
+                {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", false)}
+              </div>
 
-                {/* Author and metadata */}
-                {showAuthor && (
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <span className="flex items-center gap-1">
-                      {t('geocacheCard.by')} {authorName}
-                      {profilePicture && !avatarError && (
-                        <img
-                          src={profilePicture}
-                          alt={authorName}
-                          className="h-3 w-3 rounded-full object-cover"
-                          onError={handleAvatarError}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      )}
-                    </span>
-                    {metadata && <span>{metadata}</span>}
-                  </p>
-                )}
-
-                {/* Created time and location */}
-                {'created_at' in cache && cache.created_at && (
-                  <div className="text-[10px] sm:text-xs text-muted-foreground/80 mt-1 flex items-center gap-1.5">
-                    {cityName && (
-                      <>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-2.5 w-2.5" />
-                          {cityName}
-                        </span>
-                        <span className="text-muted-foreground/50">•</span>
-                      </>
+              {/* Author and metadata */}
+              {showAuthor && (
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                  <span className="flex items-center gap-1">
+                    {t('geocacheCard.by')} {authorName}
+                    {profilePicture && !avatarError && (
+                      <img
+                        src={profilePicture}
+                        alt={authorName}
+                        className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full object-cover"
+                        onError={handleAvatarError}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     )}
-                    <span>{formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}</span>
-                  </div>
-                )}
-              </div>
+                  </span>
+                  {metadata && <span>{metadata}</span>}
+                </p>
+              )}
 
-              <div className="flex flex-col items-end gap-1 shrink-0">
-                {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5")}
-              </div>
-            </div>
+              {/* Created time and location */}
+              {'created_at' in cache && cache.created_at && (
+                <div className="text-[9px] sm:text-[10px] text-muted-foreground/80 mt-0.5 flex items-center gap-1.5">
+                  {cityName && (
+                    <>
+                      <span className="flex items-center gap-0.5">
+                        <MapPin className="h-2 w-2" />
+                        {cityName}
+                      </span>
+                      <span className="text-muted-foreground/50">•</span>
+                    </>
+                  )}
+                  <span>{formatDistanceToNow(new Date(cache.created_at * 1000), { addSuffix: true })}</span>
+                </div>
+              )}
 
-            {/* Bottom row with badges and stats */}
-            <div className="flex items-center justify-between gap-2 mt-3">
-              <div className="flex flex-wrap gap-1 min-w-0">
-                <Badge variant="outline" className="text-xs py-0 px-1.5 shrink-0">
-                  D{cache.difficulty}
-                </Badge>
-                <Badge variant="outline" className="text-xs py-0 px-1.5 shrink-0">
-                  T{cache.terrain}
-                </Badge>
-                <Badge variant="secondary" className="text-xs py-0 px-1.5 shrink-0">
-                  {cache.size}
-                </Badge>
-                {distance !== undefined && (
-                  <Badge variant="outline" className="text-xs py-0 px-1.5 flex items-center gap-1 shrink-0">
-                    <Navigation className="h-2 w-2" />
-                    {formatDistance(distance)}
+              {/* Bottom row with badges and stats */}
+              <div className="flex items-center justify-between gap-2 mt-2">
+                <div className="flex flex-wrap gap-0.5 sm:gap-1 min-w-0">
+                  <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
+                    D{cache.difficulty}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
+                    T{cache.terrain}
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
+                    {cache.size}
+                  </Badge>
+                  {distance !== undefined && (
+                    <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 flex items-center gap-0.5 shrink-0">
+                      <Navigation className="h-2 w-2" />
+                      {formatDistance(distance)}
+                    </Badge>
+                  )}
+                  {'foundAt' in cache && (
+                    <Badge variant="default" className="flex items-center gap-0.5 bg-green-600 adventure:bg-stone-700 text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
+                      <CheckCircle className="h-2 w-2" />
+                      {t('geocacheCard.found')}
                   </Badge>
                 )}
-                {'foundAt' in cache && (
-                  <Badge variant="default" className="flex items-center gap-1 bg-green-600 adventure:bg-stone-700 text-xs py-0 px-1.5 shrink-0">
-                    <CheckCircle className="h-2 w-2" />
-                    {t('geocacheCard.found')}
-                  </Badge>
-                )}
               </div>
 
-              {/* Stats in bottom right */}
+              {/* Stats on right side of badges row */}
               {showStats && (
-                <>
+                <div className="shrink-0">
                   {statsLoading ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                      <span className="flex items-center gap-1">
-                        <Zap className="h-3 w-3" />
-                        <Skeleton className="h-3 w-6" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                      <span className="flex items-center gap-0.5">
+                        <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <Skeleton className="h-2.5 w-4 sm:h-3 sm:w-6" />
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Trophy className="h-3 w-3" />
-                        <Skeleton className="h-3 w-3" />
+                      <span className="flex items-center gap-0.5">
+                        <Trophy className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <Skeleton className="h-2.5 w-2 sm:h-3 sm:w-3" />
                       </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="h-3 w-3" />
-                        <Skeleton className="h-3 w-3" />
+                      <span className="flex items-center gap-0.5">
+                        <MessageSquare className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <Skeleton className="h-2.5 w-2 sm:h-3 sm:w-3" />
                       </span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                      <span className="flex items-center gap-1">
-                        <Zap className="h-3 w-3" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                      <span className="flex items-center gap-0.5">
+                        <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         <span>{totalZapAmount.toLocaleString()}</span>
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Trophy className="h-3 w-3" />
+                      <span className="flex items-center gap-0.5">
+                        <Trophy className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         <span>{stats.foundCount}</span>
                       </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="h-3 w-3" />
+                      <span className="flex items-center gap-0.5">
+                        <MessageSquare className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         <span>{stats.logCount}</span>
                       </span>
                     </div>
                   )}
-                </>
+                </div>
               )}
+              </div>
             </div>
           </div>
         </CardContent>
