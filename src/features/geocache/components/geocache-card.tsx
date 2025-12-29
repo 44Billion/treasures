@@ -332,10 +332,10 @@ export function GeocacheCard({
         className="group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col overflow-hidden"
       >
         <CardContent className="p-0 flex-1 flex flex-col">
-          <div className="flex items-stretch h-full relative">
+          <div className="flex items-stretch relative min-h-0">
             {/* Preview image rectangle on left side - now properly contained */}
             {previewImage && (
-              <div className="shrink-0 w-32 sm:w-40 overflow-hidden">
+              <div className="shrink-0 w-32 sm:w-40 overflow-hidden self-stretch">
                 <div className="relative w-full h-full flex items-center justify-center bg-muted">
                   {hasSpoiler ? (
                     <BlurredImage
@@ -388,7 +388,7 @@ export function GeocacheCard({
             )}
 
             {/* Content */}
-            <div className={`flex-1 min-w-0 flex flex-col h-full relative z-10 p-3 sm:p-4 bg-card ${!previewImage ? 'pl-16 sm:pl-20' : ''}`}>
+            <div className={`flex-1 min-w-0 flex flex-col relative z-10 p-3 sm:p-4 bg-card ${!previewImage ? 'pl-16 sm:pl-20' : ''}`}>
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
               <h3 className="font-semibold text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
