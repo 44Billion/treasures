@@ -18,6 +18,7 @@ import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useTheme } from "@/shared/hooks/useTheme";
 import { getSizeLabel } from '@/features/geocache/utils/geocache-utils';
 import { reverseGeocode } from '@/features/map/utils/reverseGeocode';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import type { Geocache } from '@/types/geocache';
 import {
   Tooltip,
@@ -125,6 +126,7 @@ export function GeocacheCard({
   const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { theme } = useTheme();
+  const isMobile = useIsMobile();
   const { navigateToGeocache } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
   const zapStoreKey = cache.naddr ? `naddr:${cache.naddr}` : `event:${cache.id}`;
@@ -174,10 +176,17 @@ export function GeocacheCard({
   const isAdventureTheme = theme === 'adventure';
 
   // Optimized navigation handler
+  // On mobile, always navigate directly to the details page
+  // On desktop, use the onClick handler if provided (for modal behavior)
   const handleNavigate = (fromMap?: boolean) => {
-    if (onClick) {
+    if (isMobile) {
+      // Mobile: always navigate to the details page
+      navigateToGeocache(cache as Geocache, { fromMap });
+    } else if (onClick) {
+      // Desktop: use custom onClick handler (may open modal or navigate)
       onClick();
     } else {
+      // Desktop fallback: navigate to details page
       navigateToGeocache(cache as Geocache, { fromMap });
     }
   };

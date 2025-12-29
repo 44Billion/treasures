@@ -339,16 +339,8 @@ export default function Map() {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
 
-    // Check if we're on mobile AND in list view - only then open the dialog
-    if (isMobile && activeTab === 'list') {
-      setSelectedGeocache(geocache);
-      setDialogOpen(true);
-      // Switch to map tab to show the location after modal closes
-      setActiveTab('map');
-      return;
-    }
-
     // On desktop (or when in map tab), center map on the geocache and highlight it to show popup
+    // Mobile users will navigate directly via the geocache card's handleNavigate
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
     setMapZoom(16);
     setHighlightedGeocache(geocache.dTag);

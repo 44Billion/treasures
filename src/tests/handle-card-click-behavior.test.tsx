@@ -31,21 +31,13 @@ function useCardClickHandler() {
   const handleCardClick = (geocache: any) => {
     // This is an explicit user action - clear all interaction locks
     mockClearMapInteractionLock();
-    
-    // On mobile (when activeTab is 'list'), open the details modal directly
-    if (activeTab === 'list') {
-      setSelectedGeocache(geocache);
-      setDialogOpen(true);
-      // Switch to map tab to show the location after modal closes
-      setActiveTab('map');
-      return;
-    }
-    
+
     // On desktop (or when in map tab), center map on the geocache and highlight it to show popup
+    // Mobile users will navigate directly via the geocache card's handleNavigate
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
     setMapZoom(16);
     setHighlightedGeocache(geocache.dTag);
-    
+
     // Clear any location-based searches to prevent conflicts
     setShowNearMe(false);
     setSearchLocation(null);
@@ -67,18 +59,18 @@ function useCardClickHandler() {
   };
 }
 
-describe('Card Click Behavior - Core Requirement', () => {
+describe('Card Click Behavior - Mobile Navigation Update', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseIsMobile.mockReturnValue(false); // Default to desktop
   });
 
-  it('should NOT open dialog on desktop view - core requirement preserved', async () => {
+  it('should NOT open dialog on desktop view - navigate to map location instead', async () => {
     // Simulate desktop view (no activeTab or activeTab is not 'list')
     mockUseIsMobile.mockReturnValue(false);
-    
+
     const { result } = renderHook(() => useCardClickHandler());
-    
+
     // Set up desktop scenario (no activeTab state or activeTab is 'map')
     act(() => {
       result.current.setActiveTab('map');
@@ -103,27 +95,27 @@ describe('Card Click Behavior - Core Requirement', () => {
     // CRITICAL: On desktop, the dialog should NOT open - this is the key behavior to preserve
     expect(result.current.dialogOpen).toBe(false);
     expect(result.current.selectedGeocache).toBeNull();
-    
+
     // Instead, navigation should occur:
     expect(result.current.mapCenter).toEqual({ lat: 40.7128, lng: -74.0060 });
     expect(result.current.mapZoom).toBe(16);
     expect(result.current.highlightedGeocache).toBe('test1');
-    
+
     // Location searches should be cleared
     expect(result.current.showNearMe).toBe(false);
     expect(result.current.searchLocation).toBeNull();
     expect(result.current.searchInView).toBe(false);
-    
+
     // Interaction lock should be cleared
     expect(mockClearMapInteractionLock).toHaveBeenCalled();
   });
 
-  it('should open dialog on mobile view when activeTab is list', async () => {
+  it('should NOT open dialog on mobile - should navigate directly instead', async () => {
     // Simulate mobile view with activeTab as 'list'
     mockUseIsMobile.mockReturnValue(true);
-    
+
     const { result } = renderHook(() => useCardClickHandler());
-    
+
     // Set up mobile scenario (activeTab is 'list')
     act(() => {
       result.current.setActiveTab('list');
@@ -145,17 +137,16 @@ describe('Card Click Behavior - Core Requirement', () => {
       result.current.handleCardClick(mockGeocache);
     });
 
-    // On mobile, the dialog should open
-    expect(result.current.dialogOpen).toBe(true);
-    expect(result.current.selectedGeocache).toEqual(mockGeocache);
-    
-    // Should switch to map tab
-    expect(result.current.activeTab).toBe('map');
-    
-    // Navigation should NOT occur on mobile
-    expect(result.current.mapCenter).toBeNull();
-    expect(result.current.highlightedGeocache).toBeNull();
-    
+    // UPDATED BEHAVIOR: On mobile, the dialog should NOT open
+    // The geocache card's handleNavigate will navigate directly to the details page
+    expect(result.current.dialogOpen).toBe(false);
+    expect(result.current.selectedGeocache).toBeNull();
+
+    // Map state should be updated for desktop map view
+    expect(result.current.mapCenter).toEqual({ lat: 40.7128, lng: -74.0060 });
+    expect(result.current.mapZoom).toBe(16);
+    expect(result.current.highlightedGeocache).toBe('test1');
+
     // Interaction lock should be cleared
     expect(mockClearMapInteractionLock).toHaveBeenCalled();
   });
@@ -163,9 +154,9 @@ describe('Card Click Behavior - Core Requirement', () => {
   it('should NOT open dialog on mobile view when activeTab is map', async () => {
     // Simulate mobile view but with activeTab as 'map'
     mockUseIsMobile.mockReturnValue(true);
-    
+
     const { result } = renderHook(() => useCardClickHandler());
-    
+
     // Set up mobile scenario but activeTab is 'map'
     act(() => {
       result.current.setActiveTab('map');
@@ -190,12 +181,12 @@ describe('Card Click Behavior - Core Requirement', () => {
     // Even on mobile, if activeTab is not 'list', dialog should NOT open
     expect(result.current.dialogOpen).toBe(false);
     expect(result.current.selectedGeocache).toBeNull();
-    
+
     // Navigation should occur instead
     expect(result.current.mapCenter).toEqual({ lat: 40.7128, lng: -74.0060 });
     expect(result.current.mapZoom).toBe(16);
     expect(result.current.highlightedGeocache).toBe('test1');
-    
+
     // Interaction lock should be cleared
     expect(mockClearMapInteractionLock).toHaveBeenCalled();
   });
@@ -203,9 +194,9 @@ describe('Card Click Behavior - Core Requirement', () => {
   it('should preserve desktop behavior regardless of useIsMobile hook when activeTab is not list', async () => {
     // Even if useIsMobile returns true, if activeTab is not 'list', it should behave like desktop
     mockUseIsMobile.mockReturnValue(true);
-    
+
     const { result } = renderHook(() => useCardClickHandler());
-    
+
     // Set activeTab to 'map' (not 'list')
     act(() => {
       result.current.setActiveTab('map');
@@ -226,7 +217,7 @@ describe('Card Click Behavior - Core Requirement', () => {
     // CRITICAL: Dialog should NOT open - desktop behavior preserved
     expect(result.current.dialogOpen).toBe(false);
     expect(result.current.selectedGeocache).toBeNull();
-    
+
     // Navigation should occur
     expect(result.current.mapCenter).toEqual({ lat: 40.7128, lng: -74.0060 });
     expect(result.current.mapZoom).toBe(16);
