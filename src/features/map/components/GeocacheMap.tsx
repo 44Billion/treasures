@@ -33,16 +33,16 @@ const createGeocachePopupHTML = (geocache: Geocache) => {
 
   return `
     <div class="p-0 min-w-[200px] max-w-[280px] overflow-hidden">
-      ${previewImage ? `
-        <div class="relative w-full h-32 overflow-hidden bg-green-100">
+      <div class="relative w-full h-32 overflow-hidden popup-image-placeholder">
+        ${previewImage ? `
           <img
             src="${previewImage}"
             alt="${geocache.name}"
             class="absolute inset-0 w-full h-full object-cover object-center"
             loading="lazy"
           />
-        </div>
-      ` : ''}
+        ` : ''}
+      </div>
 
       <div class="p-3">
         <h3 class="font-semibold text-sm leading-tight mb-2">${geocache.name}</h3>

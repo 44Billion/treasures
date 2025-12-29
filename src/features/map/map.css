@@ -180,6 +180,20 @@
   color: var(--popup-muted);
 }
 
+/* Popup image placeholder - matches geocache card styling */
+.leaflet-popup-content .popup-image-placeholder {
+  background-color: rgb(220, 252, 231); /* green-100 */
+}
+
+.leaflet-container.dark-theme .leaflet-popup-content .popup-image-placeholder,
+.leaflet-container.system-dark-theme .leaflet-popup-content .popup-image-placeholder {
+  background-color: rgba(6, 95, 70, 0.2); /* green-900/20 */
+}
+
+.leaflet-container.adventure-theme .leaflet-popup-content .popup-image-placeholder {
+  background-color: rgb(254, 243, 199); /* amber-100 */
+}
+
 /* Adventure theme text contrast improvements */
 .leaflet-container.adventure-theme .leaflet-popup-content h3,
 .leaflet-container.adventure-theme .leaflet-popup-content h4,
