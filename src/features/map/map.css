@@ -183,6 +183,8 @@
 /* Popup image placeholder - matches geocache card styling */
 .leaflet-popup-content .popup-image-placeholder {
   background-color: rgb(220, 252, 231); /* green-100 */
+  border-top-left-radius: 0.75rem; /* 12px - matches .leaflet-popup-content border-radius */
+  border-top-right-radius: 0.75rem;
 }
 
 .leaflet-container.dark-theme .leaflet-popup-content .popup-image-placeholder,
@@ -192,6 +194,12 @@
 
 .leaflet-container.adventure-theme .leaflet-popup-content .popup-image-placeholder {
   background-color: rgb(254, 243, 199); /* amber-100 */
+}
+
+/* Ensure images inside the placeholder also have rounded top corners */
+.leaflet-popup-content .popup-image-placeholder img {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
 }
 
 /* Adventure theme text contrast improvements */
