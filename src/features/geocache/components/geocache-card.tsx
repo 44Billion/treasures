@@ -331,8 +331,8 @@ export function GeocacheCard({
         onClick={() => handleNavigate()}
         className="group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col overflow-hidden"
       >
-        <CardContent className="p-0">
-          <div className="flex relative">
+        <CardContent className="p-0 flex-1 flex flex-col">
+          <div className="flex relative flex-1">
             {/* Preview image rectangle on left side - fixed aspect ratio */}
             {previewImage && (
               <div className="shrink-0 w-24 sm:w-32 aspect-square overflow-hidden bg-muted">
