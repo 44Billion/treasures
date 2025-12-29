@@ -200,18 +200,6 @@
 .leaflet-popup-content .popup-image-placeholder img {
   border-top-left-radius: 0.625rem;
   border-top-right-radius: 0.625rem;
-  /* Improve image rendering quality - use smooth scaling */
-  image-rendering: auto;
-  image-rendering: smooth;
-  image-rendering: high-quality;
-  image-rendering: -webkit-optimize-contrast;
-  /* Hardware acceleration for smoother rendering */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  /* Ensure proper interpolation */
-  -ms-interpolation-mode: bicubic;
 }
 
 /* Adventure theme text contrast improvements */

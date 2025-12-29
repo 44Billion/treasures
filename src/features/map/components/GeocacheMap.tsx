@@ -40,8 +40,6 @@ const createGeocachePopupHTML = (geocache: Geocache) => {
             alt="${geocache.name}"
             class="absolute inset-0 w-full h-full object-cover object-center"
             loading="lazy"
-            decoding="async"
-            fetchpriority="high"
           />
         ` : ''}
       </div>
