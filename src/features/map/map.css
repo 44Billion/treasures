@@ -87,7 +87,7 @@
 .leaflet-popup-content-wrapper {
   background: var(--popup-bg);
   border: 2px solid var(--popup-border);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   color: var(--popup-text);
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -97,7 +97,7 @@
 
 .leaflet-popup-content {
   margin: 0;
-  border-radius: 0.75rem;
+  border-radius: 0.625rem;
   overflow: hidden;
   color: var(--popup-text);
 }
@@ -183,8 +183,8 @@
 /* Popup image placeholder - matches geocache card styling */
 .leaflet-popup-content .popup-image-placeholder {
   background-color: rgb(220, 252, 231); /* green-100 */
-  border-top-left-radius: 0.75rem; /* 12px - matches .leaflet-popup-content border-radius */
-  border-top-right-radius: 0.75rem;
+  border-top-left-radius: 0.625rem; /* matches .leaflet-popup-content border-radius */
+  border-top-right-radius: 0.625rem;
 }
 
 .leaflet-container.dark-theme .leaflet-popup-content .popup-image-placeholder,
@@ -198,8 +198,8 @@
 
 /* Ensure images inside the placeholder also have rounded top corners */
 .leaflet-popup-content .popup-image-placeholder img {
-  border-top-left-radius: 0.75rem;
-  border-top-right-radius: 0.75rem;
+  border-top-left-radius: 0.625rem;
+  border-top-right-radius: 0.625rem;
 }
 
 /* Adventure theme text contrast improvements */
