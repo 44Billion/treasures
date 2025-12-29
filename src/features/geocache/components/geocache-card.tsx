@@ -504,7 +504,7 @@ export function GeocacheCard({
             <div className={`flex-1 min-w-0 flex flex-col p-2.5 sm:p-3 ${!previewImage ? 'pl-12 sm:pl-14' : ''}`}>
               {/* Title row with action buttons */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-sm sm:text-base leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1">
+                <h3 className="font-semibold leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
                   {cache.name}
                 </h3>
                 {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", false)}
@@ -546,8 +546,11 @@ export function GeocacheCard({
                 </div>
               )}
 
+              {/* Spacer to push badges to bottom */}
+              <div className="flex-1 min-h-0"></div>
+
               {/* Bottom row with badges and stats */}
-              <div className="flex items-center justify-between gap-2 mt-2">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-wrap gap-0.5 sm:gap-1 min-w-0">
                   <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
                     D{cache.difficulty}
