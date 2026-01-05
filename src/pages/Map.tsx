@@ -58,7 +58,22 @@ export default function Map() {
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("list");
+
+  // Initialize activeTab based on URL parameter to avoid flicker
+  const initialTab = (() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'list' || tab === 'map') {
+      return tab;
+    }
+    // Default to map if coordinates are provided, otherwise list
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    if (lat && lng) {
+      return 'map';
+    }
+    return 'list';
+  })();
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   const mapRef = useRef<L.Map | null>(null);
 
