@@ -6,7 +6,6 @@ import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, BookmarkX, Zap,
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { SaveButton } from '@/shared/components/common/SaveButton';
 import { CacheMenu } from '@/components/CacheMenu';
 import { BlurredImage } from '@/components/BlurredImage';
 import { useAuthor } from '@/features/auth/hooks/useAuthor';
@@ -309,19 +308,11 @@ export function GeocacheCard({
   const renderActionButtons = (buttonSize: string, showOnHover = true) => (
     <div className={`flex items-center gap-0.5 sm:gap-1 shrink-0 ${showOnHover ? 'md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150' : ''}`}>
       {actions || (
-        <>
-          <SaveButton
-            geocache={cache as any}
-            size="icon"
-            showText={false}
-            className={buttonSize}
-          />
-          <CacheMenu
-            geocache={cache as any}
-            variant="compact"
-            className={buttonSize}
-          />
-        </>
+        <CacheMenu
+          geocache={cache as any}
+          variant="compact"
+          className={buttonSize}
+        />
       )}
     </div>
   );
