@@ -180,7 +180,7 @@ export function GeocacheCard({
 
   // Shared components for all variants
   const renderAuthorInfo = () => showAuthor && (
-    <div className="text-[13px] sm:text-sm text-muted-foreground mb-1.5">
+    <div className="text-sm text-muted-foreground mb-1">
       <div className="flex items-center gap-1 min-w-0">
         <span className="shrink-0">{t('geocacheCard.by')}</span>
         <span className="truncate font-medium">{authorName}</span>
@@ -188,7 +188,7 @@ export function GeocacheCard({
           <img
             src={profilePicture}
             alt={authorName}
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full object-cover shrink-0 ml-1"
+            className="h-4 w-4 rounded-full object-cover shrink-0 ml-1"
             onError={handleAvatarError}
             loading="lazy"
             decoding="async"
@@ -199,8 +199,8 @@ export function GeocacheCard({
   );
 
   const renderCityName = () => cityName && (
-    <div className="text-xs sm:text-xs text-muted-foreground/80 mb-2.5 flex items-center gap-1">
-      <MapPin className="h-3 w-3 sm:h-3 sm:w-3" />
+    <div className="text-xs text-muted-foreground/80 mb-3 flex items-center gap-1">
+      <MapPin className="h-3 w-3" />
       {cityName}
     </div>
   );
@@ -242,19 +242,19 @@ export function GeocacheCard({
 
   const renderBadgesAndStats = (isCompact = false) => (
     <div className="flex items-center justify-between gap-2 mt-auto">
-      <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
-        <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
+      <div className="flex flex-wrap gap-1.5 min-w-0">
+        <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5'} shrink-0`}>
           D{cache.difficulty}
         </Badge>
-        <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
+        <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5'} shrink-0`}>
           T{cache.terrain}
         </Badge>
-        <Badge variant="secondary" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
+        <Badge variant="secondary" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5'} shrink-0`}>
           {getSizeLabel(cache.size)}
         </Badge>
         {distance !== undefined && (
-          <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} flex items-center gap-1 shrink-0`}>
-            <Navigation className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
+          <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5'} flex items-center gap-1 shrink-0`}>
+            <Navigation className="h-2.5 w-2.5" />
             {isCompact ? (
               formatDistance(distance)
             ) : (
@@ -263,13 +263,13 @@ export function GeocacheCard({
           </Badge>
         )}
         {'foundAt' in cache && (
-          <Badge variant="default" className={`flex items-center gap-1 bg-green-600 adventure:bg-stone-700 text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
-            <CheckCircle className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
+          <Badge variant="default" className={`flex items-center gap-1 bg-green-600 adventure:bg-stone-700 text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5'} shrink-0`}>
+            <CheckCircle className="h-2.5 w-2.5" />
             {t('geocacheCard.found')}
           </Badge>
         )}
       </div>
-      <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground shrink-0">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
         {showStats && (
           <>
             {statsLoading ? (
@@ -278,19 +278,19 @@ export function GeocacheCard({
               <>
                 {totalZapAmount > 0 && (
                   <span className="flex items-center gap-1">
-                    <Zap className="h-3.5 w-3.5" />
+                    <Zap className="h-3 w-3" />
                     <span>{totalZapAmount.toLocaleString()}</span>
                   </span>
                 )}
                 {stats.foundCount > 0 && (
                   <span className="flex items-center gap-1">
-                    <Trophy className="h-3.5 w-3.5" />
+                    <Trophy className="h-3 w-3" />
                     <span>{stats.foundCount}</span>
                   </span>
                 )}
                 {stats.logCount > 0 && (
                   <span className="flex items-center gap-1">
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-3 w-3" />
                     <span>{stats.logCount}</span>
                   </span>
                 )}
@@ -328,7 +328,7 @@ export function GeocacheCard({
         <CardContent className="p-0 flex-1 flex flex-col">
           <div className="flex relative flex-1">
             {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-green-100 dark:bg-green-900/20 adventure:bg-amber-100">
+            <div className="shrink-0 w-28 aspect-square overflow-hidden bg-green-100 dark:bg-green-900/20 adventure:bg-amber-100">
               <div className="relative w-full h-full">
                 {previewImage && (
                   hasSpoiler ? (
@@ -352,12 +352,12 @@ export function GeocacheCard({
                 {/* Icon with hidden indicator - overlaid at bottom left */}
                 <div className="absolute bottom-2 left-2 z-10">
                   <div className="relative">
-                    <div className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 ${isAdventureTheme ? '' : 'rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm'} shadow-lg`}>
-                      <CacheIcon type={cache.type} size="sm" className="w-4.5 h-4.5 sm:w-5 sm:h-5" theme={theme} />
+                    <div className={`flex items-center justify-center w-10 h-10 ${isAdventureTheme ? '' : 'rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm'} shadow-lg`}>
+                      <CacheIcon type={cache.type} size="sm" className="w-5 h-5" theme={theme} />
                     </div>
                     {isHiddenByCreator && (
-                      <div className="absolute -top-1 -right-1 w-4.5 h-4.5 sm:w-5 sm:h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
-                        <EyeOff className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+                        <EyeOff className="h-3 w-3 text-white" />
                       </div>
                     )}
                   </div>
@@ -366,10 +366,10 @@ export function GeocacheCard({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col relative z-10 p-3.5 sm:p-4 bg-card">
+            <div className="flex-1 min-w-0 flex flex-col relative z-10 p-4 bg-card">
             {/* Title row with action buttons */}
-            <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <h3 className="font-semibold text-[15px] sm:text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="font-semibold text-base leading-tight line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
                 {cache.name}
               </h3>
               {variant !== 'detailed' && renderActionButtons(buttonSize)}
@@ -587,17 +587,16 @@ export function GeocacheCard({
 
   // Detailed variant - comprehensive layout for profile pages
   if (variant === 'detailed') {
-    return renderStandardLayout("h-4 w-4 sm:h-6 sm:w-6", true);
+    return renderStandardLayout("h-6 w-6", true);
   }
 
   // Featured variant - elegant layout for home page
   if (variant === 'featured') {
-    return renderStandardLayout("h-4 w-4 sm:h-6 sm:w-6");
+    return renderStandardLayout("h-6 w-6");
   }
 
   // Default variant - standard card layout for general use
-  // On mobile, use larger images and better spacing like desktop
-  return renderStandardLayout("h-5 w-5 sm:h-6 sm:w-6");
+  return renderStandardLayout("h-6 w-6");
 }
 
 // Convenience exports for common use cases
