@@ -33,7 +33,7 @@ import {
 import { generateVerificationKeyPair } from '@/features/geocache/utils/verification';
 import { getGeocachingRelays } from '@/shared/utils/naddrrelays';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
-import { QUERY_LIMITS, TIMEOUTS } from '@/shared/config';
+import { QUERY_LIMITS, TIMEOUTS, LEGACY_GEOCACHE_IDS } from '@/shared/config';
 import { calculateDistance } from '@/features/map/utils/geo';
 
 /**
@@ -80,25 +80,39 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       }
 
       console.log('📡 Fetching geocaches from relay...', {
-        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+        kinds: [NIP_GC_KINDS.GEOCACHE],
+        legacyIds: LEGACY_GEOCACHE_IDS.length,
         limit: QUERY_LIMITS.GEOCACHES,
         queryLimits: QUERY_LIMITS.GEOCACHES,
         fullFilter: {
-          kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+          kinds: [NIP_GC_KINDS.GEOCACHE],
           limit: QUERY_LIMITS.GEOCACHES
         }
       });
 
       const startTime = Date.now();
-      const { data: events } = await baseStore.batchQuery([{
-        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+
+      // Query for kind 37516 geocaches
+      const { data: newGeocacheEvents } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE],
         limit: QUERY_LIMITS.GEOCACHES,
       }], 'fetchGeocaches');
+
+      // Query for specific legacy kind 37515 geocaches by ID
+      const { data: legacyGeocacheEvents } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE_LEGACY],
+        ids: [...LEGACY_GEOCACHE_IDS],
+      }], 'fetchLegacyGeocaches');
+
+      // Combine both result sets
+      const events = [...(newGeocacheEvents || []), ...(legacyGeocacheEvents || [])];
 
       const queryDuration = Date.now() - startTime;
 
       console.log('📊 Relay query completed:', {
-        eventCount: events?.length || 0,
+        newGeocaches: newGeocacheEvents?.length || 0,
+        legacyGeocaches: legacyGeocacheEvents?.length || 0,
+        totalEvents: events?.length || 0,
         queryDuration: `${queryDuration}ms`,
         timeout: TIMEOUTS.QUERY
       });
@@ -186,9 +200,15 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
   const fetchGeocache = useCallback(async (id: string): Promise<StoreActionResult<Geocache>> => {
     return baseStore.safeAsyncOperation(async () => {
+      // Determine which kind to search for based on whether this is a legacy ID
+      const isLegacyId = LEGACY_GEOCACHE_IDS.includes(id as typeof LEGACY_GEOCACHE_IDS[number]);
+      const kindsToSearch = isLegacyId
+        ? [NIP_GC_KINDS.GEOCACHE_LEGACY]
+        : [NIP_GC_KINDS.GEOCACHE];
+
       const { data: events } = await baseStore.batchQuery([{
         ids: [id],
-        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+        kinds: kindsToSearch,
         limit: 1,
       }], 'fetchGeocache');
 
@@ -203,13 +223,23 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
   const fetchUserGeocaches = useCallback(async (pubkey: string): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      const { data: events } = await baseStore.batchQuery([{
-        kinds: [NIP_GC_KINDS.GEOCACHE, NIP_GC_KINDS.GEOCACHE_LEGACY],
+      // Search kind 37516 by author
+      const { data: newEvents } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE],
         authors: [pubkey],
         limit: QUERY_LIMITS.GEOCACHES,
       }], 'fetchUserGeocaches');
 
-      const userGeocaches = (events || [])
+      // Also check if any legacy IDs belong to this author
+      const { data: legacyEvents } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE_LEGACY],
+        ids: [...LEGACY_GEOCACHE_IDS],
+        authors: [pubkey],
+      }], 'fetchUserLegacyGeocaches');
+
+      const events = [...(newEvents || []), ...(legacyEvents || [])];
+
+      const userGeocaches = events
         .map(parseGeocacheEvent)
         .filter((g: Geocache | null): g is Geocache => g !== null)
         .sort((a: Geocache, b: Geocache) => b.created_at - a.created_at);
