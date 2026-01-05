@@ -302,8 +302,8 @@ export function GeocacheCard({
     </div>
   );
 
-  const renderActionButtons = (buttonSize: string, showOnHover = true) => (
-    <div className={`flex items-center gap-0.5 sm:gap-1 shrink-0 ${showOnHover ? 'md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150' : ''}`}>
+  const renderActionButtons = (buttonSize: string, showOnHover = true, absoluteOnMobile = false) => (
+    <div className={`flex items-center gap-0.5 sm:gap-1 shrink-0 ${absoluteOnMobile ? 'absolute top-2 right-2 md:relative md:top-auto md:right-auto' : ''} ${showOnHover ? 'md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150' : ''}`}>
       {actions || (
         <CacheMenu
           geocache={cache as any}
@@ -466,10 +466,10 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col p-2.5 sm:p-3">
               {/* Title row with action buttons */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
+                <h3 className="font-semibold leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1 pr-8 md:pr-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
                   {cache.name}
                 </h3>
-                {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", false)}
+                {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", true, true)}
               </div>
 
               {/* Author and metadata */}
