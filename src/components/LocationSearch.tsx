@@ -314,7 +314,7 @@ export function LocationSearch({
       </div>
 
       {showResults && results.length > 0 && (
-        <Card className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto">
+        <Card className="absolute z-[1000] w-full mt-1 max-h-64 overflow-y-auto">
           <div className="p-1">
             {results.map((result, index) => (
               <button
@@ -349,7 +349,7 @@ export function LocationSearch({
       )}
 
       {showResults && !isSearching && results.length === 0 && query && (
-        <Card className="absolute z-50 w-full mt-1">
+        <Card className="absolute z-[1000] w-full mt-1">
           <div className="p-4 text-center text-gray-500">
             <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">No locations found</p>
