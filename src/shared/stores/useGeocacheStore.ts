@@ -54,6 +54,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     cacheStats: baseStore.getCacheStats(),
   }));
 
+  // Pagination state
+  const [hasMore, setHasMore] = useState(true);
+  const [oldestTimestamp, setOldestTimestamp] = useState<number | null>(null);
+
   // Update state helper - use useCallback to make it stable
 
 
@@ -133,6 +137,16 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         filteredOut: (events?.length || 0) - geocaches.length
       });
 
+      // Update pagination state
+      if (geocaches.length > 0) {
+        const oldest = geocaches[geocaches.length - 1].created_at;
+        setOldestTimestamp(oldest);
+        // If we got fewer results than the limit, we've reached the end
+        setHasMore(events.length >= QUERY_LIMITS.GEOCACHES);
+      } else {
+        setHasMore(false);
+      }
+
       // Cache the result
       QueryOptimizer.setCachedResult(cacheKey, geocaches);
 
@@ -197,6 +211,75 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       return result.data || [];
     }, 'fetchGeocaches');
   }, [geocachesQuery, baseStore]);
+
+  const loadMoreGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      if (!hasMore || !oldestTimestamp) {
+        console.log('📄 Load more: No more geocaches to load');
+        return state.geocaches;
+      }
+
+      console.log('📄 Loading more geocaches...', {
+        currentCount: state.geocaches.length,
+        oldestTimestamp,
+        hasMore
+      });
+
+      // Query for kind 37516 geocaches before the oldest timestamp
+      const { data: newGeocacheEvents } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE],
+        until: oldestTimestamp,
+        limit: QUERY_LIMITS.GEOCACHES,
+      }], 'loadMoreGeocaches');
+
+      // Query for specific legacy kind 37515 geocaches by ID (if any remain to load)
+      const { data: legacyGeocacheEvents } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE_LEGACY],
+        ids: [...LEGACY_GEOCACHE_IDS],
+        until: oldestTimestamp,
+      }], 'loadMoreLegacyGeocaches');
+
+      // Combine both result sets
+      const events = [...(newGeocacheEvents || []), ...(legacyGeocacheEvents || [])];
+
+      const newGeocaches = events
+        .map(parseGeocacheEvent)
+        .filter((g: Geocache | null): g is Geocache => {
+          if (!g) return false;
+          // Show hidden caches to their creator only
+          if (g.hidden && g.pubkey !== user?.pubkey) return false;
+          return true;
+        })
+        .sort((a: Geocache, b: Geocache) => b.created_at - a.created_at);
+
+      console.log('✅ Load more completed:', {
+        newEvents: events.length,
+        newGeocaches: newGeocaches.length,
+        totalGeocaches: state.geocaches.length + newGeocaches.length
+      });
+
+      // Update pagination state
+      if (newGeocaches.length > 0) {
+        const oldest = newGeocaches[newGeocaches.length - 1].created_at;
+        setOldestTimestamp(oldest);
+        // If we got fewer results than the limit, we've reached the end
+        setHasMore(events.length >= QUERY_LIMITS.GEOCACHES);
+      } else {
+        setHasMore(false);
+      }
+
+      // Combine with existing geocaches
+      const allGeocaches = [...state.geocaches, ...newGeocaches];
+
+      // Update state with combined geocaches
+      setState(prev => ({
+        ...prev,
+        geocaches: allGeocaches,
+      }));
+
+      return allGeocaches;
+    }, 'loadMoreGeocaches');
+  }, [baseStore, hasMore, oldestTimestamp, state.geocaches, user?.pubkey]);
 
   const fetchGeocache = useCallback(async (id: string): Promise<StoreActionResult<Geocache>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -654,6 +737,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     fetchGeocache,
     fetchUserGeocaches,
     fetchNearbyGeocaches,
+    loadMoreGeocaches,
 
     // CRUD operations
     createGeocache,
@@ -679,6 +763,9 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     // Configuration
     updateConfig,
     getStats,
+
+    // Pagination
+    hasMore,
   }), [
     state,
     memoizedGeocaches,
@@ -686,6 +773,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     fetchGeocache,
     fetchUserGeocaches,
     fetchNearbyGeocaches,
+    loadMoreGeocaches,
 
     createGeocache,
     updateGeocache,
@@ -702,6 +790,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     triggerSync,
     updateConfig,
     getStats,
+    hasMore,
   ]);
 
   return store;

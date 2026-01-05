@@ -64,31 +64,35 @@ export interface GeocacheStoreActions {
   fetchGeocache: (id: string) => Promise<StoreActionResult<Geocache>>;
   fetchUserGeocaches: (pubkey: string) => Promise<StoreActionResult<Geocache[]>>;
   fetchNearbyGeocaches: (lat: number, lon: number, radius?: number) => Promise<StoreActionResult<Geocache[]>>;
-  
+  loadMoreGeocaches: () => Promise<StoreActionResult<Geocache[]>>;
+
   // CRUD operations
   createGeocache: (geocache: Partial<Geocache>) => Promise<StoreActionResult<{ event: any; geocache: Geocache }>>;
   updateGeocache: (id: string, updates: Partial<Geocache>) => Promise<StoreActionResult<Geocache>>;
   deleteGeocache: (id: string) => Promise<StoreActionResult<void>>;
   batchDeleteGeocaches: (ids: string[]) => Promise<StoreActionResult<void>>;
-  
+
   // Cache management
   invalidateGeocache: (id: string) => void;
   invalidateAll: () => void;
   refreshGeocache: (id: string) => Promise<StoreActionResult<Geocache>>;
   refreshAll: () => Promise<StoreActionResult<Geocache[]>>;
-  
+
   // Selection and navigation
   selectGeocache: (geocache: Geocache | null) => void;
   preloadGeocache: (id: string) => Promise<void>;
-  
+
   // Background sync
   startBackgroundSync: () => void;
   stopBackgroundSync: () => void;
   triggerSync: () => Promise<StoreActionResult<void>>;
-  
+
   // Configuration
   updateConfig: (config: Partial<StoreConfig>) => void;
   getStats: () => CacheStats;
+
+  // Pagination
+  hasMore: boolean;
 }
 
 // Log store specific types
@@ -108,25 +112,25 @@ export interface LogStoreActions {
   fetchRecentLogs: (limit?: number) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchUserLogs: (pubkey: string) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchZapsForLog: (logId: string) => Promise<StoreActionResult<NostrEvent[]>>;
-  
+
   // CRUD operations
   createLog: (log: Partial<GeocacheLog>) => Promise<StoreActionResult<GeocacheLog>>;
   createVerifiedLog: (log: Partial<GeocacheLog>) => Promise<StoreActionResult<GeocacheLog>>;
   deleteLog: (logId: string) => Promise<StoreActionResult<void>>;
-  
+
   // Cache management
   invalidateLogs: (geocacheId: string) => void;
   invalidateAll: () => void;
   refreshLogs: (geocacheId: string) => Promise<StoreActionResult<GeocacheLog[]>>;
-  
+
   // Prefetching
   prefetchLogs: (geocacheIds: string[]) => Promise<void>;
-  
+
   // Background sync
   startBackgroundSync: () => void;
   stopBackgroundSync: () => void;
   triggerSync: (geocacheIds?: string[]) => Promise<StoreActionResult<void>>;
-  
+
   // Configuration
   updateConfig: (config: Partial<StoreConfig>) => void;
   getStats: () => CacheStats;
@@ -151,27 +155,27 @@ export interface AuthorStoreActions {
   // Data fetching
   fetchAuthor: (pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>;
   fetchAuthors: (pubkeys: string[]) => Promise<StoreActionResult<AuthorMetadata[]>>;
-  
+
   // Profile management
   updateProfile: (metadata: Record<string, unknown>) => Promise<StoreActionResult<NostrEvent>>;
   verifyNip05: (pubkey: string) => Promise<StoreActionResult<boolean>>;
-  
+
   // Cache management
   invalidateAuthor: (pubkey: string) => void;
   invalidateAll: () => void;
   refreshAuthor: (pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>;
-  
+
   // Prefetching
   prefetchAuthors: (pubkeys: string[]) => Promise<void>;
-  
+
   // Background sync
   startBackgroundSync: () => void;
   stopBackgroundSync: () => void;
   triggerSync: (pubkeys?: string[]) => Promise<StoreActionResult<void>>;
-  
+
   // User management
   setCurrentUser: (user: AuthorMetadata | null) => void;
-  
+
   // Configuration
   updateConfig: (config: Partial<StoreConfig>) => void;
   getStats: () => CacheStats;
