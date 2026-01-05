@@ -188,7 +188,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     if (coords && coords !== lastCoordsRef.current) {
       lastCoordsRef.current = coords;
 
-      // Apply autocorrection even to GPS coordinates (in case of device errors)
+      // Validate GPS coordinates
       const { lat, lng } = autocorrectCoordinates(coords.latitude, coords.longitude);
       const location = { lat, lng };
 
@@ -221,22 +221,14 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       return;
     }
 
-    // Validate coordinate ranges before autocorrection
-    if (Math.abs(inputLat) > 90 && Math.abs(inputLng) > 180) {
-      alert("Both coordinates are out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180.");
+    // Validate coordinate ranges
+    if (Math.abs(inputLat) > 90 || Math.abs(inputLng) > 180) {
+      alert("Coordinates out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180.");
       return;
     }
 
-    // Apply autocorrection
-    const { lat, lng, corrected } = autocorrectCoordinates(inputLat, inputLng);
-
-    // Update input fields to show corrected values
-    if (corrected) {
-      setManualCoords({
-        lat: formatCoordinateForInput(lat, true),
-        lng: formatCoordinateForInput(lng, true)
-      });
-    }
+    // Use coordinates as-is (no autocorrection)
+    const { lat, lng } = autocorrectCoordinates(inputLat, inputLng);
 
     const location = { lat, lng };
     setManualCoordsModified(false); // Reset modification flag
@@ -245,14 +237,14 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   };
 
   const handleLocationSearch = (location: { lat: number; lng: number; name: string }) => {
-    // Apply autocorrection to search results
+    // Validate search result coordinates
     const { lat, lng } = autocorrectCoordinates(location.lat, location.lng);
 
     const newLocation = { lat, lng };
     // Set beacon location for searched location
     setBeaconLocation(newLocation);
     setMapCenter([lat, lng]);
-    // Update manual coords to show corrected values and reset modification flag
+    // Update manual coords and reset modification flag
     setManualCoords({
       lat: formatCoordinateForInput(lat, true),
       lng: formatCoordinateForInput(lng, true)

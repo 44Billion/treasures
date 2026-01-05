@@ -29,61 +29,28 @@ export function parseCoordinate(coordStr: string): number {
 }
 
 /**
- * Autocorrect coordinates to handle common input errors
+ * Validate coordinates without any autocorrection
  * @param lat Latitude value
  * @param lng Longitude value
- * @returns Corrected coordinates
+ * @returns Validated coordinates (unchanged if valid)
  */
 export function autocorrectCoordinates(lat: number, lng: number): { lat: number; lng: number; corrected: boolean } {
-  let corrected = false;
-  let newLat = lat;
-  let newLng = lng;
+  // Simply validate that coordinates are in valid ranges
+  // Do NOT modify them - let the user see exactly what they get
+  const isValid =
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180;
 
-  // Auto-detect if coordinates are swapped
-  // If latitude is outside valid range but longitude is within latitude range
-  if (Math.abs(newLat) > 90 && Math.abs(newLng) <= 90) {
-    [newLat, newLng] = [newLng, newLat];
-    corrected = true;
+  if (!isValid) {
+    console.warn('Invalid coordinates detected:', { lat, lng });
   }
 
-  // Clamp latitude to valid range
-  if (newLat > 90) {
-    newLat = 90;
-    corrected = true;
-  }
-  if (newLat < -90) {
-    newLat = -90;
-    corrected = true;
-  }
-
-  // Wrap longitude to valid range
-  if (newLng > 180 || newLng < -180) {
-    while (newLng > 180) newLng -= 360;
-    while (newLng < -180) newLng += 360;
-    corrected = true;
-  }
-
-  // Common correction: North America positive longitude
-  // Only flip if longitude is in the range that would make sense for North America (60-130)
-  // This avoids incorrectly flipping Asian coordinates (100-180)
-  if (newLat > 20 && newLat < 50 && newLng > 60 && newLng < 100) {
-    newLng = -newLng;
-    corrected = true;
-  }
-
-  // Common correction: Asian coordinates with negative longitude
-  // If latitude suggests Asia and longitude is negative but would make sense as positive
-  // Asia is roughly lat 0-50, lng 60-180 (Eastern hemisphere)
-  if (newLat > 0 && newLat < 50 && newLng < 0 && newLng > -180) {
-    const potentialAsianLng = -newLng; // Flip to positive
-    // Check if this would place it in Asia (60-180)
-    if (potentialAsianLng > 60 && potentialAsianLng < 180) {
-      newLng = potentialAsianLng;
-      corrected = true;
-    }
-  }
-
-  return { lat: newLat, lng: newLng, corrected };
+  // Return coordinates unchanged
+  return { lat, lng, corrected: false };
 }
 
 /**
