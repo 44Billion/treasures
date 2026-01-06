@@ -11,6 +11,7 @@ Treasures.to is a decentralized geocaching platform built on the Nostr protocol.
 - **🗺️ Interactive Map**: Explore geocaches on a detailed map with custom markers and search.
 - **✍️ Log Adventures**: Record your finds, DNFs (Did Not Find), and notes about each cache.
 - **📲 QR Code Verification**: A novel QR code verification system for cache finds with cryptographic proof.
+- **🔗 Compact QR URLs**: Shorter URL format (`/c/...`) for smaller, easier-to-print QR codes (25% reduction).
 - **Nostr**: Built on the decentralized Nostr network for a censorship-resistant experience.
 - **🧑‍💻 Open Source**: This project is licensed under the GNU Affero General Public License v3.0.
 - **🚫 No Registration**: Login with any Nostr keypair - no email or personal data required.
@@ -60,6 +61,20 @@ npm run preview
 - **@nostrify/react**: React hooks and components for Nostr.
 - **TanStack Query**: Powerful data fetching, caching, and synchronization.
 - **Leaflet**: Open-source interactive maps.
+
+## 🔗 Compact QR Code URLs
+
+A shorter URL format for QR codes: `https://treasures.to/c/{base64url-payload}`
+
+**Payload structure (106 bytes):**
+```
+[0-31]   pubkey (32 bytes)
+[32]     d-tag length (1 byte)
+[33-73]  d-tag (41 bytes, null-padded)
+[74-105] verification private key (32 bytes)
+```
+
+Decode with base64url, then use standard Nostr tools (`nip19.naddrEncode`, `nip19.nsecEncode`). Kind is always `37516`.
 
 ## 🤝 Contributing
 
