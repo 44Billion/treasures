@@ -132,7 +132,7 @@ export default function Claim() {
             <img
               src="/claim-guide.webp"
               alt="QR Code scanning guide"
-              className="max-w-xs w-full h-auto mix-blend-multiply dark:mix-blend-lighten"
+              className="max-w-xs w-full h-auto mix-blend-multiply dark:invert dark:mix-blend-normal"
             />
           </div>
 
