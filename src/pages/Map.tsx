@@ -441,14 +441,14 @@ export default function Map() {
         {/* Sidebar */}
         <div className="w-96 border-r bg-background flex flex-col">
           {/* Filters */}
-          <div className="p-4 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
-            <div className="space-y-4">
+          <div className="p-3 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
+            <div className="space-y-2.5">
               <div className="flex gap-2">
                 <Input
                   placeholder={t('map.search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 h-9"
                 />
                 <FilterButton
                   difficulty={difficulty}
@@ -464,63 +464,55 @@ export default function Map() {
                 />
               </div>
 
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LocationSearch
-                      onLocationSelect={handleLocationSelect}
-                      placeholder={t('map.locationSearch.placeholder')}
-                    />
-                  </div>
-
-                  <Button
-                    variant={showNearMe ? "default" : "outline"}
-                    className="h-9 w-9 p-0 flex-shrink-0"
-                    onClick={handleNearMe}
-                    disabled={isGettingLocation}
-                    title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
-                  >
-                    <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                  </Button>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <LocationSearch
+                    onLocationSelect={handleLocationSelect}
+                    placeholder={t('map.locationSearch.placeholder')}
+                  />
                 </div>
-
-                {(showNearMe || searchLocation || searchInView) && (
-                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                      onClick={() => {
-                        setShowNearMe(false);
-                        setSearchLocation(null);
-                        setSearchInView(false);
-                      }}
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      {t('map.clear')}
-                    </Button>
-                  </div>
-                )}
+                <Button
+                  variant={showNearMe ? "default" : "outline"}
+                  className="h-9 w-9 p-0 flex-shrink-0"
+                  onClick={handleNearMe}
+                  disabled={isGettingLocation}
+                  title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
+                >
+                  <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
+                </Button>
               </div>
 
-
+              {(showNearMe || searchLocation || searchInView) && (
+                <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1.5">
+                  <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                  <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                    <SelectTrigger className="w-20 h-7 text-xs">
+                      <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                      <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                      <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                      <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                      <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                      <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs ml-auto"
+                    onClick={() => {
+                      setShowNearMe(false);
+                      setSearchLocation(null);
+                      setSearchInView(false);
+                    }}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    {t('map.clear')}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -662,108 +654,79 @@ export default function Map() {
 
       {/* Mobile View */}
       <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '4rem', bottom: '4rem' }}>
-        {/* Adventure Mobile Filters Header */}
+        {/* Compact Mobile Filters Header */}
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0 z-10">
-          <div className="p-3">
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  placeholder={t('map.search.placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                />
-                <FilterButton
-                  difficulty={difficulty}
-                  difficultyOperator={difficultyOperator}
-                  onDifficultyChange={setDifficulty}
-                  onDifficultyOperatorChange={setDifficultyOperator}
-                  terrain={terrain}
-                  terrainOperator={terrainOperator}
-                  onTerrainChange={setTerrain}
-                  onTerrainOperatorChange={setTerrainOperator}
-                  cacheType={cacheType}
-                  onCacheTypeChange={setCacheType}
-                  compact
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LocationSearch
-                      onLocationSelect={handleLocationSelect}
-                      placeholder={t('map.locationSearch.placeholder')}
-                    />
-                  </div>
-
-                  <Button
-                    variant={showNearMe ? "default" : "outline"}
-                    className="h-9 w-9 p-0 flex-shrink-0"
-                    onClick={handleNearMe}
-                    disabled={isGettingLocation}
-                    title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
-                  >
-                    <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                  </Button>
-
-                  {(showNearMe || searchLocation || searchInView) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-9 p-0 flex-shrink-0"
-                      onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
-                      title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
-                    >
-                      <svg
-                        className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </Button>
-                  )}
-                </div>
-
-                {(showNearMe || searchLocation || searchInView) && showMobileSearchOptions && (
-                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                      onClick={() => {
-                        setShowNearMe(false);
-                        setSearchLocation(null);
-                        setSearchInView(false);
-                        setShowMobileSearchOptions(false);
-                      }}
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      {t('map.clear')}
-                    </Button>
-                  </div>
-                )}
-              </div>
+          <div className="p-2 space-y-2">
+            {/* Unified search bar with integrated location search */}
+            <div className="flex gap-1.5">
+              <Input
+                placeholder={t('map.search.placeholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 h-9 text-sm"
+              />
+              <LocationSearch
+                onLocationSelect={handleLocationSelect}
+                placeholder={t('map.locationSearch.placeholder')}
+                mobilePlaceholder="City or zip"
+              />
+              <Button
+                variant={showNearMe ? "default" : "outline"}
+                className="h-9 w-9 p-0 flex-shrink-0"
+                onClick={handleNearMe}
+                disabled={isGettingLocation}
+                title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
+              >
+                <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
+              </Button>
+              <FilterButton
+                difficulty={difficulty}
+                difficultyOperator={difficultyOperator}
+                onDifficultyChange={setDifficulty}
+                onDifficultyOperatorChange={setDifficultyOperator}
+                terrain={terrain}
+                terrainOperator={terrainOperator}
+                onTerrainChange={setTerrain}
+                onTerrainOperatorChange={setTerrainOperator}
+                cacheType={cacheType}
+                onCacheTypeChange={setCacheType}
+                compact
+              />
             </div>
+
+            {/* Collapsible radius controls - only show when active */}
+            {(showNearMe || searchLocation || searchInView) && (
+              <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1.5">
+                <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                  <SelectTrigger className="w-20 h-7 text-xs">
+                    <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                    <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                    <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                    <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                    <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                    <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs ml-auto"
+                  onClick={() => {
+                    setShowNearMe(false);
+                    setSearchLocation(null);
+                    setSearchInView(false);
+                    setShowMobileSearchOptions(false);
+                  }}
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  {t('map.clear')}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
