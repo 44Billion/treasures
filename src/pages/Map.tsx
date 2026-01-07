@@ -15,7 +15,7 @@ import { useInitialLocation } from "@/features/map/hooks/useInitialLocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
-import { LocationSearch } from "@/components/LocationSearch";
+import { UnifiedSearch } from "@/components/UnifiedSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { FilterButton } from "@/components/FilterButton";
@@ -444,12 +444,21 @@ export default function Map() {
           <div className="p-3 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
             <div className="space-y-2.5">
               <div className="flex gap-2">
-                <Input
-                  placeholder={t('map.search.placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 h-9"
+                <UnifiedSearch
+                  onCacheSearch={setSearchQuery}
+                  onLocationSelect={handleLocationSelect}
+                  placeholder="Search caches or location..."
+                  cacheQuery={searchQuery}
                 />
+                <Button
+                  variant={showNearMe ? "default" : "outline"}
+                  className="h-9 w-9 p-0 flex-shrink-0"
+                  onClick={handleNearMe}
+                  disabled={isGettingLocation}
+                  title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
+                >
+                  <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
+                </Button>
                 <FilterButton
                   difficulty={difficulty}
                   difficultyOperator={difficultyOperator}
@@ -462,24 +471,6 @@ export default function Map() {
                   cacheType={cacheType}
                   onCacheTypeChange={setCacheType}
                 />
-              </div>
-
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <LocationSearch
-                    onLocationSelect={handleLocationSelect}
-                    placeholder={t('map.locationSearch.placeholder')}
-                  />
-                </div>
-                <Button
-                  variant={showNearMe ? "default" : "outline"}
-                  className="h-9 w-9 p-0 flex-shrink-0"
-                  onClick={handleNearMe}
-                  disabled={isGettingLocation}
-                  title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
-                >
-                  <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                </Button>
               </div>
 
               {(showNearMe || searchLocation || searchInView) && (
@@ -657,18 +648,14 @@ export default function Map() {
         {/* Compact Mobile Filters Header */}
         <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0 z-10">
           <div className="p-2 space-y-2">
-            {/* Unified search bar with integrated location search */}
+            {/* Single unified search bar */}
             <div className="flex gap-1.5">
-              <Input
-                placeholder={t('map.search.placeholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-9 text-sm"
-              />
-              <LocationSearch
+              <UnifiedSearch
+                onCacheSearch={setSearchQuery}
                 onLocationSelect={handleLocationSelect}
-                placeholder={t('map.locationSearch.placeholder')}
-                mobilePlaceholder="City or zip"
+                placeholder="Search caches or location..."
+                mobilePlaceholder="Search..."
+                cacheQuery={searchQuery}
               />
               <Button
                 variant={showNearMe ? "default" : "outline"}
