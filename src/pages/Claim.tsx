@@ -128,11 +128,11 @@ export default function Claim() {
 
         <div className="space-y-8">
           {/* Instructional Image */}
-          <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-8 flex items-center justify-center">
+          <div className="flex items-center justify-center py-8">
             <img
               src="/claim-guide.webp"
               alt="QR Code scanning guide"
-              className="max-w-xs w-full h-auto"
+              className="max-w-xs w-full h-auto mix-blend-multiply dark:mix-blend-lighten"
             />
           </div>
 
