@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, useMap, ZoomControl } from "react-leaflet";
 import { LatLngExpression, LatLngBounds } from "leaflet";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
@@ -1058,7 +1058,7 @@ export function GeocacheMap({
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
-        zoomControl={true}
+        zoomControl={false}
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
@@ -1069,6 +1069,7 @@ export function GeocacheMap({
         }}
         {...mapOptions}
       >
+      <ZoomControl position="bottomleft" />
       <OptimizedTileLayer mapStyle={mapStyle} />
 
       <MapSizeController />
