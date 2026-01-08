@@ -492,43 +492,7 @@ function MapSizeController() {
   return null;
 }
 
-// Component to add zoom control to the bottom-left position
-function ZoomControl() {
-  const map = useMap();
-  const controlRef = useRef<L.Control.Zoom | null>(null);
 
-  useEffect(() => {
-    // Wait for map to be fully initialized
-    const timer = setTimeout(() => {
-      if (!controlRef.current && map) {
-        // Add zoom control to bottom-left position
-        const zoomControl = L.control.zoom({
-          position: 'bottomleft'
-        });
-
-        zoomControl.addTo(map);
-        controlRef.current = zoomControl;
-
-        // Force invalidate size to ensure proper rendering
-        map.invalidateSize();
-      }
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (controlRef.current) {
-        try {
-          controlRef.current.remove();
-        } catch (e) {
-          console.debug('ZoomControl cleanup:', e);
-        }
-        controlRef.current = null;
-      }
-    };
-  }, [map]);
-
-  return null;
-}
 
 // Component to handle world wrapping and ensure markers stay visible
 function WorldWrapController({ geocaches }: { geocaches: Geocache[] }) {
@@ -1187,7 +1151,7 @@ export function GeocacheMap({
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
-        zoomControl={false}
+        zoomControl={true}
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
@@ -1200,7 +1164,6 @@ export function GeocacheMap({
       >
       <OptimizedTileLayer mapStyle={mapStyle} />
 
-      <ZoomControl />
       <MapSizeController />
       <WorldWrapController geocaches={geocaches} />
       <ZoomPopupManager geocaches={geocaches} />
