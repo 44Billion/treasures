@@ -555,34 +555,35 @@ export default function Map() {
                 className="h-full"
               >
                 <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span>
-                        {filteredGeocaches.length === 1
-                          ? t('map.results.count', { count: filteredGeocaches.length })
-                          : t('map.results.countPlural', { count: filteredGeocaches.length })
-                        }
-                        {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
-                      </span>
+                {/* Only show count when filters are active */}
+                {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>
+                          {filteredGeocaches.length === 1
+                            ? t('map.results.count', { count: filteredGeocaches.length })
+                            : t('map.results.countPlural', { count: filteredGeocaches.length })
+                          }
+                          {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+                        </span>
 
-
-
-                      {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                          <span>{t('map.loading.searching')}</span>
-                        </div>
-                      )}
-                      {baseGeocaches.isFetching && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                          <span>{t('map.loading.updating')}</span>
-                        </div>
-                      )}
+                        {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
+                            <span>{t('map.loading.searching')}</span>
+                          </div>
+                        )}
+                        {baseGeocaches.isFetching && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
+                            <span>{t('map.loading.updating')}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 <div className="space-y-3">
                   {filteredGeocaches.map((cache) => (
                     <CompactGeocacheCard
@@ -780,43 +781,46 @@ export default function Map() {
                   showRelayFallback={true}
                   className="h-full"
                 >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <span>
-                          {filteredGeocaches.length === 1
-                            ? t('map.results.count', { count: filteredGeocaches.length })
-                            : t('map.results.countPlural', { count: filteredGeocaches.length })
-                          }
-                          {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
-                          {searchInView && ` • ${t('map.results.inView')}`}
-                        </span>
-                        {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                            <span>{t('map.loading.searching')}</span>
-                          </div>
-                        )}
-                        {baseGeocaches.isFetching && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                            <span>{t('map.loading.updating')}</span>
-                          </div>
-                        )}
+                <div className="space-y-3">
+                  {/* Only show count when filters are active */}
+                  {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <span>
+                            {filteredGeocaches.length === 1
+                              ? t('map.results.count', { count: filteredGeocaches.length })
+                              : t('map.results.countPlural', { count: filteredGeocaches.length })
+                            }
+                            {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+                            {searchInView && ` • ${t('map.results.inView')}`}
+                          </span>
+                          {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                            <div className="flex items-center gap-1 text-xs">
+                              <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
+                              <span>{t('map.loading.searching')}</span>
+                            </div>
+                          )}
+                          {baseGeocaches.isFetching && (
+                            <div className="flex items-center gap-1 text-xs">
+                              <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
+                              <span>{t('map.loading.updating')}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      {isProximitySearchActive && (
+                        <Badge
+                          variant={proximitySuccessful ? "secondary" : "outline"}
+                          className="text-xs flex items-center gap-1"
+                          title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
+                        >
+                          <Sparkles className="h-2 w-2" />
+                          {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
+                        </Badge>
+                      )}
                     </div>
-                    {isProximitySearchActive && (
-                      <Badge
-                        variant={proximitySuccessful ? "secondary" : "outline"}
-                        className="text-xs flex items-center gap-1"
-                        title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
-                      >
-                        <Sparkles className="h-2 w-2" />
-                        {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
-                      </Badge>
-                    )}
-                  </div>
+                  )}
                   <div className="space-y-3">
                     {filteredGeocaches.map((cache) => (
                       <CompactGeocacheCard
