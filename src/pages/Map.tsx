@@ -284,6 +284,15 @@ export default function Map() {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
 
+    // Toggle off if already active
+    if (showNearMe) {
+      setShowNearMe(false);
+      setSearchLocation(null);
+      setSearchInView(false);
+      setShowMobileSearchOptions(false);
+      return;
+    }
+
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
     setSearchInView(false); // Clear search in view
