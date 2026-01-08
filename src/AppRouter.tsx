@@ -22,6 +22,7 @@ import Claim from "./pages/Claim";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import TexasRenFest from "./pages/TexasRenFest";
+import RemoteLoginSuccess from "./pages/RemoteLoginSuccess";
 
 export function AppRouter() {
   return (
@@ -50,6 +51,7 @@ export function AppRouter() {
           <Route path="/claim" element={<Claim />} />
           <Route path="/about" element={<About />} />
           <Route path="/texas-ren-fest" element={<TexasRenFest />} />
+          <Route path="/remoteloginsuccess" element={<RemoteLoginSuccess />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
           <Route path="/:naddr" element={<CacheDetail />} />
