@@ -183,13 +183,13 @@ export function LoginMethodTabs({
   onValueChange
 }: LoginMethodTabsProps) {
   const { t } = useTranslation();
-  
+
   // Check if extension is available
   const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
-  
+
   const loginMethods: MobileTabItem[] = useMemo(() => {
     const methods: MobileTabItem[] = [];
-    
+
     // Only show extension tab if extension is available
     if (hasExtension) {
       methods.push({
@@ -198,21 +198,21 @@ export function LoginMethodTabs({
         icon: Shield
       });
     }
-    
+
     // Key tab (center/default) - using KeyRound icon
     methods.push({
       value: 'key',
       label: t('login.tab.nsec'),
       icon: KeyRound
     });
-    
+
     // Connect tab (right) - using Cloud icon
     methods.push({
       value: 'connect',
       label: t('login.tab.connect'),
       icon: Cloud
     });
-    
+
     return methods;
   }, [t, hasExtension]);
 
@@ -295,54 +295,41 @@ interface MapViewTabsProps {
 }
 
 export function MapViewTabs({ children, className, value, onValueChange, defaultValue = "list" }: MapViewTabsProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
-  const mapTabs: MobileTabItem[] = useMemo(() => [
-    { value: 'list', label: t('map.tabs.list'), icon: List },
-    { value: 'map', label: t('map.tabs.map'), icon: Map },
-  ], [t, i18n.language]);
+  // Mobile: show as simple toggle button at bottom
+  // Desktop: show as full tabs at top
+  const currentValue = value || defaultValue;
+  const showMapButton = currentValue === 'list';
+  const buttonLabel = showMapButton ? t('map.tabs.map') : t('map.tabs.list');
+  const ButtonIcon = showMapButton ? Map : List;
 
-  // If controlled (value prop provided), use controlled mode
-  if (value !== undefined && onValueChange) {
-    return (
-      <Tabs
-        value={value}
-        onValueChange={onValueChange}
-        className={cn("w-full bg-secondary", className)}
-      >
-        <TabsList className="grid w-full h-auto grid-cols-2 mb-0">
-          {mapTabs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <TabsTrigger
-                key={item.value}
-                value={item.value}
-                disabled={item.disabled}
-                className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]"
-              >
-                {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                <span className="text-xs sm:text-sm">{item.label}</span>
-                {typeof item.count === 'number' && (
-                  <span className="text-xs sm:text-sm">({item.count})</span>
-                )}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-        {children}
-      </Tabs>
-    );
-  }
+  const handleToggle = () => {
+    if (onValueChange) {
+      onValueChange(showMapButton ? 'map' : 'list');
+    }
+  };
 
-  // Otherwise use uncontrolled mode (original behavior)
   return (
-    <MobileTabs
-      items={mapTabs}
-      defaultValue={defaultValue}
-      className={className}
-    >
-      {children}
-    </MobileTabs>
+    <div className={cn("relative w-full h-full", className)}>
+      {/* Content area - no tabs on mobile */}
+      <div className="h-full w-full">
+        {children}
+      </div>
+
+      {/* Mobile toggle button at bottom - only show on mobile */}
+      <div className="lg:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+        <Button
+          onClick={handleToggle}
+          variant="default"
+          size="lg"
+          className="pointer-events-auto shadow-lg min-w-[120px] h-12 text-base font-medium"
+        >
+          <ButtonIcon className="h-5 w-5 mr-2" />
+          {buttonLabel}
+        </Button>
+      </div>
+    </div>
   );
 }
 

@@ -20,10 +20,9 @@ import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
 import { useIsMobile } from "@/shared/hooks/useIsMobile";
-
-import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
+import { cn } from "@/shared/utils/utils";
 
 
 
@@ -731,12 +730,12 @@ export default function Map() {
         {/* Mobile Content Area */}
         <div className="flex-1 overflow-hidden">
           <MapViewTabs
-            className="h-full flex flex-col"
+            className="h-full"
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            {/* List Tab - Always mounted but hidden when inactive */}
-            <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden data-[state=inactive]:hidden">
+            {/* List View - Always mounted but hidden when inactive */}
+            <div className={cn("h-full flex flex-col bg-background overflow-hidden", activeTab !== 'list' && "hidden")}>
               <div
                 className="flex-1 overflow-y-auto p-4 pb-6 min-h-0 relative"
                 onTouchStart={handleTouchStart}
@@ -836,11 +835,10 @@ export default function Map() {
               </SmartLoadingState>
                 </div>
               </div>
-            </TabsContent>
+            </div>
 
-            {/* Map Tab - Always mounted but hidden when inactive */}
-            <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block data-[state=inactive]:hidden">
-              <div className="h-full w-full bg-background relative">
+            {/* Map View - Always mounted but hidden when inactive */}
+            <div className={cn("h-full w-full bg-background relative", activeTab !== 'map' && "hidden")}>
                 <GeocacheMap
                   geocaches={filteredGeocaches}
                   userLocation={userLocation}
@@ -871,7 +869,7 @@ export default function Map() {
 
 
               </div>
-            </TabsContent>
+            </div>
           </MapViewTabs>
         </div>
       </div>
