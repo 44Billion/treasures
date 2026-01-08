@@ -866,9 +866,6 @@ export default function Map() {
                     </div>
                   </div>
                 )}
-
-
-              </div>
             </div>
           </MapViewTabs>
         </div>
