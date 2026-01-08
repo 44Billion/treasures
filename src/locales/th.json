@@ -322,6 +322,8 @@
   "claim.alert.validating": "ตรวจพบ QR code แล้ว! กำลังตรวจสอบสมบัติ...",
   "map.search.placeholder": "ค้นหา cache...",
   "map.locationSearch.placeholder": "ค้นหาเมืองหรือรหัสไปรษณีย์...",
+  "map.omniSearch.placeholder": "ค้นหา cache, สถานที่ หรือพิกัด...",
+  "map.omniSearch.mobilePlaceholder": "ค้นหา...",
   "map.tabs.list": "รายการ",
   "map.tabs.map": "แผนที่",
   "map.nearMe.title": "ใกล้ฉัน",

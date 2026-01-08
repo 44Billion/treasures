@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useSearchParams } from "react-router-dom";
-import { MapPin, X, RefreshCw, Sparkles } from "lucide-react";
+import { X, RefreshCw, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/features/geocache/hooks/useReliableProximitySearch";
@@ -15,7 +14,7 @@ import { useInitialLocation } from "@/features/map/hooks/useInitialLocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
-import { LocationSearch } from "@/components/LocationSearch";
+import { OmniSearch } from "@/components/OmniSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { FilterButton } from "@/components/FilterButton";
@@ -453,11 +452,12 @@ export default function Map() {
           <div className="p-4 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
             <div className="space-y-4">
               <div className="flex gap-2">
-                <Input
-                  placeholder={t('map.search.placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
+                <OmniSearch
+                  onLocationSelect={handleLocationSelect}
+                  onGeocacheSelect={(cache) => handleCardClick(cache)}
+                  onTextSearch={setSearchQuery}
+                  geocaches={filteredGeocaches}
+                  placeholder={t('map.omniSearch.placeholder')}
                 />
                 <FilterButton
                   difficulty={difficulty}
@@ -474,14 +474,6 @@ export default function Map() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LocationSearch
-                      onLocationSelect={handleLocationSelect}
-                      placeholder={t('map.locationSearch.placeholder')}
-                    />
-                  </div>
-                </div>
 
                 {(showNearMe || searchLocation || searchInView) && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
@@ -668,11 +660,13 @@ export default function Map() {
           <div className="p-3">
             <div className="space-y-3">
               <div className="flex gap-2">
-                <Input
-                  placeholder={t('map.search.placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
+                <OmniSearch
+                  onLocationSelect={handleLocationSelect}
+                  onGeocacheSelect={(cache) => handleCardClick(cache)}
+                  onTextSearch={setSearchQuery}
+                  geocaches={filteredGeocaches}
+                  placeholder={t('map.omniSearch.placeholder')}
+                  mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
                 />
                 <FilterButton
                   difficulty={difficulty}
@@ -690,15 +684,8 @@ export default function Map() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LocationSearch
-                      onLocationSelect={handleLocationSelect}
-                      placeholder={t('map.locationSearch.placeholder')}
-                    />
-                  </div>
-
-                  {(showNearMe || searchLocation || searchInView) && (
+                {(showNearMe || searchLocation || searchInView) && (
+                  <div className="flex justify-end">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -715,8 +702,8 @@ export default function Map() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {(showNearMe || searchLocation || searchInView) && showMobileSearchOptions && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">

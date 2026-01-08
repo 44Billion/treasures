@@ -322,6 +322,8 @@
   "claim.alert.validating": "QR code detected! Validating treasure...",
   "map.search.placeholder": "Search caches...",
   "map.locationSearch.placeholder": "Search city or zip...",
+  "map.omniSearch.placeholder": "Search caches, locations, or coordinates...",
+  "map.omniSearch.mobilePlaceholder": "Search...",
   "map.tabs.list": "List",
   "map.tabs.map": "Map",
   "map.nearMe.title": "Near Me",
