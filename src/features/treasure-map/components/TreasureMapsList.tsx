@@ -133,23 +133,26 @@ export function TreasureMapsList({ className }: TreasureMapsListProps) {
           >
             All Maps
           </Button>
-          {VALID_TREASURE_MAP_CATEGORIES.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-              className="flex items-center gap-1"
-            >
-              <CATEGORY_INFO[category].icon className="h-3 w-3" />
-              <span>{CATEGORY_INFO[category].label}</span>
-              {mapsByCategory[category] && (
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {mapsByCategory[category].length}
-                </Badge>
-              )}
-            </Button>
-          ))}
+          {VALID_TREASURE_MAP_CATEGORIES.map((category) => {
+            const IconComponent = CATEGORY_INFO[category].icon;
+            return (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className="flex items-center gap-1"
+              >
+                <IconComponent className="h-3 w-3" />
+                <span>{CATEGORY_INFO[category].label}</span>
+                {mapsByCategory[category] && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {mapsByCategory[category].length}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
