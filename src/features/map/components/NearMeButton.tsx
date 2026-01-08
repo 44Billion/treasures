@@ -17,7 +17,7 @@ export function NearMeButton({ onNearMe, isActive, isLocating, isAdventureTheme 
       variant={isActive ? "default" : "secondary"}
       size="lg"
       className={`
-        !p-0 h-10 w-10 min-w-10 rounded-md transition-all duration-200 flex items-center justify-center border
+        !p-0 h-10 w-10 min-w-10 rounded-full transition-all duration-200 flex items-center justify-center border
         ${isAdventureTheme
           ? isActive
             ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700'
