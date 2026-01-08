@@ -331,7 +331,58 @@
 
 /* ===== MAP STYLE CONTROL ===== */
 .map-style-control {
-  margin-block-start: 0.625rem;
+  margin-top: 10px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+}
+
+/* Ensure controls at bottom-left are visible */
+.leaflet-bottom.leaflet-left {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+  bottom: 10px !important;
+  left: 10px !important;
+  display: flex !important;
+  flex-direction: column-reverse !important; /* Reverse so zoom appears above style selector */
+  gap: 10px !important; /* Add spacing between controls */
+  align-items: flex-start !important;
+}
+
+.leaflet-bottom.leaflet-left .leaflet-control {
+  margin: 0 !important;
+  pointer-events: auto !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Position zoom control with proper spacing above map style selector */
+.leaflet-bottom.leaflet-left .leaflet-control-zoom {
+  margin-bottom: 0 !important; /* Remove default margin since we use gap */
+}
+
+.leaflet-bottom.leaflet-left .leaflet-control-zoom {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  order: 1 !important;
+}
+
+.leaflet-bottom.leaflet-left .map-style-control {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  order: 2 !important;
+  margin-top: 10px !important;
+}
+
+/* Force button visibility within map style control */
+.map-style-control button {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .map-style-control .leaflet-control,

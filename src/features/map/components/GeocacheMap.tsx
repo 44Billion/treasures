@@ -679,110 +679,9 @@ function MapRefController({
   return null;
 }
 
-// Custom Leaflet control for map style selector
-function MapStyleControl({
-  currentStyle,
-  onStyleChange
-}: {
-  currentStyle: string;
-  onStyleChange: (style: string) => void;
-}) {
-  const map = useMap();
-  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
-  const controlRef = useRef<L.Control | null>(null);
-  const isInitializedRef = useRef(false);
 
-  // Use refs to store the latest props to avoid dependency issues
-  const currentStyleRef = useRef(currentStyle);
-  const onStyleChangeRef = useRef(onStyleChange);
 
-  // Update refs when props change
-  useEffect(() => {
-    currentStyleRef.current = currentStyle;
-    onStyleChangeRef.current = onStyleChange;
-  });
 
-  useEffect(() => {
-    // Only initialize once
-    if (isInitializedRef.current) return;
-
-    // Create a custom control
-    const StyleControl = L.Control.extend({
-      onAdd: function() {
-        const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar map-style-control');
-        div.style.background = 'transparent';
-        div.style.border = 'none';
-        div.style.margin = '0';
-        div.style.position = 'relative';
-        div.style.zIndex = '1000';
-
-        // Prevent map interaction when clicking on the control
-        L.DomEvent.disableClickPropagation(div);
-        L.DomEvent.disableScrollPropagation(div);
-
-        // Create React root and render the MapStyleSelector
-        rootRef.current = createRoot(div);
-        rootRef.current.render(
-          <MapStyleSelector
-            currentStyle={currentStyleRef.current}
-            onStyleChange={onStyleChangeRef.current}
-          />
-        );
-
-        return div;
-      }
-    });
-
-    const styleControl = new StyleControl({ position: 'topright' });
-    controlRef.current = styleControl;
-    map.addControl(styleControl);
-    isInitializedRef.current = true;
-
-    // Cleanup
-    return () => {
-      // Remove control first to prevent further interactions
-      if (controlRef.current) {
-        map.removeControl(controlRef.current);
-        controlRef.current = null;
-      }
-
-      // Unmount React root asynchronously to avoid synchronous unmount during render
-      if (rootRef.current) {
-        const root = rootRef.current;
-        rootRef.current = null;
-
-        // Use setTimeout to defer unmounting until after current render cycle
-        setTimeout(() => {
-          try {
-            // Double-check that the root is still valid before unmounting
-            if (root && typeof root.unmount === 'function') {
-              root.unmount();
-            }
-          } catch (error) {
-            // Silently handle unmount errors - component may already be unmounted
-            console.debug('MapStyleControl unmount:', error);
-          }
-        }, 0);
-      }
-
-      isInitializedRef.current = false;
-    };
-  }, [map]); // Only depend on map
-
-  // Update the rendered component when props change (without recreating the control)
-  useEffect(() => {
-    if (rootRef.current && isInitializedRef.current) {
-      rootRef.current.render(
-        <MapStyleSelector
-          currentStyle={currentStyleRef.current}
-          onStyleChange={onStyleChangeRef.current}
-        />
-      );
-    }
-  }, [currentStyle, onStyleChange]);
-
-  return null;
-}
 
 // Custom component for near me button - positioned at lower right corner
 function NearMeButtonControl({
@@ -1144,6 +1043,16 @@ export function GeocacheMap({
         </div>
       )}
 
+      {/* Map Style Selector - positioned absolutely */}
+      {showStyleSelector && (
+        <div className="absolute bottom-4 left-4 z-[1000] pointer-events-auto">
+          <MapStyleSelector
+            currentStyle={currentMapStyle}
+            onStyleChange={handleStyleChange}
+          />
+        </div>
+      )}
+
       <MapContainer
         center={mapCenter}
         zoom={zoom}
@@ -1188,16 +1097,6 @@ export function GeocacheMap({
         highlightedGeocache={highlightedGeocache}
         geocaches={geocaches}
       />
-
-      {/* Map Style Control - properly integrated with Leaflet */}
-      {showStyleSelector && (
-        <MapStyleControl
-          currentStyle={currentMapStyle}
-          onStyleChange={handleStyleChange}
-        />
-      )}
-
-      {/* Search in View Control - removed, functionality now in main UI */}
 
       {/* Near Me Button Control - positioned at lower right */}
       {onNearMe && (
