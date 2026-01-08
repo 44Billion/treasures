@@ -804,17 +804,17 @@ function CustomZoomControl() {
     zoomInBtn.className = 'zoom-btn zoom-in-btn';
     zoomInBtn.style.cssText = `
       display: block;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       background: rgba(255, 255, 255, 0.9);
-      border: 2px solid rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid hsl(var(--border));
+      border-bottom: 1px solid hsl(var(--border));
       color: #333;
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      border-top-left-radius: 4px;
-      border-top-right-radius: 4px;
+      border-top-left-radius: 0.375rem;
+      border-top-right-radius: 0.375rem;
       transition: background 0.2s;
     `;
     zoomInBtn.onmouseover = () => {
@@ -833,17 +833,17 @@ function CustomZoomControl() {
     zoomOutBtn.className = 'zoom-btn zoom-out-btn';
     zoomOutBtn.style.cssText = `
       display: block;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       background: rgba(255, 255, 255, 0.9);
-      border: 2px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid hsl(var(--border));
       border-top: none;
       color: #333;
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      border-bottom-left-radius: 4px;
-      border-bottom-right-radius: 4px;
+      border-bottom-left-radius: 0.375rem;
+      border-bottom-right-radius: 0.375rem;
       transition: background 0.2s;
     `;
     zoomOutBtn.onmouseover = () => {
