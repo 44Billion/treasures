@@ -148,7 +148,7 @@ export function GeocacheCard({
 
   // Get city name with flag from coordinates (100% offline, lazy-loaded)
   const [cityName, setCityName] = useState<string>(cache.city || '');
-  
+
   useEffect(() => {
     if (cache.city) {
       setCityName(cache.city);
@@ -377,7 +377,7 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col relative z-10 p-3.5 sm:p-4 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <h3 className="font-semibold text-[15px] sm:text-base leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
+              <h3 className="font-semibold text-[15px] sm:text-base leading-tight truncate group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
                 {cache.name}
               </h3>
               {variant !== 'detailed' && renderActionButtons(buttonSize)}
@@ -474,7 +474,7 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col p-2.5 sm:p-3">
               {/* Title row with action buttons */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight line-clamp-2 group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1 pr-8 md:pr-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
+                <h3 className="font-semibold leading-tight truncate group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1 pr-8 md:pr-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
                   {cache.name}
                 </h3>
                 {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", true, true)}

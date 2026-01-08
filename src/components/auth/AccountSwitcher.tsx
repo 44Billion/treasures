@@ -1,7 +1,7 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Wallet } from 'lucide-react';
+import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Wallet, Sun, Moon, Sword, Monitor } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
@@ -9,11 +9,21 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLoggedInAccounts } from '@/features/geocache/hooks/useLoggedInAccounts';
 import { useNavigate } from 'react-router-dom';
 import { WalletModal } from '@/components/WalletModal';
+import { useTheme } from '@/shared/hooks/useTheme';
+import { RelayCombobox } from '@/components/RelayCombobox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AccountSwitcherProps {
   onAddAccountClick: () => void;
@@ -23,6 +33,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
   const { t } = useTranslation();
   const { currentUser, otherUsers, setLogin, removeLogin, isLoadingCurrentUser } = useLoggedInAccounts();
   const navigate = useNavigate();
+  const { setTheme, theme } = useTheme();
 
   if (!currentUser) return null;
 
@@ -47,7 +58,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           </Avatar>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
+      <DropdownMenuContent
         className='w-56 p-2 animate-scale-in'
         side="bottom"
         sideOffset={8}
@@ -122,6 +133,68 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
             <span>{t('navigation.walletSettings')}</span>
           </DropdownMenuItem>
         </WalletModal>
+        <DropdownMenuSeparator />
+
+        {/* Theme Selector */}
+        <div className='px-2 py-1.5'>
+          <DropdownMenuLabel className='px-0 py-1 text-xs text-muted-foreground font-normal'>
+            {t('theme.toggle')}
+          </DropdownMenuLabel>
+          <Select value={theme} onValueChange={setTheme}>
+            <SelectTrigger className='w-full'>
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  {theme === 'light' && <Sun className="h-4 w-4" />}
+                  {theme === 'dark' && <Moon className="h-4 w-4" />}
+                  {theme === 'adventure' && <Sword className="h-4 w-4" />}
+                  {theme === 'system' && <Monitor className="h-4 w-4" />}
+                  <span>
+                    {theme === 'light' && t('theme.light')}
+                    {theme === 'dark' && t('theme.dark')}
+                    {theme === 'adventure' && t('theme.adventure')}
+                    {theme === 'system' && t('theme.system')}
+                  </span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="light">
+                <div className="flex items-center gap-2">
+                  <Sun className="h-4 w-4" />
+                  {t('theme.light')}
+                </div>
+              </SelectItem>
+              <SelectItem value="dark">
+                <div className="flex items-center gap-2">
+                  <Moon className="h-4 w-4" />
+                  {t('theme.dark')}
+                </div>
+              </SelectItem>
+              <SelectItem value="adventure">
+                <div className="flex items-center gap-2">
+                  <Sword className="h-4 w-4" />
+                  {t('theme.adventure')}
+                </div>
+              </SelectItem>
+              <SelectItem value="system">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  {t('theme.system')}
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Relay Selector - Desktop only */}
+        <div className='hidden md:block px-2 py-1.5'>
+          <DropdownMenuLabel className='px-0 py-1 text-xs text-muted-foreground font-normal'>
+            {t('settings.relay.title')}
+          </DropdownMenuLabel>
+          <RelayCombobox />
+        </div>
+
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={onAddAccountClick}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'

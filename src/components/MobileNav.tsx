@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles } from 'lucide-react';
+import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
-
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { RelaySelector } from '@/components/RelaySelector';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useLoggedInAccounts } from '@/features/geocache/hooks/useLoggedInAccounts';
@@ -74,7 +72,7 @@ export function MobileHeader() {
   const closeSheet = () => setIsOpen(false);
 
   const navigation = [
-    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.list'), href: '/map?tab=list', icon: List },
     { name: t('navigation.map'), href: '/map?tab=map', icon: Map },
     { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
     { name: t('navigation.new'), href: '/create', icon: Plus },
@@ -85,7 +83,7 @@ export function MobileHeader() {
       "sticky top-0 z-40 w-full border-b md:hidden pt-safe-top",
       themeClasses.header
     )}>
-      <div className="container flex h-16 items-center justify-between px-3 xs:px-4">
+      <div className="container flex h-12 items-center justify-between px-3 xs:px-4">
         {/* Menu Button */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
@@ -248,20 +246,16 @@ export function MobileHeader() {
         </Sheet>
 
         {/* Center Logo */}
-        <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-0.5 xs:gap-1">
+        <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
           <img
             src="/icon.svg"
             alt="Treasures"
-            className={cn("h-6 w-6 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)}
+            className={cn("h-7 w-7 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)}
           />
-          <h1 className={cn("text-[10px] xs:text-xs font-bold m-0 leading-none", themeClasses.text, isAdventureTheme && "font-adventure")}>
-            {t('navigation.appName')}
-          </h1>
         </Link>
 
-        {/* Right Side - Theme Toggle and Login */}
+        {/* Right Side - Login */}
         <div className="flex items-center gap-2 -mr-2">
-          <ThemeToggle variant="compact-icon" />
           <LoginArea compact />
         </div>
       </div>
@@ -306,6 +300,12 @@ function BottomNavItem({
   );
 }
 
+// Helper function to extract pathname from href
+function getPathnameFromHref(href: string): string {
+  const [pathname] = href.split('?');
+  return pathname || href;
+}
+
 export function MobileBottomNav() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -314,7 +314,7 @@ export function MobileBottomNav() {
   const themeClasses = getThemeClasses(isAdventureTheme);
 
   const navigation = [
-    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.list'), href: '/map?tab=list', icon: List },
     { name: t('navigation.map'), href: '/map?tab=map', icon: Map },
     { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
     { name: t('navigation.new'), href: '/create', icon: Plus },
@@ -326,17 +326,34 @@ export function MobileBottomNav() {
       themeClasses.header
     )}>
       <div className="grid grid-cols-4 h-16 items-center">
-        {navigation.map((item) => (
-          <BottomNavItem
-            key={item.href}
-            to={item.href}
-            icon={item.icon}
-            isActive={location.pathname === item.href}
-            themeClasses={themeClasses}
-          >
-            {item.name}
-          </BottomNavItem>
-        ))}
+        {navigation.map((item) => {
+          // For map tabs, check both pathname and search params
+          const searchParams = new URLSearchParams(location.search);
+          const currentTab = searchParams.get('tab');
+
+          let isActive = false;
+          if (item.href.includes('/map?tab=')) {
+            // For List and Map buttons, check the tab parameter
+            const itemTab = item.href.includes('tab=list') ? 'list' : 'map';
+            isActive = location.pathname === '/map' && currentTab === itemTab;
+          } else {
+            // For other buttons, just check pathname
+            const itemPathname = getPathnameFromHref(item.href);
+            isActive = location.pathname === itemPathname;
+          }
+
+          return (
+            <BottomNavItem
+              key={item.href}
+              to={item.href}
+              icon={item.icon}
+              isActive={isActive}
+              themeClasses={themeClasses}
+            >
+              {item.name}
+            </BottomNavItem>
+          );
+        })}
       </div>
     </nav>
   );

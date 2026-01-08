@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, Info, ChevronDown, Compass, QrCode, ScanQrCode, Scroll, Settings, BookOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { RelaySelector } from '@/components/RelaySelector';
 import { useTheme } from "@/shared/hooks/useTheme";
 import {
   DropdownMenu,
@@ -114,8 +112,6 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <RelaySelector className="w-[200px]" />
-            <ThemeToggle />
             <LoginArea />
           </nav>
         </div>

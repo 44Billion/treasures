@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import TexasRenFest from "./pages/TexasRenFest";
 import QRComparisonTest from "./pages/QRComparisonTest";
 import CompactRedirect from "./pages/CompactRedirect";
+import RemoteLoginSuccess from "./pages/RemoteLoginSuccess";
 
 export function AppRouter() {
   return (
@@ -54,6 +55,7 @@ export function AppRouter() {
           <Route path="/texas-ren-fest" element={<TexasRenFest />} />
           <Route path="/qr-test" element={<QRComparisonTest />} />
           <Route path="/c/:payload" element={<CompactRedirect />} />
+          <Route path="/remoteloginsuccess" element={<RemoteLoginSuccess />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
           <Route path="/:naddr" element={<CacheDetail />} />

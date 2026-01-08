@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client";
 import { useTheme } from "@/shared/hooks/useTheme";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { MapStyleSelector } from "./MapStyleSelector";
-import { SearchInViewButton } from "./SearchInViewButton";
+import { NearMeButton } from "./NearMeButton";
 import { MAP_STYLES, type MapStyle } from "@/features/map/constants/mapStyles";
 import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavigation";
 import { useMapController } from "@/features/map/hooks/useMapController";
@@ -259,9 +259,11 @@ interface GeocacheMapProps {
   searchRadius?: number; // in km
   onMarkerClick?: (geocache: Geocache) => void;
   onSearchInView?: (bounds: L.LatLngBounds) => void; // Callback for search in view functionality
+  onNearMe?: () => void; // Callback for near me functionality
   highlightedGeocache?: string; // dTag of geocache to highlight/open popup
   showStyleSelector?: boolean; // Whether to show the map style selector
   isNearMeActive?: boolean; // Whether "Near Me" mode is active
+  isGettingLocation?: boolean; // Whether location is being retrieved
   mapRef?: React.RefObject<L.Map>; // Reference to the map instance
   isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
 }
@@ -782,12 +784,16 @@ function MapStyleControl({
   return null;
 }
 
-// Custom component for search in view button - positioned at top center
-function SearchInViewControl({
-  onSearchInView,
+// Custom component for near me button - positioned at lower right corner
+function NearMeButtonControl({
+  onNearMe,
+  isNearMeActive,
+  isGettingLocation,
   isAdventureTheme
 }: {
-  onSearchInView: (bounds: L.LatLngBounds) => void;
+  onNearMe: () => void;
+  isNearMeActive: boolean;
+  isGettingLocation: boolean;
   isAdventureTheme: boolean;
 }) {
   const map = useMap();
@@ -796,12 +802,16 @@ function SearchInViewControl({
   const isInitializedRef = useRef(false);
 
   // Use refs to store the latest props to avoid dependency issues
-  const onSearchInViewRef = useRef(onSearchInView);
+  const onNearMeRef = useRef(onNearMe);
+  const isNearMeActiveRef = useRef(isNearMeActive);
+  const isGettingLocationRef = useRef(isGettingLocation);
   const isAdventureThemeRef = useRef(isAdventureTheme);
 
   // Update refs when props change
   useEffect(() => {
-    onSearchInViewRef.current = onSearchInView;
+    onNearMeRef.current = onNearMe;
+    isNearMeActiveRef.current = isNearMeActive;
+    isGettingLocationRef.current = isGettingLocation;
     isAdventureThemeRef.current = isAdventureTheme;
   });
 
@@ -811,14 +821,13 @@ function SearchInViewControl({
 
     const mapContainer = map.getContainer();
 
-    // Create container div for the search in view button
+    // Create container div for the near me button
     const container = document.createElement('div');
-    container.className = 'search-in-view-container';
+    container.className = 'near-me-button-container';
     container.style.cssText = `
       position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 16px;
+      right: 16px;
       z-index: 1000;
       pointer-events: auto;
     `;
@@ -827,12 +836,13 @@ function SearchInViewControl({
     mapContainer.appendChild(container);
     containerRef.current = container;
 
-    // Create React root and render the SearchInViewButton
+    // Create React root and render the NearMeButton
     rootRef.current = createRoot(container);
     rootRef.current.render(
-      <SearchInViewButton
-        map={map}
-        onSearchInView={onSearchInViewRef.current}
+      <NearMeButton
+        onNearMe={onNearMeRef.current}
+        isActive={isNearMeActiveRef.current}
+        isLocating={isGettingLocationRef.current}
         isAdventureTheme={isAdventureThemeRef.current}
       />
     );
@@ -855,7 +865,7 @@ function SearchInViewControl({
               root.unmount();
             }
           } catch (error) {
-            console.debug('SearchInViewControl unmount:', error);
+            console.debug('NearMeButtonControl unmount:', error);
           }
         }, 0);
       }
@@ -868,14 +878,15 @@ function SearchInViewControl({
   useEffect(() => {
     if (rootRef.current && isInitializedRef.current) {
       rootRef.current.render(
-        <SearchInViewButton
-          map={map}
-          onSearchInView={onSearchInViewRef.current}
+        <NearMeButton
+          onNearMe={onNearMeRef.current}
+          isActive={isNearMeActiveRef.current}
+          isLocating={isGettingLocationRef.current}
           isAdventureTheme={isAdventureThemeRef.current}
         />
       );
     }
-  }, [onSearchInView, isAdventureTheme, map]);
+  }, [onNearMe, isNearMeActive, isGettingLocation, isAdventureTheme]);
 
   return null;
 }
@@ -922,9 +933,11 @@ export function GeocacheMap({
   searchRadius,
   onMarkerClick,
   onSearchInView,
+  onNearMe,
   highlightedGeocache,
   showStyleSelector = true,
   isNearMeActive = false,
+  isGettingLocation = false,
   mapRef,
   isMapCenterLocked = false
 }: GeocacheMapProps) {
@@ -1184,10 +1197,14 @@ export function GeocacheMap({
         />
       )}
 
-      {/* Search in View Control - appears only when user has moved the map */}
-      {showStyleSelector && onSearchInView && (
-        <SearchInViewControl
-          onSearchInView={onSearchInView}
+      {/* Search in View Control - removed, functionality now in main UI */}
+
+      {/* Near Me Button Control - positioned at lower right */}
+      {onNearMe && (
+        <NearMeButtonControl
+          onNearMe={onNearMe}
+          isNearMeActive={isNearMeActive}
+          isGettingLocation={isGettingLocation}
           isAdventureTheme={currentMapStyle === 'adventure'}
         />
       )}

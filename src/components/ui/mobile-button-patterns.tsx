@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LucideIcon, Shield, Trophy, MessageSquare, MapPin } from 'lucide-react';
+import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, List, Map, Cloud, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/shared/utils/utils';
@@ -76,20 +76,20 @@ interface MobileButtonGroupProps {
   className?: string;
 }
 
-export function MobileButtonGroup({ 
-  items, 
-  selected, 
-  onSelect, 
+export function MobileButtonGroup({
+  items,
+  selected,
+  onSelect,
   cols = 3,
   variant = 'outline',
   size = 'sm',
-  className 
+  className
 }: MobileButtonGroupProps) {
   return (
     <div className={cn(
       "grid gap-1 sm:gap-2 bg-accent",
       cols === 2 && "grid-cols-2",
-      cols === 3 && "grid-cols-3", 
+      cols === 3 && "grid-cols-3",
       cols === 4 && "grid-cols-4",
       cols === 5 && "grid-cols-5",
       className
@@ -97,7 +97,7 @@ export function MobileButtonGroup({
       {items.map((item) => {
         const Icon = item.icon;
         const isSelected = selected === item.id;
-        
+
         return (
           <Button
             key={item.id}
@@ -126,12 +126,12 @@ interface LogTypeButtonGroupProps {
   className?: string;
 }
 
-export function LogTypeButtonGroup({ 
-  logType, 
-  onLogTypeChange, 
-  isOwner = false, 
+export function LogTypeButtonGroup({
+  logType,
+  onLogTypeChange,
+  isOwner = false,
   disabled = false,
-  className 
+  className
 }: LogTypeButtonGroupProps) {
   const mainLogTypes: MobileButtonItem[] = [
     { id: 'found', label: 'Found It', icon: Trophy },
@@ -152,7 +152,7 @@ export function LogTypeButtonGroup({
         onSelect={onLogTypeChange}
         cols={3}
       />
-      
+
       {isOwner && (
         <div className="pt-2 border-t">
           <MobileButtonGroup
@@ -170,39 +170,82 @@ export function LogTypeButtonGroup({
 // === LOGIN METHOD TABS (Specialized) ===
 
 interface LoginMethodTabsProps {
-  defaultMethod?: 'extension' | 'key' | 'bunker';
+  defaultMethod?: 'extension' | 'connect' | 'key';
   children: ReactNode;
   className?: string;
+  onValueChange?: (value: string) => void;
 }
 
-export function LoginMethodTabs({ 
-  defaultMethod = 'extension', 
-  children, 
-  className 
+export function LoginMethodTabs({
+  defaultMethod = 'key',
+  children,
+  className,
+  onValueChange
 }: LoginMethodTabsProps) {
   const { t } = useTranslation();
-  const loginMethods: MobileTabItem[] = useMemo(() => [
-    { 
-      value: 'extension', 
-      label: t('login.tab.extension'),
-      icon: Shield
-    },
-    { value: 'key', label: t('login.tab.nsec') },
-    { value: 'bunker', label: t('login.tab.bunker') },
-  ], [t]);
 
   // Check if extension is available
   const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
-  const actualDefault = hasExtension ? defaultMethod : 'key';
+
+  const loginMethods: MobileTabItem[] = useMemo(() => {
+    const methods: MobileTabItem[] = [];
+
+    // Only show extension tab if extension is available
+    if (hasExtension) {
+      methods.push({
+        value: 'extension',
+        label: t('login.tab.extension'),
+        icon: Shield
+      });
+    }
+
+    // Key tab (center/default) - using KeyRound icon
+    methods.push({
+      value: 'key',
+      label: t('login.tab.nsec'),
+      icon: KeyRound
+    });
+
+    // Connect tab (right) - using Cloud icon
+    methods.push({
+      value: 'connect',
+      label: t('login.tab.connect'),
+      icon: Cloud
+    });
+
+    return methods;
+  }, [t, hasExtension]);
+
+  const cols = loginMethods.length;
+  const actualDefault = defaultMethod;
 
   return (
-    <MobileTabs
-      items={loginMethods}
-      defaultValue={actualDefault}
-      className={className}
-    >
+    <Tabs defaultValue={actualDefault} className={cn("w-full", className)} onValueChange={onValueChange}>
+      <TabsList className={cn(
+        "grid w-full h-auto bg-secondary",
+        cols === 2 && "grid-cols-2",
+        cols === 3 && "grid-cols-3"
+      )}>
+        {loginMethods.map((item) => {
+          const Icon = item.icon;
+          return (
+            <TabsTrigger
+              key={item.value}
+              value={item.value}
+              disabled={item.disabled}
+              className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]"
+            >
+              {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
+              <span className="text-xs sm:text-sm">{item.label}</span>
+              {typeof item.count === 'number' && (
+                <span className="text-xs sm:text-sm">({item.count})</span>
+              )}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
       {children}
-    </MobileTabs>
+    </Tabs>
   );
 }
 
@@ -217,14 +260,14 @@ interface CacheDetailTabsProps {
 
 export function CacheDetailTabs({ logCount = 0, children, className, defaultTab = 'logs' }: CacheDetailTabsProps) {
   const detailTabs: MobileTabItem[] = [
-    { 
-      value: 'logs', 
+    {
+      value: 'logs',
       label: 'Logs',
       icon: MessageSquare,
       count: logCount
     },
-    { 
-      value: 'map', 
+    {
+      value: 'map',
       label: 'Map',
       icon: MapPin
     },
@@ -251,55 +294,11 @@ interface MapViewTabsProps {
   defaultValue?: string;
 }
 
-export function MapViewTabs({ children, className, value, onValueChange, defaultValue = "list" }: MapViewTabsProps) {
-  const { t, i18n } = useTranslation();
-  
-  const mapTabs: MobileTabItem[] = useMemo(() => [
-    { value: 'list', label: t('map.tabs.list') },
-    { value: 'map', label: t('map.tabs.map') },
-  ], [t, i18n.language]);
-
-  // If controlled (value prop provided), use controlled mode
-  if (value !== undefined && onValueChange) {
-    return (
-      <Tabs
-        value={value}
-        onValueChange={onValueChange}
-        className={cn("w-full bg-secondary", className)}
-      >
-        <TabsList className="grid w-full h-auto grid-cols-2 mb-0">
-          {mapTabs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <TabsTrigger
-                key={item.value}
-                value={item.value}
-                disabled={item.disabled}
-                className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]"
-              >
-                {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                <span className="text-xs sm:text-sm">{item.label}</span>
-                {typeof item.count === 'number' && (
-                  <span className="text-xs sm:text-sm">({item.count})</span>
-                )}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-        {children}
-      </Tabs>
-    );
-  }
-
-  // Otherwise use uncontrolled mode (original behavior)
+export function MapViewTabs({ children, className }: MapViewTabsProps) {
   return (
-    <MobileTabs
-      items={mapTabs}
-      defaultValue={defaultValue}
-      className={className}
-    >
+    <div className={cn("w-full h-full", className)}>
       {children}
-    </MobileTabs>
+    </div>
   );
 }
 

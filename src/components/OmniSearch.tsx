@@ -1,33 +1,48 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Search, MapPin, X } from "lucide-react";
+import { Search, MapPin, X, Package } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { Geocache } from "@/types/geocache";
 
-interface LocationSearchProps {
+interface OmniSearchProps {
   onLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
+  onGeocacheSelect: (geocache: Geocache) => void;
+  onTextSearch: (query: string) => void;
+  geocaches: Geocache[];
   placeholder?: string;
   mobilePlaceholder?: string;
 }
 
-interface SearchResult {
+interface LocationResult {
+  type: 'location';
   name: string;
   lat: number;
   lng: number;
-  type?: string;
-  importance?: number;
   display_name?: string;
+  importance?: number;
+  locationtype?: string;
   warning?: string;
 }
 
-export function LocationSearch({
+interface GeocacheResult {
+  type: 'geocache';
+  geocache: Geocache;
+}
+
+type SearchResult = LocationResult | GeocacheResult;
+
+export function OmniSearch({
   onLocationSelect,
-  placeholder = "Search by city, zip code, or coordinates...",
+  onGeocacheSelect,
+  onTextSearch,
+  geocaches,
+  placeholder = "Search caches, locations, or coordinates...",
   mobilePlaceholder
-}: LocationSearchProps) {
+}: OmniSearchProps) {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -42,7 +57,7 @@ export function LocationSearch({
   // Update placeholder based on screen size
   useEffect(() => {
     const updatePlaceholder = () => {
-      if (window.innerWidth < 640 && mobilePlaceholder) { // sm breakpoint
+      if (window.innerWidth < 640 && mobilePlaceholder) {
         setCurrentPlaceholder(mobilePlaceholder);
       } else {
         setCurrentPlaceholder(placeholder);
@@ -103,11 +118,11 @@ export function LocationSearch({
   const parseCoordinates = (input: string): { lat: number; lng: number; warning?: string } | null => {
     // Clean input: remove extra spaces, normalize separators
     const cleaned = input.trim()
-      .replace(/[,;]/g, ' ')  // Replace commas and semicolons with spaces
-      .replace(/\s+/g, ' ')   // Multiple spaces to single space
-      .replace(/['′]/g, "'")  // Normalize apostrophes
-      .replace(/["″]/g, '"')  // Normalize quotes
-      .replace(/[°º]/g, '°'); // Normalize degree symbols
+      .replace(/[,;]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/['′]/g, "'")
+      .replace(/["″]/g, '"')
+      .replace(/[°º]/g, '°');
 
     // Try to parse various coordinate formats
     const patterns = [
@@ -126,15 +141,12 @@ export function LocationSearch({
         let warning: string | undefined;
 
         if (pattern === patterns[0]) {
-          // Simple decimal format
           lat = parseFloat(match[1] || '0');
           lng = parseFloat(match[2] || '0');
         } else if (pattern === patterns[1]) {
-          // N/S E/W format
           lat = parseFloat(match[1] || '0') * (match[2]?.toUpperCase() === 'S' ? -1 : 1);
           lng = parseFloat(match[3] || '0') * (match[4]?.toUpperCase() === 'W' ? -1 : 1);
         } else if (pattern === patterns[2]) {
-          // DMS format
           const latDeg = parseInt(match[1] || '0');
           const latMin = parseInt(match[2] || '0');
           const latSec = parseFloat(match[3] || '0');
@@ -153,20 +165,13 @@ export function LocationSearch({
 
         // Validate coordinates and generate warnings
         if (!isNaN(lat) && !isNaN(lng)) {
-          // Check for potentially swapped coordinates
           if (Math.abs(lat) > 90 && Math.abs(lng) <= 90) {
             warning = '⚠️ Latitude appears invalid (must be between -90 and 90). Did you swap lat/lng?';
-          }
-          // Check for out of range latitude
-          else if (Math.abs(lat) > 90) {
+          } else if (Math.abs(lat) > 90) {
             warning = '⚠️ Latitude must be between -90 and 90 degrees';
-          }
-          // Check for out of range longitude
-          else if (Math.abs(lng) > 180) {
+          } else if (Math.abs(lng) > 180) {
             warning = '⚠️ Longitude must be between -180 and 180 degrees';
-          }
-          // Check for coordinates that might be in the wrong ocean
-          else if (Math.abs(lat) < 1 && Math.abs(lng) < 1) {
+          } else if (Math.abs(lat) < 1 && Math.abs(lng) < 1) {
             warning = '⚠️ Coordinates near 0,0 (Gulf of Guinea). Is this correct?';
           }
 
@@ -178,30 +183,22 @@ export function LocationSearch({
     return null;
   };
 
-  const handleSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      setShowResults(false);
-      return;
-    }
+  const searchGeocaches = (searchQuery: string): GeocacheResult[] => {
+    if (!searchQuery.trim()) return [];
 
-    setIsSearching(true);
-    setShowResults(true);
+    const searchLower = searchQuery.toLowerCase();
+    const matchingCaches = geocaches.filter(cache =>
+      cache.name.toLowerCase().includes(searchLower) ||
+      cache.description.toLowerCase().includes(searchLower)
+    );
 
-    // First check if it's coordinates
-    const coords = parseCoordinates(searchQuery);
-    if (coords) {
-      setResults([{
-        name: `Coordinates: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
-        lat: coords.lat,
-        lng: coords.lng,
-        type: 'coordinates',
-        warning: coords.warning
-      }]);
-      setIsSearching(false);
-      return;
-    }
+    return matchingCaches.slice(0, 3).map(cache => ({
+      type: 'geocache' as const,
+      geocache: cache
+    }));
+  };
 
+  const searchLocations = async (searchQuery: string): Promise<LocationResult[]> => {
     // Cancel previous request if any
     if (abortController.current) {
       abortController.current.abort();
@@ -210,14 +207,13 @@ export function LocationSearch({
     // Create new abort controller
     abortController.current = new AbortController();
 
-    // Use Nominatim API directly
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?` +
         new URLSearchParams({
           q: searchQuery,
           format: 'json',
-          limit: '5',
+          limit: '3',
           addressdetails: '1'
         }),
         {
@@ -234,27 +230,78 @@ export function LocationSearch({
 
       const data = await response.json();
 
-      const searchResults: SearchResult[] = data.map((item: unknown) => {
+      return data.map((item: unknown) => {
         const obj = item as Record<string, unknown>;
         return {
+          type: 'location' as const,
           name: (obj.display_name as string)?.split(',')[0] || '',
           lat: parseFloat(obj.lat as string),
           lng: parseFloat(obj.lon as string),
           display_name: obj.display_name as string,
           importance: obj.importance as number,
-          type: (obj.type as string) || (obj.class as string) || 'place'
+          locationtype: (obj.type as string) || (obj.class as string) || 'place'
         };
       });
-
-      setResults(searchResults);
-      setIsSearching(false);
     } catch (error: unknown) {
       const errorObj = error as { name?: string };
       if (errorObj.name !== 'AbortError') {
-        setResults([]);
+        console.error('Location search error:', error);
       }
-      setIsSearching(false);
+      return [];
     }
+  };
+
+  const handleSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setResults([]);
+      setShowResults(false);
+      // Trigger text search with empty query to clear filters
+      onTextSearch("");
+      return;
+    }
+
+    setIsSearching(true);
+    setShowResults(true);
+
+    // First check if it's coordinates
+    const coords = parseCoordinates(searchQuery);
+    if (coords) {
+      setResults([{
+        type: 'location',
+        name: `Coordinates: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+        lat: coords.lat,
+        lng: coords.lng,
+        locationtype: 'coordinates',
+        warning: coords.warning
+      }]);
+      setIsSearching(false);
+      return;
+    }
+
+    // Search both geocaches and locations in parallel
+    const [geocacheResults, locationResults] = await Promise.all([
+      Promise.resolve(searchGeocaches(searchQuery)),
+      searchLocations(searchQuery)
+    ]);
+
+    // Combine and prioritize results
+    // If we have geocache matches, show them first
+    // Otherwise, show location results
+    const combinedResults: SearchResult[] = [];
+
+    if (geocacheResults.length > 0) {
+      combinedResults.push(...geocacheResults);
+    }
+
+    if (locationResults.length > 0) {
+      combinedResults.push(...locationResults);
+    }
+
+    setResults(combinedResults);
+    setIsSearching(false);
+
+    // Trigger text search for filtering the list
+    onTextSearch(searchQuery);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,7 +316,7 @@ export function LocationSearch({
     // Set new timeout for debounced search
     searchTimeout.current = setTimeout(() => {
       handleSearch(value);
-    }, 500);
+    }, 300); // Reduced from 500ms for snappier response
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -295,12 +342,20 @@ export function LocationSearch({
   };
 
   const handleResultClick = (result: SearchResult) => {
-    onLocationSelect({
-      lat: result.lat,
-      lng: result.lng,
-      name: result.display_name || result.name
-    });
-    setQuery(result.name);
+    if (result.type === 'location') {
+      onLocationSelect({
+        lat: result.lat,
+        lng: result.lng,
+        name: result.display_name || result.name
+      });
+    } else {
+      onGeocacheSelect(result.geocache);
+    }
+
+    // Clear the search query and text search filter when selecting any result
+    // This prevents filtering the cache list after a selection is made
+    setQuery("");
+    onTextSearch("");
     setShowResults(false);
   };
 
@@ -308,10 +363,15 @@ export function LocationSearch({
     setQuery("");
     setResults([]);
     setShowResults(false);
+    onTextSearch("");
   };
 
-  const getResultIcon = (type?: string) => {
-    switch (type) {
+  const getResultIcon = (result: SearchResult) => {
+    if (result.type === 'geocache') {
+      return <Package className="h-4 w-4 text-primary" />;
+    }
+
+    switch (result.locationtype) {
       case 'coordinates':
         return '📍';
       case 'postcode':
@@ -338,14 +398,12 @@ export function LocationSearch({
         {results.length > 0 && (
           <Card
             ref={dropdownRef}
-            className="absolute max-h-64 overflow-y-auto shadow-lg"
+            className="absolute max-h-96 overflow-y-auto shadow-lg"
             style={{
-              ...{
-                top: `${dropdownPosition.top}px`,
-                left: `${dropdownPosition.left}px`,
-                width: `${dropdownPosition.width}px`,
-                marginTop: '4px',
-              },
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              marginTop: '4px',
               zIndex: 9999,
             }}
           >
@@ -353,29 +411,55 @@ export function LocationSearch({
               {results.map((result, index) => (
                 <button
                   key={index}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded flex items-start gap-2 transition-colors"
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-start gap-2 transition-colors"
                   onClick={() => handleResultClick(result)}
                 >
-                  <span className="text-lg mt-0.5">{getResultIcon(result.type)}</span>
+                  <span className="text-lg mt-0.5 shrink-0">
+                    {typeof getResultIcon(result) === 'string' ? (
+                      getResultIcon(result)
+                    ) : (
+                      getResultIcon(result)
+                    )}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{result.name}</div>
-                    {result.display_name && result.display_name !== result.name && (
-                      <div className="text-sm text-gray-600 truncate">{result.display_name}</div>
+                    {result.type === 'geocache' ? (
+                      <>
+                        <div className="font-medium truncate">{result.geocache.name}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {result.geocache.description}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {result.geocache.location.lat.toFixed(4)}, {result.geocache.location.lng.toFixed(4)}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-medium truncate">{result.name}</div>
+                        {result.display_name && result.display_name !== result.name && (
+                          <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {result.display_name}
+                          </div>
+                        )}
+                        {result.warning && (
+                          <div className="text-xs text-amber-600 mt-1 flex items-start gap-1">
+                            <span className="shrink-0">{result.warning}</span>
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500">
+                          {result.lat.toFixed(4)}, {result.lng.toFixed(4)}
+                        </div>
+                      </>
                     )}
-                    {result.warning && (
-                      <div className="text-xs text-amber-600 mt-1 flex items-start gap-1">
-                        <span className="shrink-0">{result.warning}</span>
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-500">
-                      {result.lat.toFixed(4)}, {result.lng.toFixed(4)}
-                    </div>
                   </div>
-                  {result.type && result.type !== 'coordinates' && (
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      {result.type}
+                  {result.type === 'geocache' ? (
+                    <Badge variant="default" className="text-xs shrink-0">
+                      Cache
                     </Badge>
-                  )}
+                  ) : result.locationtype && result.locationtype !== 'coordinates' ? (
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      {result.locationtype}
+                    </Badge>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -396,8 +480,8 @@ export function LocationSearch({
           >
             <div className="p-4 text-center text-gray-500">
               <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">No locations found</p>
-              <p className="text-xs mt-1">Try searching for a city, zip code, or coordinates</p>
+              <p className="text-sm">No results found</p>
+              <p className="text-xs mt-1">Try searching for a cache name, city, zip code, or coordinates</p>
             </div>
           </Card>
         )}

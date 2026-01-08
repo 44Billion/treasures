@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/shared/hooks/useAppContext";
 import { useSearchParams } from "react-router-dom";
-import { MapPin, X, Locate, RefreshCw, Sparkles } from "lucide-react";
+import { X, RefreshCw, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/features/geocache/hooks/useReliableProximitySearch";
@@ -15,16 +14,15 @@ import { useInitialLocation } from "@/features/map/hooks/useInitialLocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
-import { LocationSearch } from "@/components/LocationSearch";
+import { OmniSearch } from "@/components/OmniSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
 import { useIsMobile } from "@/shared/hooks/useIsMobile";
-
-import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
+import { cn } from "@/shared/utils/utils";
 
 
 
@@ -284,6 +282,15 @@ export default function Map() {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
 
+    // Toggle off if already active
+    if (showNearMe) {
+      setShowNearMe(false);
+      setSearchLocation(null);
+      setSearchInView(false);
+      setShowMobileSearchOptions(false);
+      return;
+    }
+
     setShowNearMe(true);
     setSearchLocation(null); // Clear search location
     setSearchInView(false); // Clear search in view
@@ -441,14 +448,15 @@ export default function Map() {
         {/* Sidebar */}
         <div className="w-96 border-r bg-background flex flex-col">
           {/* Filters */}
-          <div className="p-4 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
-            <div className="space-y-4">
+          <div className="p-4 bg-background/95 backdrop-blur-sm flex-shrink-0">
+            <div className="space-y-2">
               <div className="flex gap-2">
-                <Input
-                  placeholder={t('map.search.placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
+                <OmniSearch
+                  onLocationSelect={handleLocationSelect}
+                  onGeocacheSelect={(cache) => handleCardClick(cache)}
+                  onTextSearch={setSearchQuery}
+                  geocaches={filteredGeocaches}
+                  placeholder={t('map.omniSearch.placeholder')}
                 />
                 <FilterButton
                   difficulty={difficulty}
@@ -464,27 +472,7 @@ export default function Map() {
                 />
               </div>
 
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LocationSearch
-                      onLocationSelect={handleLocationSelect}
-                      placeholder={t('map.locationSearch.placeholder')}
-                    />
-                  </div>
-
-                  <Button
-                    variant={showNearMe ? "default" : "outline"}
-                    className="h-9 w-9 p-0 flex-shrink-0"
-                    onClick={handleNearMe}
-                    disabled={isGettingLocation}
-                    title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
-                  >
-                    <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                  </Button>
-                </div>
-
-                {(showNearMe || searchLocation || searchInView) && (
+              {(showNearMe || searchLocation || searchInView) && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
@@ -518,9 +506,6 @@ export default function Map() {
                     </Button>
                   </div>
                 )}
-              </div>
-
-
             </div>
           </div>
 
@@ -569,48 +554,35 @@ export default function Map() {
                 className="h-full"
               >
                 <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span>
-                        {filteredGeocaches.length === 1
-                          ? t('map.results.count', { count: filteredGeocaches.length })
-                          : t('map.results.countPlural', { count: filteredGeocaches.length })
-                        }
-                        {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
-                      </span>
+                {/* Only show count when filters are active */}
+                {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>
+                          {filteredGeocaches.length === 1
+                            ? t('map.results.count', { count: filteredGeocaches.length })
+                            : t('map.results.countPlural', { count: filteredGeocaches.length })
+                          }
+                          {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+                        </span>
 
-
-
-                      {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                          <span>{t('map.loading.searching')}</span>
-                        </div>
-                      )}
-                      {baseGeocaches.isFetching && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                          <span>{t('map.loading.updating')}</span>
-                        </div>
-                      )}
+                        {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
+                            <span>{t('map.loading.searching')}</span>
+                          </div>
+                        )}
+                        {baseGeocaches.isFetching && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
+                            <span>{t('map.loading.updating')}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRetry}
-                      className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
-                      title={t('map.refresh.title')}
-                      disabled={isRetrying}
-                    >
-                      <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-                      <span className="text-xs">{t('map.refresh')}</span>
-                    </Button>
-                  </div>
-                </div>
+                )}
                 <div className="space-y-3">
                   {filteredGeocaches.map((cache) => (
                     <CompactGeocacheCard
@@ -629,7 +601,7 @@ export default function Map() {
         </div>
 
         {/* Map - render immediately with progressive geocache loading */}
-        <div className="flex-1 relative bg-background min-h-0">
+        <div className="flex-1 relative min-h-0">
           <GeocacheMap
             geocaches={filteredGeocaches}
             userLocation={userLocation}
@@ -639,9 +611,11 @@ export default function Map() {
             zoom={mapZoom}
             onMarkerClick={handleMarkerClick}
             onSearchInView={handleSearchInView}
+            onNearMe={handleNearMe}
             highlightedGeocache={highlightedGeocache || undefined}
             showStyleSelector={true}
             isNearMeActive={showNearMe}
+            isGettingLocation={isGettingLocation}
             mapRef={mapRef}
             isMapCenterLocked={isMapCenterLocked}
           />
@@ -661,122 +635,106 @@ export default function Map() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '4rem', bottom: '4rem' }}>
-        {/* Adventure Mobile Filters Header */}
-        <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0 z-10">
-          <div className="p-3">
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  placeholder={t('map.search.placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                />
-                <FilterButton
-                  difficulty={difficulty}
-                  difficultyOperator={difficultyOperator}
-                  onDifficultyChange={setDifficulty}
-                  onDifficultyOperatorChange={setDifficultyOperator}
-                  terrain={terrain}
-                  terrainOperator={terrainOperator}
-                  onTerrainChange={setTerrain}
-                  onTerrainOperatorChange={setTerrainOperator}
-                  cacheType={cacheType}
-                  onCacheTypeChange={setCacheType}
-                  compact
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <LocationSearch
-                      onLocationSelect={handleLocationSelect}
-                      placeholder={t('map.locationSearch.placeholder')}
-                    />
-                  </div>
-
-                  <Button
-                    variant={showNearMe ? "default" : "outline"}
-                    className="h-9 w-9 p-0 flex-shrink-0"
-                    onClick={handleNearMe}
-                    disabled={isGettingLocation}
-                    title={isGettingLocation ? t('map.nearMe.locating') : showNearMe && userLocation ? t('map.nearMe.active') : t('map.nearMe.title')}
-                  >
-                    <Locate className={`h-4 w-4 ${isGettingLocation ? 'animate-spin' : ''}`} />
-                  </Button>
-
-                  {(showNearMe || searchLocation || searchInView) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-9 p-0 flex-shrink-0"
-                      onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
-                      title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
-                    >
-                      <svg
-                        className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </Button>
-                  )}
-                </div>
-
-                {(showNearMe || searchLocation || searchInView) && showMobileSearchOptions && (
-                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                        <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                      onClick={() => {
-                        setShowNearMe(false);
-                        setSearchLocation(null);
-                        setSearchInView(false);
-                        setShowMobileSearchOptions(false);
-                      }}
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      {t('map.clear')}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        {/* Mobile Content Area */}
-        <div className="flex-1 overflow-hidden">
+      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '3rem', bottom: '4rem' }}>
+        {/* Mobile Content Area - Full height */}
+        <div className="flex-1 overflow-hidden relative">
           <MapViewTabs
-            className="h-full flex flex-col"
+            className="h-full"
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            {/* List Tab - Always mounted but hidden when inactive */}
-            <TabsContent value="list" className="flex-1 mt-0 m-0 p-0 data-[state=active]:flex data-[state=active]:flex-col bg-background overflow-hidden data-[state=inactive]:hidden">
+            {/* List View - Always mounted but hidden when inactive */}
+            <div className={cn("h-full flex flex-col bg-background overflow-hidden", activeTab !== 'list' && "hidden")}>
+              {/* Search Bar for List View */}
+              <div className="bg-background/95 backdrop-blur-sm flex-shrink-0 border-b">
+                <div className="p-3">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <OmniSearch
+                        onLocationSelect={handleLocationSelect}
+                        onGeocacheSelect={(cache) => handleCardClick(cache)}
+                        onTextSearch={setSearchQuery}
+                        geocaches={filteredGeocaches}
+                        placeholder={t('map.omniSearch.placeholder')}
+                        mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                      />
+                      <FilterButton
+                        difficulty={difficulty}
+                        difficultyOperator={difficultyOperator}
+                        onDifficultyChange={setDifficulty}
+                        onDifficultyOperatorChange={setDifficultyOperator}
+                        terrain={terrain}
+                        terrainOperator={terrainOperator}
+                        onTerrainChange={setTerrain}
+                        onTerrainOperatorChange={setTerrainOperator}
+                        cacheType={cacheType}
+                        onCacheTypeChange={setCacheType}
+                        compact
+                      />
+                    </div>
+
+                    {(showNearMe || searchLocation || searchInView) && (
+                      <div className="space-y-2">
+                        <div className="flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 w-9 p-0 flex-shrink-0"
+                            onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
+                            title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
+                          >
+                            <svg
+                              className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </Button>
+                        </div>
+
+                        {showMobileSearchOptions && (
+                          <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                              <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                                <SelectTrigger className="w-20 h-7 text-xs">
+                                  <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                                  <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                                  <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                                  <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                                  <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                                  <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => {
+                                setShowNearMe(false);
+                                setSearchLocation(null);
+                                setSearchInView(false);
+                                setShowMobileSearchOptions(false);
+                              }}
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              {t('map.clear')}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div
                 className="flex-1 overflow-y-auto p-4 pb-6 min-h-0 relative"
                 onTouchStart={handleTouchStart}
@@ -821,44 +779,34 @@ export default function Map() {
                   showRelayFallback={true}
                   className="h-full"
                 >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <span>
-                          {filteredGeocaches.length === 1
-                            ? t('map.results.count', { count: filteredGeocaches.length })
-                            : t('map.results.countPlural', { count: filteredGeocaches.length })
-                          }
-                          {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
-                          {searchInView && ` • ${t('map.results.inView')}`}
-                        </span>
-                        {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                            <span>{t('map.loading.searching')}</span>
-                          </div>
-                        )}
-                        {baseGeocaches.isFetching && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                            <span>{t('map.loading.updating')}</span>
-                          </div>
-                        )}
+                <div className="space-y-3">
+                  {/* Only show count when filters are active */}
+                  {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <span>
+                            {filteredGeocaches.length === 1
+                              ? t('map.results.count', { count: filteredGeocaches.length })
+                              : t('map.results.countPlural', { count: filteredGeocaches.length })
+                            }
+                            {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+                            {searchInView && ` • ${t('map.results.inView')}`}
+                          </span>
+                          {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                            <div className="flex items-center gap-1 text-xs">
+                              <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
+                              <span>{t('map.loading.searching')}</span>
+                            </div>
+                          )}
+                          {baseGeocaches.isFetching && (
+                            <div className="flex items-center gap-1 text-xs">
+                              <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
+                              <span>{t('map.loading.updating')}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRetry}
-                        className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
-                        title={t('map.refresh.title')}
-                        disabled={isRetrying}
-                      >
-                        <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-                        <span className="text-xs">{t('map.refresh')}</span>
-                      </Button>
                       {isProximitySearchActive && (
                         <Badge
                           variant={proximitySuccessful ? "secondary" : "outline"}
@@ -870,7 +818,7 @@ export default function Map() {
                         </Badge>
                       )}
                     </div>
-                  </div>
+                  )}
                   <div className="space-y-3">
                     {filteredGeocaches.map((cache) => (
                       <CompactGeocacheCard
@@ -886,11 +834,96 @@ export default function Map() {
               </SmartLoadingState>
                 </div>
               </div>
-            </TabsContent>
+            </div>
 
-            {/* Map Tab - Always mounted but hidden when inactive */}
-            <TabsContent value="map" className="flex-1 mt-0 m-0 p-0 data-[state=active]:block data-[state=inactive]:hidden">
-              <div className="h-full w-full bg-background relative">
+            {/* Map View - Always mounted but hidden when inactive */}
+            <div className={cn("h-full w-full bg-background relative", activeTab !== 'map' && "hidden")}>
+                {/* Floating Search Bar - positioned over the map */}
+                <div className="absolute top-3 left-3 right-3 z-[999] pointer-events-none">
+                  <div className="space-y-2 pointer-events-auto">
+                    <div className="flex gap-2">
+                          <OmniSearch
+                            onLocationSelect={handleLocationSelect}
+                            onGeocacheSelect={(cache) => handleCardClick(cache)}
+                            onTextSearch={setSearchQuery}
+                            geocaches={filteredGeocaches}
+                            placeholder={t('map.omniSearch.placeholder')}
+                            mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                          />
+                          <FilterButton
+                            difficulty={difficulty}
+                            difficultyOperator={difficultyOperator}
+                            onDifficultyChange={setDifficulty}
+                            onDifficultyOperatorChange={setDifficultyOperator}
+                            terrain={terrain}
+                            terrainOperator={terrainOperator}
+                            onTerrainChange={setTerrain}
+                            onTerrainOperatorChange={setTerrainOperator}
+                            cacheType={cacheType}
+                            onCacheTypeChange={setCacheType}
+                            compact
+                          />
+                        </div>
+
+                    {(showNearMe || searchLocation || searchInView) && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 w-9 p-0 flex-shrink-0 bg-background/95 backdrop-blur-sm shadow-lg border ml-auto"
+                          onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
+                          title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
+                        >
+                          <svg
+                            className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </Button>
+
+                        {showMobileSearchOptions && (
+                          <div className="flex items-center justify-between bg-background/95 backdrop-blur-sm shadow-lg border rounded-lg p-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                              <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                                <SelectTrigger className="w-20 h-7 text-xs">
+                                  <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                                  <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                                  <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                                  <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                                  <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                                  <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => {
+                                setShowNearMe(false);
+                                setSearchLocation(null);
+                                setSearchInView(false);
+                                setShowMobileSearchOptions(false);
+                              }}
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              {t('map.clear')}
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
                 <GeocacheMap
                   geocaches={filteredGeocaches}
                   userLocation={userLocation}
@@ -900,9 +933,11 @@ export default function Map() {
                   zoom={mapZoom}
                   onMarkerClick={handleMarkerClick}
                   onSearchInView={handleSearchInView}
+                  onNearMe={handleNearMe}
                   highlightedGeocache={highlightedGeocache || undefined}
                   showStyleSelector={true}
                   isNearMeActive={showNearMe}
+                  isGettingLocation={isGettingLocation}
                   mapRef={mapRef}
                   isMapCenterLocked={isMapCenterLocked}
                 />
@@ -916,10 +951,7 @@ export default function Map() {
                     </div>
                   </div>
                 )}
-
-
-              </div>
-            </TabsContent>
+            </div>
           </MapViewTabs>
         </div>
       </div>

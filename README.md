@@ -17,7 +17,7 @@ Treasures.to is a decentralized geocaching platform built on the Nostr protocol.
 - **🚫 No Registration**: Login with any Nostr keypair - no email or personal data required.
 - **📍 Location Search**: Find geocaches by city, zip code, or "Near Me" functionality.
 - **⚡ Zaps**: Users can send Bitcoin lightning zaps to geocache creators and finders.
-- **📴 Offline Support (Experimental)**: Cache data for offline viewing and sync when online.
+- **📴 Offline Support**: Full PWA support - app works offline even if the server is down.
 
 ## 🚀 Quick Start
 
