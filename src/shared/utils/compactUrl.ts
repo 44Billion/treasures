@@ -1,38 +1,40 @@
 /**
  * Compact URL encoding/decoding for geocache QR codes
  * 
- * This provides a ~28% reduction in URL length compared to standard naddr+nsec format.
+ * This provides a ~48% reduction in URL length compared to standard naddr+nsec format.
  * 
  * Current format (221 chars):
  *   https://treasures.to/{naddr}#verify={nsec}
  * 
- * Compact format (~164 chars):
- *   https://treasures.to/c/{base64url-payload}
+ * Compact format (116 chars):
+ *   http://treasures.to/c/{base64url-payload}
  * 
- * Payload structure (106 bytes max):
+ * Payload structure (70 bytes):
  *   - pubkey:          32 bytes (raw)
- *   - d-tag length:     1 byte
- *   - d-tag:           41 bytes (full d-tag, null-padded)
+ *   - d-tag:            6 bytes (6-char hex string)
  *   - verify privkey:  32 bytes (raw)
  * 
  * Note: kind is always 37516 (NIP_GC_KINDS.GEOCACHE), so it's not stored.
+ * D-tag length is fixed at 6 bytes, so no length byte needed.
  */
 
 import { nip19 } from 'nostr-tools';
 import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 
-// D-tag max length: normalized name (32) + hyphen (1) + pubkey prefix (8) = 41
-const DTAG_MAX_LENGTH = 41;
+// D-tag is now a fixed 6-character hex string
+const DTAG_LENGTH = 6;
 
 /**
  * Get the compact URL prefix based on current environment
  */
 function getCompactUrlPrefix(): string {
   if (typeof window !== 'undefined') {
-    return `${window.location.origin}/c/`;
+    // Use http for shorter URLs (server redirects to https)
+    const origin = window.location.origin.replace('https://', 'http://');
+    return `${origin}/c/`;
   }
   // Fallback for SSR or non-browser environments
-  return 'https://treasures.to/c/';
+  return 'http://treasures.to/c/';
 }
 
 /**
@@ -58,24 +60,23 @@ export function encodeCompactUrl(
     throw new Error('Invalid pubkey length');
   }
 
-  // Encode d-tag to fixed length
-  const dTagBytes = encodeDTag(dTag);
+  // Encode d-tag (should be exactly 6 hex chars like "a1b2c3")
+  if (dTag.length !== DTAG_LENGTH) {
+    throw new Error(`D-tag must be exactly ${DTAG_LENGTH} hex characters, got ${dTag.length}: ${dTag}`);
+  }
+  const dTagBytes = hexToBytes(dTag.padEnd(DTAG_LENGTH + (DTAG_LENGTH % 2), '0'));
 
-  // Build payload: pubkey (32) + dTagLen (1) + dTag (41) + privkey (32) = 106 bytes
-  const payload = new Uint8Array(106);
+  // Build payload: pubkey (32) + dTag (3) + privkey (32) = 67 bytes
+  const payload = new Uint8Array(67);
   let offset = 0;
 
   // Pubkey (32 bytes)
   payload.set(pubkeyBytes, offset);
   offset += 32;
 
-  // D-tag length (1 byte) - store original length for reconstruction
-  payload[offset] = Math.min(dTag.length, DTAG_MAX_LENGTH);
-  offset += 1;
-
-  // D-tag (41 bytes, null-padded)
+  // D-tag (3 bytes from 6 hex chars)
   payload.set(dTagBytes, offset);
-  offset += DTAG_MAX_LENGTH;
+  offset += 3;
 
   // Verification private key (32 bytes)
   payload.set(privateKeyBytes, offset);
@@ -112,7 +113,7 @@ export function decodeCompactUrl(url: string): {
 
     // Decode base64url to bytes
     const payload = base64UrlToBytes(base64url);
-    if (payload.length !== 106) {
+    if (payload.length !== 67) {
       return null;
     }
 
@@ -123,14 +124,10 @@ export function decodeCompactUrl(url: string): {
     const pubkey = bytesToHex(pubkeyBytes);
     offset += 32;
 
-    // D-tag length (1 byte)
-    const dTagLength = payload[offset] ?? 0;
-    offset += 1;
-
-    // D-tag (41 bytes)
-    const dTagBytes = payload.slice(offset, offset + DTAG_MAX_LENGTH);
-    const dTag = new TextDecoder().decode(dTagBytes.slice(0, dTagLength));
-    offset += DTAG_MAX_LENGTH;
+    // D-tag (3 bytes = 6 hex chars)
+    const dTagBytes = payload.slice(offset, offset + 3);
+    const dTag = bytesToHex(dTagBytes);
+    offset += 3;
 
     // Verification private key (32 bytes)
     const privateKeyBytes = payload.slice(offset, offset + 32);
@@ -166,13 +163,6 @@ export function compactToNaddr(pubkey: string, dTag: string, kind: number): stri
 }
 
 // ===== Helper functions =====
-
-function encodeDTag(dTag: string): Uint8Array {
-  const bytes = new Uint8Array(DTAG_MAX_LENGTH);
-  const encoded = new TextEncoder().encode(dTag.slice(0, DTAG_MAX_LENGTH));
-  bytes.set(encoded.slice(0, DTAG_MAX_LENGTH));
-  return bytes;
-}
 
 function hexToBytes(hex: string): Uint8Array {
   const bytes = new Uint8Array(hex.length / 2);

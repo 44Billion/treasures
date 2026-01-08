@@ -64,14 +64,13 @@ npm run preview
 
 ## 🔗 Compact QR Code URLs
 
-A shorter URL format for QR codes: `https://treasures.to/c/{base64url-payload}`
+Shorter URL format for QR codes (48% reduction): `http://treasures.to/c/{base64url-payload}`
 
-**Payload structure (106 bytes):**
+**Payload structure (70 bytes):**
 ```
-[0-31]   pubkey (32 bytes)
-[32]     d-tag length (1 byte)
-[33-73]  d-tag (41 bytes, null-padded)
-[74-105] verification private key (32 bytes)
+[0-31]  pubkey (32 bytes)
+[32-37] d-tag (6 bytes, hex string)
+[38-69] verification private key (32 bytes)
 ```
 
 Decode with base64url, then use standard Nostr tools (`nip19.naddrEncode`, `nip19.nsecEncode`). Kind is always `37516`.

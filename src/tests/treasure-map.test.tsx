@@ -20,8 +20,8 @@ jest.mock('@/shared/hooks/useTheme', () => ({
   useTheme: () => ({
     theme: 'light',
     systemTheme: 'light',
-    setTheme: jest.fn(),
-  })),
+    setTheme: jest.fn()
+  })
 }));
 
 // Mock the geocache components

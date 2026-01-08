@@ -10,7 +10,7 @@ import {
   type VerificationKeyPair
 } from "@/features/geocache/utils/verification";
 import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
-import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
+import { generateDeterministicDTag, generateCompactDTag } from "@/features/geocache/utils/dTag";
 import { NIP_GC_KINDS } from "@/features/geocache/utils/nip-gc";
 import { encodeCompactUrl } from "@/shared/utils/compactUrl";
 import { ComponentLoading } from "@/components/ui/loading";
@@ -55,12 +55,13 @@ export default function QRComparisonTest() {
       
       for (let i = 0; i < 10; i++) {
         const name = uniqueNamesGenerator(customConfig);
-        const dTag = generateDeterministicDTag(name, user.pubkey);
+        const dTag = generateDeterministicDTag(name, user.pubkey); // Standard d-tag
+        const compactDTag = generateCompactDTag(); // 6-char hex for compact URLs
         const naddr = geocacheToNaddr(user.pubkey, dTag);
         const keyPair = await generateVerificationKeyPair();
         
         const standardUrl = `https://treasures.to/${naddr}#verify=${keyPair.nsec}`;
-        const compactUrl = encodeCompactUrl(user.pubkey, dTag, keyPair.nsec, NIP_GC_KINDS.GEOCACHE);
+        const compactUrl = encodeCompactUrl(user.pubkey, compactDTag, keyPair.nsec, NIP_GC_KINDS.GEOCACHE);
         
         // Generate QR codes
         const [standardQR, compactQR] = await Promise.all([
