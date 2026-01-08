@@ -6,7 +6,6 @@ import { createRoot } from "react-dom/client";
 import { useTheme } from "@/shared/hooks/useTheme";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { MapStyleSelector } from "./MapStyleSelector";
-import { SearchInViewButton } from "./SearchInViewButton";
 import { NearMeButton } from "./NearMeButton";
 import { MAP_STYLES, type MapStyle } from "@/features/map/constants/mapStyles";
 import { useGeocacheNavigation } from "@/features/geocache/hooks/useGeocacheNavigation";
@@ -785,104 +784,6 @@ function MapStyleControl({
   return null;
 }
 
-// Custom component for search in view button - positioned at top center
-function SearchInViewControl({
-  onSearchInView,
-  isAdventureTheme
-}: {
-  onSearchInView: (bounds: L.LatLngBounds) => void;
-  isAdventureTheme: boolean;
-}) {
-  const map = useMap();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
-  const isInitializedRef = useRef(false);
-
-  // Use refs to store the latest props to avoid dependency issues
-  const onSearchInViewRef = useRef(onSearchInView);
-  const isAdventureThemeRef = useRef(isAdventureTheme);
-
-  // Update refs when props change
-  useEffect(() => {
-    onSearchInViewRef.current = onSearchInView;
-    isAdventureThemeRef.current = isAdventureTheme;
-  });
-
-  useEffect(() => {
-    // Only initialize once
-    if (isInitializedRef.current) return;
-
-    const mapContainer = map.getContainer();
-
-    // Create container div for the search in view button
-    const container = document.createElement('div');
-    container.className = 'search-in-view-container';
-    container.style.cssText = `
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      pointer-events: auto;
-    `;
-
-    // Add container to map container
-    mapContainer.appendChild(container);
-    containerRef.current = container;
-
-    // Create React root and render the SearchInViewButton
-    rootRef.current = createRoot(container);
-    rootRef.current.render(
-      <SearchInViewButton
-        map={map}
-        onSearchInView={onSearchInViewRef.current}
-        isAdventureTheme={isAdventureThemeRef.current}
-      />
-    );
-
-    isInitializedRef.current = true;
-
-    // Cleanup
-    return () => {
-      if (containerRef.current && containerRef.current.parentNode) {
-        containerRef.current.parentNode.removeChild(containerRef.current);
-      }
-
-      if (rootRef.current) {
-        const root = rootRef.current;
-        rootRef.current = null;
-
-        setTimeout(() => {
-          try {
-            if (root && typeof root.unmount === 'function') {
-              root.unmount();
-            }
-          } catch (error) {
-            console.debug('SearchInViewControl unmount:', error);
-          }
-        }, 0);
-      }
-
-      isInitializedRef.current = false;
-    };
-  }, [map]); // Only depend on map
-
-  // Update the rendered component when props change
-  useEffect(() => {
-    if (rootRef.current && isInitializedRef.current) {
-      rootRef.current.render(
-        <SearchInViewButton
-          map={map}
-          onSearchInView={onSearchInViewRef.current}
-          isAdventureTheme={isAdventureThemeRef.current}
-        />
-      );
-    }
-  }, [onSearchInView, isAdventureTheme, map]);
-
-  return null;
-}
-
 // Custom component for near me button - positioned at lower right corner
 function NearMeButtonControl({
   onNearMe,
@@ -1296,13 +1197,7 @@ export function GeocacheMap({
         />
       )}
 
-      {/* Search in View Control - appears only when user has moved the map */}
-      {showStyleSelector && onSearchInView && (
-        <SearchInViewControl
-          onSearchInView={onSearchInView}
-          isAdventureTheme={currentMapStyle === 'adventure'}
-        />
-      )}
+      {/* Search in View Control - removed, functionality now in main UI */}
 
       {/* Near Me Button Control - positioned at lower right */}
       {onNearMe && (
