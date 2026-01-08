@@ -170,15 +170,17 @@ export function LogTypeButtonGroup({
 // === LOGIN METHOD TABS (Specialized) ===
 
 interface LoginMethodTabsProps {
-  defaultMethod?: 'extension' | 'key' | 'bunker';
+  defaultMethod?: 'extension' | 'connect' | 'key' | 'bunker';
   children: ReactNode;
   className?: string;
+  onValueChange?: (value: string) => void;
 }
 
 export function LoginMethodTabs({
   defaultMethod = 'extension',
   children,
-  className
+  className,
+  onValueChange
 }: LoginMethodTabsProps) {
   const { t } = useTranslation();
   const loginMethods: MobileTabItem[] = useMemo(() => [
@@ -187,22 +189,38 @@ export function LoginMethodTabs({
       label: t('login.tab.extension'),
       icon: Shield
     },
+    { value: 'connect', label: t('login.tab.connect') },
     { value: 'key', label: t('login.tab.nsec') },
     { value: 'bunker', label: t('login.tab.bunker') },
   ], [t]);
 
   // Check if extension is available
   const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
-  const actualDefault = hasExtension ? defaultMethod : 'key';
+  const actualDefault = hasExtension ? defaultMethod : 'connect';
 
   return (
-    <MobileTabs
-      items={loginMethods}
-      defaultValue={actualDefault}
-      className={className}
-    >
+    <Tabs defaultValue={actualDefault} className={cn("w-full", className)} onValueChange={onValueChange}>
+      <TabsList className="grid w-full h-auto bg-secondary grid-cols-4">
+        {loginMethods.map((item) => {
+          const Icon = item.icon;
+          return (
+            <TabsTrigger
+              key={item.value}
+              value={item.value}
+              disabled={item.disabled}
+              className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]"
+            >
+              {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
+              <span className="text-xs sm:text-sm">{item.label}</span>
+              {typeof item.count === 'number' && (
+                <span className="text-xs sm:text-sm">({item.count})</span>
+              )}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
       {children}
-    </MobileTabs>
+    </Tabs>
   );
 }
 
