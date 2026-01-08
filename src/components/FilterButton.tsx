@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Filter, X } from "lucide-react";
+import { ListFilter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -15,17 +15,17 @@ interface FilterButtonProps {
   difficultyOperator: ComparisonOperator;
   onDifficultyChange: (value: number | undefined) => void;
   onDifficultyOperatorChange: (operator: ComparisonOperator) => void;
-  
+
   // Terrain filters
   terrain?: number;
   terrainOperator: ComparisonOperator;
   onTerrainChange: (value: number | undefined) => void;
   onTerrainOperatorChange: (operator: ComparisonOperator) => void;
-  
+
   // Cache type filter
   cacheType?: string;
   onCacheTypeChange: (value: string | undefined) => void;
-  
+
   className?: string;
   compact?: boolean;
 }
@@ -64,7 +64,7 @@ export function FilterButton({
   ], [t, i18n.language]);
 
   // Helper functions for consistent value handling
-  const createValueChangeHandler = (setter: (value: number | undefined) => void) => 
+  const createValueChangeHandler = (setter: (value: number | undefined) => void) =>
     (value: string) => setter(value === "all" ? undefined : parseInt(value));
 
   const getValueForDisplay = (value: number | undefined) => value?.toString() || "all";
@@ -101,11 +101,10 @@ export function FilterButton({
             className
           )}
         >
-          <Filter className={cn("h-4 w-4", !compact && "mr-2")} />
-          {!compact && t('filters.button')}
+          <ListFilter className="h-4 w-4" />
           {activeFilterCount > 0 && (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
             >
               {activeFilterCount}
@@ -156,8 +155,8 @@ export function FilterButton({
               <Label className="text-sm font-medium text-foreground">
                 {t('filters.cacheType')}
               </Label>
-              <Select 
-                value={cacheType || "all"} 
+              <Select
+                value={cacheType || "all"}
                 onValueChange={handleCacheTypeChange}
               >
                 <SelectTrigger className="h-9">
