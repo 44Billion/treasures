@@ -449,7 +449,7 @@ export default function Map() {
         {/* Sidebar */}
         <div className="w-96 border-r bg-background flex flex-col">
           {/* Filters */}
-          <div className="p-4 border-b bg-background/95 backdrop-blur-sm flex-shrink-0">
+          <div className="p-4 bg-background/95 backdrop-blur-sm flex-shrink-0">
             <div className="space-y-4">
               <div className="flex gap-2">
                 <OmniSearch
@@ -473,9 +473,7 @@ export default function Map() {
                 />
               </div>
 
-              <div className="space-y-3">
-
-                {(showNearMe || searchLocation || searchInView) && (
+              {(showNearMe || searchLocation || searchInView) && (
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
@@ -509,9 +507,6 @@ export default function Map() {
                     </Button>
                   </div>
                 )}
-              </div>
-
-
             </div>
           </div>
 
@@ -587,20 +582,6 @@ export default function Map() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRetry}
-                      className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
-                      title={t('map.refresh.title')}
-                      disabled={isRetrying}
-                    >
-                      <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-                      <span className="text-xs">{t('map.refresh')}</span>
-                    </Button>
-                  </div>
                 </div>
                 <div className="space-y-3">
                   {filteredGeocaches.map((cache) => (
@@ -656,7 +637,7 @@ export default function Map() {
       {/* Mobile View */}
       <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '4rem', bottom: '4rem' }}>
         {/* Adventure Mobile Filters Header */}
-        <div className="bg-background/95 backdrop-blur-sm border-b flex-shrink-0 z-10">
+        <div className="bg-background/95 backdrop-blur-sm flex-shrink-0 z-10">
           <div className="p-3">
             <div className="space-y-3">
               <div className="flex gap-2">
@@ -825,29 +806,16 @@ export default function Map() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRetry}
-                        className="h-8 px-3 hover:bg-muted/50 dark:bg-muted border-muted-foreground/20 transition-all duration-200"
-                        title={t('map.refresh.title')}
-                        disabled={isRetrying}
+                    {isProximitySearchActive && (
+                      <Badge
+                        variant={proximitySuccessful ? "secondary" : "outline"}
+                        className="text-xs flex items-center gap-1"
+                        title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
                       >
-                        <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-                        <span className="text-xs">{t('map.refresh')}</span>
-                      </Button>
-                      {isProximitySearchActive && (
-                        <Badge
-                          variant={proximitySuccessful ? "secondary" : "outline"}
-                          className="text-xs flex items-center gap-1"
-                          title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
-                        >
-                          <Sparkles className="h-2 w-2" />
-                          {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
-                        </Badge>
-                      )}
-                    </div>
+                        <Sparkles className="h-2 w-2" />
+                        {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
+                      </Badge>
+                    )}
                   </div>
                   <div className="space-y-3">
                     {filteredGeocaches.map((cache) => (
