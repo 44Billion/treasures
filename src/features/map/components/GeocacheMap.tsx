@@ -679,6 +679,23 @@ function MapRefController({
   return null;
 }
 
+// Component to add zoom control at bottom-left
+function ZoomControl() {
+  const map = useMap();
+
+  useEffect(() => {
+    // Add zoom control at bottom-left position
+    const zoomControl = L.control.zoom({ position: 'bottomleft' });
+    map.addControl(zoomControl);
+
+    return () => {
+      map.removeControl(zoomControl);
+    };
+  }, [map]);
+
+  return null;
+}
+
 // Custom Leaflet control for map style selector
 function MapStyleControl({
   currentStyle,
@@ -733,7 +750,7 @@ function MapStyleControl({
       }
     });
 
-    const styleControl = new StyleControl({ position: 'topright' });
+    const styleControl = new StyleControl({ position: 'bottomleft' });
     controlRef.current = styleControl;
     map.addControl(styleControl);
     isInitializedRef.current = true;
@@ -1149,7 +1166,7 @@ export function GeocacheMap({
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
-        zoomControl={true}
+        zoomControl={false}
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
@@ -1165,6 +1182,7 @@ export function GeocacheMap({
       <MapSizeController />
       <WorldWrapController geocaches={geocaches} />
       <ZoomPopupManager geocaches={geocaches} />
+      <ZoomControl />
 
       <MapRefController mapRef={mapRef} onMapReady={() => setIsMapReady(true)} />
 
