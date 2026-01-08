@@ -802,7 +802,7 @@ function CustomZoomControl() {
     container.className = 'custom-zoom-control';
     container.style.cssText = `
       position: absolute;
-      bottom: 50px;
+      bottom: 16px;
       left: 10px;
       z-index: 1000;
       pointer-events: auto;

@@ -287,13 +287,14 @@
 
 /* Custom zoom control styling */
 .custom-zoom-control {
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+  box-shadow: none;
 }
 
 .custom-zoom-control .zoom-btn {
   line-height: 1;
   padding: 0;
   text-align: center;
+  box-shadow: none;
 }
 
 .custom-zoom-control .zoom-btn:active {
