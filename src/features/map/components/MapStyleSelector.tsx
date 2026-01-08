@@ -35,7 +35,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
         <Button
           variant="outline"
           size="sm"
-          className={`h-10 w-10 bg-background/90 backdrop-blur-sm border hover:bg-background/95 ${isAdventureTheme ? 'adventure-map-style-button' : ''} ${className}`}
+          className={`h-10 w-10 p-0 bg-background/90 backdrop-blur-sm border hover:bg-accent ${isAdventureTheme ? 'adventure-map-style-button' : ''} ${className}`}
           title={getTranslatedName(currentStyle)}
         >
           {currentStyleData?.icon || <MapIcon className="h-4 w-4" />}

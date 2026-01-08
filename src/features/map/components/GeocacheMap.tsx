@@ -803,22 +803,26 @@ function CustomZoomControl() {
     zoomInBtn.innerHTML = '+';
     zoomInBtn.className = 'zoom-btn zoom-in-btn';
     zoomInBtn.style.cssText = `
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 40px;
       height: 40px;
       background: rgba(255, 255, 255, 0.9);
       border: 1px solid hsl(var(--border));
-      border-bottom: 1px solid hsl(var(--border));
-      color: #333;
-      font-size: 20px;
-      font-weight: bold;
+      border-bottom: none;
+      color: hsl(var(--foreground));
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1;
       cursor: pointer;
       border-top-left-radius: 0.375rem;
       border-top-right-radius: 0.375rem;
       transition: background 0.2s;
+      backdrop-filter: blur(8px);
     `;
     zoomInBtn.onmouseover = () => {
-      zoomInBtn.style.background = 'rgba(255, 255, 255, 1)';
+      zoomInBtn.style.background = 'hsl(var(--accent))';
     };
     zoomInBtn.onmouseout = () => {
       zoomInBtn.style.background = 'rgba(255, 255, 255, 0.9)';
@@ -832,22 +836,25 @@ function CustomZoomControl() {
     zoomOutBtn.innerHTML = '−';
     zoomOutBtn.className = 'zoom-btn zoom-out-btn';
     zoomOutBtn.style.cssText = `
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 40px;
       height: 40px;
       background: rgba(255, 255, 255, 0.9);
       border: 1px solid hsl(var(--border));
-      border-top: none;
-      color: #333;
-      font-size: 20px;
-      font-weight: bold;
+      color: hsl(var(--foreground));
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1;
       cursor: pointer;
       border-bottom-left-radius: 0.375rem;
       border-bottom-right-radius: 0.375rem;
       transition: background 0.2s;
+      backdrop-filter: blur(8px);
     `;
     zoomOutBtn.onmouseover = () => {
-      zoomOutBtn.style.background = 'rgba(255, 255, 255, 1)';
+      zoomOutBtn.style.background = 'hsl(var(--accent))';
     };
     zoomOutBtn.onmouseout = () => {
       zoomOutBtn.style.background = 'rgba(255, 255, 255, 0.9)';
