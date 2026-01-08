@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles } from 'lucide-react';
+import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -74,7 +74,7 @@ export function MobileHeader() {
   const closeSheet = () => setIsOpen(false);
 
   const navigation = [
-    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.list'), href: '/map?tab=list', icon: List },
     { name: t('navigation.map'), href: '/map?tab=map', icon: Map },
     { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
     { name: t('navigation.new'), href: '/create', icon: Plus },
@@ -320,7 +320,7 @@ export function MobileBottomNav() {
   const themeClasses = getThemeClasses(isAdventureTheme);
 
   const navigation = [
-    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.list'), href: '/map?tab=list', icon: List },
     { name: t('navigation.map'), href: '/map?tab=map', icon: Map },
     { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
     { name: t('navigation.new'), href: '/create', icon: Plus },

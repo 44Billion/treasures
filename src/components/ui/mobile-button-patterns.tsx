@@ -294,41 +294,10 @@ interface MapViewTabsProps {
   defaultValue?: string;
 }
 
-export function MapViewTabs({ children, className, value, onValueChange, defaultValue = "list" }: MapViewTabsProps) {
-  const { t } = useTranslation();
-
-  // Mobile: show as simple toggle button at bottom
-  // Desktop: show as full tabs at top
-  const currentValue = value || defaultValue;
-  const showMapButton = currentValue === 'list';
-  const buttonLabel = showMapButton ? t('map.tabs.map') : t('map.tabs.list');
-  const ButtonIcon = showMapButton ? Map : List;
-
-  const handleToggle = () => {
-    if (onValueChange) {
-      onValueChange(showMapButton ? 'map' : 'list');
-    }
-  };
-
+export function MapViewTabs({ children, className }: MapViewTabsProps) {
   return (
-    <div className={cn("relative w-full h-full", className)}>
-      {/* Content area - no tabs on mobile */}
-      <div className="h-full w-full">
-        {children}
-      </div>
-
-      {/* Mobile toggle button at bottom - only show on mobile */}
-      <div className="lg:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-        <Button
-          onClick={handleToggle}
-          variant="default"
-          size="lg"
-          className="pointer-events-auto shadow-lg min-w-[120px] h-12 text-base font-medium"
-        >
-          <ButtonIcon className="h-5 w-5 mr-2" />
-          {buttonLabel}
-        </Button>
-      </div>
+    <div className={cn("w-full h-full", className)}>
+      {children}
     </div>
   );
 }
