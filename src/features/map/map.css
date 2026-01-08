@@ -334,6 +334,31 @@
   margin-block-start: 0.625rem;
 }
 
+/* Ensure controls at bottom-left are visible */
+.leaflet-bottom.leaflet-left {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+  bottom: 10px !important;
+  left: 10px !important;
+}
+
+.leaflet-bottom.leaflet-left .leaflet-control {
+  margin-bottom: 10px !important;
+  pointer-events: auto !important;
+}
+
+.leaflet-bottom.leaflet-left .leaflet-control-zoom {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.leaflet-bottom.leaflet-left .map-style-control {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .map-style-control .leaflet-control,
 .map-style-control button {
   position: relative;

@@ -839,7 +839,7 @@ export default function Map() {
             {/* Map View - Always mounted but hidden when inactive */}
             <div className={cn("h-full w-full bg-background relative", activeTab !== 'map' && "hidden")}>
                 {/* Floating Search Bar - positioned over the map */}
-                <div className="absolute top-3 left-3 right-3 z-20 pointer-events-none">
+                <div className="absolute top-3 left-3 right-3 z-[999] pointer-events-none">
                   <div className="space-y-2 pointer-events-auto">
                     <div className="flex gap-2">
                           <OmniSearch
