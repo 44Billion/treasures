@@ -12,6 +12,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/shared/hooks/useToast';
 import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/features/geocache/utils/verification';
+import { encodeCompactUrl } from '@/shared/utils/compactUrl';
+import { naddrToGeocache } from '@/shared/utils/naddr-utils';
+import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
 
 interface VerificationQRDialogProps {
   isOpen: boolean;
@@ -40,7 +43,7 @@ export function VerificationQRDialog({
       setIsGenerating(true);
       setQrDataUrl(''); // Clear previous QR code
       
-      generateVerificationQR(naddr, verificationKeyPair.nsec, qrType, {
+      generateVerificationQR(verificationUrl, verificationKeyPair.nsec, qrType, {
         line1: t('qrCode.foundTreasure'),
         line2: t('qrCode.scanToLog')
       })
@@ -66,7 +69,7 @@ export function VerificationQRDialog({
       
       // Small delay to ensure state update is processed
       setTimeout(() => {
-        generateVerificationQR(naddr, verificationKeyPair.nsec, qrType, {
+        generateVerificationQR(verificationUrl, verificationKeyPair.nsec, qrType, {
           line1: t('qrCode.foundTreasure'),
           line2: t('qrCode.scanToLog')
         })
@@ -133,7 +136,8 @@ export function VerificationQRDialog({
     }
   };
 
-  const verificationUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair.nsec}`;
+  const naddrData = naddrToGeocache(naddr);
+  const verificationUrl = encodeCompactUrl(naddrData.pubkey, naddrData.identifier, verificationKeyPair.nsec, NIP_GC_KINDS.GEOCACHE);
 
   // Verification QR dialog rendering
 
