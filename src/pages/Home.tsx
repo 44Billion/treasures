@@ -114,7 +114,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-green-950 dark:to-emerald-950 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">      <DesktopHeader />
 
       {/* Hero Section */}
-      <section className="relative min-h-[calc(100vh-8rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
+      <section className="relative min-h-[calc(100vh-3rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
         {/* Parchment background for adventure mode only - behind everything */}
         <div className="absolute inset-0 hidden adventure:block" style={{
           backgroundImage: 'url(/parchment-300.jpg)',
