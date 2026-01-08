@@ -186,12 +186,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
 
   const handleBunkerLogin = async () => {
     if (!bunkerUri.trim()) {
-      setErrors(prev => ({ ...prev, bunker: t('login.bunker.enterUri') }));
+      setErrors(prev => ({ ...prev, bunker: 'Please enter a bunker URI' }));
       return;
     }
     
     if (!validateBunkerUri(bunkerUri)) {
-      setErrors(prev => ({ ...prev, bunker: t('login.bunker.invalidFormat') }));
+      setErrors(prev => ({ ...prev, bunker: 'Invalid bunker URI format. Must start with bunker://' }));
       return;
     }
 
@@ -207,7 +207,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 
-        bunker: t('login.bunker.failed')
+        bunker: 'Failed to connect to bunker. Please check the URI.'
       }));
     } finally {
       setIsLoading(false);
@@ -313,7 +313,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
 
         {/* Login Methods */}
         <LoginMethodTabs 
-          defaultMethod={hasExtension ? 'extension' : 'connect'}
+          defaultMethod='key'
           onValueChange={(value) => {
             if (value === 'connect' && !nostrConnectParams && !connectError) {
               generateConnectSession();
@@ -525,40 +525,6 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     <p className="text-sm text-red-500 mt-2">{errors.file}</p>
                   )}
                 </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value='bunker' className='space-y-3 bg-muted'>
-              <div className='space-y-2'>
-                <label htmlFor='bunkerUri' className='text-sm font-medium text-gray-700 dark:text-gray-400'>
-                  {t('login.bunker.label')}
-                </label>
-                <Input
-                  id='bunkerUri'
-                  value={bunkerUri}
-                  onChange={(e) => {
-                    setBunkerUri(e.target.value);
-                    if (errors.bunker) setErrors(prev => ({ ...prev, bunker: undefined }));
-                  }}
-                  className={`rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary ${
-                    errors.bunker ? 'border-red-500' : ''
-                  }`}
-                  placeholder={t('login.bunker.placeholder')}
-                  autoComplete="off"
-                />
-                {errors.bunker && (
-                  <p className="text-sm text-red-500">{errors.bunker}</p>
-                )}
-              </div>
-
-              <div className="flex justify-center">
-                <Button
-                  className='w-full rounded-full py-4'
-                  onClick={handleBunkerLogin}
-                  disabled={isLoading || !bunkerUri.trim()}
-                >
-                  {isLoading ? t('login.bunker.connecting') : t('login.bunker.button')}
-                </Button>
               </div>
             </TabsContent>
           </LoginMethodTabs>

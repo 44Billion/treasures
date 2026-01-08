@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, List, Map } from 'lucide-react';
+import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, List, Map, Cloud, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/shared/utils/utils';
@@ -170,37 +170,62 @@ export function LogTypeButtonGroup({
 // === LOGIN METHOD TABS (Specialized) ===
 
 interface LoginMethodTabsProps {
-  defaultMethod?: 'extension' | 'connect' | 'key' | 'bunker';
+  defaultMethod?: 'extension' | 'connect' | 'key';
   children: ReactNode;
   className?: string;
   onValueChange?: (value: string) => void;
 }
 
 export function LoginMethodTabs({
-  defaultMethod = 'extension',
+  defaultMethod = 'key',
   children,
   className,
   onValueChange
 }: LoginMethodTabsProps) {
   const { t } = useTranslation();
-  const loginMethods: MobileTabItem[] = useMemo(() => [
-    {
-      value: 'extension',
-      label: t('login.tab.extension'),
-      icon: Shield
-    },
-    { value: 'connect', label: t('login.tab.connect') },
-    { value: 'key', label: t('login.tab.nsec') },
-    { value: 'bunker', label: t('login.tab.bunker') },
-  ], [t]);
-
+  
   // Check if extension is available
   const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
-  const actualDefault = hasExtension ? defaultMethod : 'connect';
+  
+  const loginMethods: MobileTabItem[] = useMemo(() => {
+    const methods: MobileTabItem[] = [];
+    
+    // Only show extension tab if extension is available
+    if (hasExtension) {
+      methods.push({
+        value: 'extension',
+        label: t('login.tab.extension'),
+        icon: Shield
+      });
+    }
+    
+    // Key tab (center/default) - using KeyRound icon
+    methods.push({
+      value: 'key',
+      label: t('login.tab.nsec'),
+      icon: KeyRound
+    });
+    
+    // Connect tab (right) - using Cloud icon
+    methods.push({
+      value: 'connect',
+      label: t('login.tab.connect'),
+      icon: Cloud
+    });
+    
+    return methods;
+  }, [t, hasExtension]);
+
+  const cols = loginMethods.length;
+  const actualDefault = defaultMethod;
 
   return (
     <Tabs defaultValue={actualDefault} className={cn("w-full", className)} onValueChange={onValueChange}>
-      <TabsList className="grid w-full h-auto bg-secondary grid-cols-4">
+      <TabsList className={cn(
+        "grid w-full h-auto bg-secondary",
+        cols === 2 && "grid-cols-2",
+        cols === 3 && "grid-cols-3"
+      )}>
         {loginMethods.map((item) => {
           const Icon = item.icon;
           return (
