@@ -445,9 +445,163 @@ export default function Map() {
       <DesktopHeader />
 
       {/* Desktop View */}
-      <div className="hidden lg:flex flex-1 overflow-hidden min-h-0 relative">
-        {/* Map - Full width background */}
-        <div className="absolute inset-0 bg-background">
+      <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
+        {/* Sidebar */}
+        <div className="w-96 border-r bg-background flex flex-col">
+          {/* Filters */}
+          <div className="p-4 bg-background/95 backdrop-blur-sm flex-shrink-0">
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <OmniSearch
+                  onLocationSelect={handleLocationSelect}
+                  onGeocacheSelect={(cache) => handleCardClick(cache)}
+                  onTextSearch={setSearchQuery}
+                  geocaches={filteredGeocaches}
+                  placeholder={t('map.omniSearch.placeholder')}
+                />
+                <FilterButton
+                  difficulty={difficulty}
+                  difficultyOperator={difficultyOperator}
+                  onDifficultyChange={setDifficulty}
+                  onDifficultyOperatorChange={setDifficultyOperator}
+                  terrain={terrain}
+                  terrainOperator={terrainOperator}
+                  onTerrainChange={setTerrain}
+                  onTerrainOperatorChange={setTerrainOperator}
+                  cacheType={cacheType}
+                  onCacheTypeChange={setCacheType}
+                />
+              </div>
+
+              {(showNearMe || searchLocation || searchInView) && (
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                        <SelectTrigger className="w-20 h-7 text-xs">
+                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => {
+                        setShowNearMe(false);
+                        setSearchLocation(null);
+                        setSearchInView(false);
+                      }}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      {t('map.clear')}
+                    </Button>
+                  </div>
+                )}
+            </div>
+          </div>
+
+
+
+          {/* Results */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {showMapSkeletons ? (
+              // Show skeleton cards during loading
+              <div className="p-4">
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0"></div>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="flex gap-1">
+                              <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                              <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                              <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            </div>
+                          </div>
+                          <div className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded shrink-0"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <SmartLoadingState
+                isLoading={isProximitySearchActive ? isLoading && filteredGeocaches.length === 0 : baseGeocaches.isLoading && baseGeocaches.data === undefined}
+                isError={isProximitySearchActive ? !!error : baseGeocaches.isError}
+                hasData={filteredGeocaches.length > 0 || baseGeocaches.data !== undefined}
+                data={filteredGeocaches}
+                error={(isProximitySearchActive ? error : baseGeocaches.error) as Error}
+                onRetry={handleRetry}
+                isRetrying={isRetrying}
+                skeletonCount={3}
+                skeletonVariant="compact"
+                compact={true}
+                showRelayFallback={true}
+                className="h-full"
+              >
+                <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span>
+                        {filteredGeocaches.length === 1
+                          ? t('map.results.count', { count: filteredGeocaches.length })
+                          : t('map.results.countPlural', { count: filteredGeocaches.length })
+                        }
+                        {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+                      </span>
+
+
+
+                      {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
+                          <span>{t('map.loading.searching')}</span>
+                        </div>
+                      )}
+                      {baseGeocaches.isFetching && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
+                          <span>{t('map.loading.updating')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {filteredGeocaches.map((cache) => (
+                    <CompactGeocacheCard
+                      key={cache.id}
+                      cache={cache}
+                      distance={cache.distance}
+                      onClick={() => handleCardClick(cache)}
+                      statsLoading={baseGeocaches.isStatsLoading}
+                    />
+                  ))}
+                </div>
+              </div>
+            </SmartLoadingState>
+            )}
+          </div>
+        </div>
+
+        {/* Map - render immediately with progressive geocache loading */}
+        <div className="flex-1 relative bg-background min-h-0">
           <GeocacheMap
             geocaches={filteredGeocaches}
             userLocation={userLocation}
@@ -475,125 +629,8 @@ export default function Map() {
               </div>
             </div>
           )}
-        </div>
 
-        {/* Floating Search/Filter Controls */}
-        <div className="absolute top-4 left-4 z-10 w-96">
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <OmniSearch
-                onLocationSelect={handleLocationSelect}
-                onGeocacheSelect={(cache) => handleCardClick(cache)}
-                onTextSearch={setSearchQuery}
-                geocaches={filteredGeocaches}
-                placeholder={t('map.omniSearch.placeholder')}
-              />
-              <FilterButton
-                difficulty={difficulty}
-                difficultyOperator={difficultyOperator}
-                onDifficultyChange={setDifficulty}
-                onDifficultyOperatorChange={setDifficultyOperator}
-                terrain={terrain}
-                terrainOperator={terrainOperator}
-                onTerrainChange={setTerrain}
-                onTerrainOperatorChange={setTerrainOperator}
-                cacheType={cacheType}
-                onCacheTypeChange={setCacheType}
-              />
-            </div>
 
-            {(showNearMe || searchLocation || searchInView) && (
-              <div className="flex items-center justify-between bg-background/95 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                  <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                    <SelectTrigger className="w-20 h-7 text-xs">
-                      <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                      <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                      <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                      <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                      <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                      <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={() => {
-                    setShowNearMe(false);
-                    setSearchLocation(null);
-                    setSearchInView(false);
-                  }}
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  {t('map.clear')}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Floating Cache List */}
-        <div className="absolute top-4 left-4 bottom-4 z-10 w-96 flex flex-col pointer-events-none">
-          <div className="flex flex-col gap-3 max-h-full overflow-hidden mt-32 pointer-events-auto">
-            {showMapSkeletons ? (
-              // Show skeleton cards during loading
-              <div className="space-y-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3 shadow-lg">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0"></div>
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                          <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                          <div className="flex gap-1">
-                            <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                            <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                          </div>
-                        </div>
-                        <div className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded shrink-0"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <SmartLoadingState
-                isLoading={isProximitySearchActive ? isLoading && filteredGeocaches.length === 0 : baseGeocaches.isLoading && baseGeocaches.data === undefined}
-                isError={isProximitySearchActive ? !!error : baseGeocaches.isError}
-                hasData={filteredGeocaches.length > 0 || baseGeocaches.data !== undefined}
-                data={filteredGeocaches}
-                error={(isProximitySearchActive ? error : baseGeocaches.error) as Error}
-                onRetry={handleRetry}
-                isRetrying={isRetrying}
-                skeletonCount={3}
-                skeletonVariant="compact"
-                compact={true}
-                showRelayFallback={true}
-                className="h-full overflow-y-auto space-y-3"
-              >
-                <div className="space-y-3 overflow-y-auto max-h-full">
-                  {filteredGeocaches.map((cache) => (
-                    <CompactGeocacheCard
-                      key={cache.id}
-                      cache={cache}
-                      distance={cache.distance}
-                      onClick={() => handleCardClick(cache)}
-                      statsLoading={baseGeocaches.isStatsLoading}
-                    />
-                  ))}
-                </div>
-              </SmartLoadingState>
-            )}
-          </div>
         </div>
       </div>
 
