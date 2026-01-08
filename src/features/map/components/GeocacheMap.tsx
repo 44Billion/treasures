@@ -681,7 +681,7 @@ function MapRefController({
   return null;
 }
 
-// Custom Leaflet control for map style selector
+// Custom map style control - positioned at lower left above zoom
 function MapStyleControl({
   currentStyle,
   onStyleChange
@@ -690,8 +690,8 @@ function MapStyleControl({
   onStyleChange: (style: string) => void;
 }) {
   const map = useMap();
+  const containerRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
-  const controlRef = useRef<L.Control | null>(null);
   const isInitializedRef = useRef(false);
 
   // Use refs to store the latest props to avoid dependency issues
@@ -708,60 +708,50 @@ function MapStyleControl({
     // Only initialize once
     if (isInitializedRef.current) return;
 
-    // Create a custom control
-    const StyleControl = L.Control.extend({
-      onAdd: function() {
-        const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar map-style-control');
-        div.style.background = 'transparent';
-        div.style.border = 'none';
-        div.style.margin = '0';
-        div.style.position = 'relative';
-        div.style.zIndex = '1000';
+    const mapContainer = map.getContainer();
 
-        // Prevent map interaction when clicking on the control
-        L.DomEvent.disableClickPropagation(div);
-        L.DomEvent.disableScrollPropagation(div);
+    // Create container div for the map style control
+    const container = document.createElement('div');
+    container.className = 'map-style-control-container';
+    container.style.cssText = `
+      position: absolute;
+      bottom: 100px;
+      left: 10px;
+      z-index: 1000;
+      pointer-events: auto;
+    `;
 
-        // Create React root and render the MapStyleSelector
-        rootRef.current = createRoot(div);
-        rootRef.current.render(
-          <MapStyleSelector
-            currentStyle={currentStyleRef.current}
-            onStyleChange={onStyleChangeRef.current}
-          />
-        );
+    // Add container to map container
+    mapContainer.appendChild(container);
+    containerRef.current = container;
 
-        return div;
-      }
-    });
+    // Create React root and render the MapStyleSelector
+    rootRef.current = createRoot(container);
+    rootRef.current.render(
+      <MapStyleSelector
+        currentStyle={currentStyleRef.current}
+        onStyleChange={onStyleChangeRef.current}
+      />
+    );
 
-    const styleControl = new StyleControl({ position: 'topright' });
-    controlRef.current = styleControl;
-    map.addControl(styleControl);
     isInitializedRef.current = true;
 
     // Cleanup
     return () => {
-      // Remove control first to prevent further interactions
-      if (controlRef.current) {
-        map.removeControl(controlRef.current);
-        controlRef.current = null;
+      if (containerRef.current && containerRef.current.parentNode) {
+        containerRef.current.parentNode.removeChild(containerRef.current);
       }
 
-      // Unmount React root asynchronously to avoid synchronous unmount during render
       if (rootRef.current) {
         const root = rootRef.current;
         rootRef.current = null;
 
-        // Use setTimeout to defer unmounting until after current render cycle
         setTimeout(() => {
           try {
-            // Double-check that the root is still valid before unmounting
             if (root && typeof root.unmount === 'function') {
               root.unmount();
             }
           } catch (error) {
-            // Silently handle unmount errors - component may already be unmounted
             console.debug('MapStyleControl unmount:', error);
           }
         }, 0);
@@ -769,9 +759,9 @@ function MapStyleControl({
 
       isInitializedRef.current = false;
     };
-  }, [map]); // Only depend on map
+  }, [map]);
 
-  // Update the rendered component when props change (without recreating the control)
+  // Update the rendered component when props change
   useEffect(() => {
     if (rootRef.current && isInitializedRef.current) {
       rootRef.current.render(
