@@ -450,7 +450,7 @@ export default function Map() {
         <div className="w-96 border-r bg-background flex flex-col">
           {/* Filters */}
           <div className="p-4 bg-background/95 backdrop-blur-sm flex-shrink-0">
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex gap-2">
                 <OmniSearch
                   onLocationSelect={handleLocationSelect}
@@ -640,7 +640,7 @@ export default function Map() {
         {/* Adventure Mobile Filters Header */}
         <div className="bg-background/95 backdrop-blur-sm flex-shrink-0 z-10">
           <div className="p-3">
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex gap-2">
                 <OmniSearch
                   onLocationSelect={handleLocationSelect}
