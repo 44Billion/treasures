@@ -16,6 +16,7 @@ import { NWCProvider } from '@/components/NWCProvider';
 
 import { initializeCacheCleanup } from '@/features/geocache/utils/cacheCleanup';
 import { DEFAULT_RELAY, PRESET_RELAYS } from '@/shared/config/relays';
+import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import { useEffect } from 'react';
 import './lib/i18n';
 import './styles/leaflet-overrides.css';
@@ -70,6 +71,7 @@ export function App() {
                     </div>
 
                     <Toaster />
+                    <PWAUpdatePrompt />
                   </TooltipProvider>
                 </StoreProvider>
               </NWCProvider>

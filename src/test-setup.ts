@@ -1,5 +1,6 @@
 // Test setup for Vitest
 import { vi } from 'vitest';
+import '@testing-library/jest-dom';
 
 // Mock IndexedDB for tests
 Object.defineProperty(global, 'indexedDB', {
