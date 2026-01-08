@@ -331,53 +331,7 @@
 
 /* ===== MAP STYLE CONTROL ===== */
 .map-style-control {
-  margin-top: 10px !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: relative !important;
-}
-
-/* Ensure controls at bottom-left are visible */
-.leaflet-bottom.leaflet-left {
-  z-index: 1001 !important;
-  pointer-events: auto !important;
-  bottom: 10px !important;
-  left: 10px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0 !important;
-}
-
-.leaflet-bottom.leaflet-left .leaflet-control {
-  margin: 0 !important;
-  margin-bottom: 10px !important;
-  pointer-events: auto !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-.leaflet-bottom.leaflet-left .leaflet-control-zoom {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  order: 1 !important;
-}
-
-.leaflet-bottom.leaflet-left .map-style-control {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  order: 2 !important;
-  margin-top: 10px !important;
-}
-
-/* Force button visibility within map style control */
-.map-style-control button {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+  margin-block-start: 0.625rem;
 }
 
 .map-style-control .leaflet-control,

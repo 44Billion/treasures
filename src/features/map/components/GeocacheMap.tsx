@@ -679,52 +679,17 @@ function MapRefController({
   return null;
 }
 
-// Component to reposition the default zoom control to bottom-left
-function ZoomControlPositioner() {
+// Component to add zoom control at bottom-left
+function ZoomControl() {
   const map = useMap();
 
   useEffect(() => {
-    // Small delay to ensure map is fully initialized
-    const timer = setTimeout(() => {
-      // Find and remove the default zoom control
-      const existingZoom = (map as any)._controlCorners?.topleft?.querySelector('.leaflet-control-zoom');
-      if (existingZoom) {
-        existingZoom.remove();
-      }
-
-      // Remove the zoom control from map
-      if ((map as any).zoomControl) {
-        try {
-          map.removeControl((map as any).zoomControl);
-        } catch (e) {
-          // Control might not exist yet
-        }
-      }
-
-      // Add a new zoom control at bottom-left
-      const zoomControl = L.control.zoom({ position: 'bottomleft' });
-      map.addControl(zoomControl);
-      (map as any).zoomControl = zoomControl;
-
-      // Force visibility
-      const zoomElement = (map as any)._controlCorners?.bottomleft?.querySelector('.leaflet-control-zoom');
-      if (zoomElement) {
-        zoomElement.style.display = 'block';
-        zoomElement.style.visibility = 'visible';
-        zoomElement.style.opacity = '1';
-      }
-    }, 100);
+    // Add zoom control at bottom-left position
+    const zoomControl = L.control.zoom({ position: 'bottomleft' });
+    map.addControl(zoomControl);
 
     return () => {
-      clearTimeout(timer);
-      // Cleanup on unmount
-      if ((map as any).zoomControl) {
-        try {
-          map.removeControl((map as any).zoomControl);
-        } catch (e) {
-          // Control might already be removed
-        }
-      }
+      map.removeControl(zoomControl);
     };
   }, [map]);
 
@@ -758,58 +723,40 @@ function MapStyleControl({
     // Only initialize once
     if (isInitializedRef.current) return;
 
-    // Small delay to ensure zoom control is added first
-    const timer = setTimeout(() => {
-      // Create a custom control
-      const StyleControl = L.Control.extend({
-        onAdd: function() {
-          const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar map-style-control');
-          div.style.background = 'transparent';
-          div.style.border = 'none';
-          div.style.margin = '0';
-          div.style.marginTop = '10px'; // Add spacing from zoom control
-          div.style.position = 'relative';
-          div.style.zIndex = '1000';
-          div.style.display = 'block';
-          div.style.visibility = 'visible';
-          div.style.opacity = '1';
+    // Create a custom control
+    const StyleControl = L.Control.extend({
+      onAdd: function() {
+        const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar map-style-control');
+        div.style.background = 'transparent';
+        div.style.border = 'none';
+        div.style.margin = '0';
+        div.style.position = 'relative';
+        div.style.zIndex = '1000';
 
-          // Prevent map interaction when clicking on the control
-          L.DomEvent.disableClickPropagation(div);
-          L.DomEvent.disableScrollPropagation(div);
+        // Prevent map interaction when clicking on the control
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
 
-          // Create React root and render the MapStyleSelector
-          rootRef.current = createRoot(div);
-          rootRef.current.render(
-            <MapStyleSelector
-              currentStyle={currentStyleRef.current}
-              onStyleChange={onStyleChangeRef.current}
-            />
-          );
+        // Create React root and render the MapStyleSelector
+        rootRef.current = createRoot(div);
+        rootRef.current.render(
+          <MapStyleSelector
+            currentStyle={currentStyleRef.current}
+            onStyleChange={onStyleChangeRef.current}
+          />
+        );
 
-          return div;
-        }
-      });
+        return div;
+      }
+    });
 
-      const styleControl = new StyleControl({ position: 'bottomleft' });
-      controlRef.current = styleControl;
-      map.addControl(styleControl);
-      isInitializedRef.current = true;
-
-      // Force visibility after a short delay
-      setTimeout(() => {
-        const styleElement = (map as any)._controlCorners?.bottomleft?.querySelector('.map-style-control');
-        if (styleElement) {
-          styleElement.style.display = 'block';
-          styleElement.style.visibility = 'visible';
-          styleElement.style.opacity = '1';
-        }
-      }, 50);
-    }, 150); // Wait for zoom control to be added
+    const styleControl = new StyleControl({ position: 'bottomleft' });
+    controlRef.current = styleControl;
+    map.addControl(styleControl);
+    isInitializedRef.current = true;
 
     // Cleanup
     return () => {
-      clearTimeout(timer);
       // Remove control first to prevent further interactions
       if (controlRef.current) {
         map.removeControl(controlRef.current);
@@ -1219,7 +1166,7 @@ export function GeocacheMap({
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
-        zoomControl={true}
+        zoomControl={false}
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
@@ -1235,7 +1182,7 @@ export function GeocacheMap({
       <MapSizeController />
       <WorldWrapController geocaches={geocaches} />
       <ZoomPopupManager geocaches={geocaches} />
-      <ZoomControlPositioner />
+      <ZoomControl />
 
       <MapRefController mapRef={mapRef} onMapReady={() => setIsMapReady(true)} />
 
