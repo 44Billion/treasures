@@ -325,35 +325,37 @@ export function MobileBottomNav() {
       "fixed bottom-0 left-0 right-0 z-40 border-t md:hidden pb-safe-bottom",
       themeClasses.header
     )}>
-      <div className="grid grid-cols-4 h-16 items-center">
-        {navigation.map((item) => {
-          // For map tabs, check both pathname and search params
-          const searchParams = new URLSearchParams(location.search);
-          const currentTab = searchParams.get('tab');
+      <div className="container px-3 xs:px-4">
+        <div className="grid grid-cols-4 h-16 items-center">
+          {navigation.map((item) => {
+            // For map tabs, check both pathname and search params
+            const searchParams = new URLSearchParams(location.search);
+            const currentTab = searchParams.get('tab');
 
-          let isActive = false;
-          if (item.href.includes('/map?tab=')) {
-            // For List and Map buttons, check the tab parameter
-            const itemTab = item.href.includes('tab=list') ? 'list' : 'map';
-            isActive = location.pathname === '/map' && currentTab === itemTab;
-          } else {
-            // For other buttons, just check pathname
-            const itemPathname = getPathnameFromHref(item.href);
-            isActive = location.pathname === itemPathname;
-          }
+            let isActive = false;
+            if (item.href.includes('/map?tab=')) {
+              // For List and Map buttons, check the tab parameter
+              const itemTab = item.href.includes('tab=list') ? 'list' : 'map';
+              isActive = location.pathname === '/map' && currentTab === itemTab;
+            } else {
+              // For other buttons, just check pathname
+              const itemPathname = getPathnameFromHref(item.href);
+              isActive = location.pathname === itemPathname;
+            }
 
-          return (
-            <BottomNavItem
-              key={item.href}
-              to={item.href}
-              icon={item.icon}
-              isActive={isActive}
-              themeClasses={themeClasses}
-            >
-              {item.name}
-            </BottomNavItem>
-          );
-        })}
+            return (
+              <BottomNavItem
+                key={item.href}
+                to={item.href}
+                icon={item.icon}
+                isActive={isActive}
+                themeClasses={themeClasses}
+              >
+                {item.name}
+              </BottomNavItem>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
