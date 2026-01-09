@@ -36,6 +36,7 @@ import { useAuthor } from "@/features/auth/hooks/useAuthor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CompactUrlGeneratorDialog } from "@/components/CompactUrlGeneratorDialog";
 
 const customConfig: Config = {
   dictionaries: [adjectives, colors, animals],
@@ -56,6 +57,7 @@ export default function CreateCacheLanding() {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [qrType, setQrType] = useState<"full" | "cutout" | "micro" | "sheet">("full");
   const [_sheetData, setSheetData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
+  const [showCompactDialog, setShowCompactDialog] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [customNpub, setCustomNpub] = useState<string>("");
   const [submittedNpub, setSubmittedNpub] = useState<string>("");
@@ -324,6 +326,9 @@ export default function CreateCacheLanding() {
                   <DropdownMenuItem onClick={() => setQrType("sheet")}>
                     {t('createCache.verificationQR.styleSheet')}
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowCompactDialog(true)} className="border-t mt-1 pt-1">
+                    <span className="text-green-600 font-medium">Compact URLs</span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button onClick={handleDownloadQR} disabled={!qrDataUrl} size="sm">
@@ -436,6 +441,15 @@ export default function CreateCacheLanding() {
             {showAdvanced ? t('common.hide') : t('common.show')} {t('createCache.advanced')}
           </Button>
         </div>
+
+        {/* Compact URL Generator Dialog */}
+        {user && (
+          <CompactUrlGeneratorDialog
+            open={showCompactDialog}
+            onOpenChange={setShowCompactDialog}
+            pubkey={getPubkeyForNaddr()}
+          />
+        )}
       </div>
     </PageLayout>
   );
