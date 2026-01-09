@@ -674,61 +674,38 @@ export default function Map() {
                     </div>
 
                     {(showNearMe || searchLocation || searchInView) && (
-                      <div className="space-y-2">
-                        <div className="flex justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 w-9 p-0 flex-shrink-0"
-                            onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
-                            title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
-                          >
-                            <svg
-                              className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </Button>
+                      <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                          <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                            <SelectTrigger className="w-20 h-7 text-xs">
+                              <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                              <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                              <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                              <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                              <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                              <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
-                        {showMobileSearchOptions && (
-                          <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                              <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                                <SelectTrigger className="w-20 h-7 text-xs">
-                                  <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                                  <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                                  <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                                  <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                                  <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                                  <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => {
-                                setShowNearMe(false);
-                                setSearchLocation(null);
-                                setSearchInView(false);
-                                setShowMobileSearchOptions(false);
-                              }}
-                            >
-                              <X className="h-3 w-3 mr-1" />
-                              {t('map.clear')}
-                            </Button>
-                          </div>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => {
+                            setShowNearMe(false);
+                            setSearchLocation(null);
+                            setSearchInView(false);
+                            setShowMobileSearchOptions(false);
+                          }}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          {t('map.clear')}
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -866,60 +843,39 @@ export default function Map() {
                         </div>
 
                     {(showNearMe || searchLocation || searchInView) && (
-                      <>
+                      <div className="flex items-center justify-between bg-background/95 backdrop-blur-sm shadow-lg border rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
+                          <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                            <SelectTrigger className="w-20 h-7 text-xs">
+                              <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                              <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                              <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                              <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                              <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                              <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-9 w-9 p-0 flex-shrink-0 bg-background/95 backdrop-blur-sm shadow-lg border ml-auto"
-                          onClick={() => setShowMobileSearchOptions(!showMobileSearchOptions)}
-                          title={showMobileSearchOptions ? t('map.searchOptions.hide') : t('map.searchOptions.show')}
+                          className="h-7 px-2 text-xs"
+                          onClick={() => {
+                            setShowNearMe(false);
+                            setSearchLocation(null);
+                            setSearchInView(false);
+                            setShowMobileSearchOptions(false);
+                          }}
                         >
-                          <svg
-                            className={`h-4 w-4 transition-transform duration-200 ${showMobileSearchOptions ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
+                          <X className="h-3 w-3 mr-1" />
+                          {t('map.clear')}
                         </Button>
-
-                        {showMobileSearchOptions && (
-                          <div className="flex items-center justify-between bg-background/95 backdrop-blur-sm shadow-lg border rounded-lg p-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                              <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                                <SelectTrigger className="w-20 h-7 text-xs">
-                                  <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                                  <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                                  <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                                  <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                                  <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                                  <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => {
-                                setShowNearMe(false);
-                                setSearchLocation(null);
-                                setSearchInView(false);
-                                setShowMobileSearchOptions(false);
-                              }}
-                            >
-                              <X className="h-3 w-3 mr-1" />
-                              {t('map.clear')}
-                            </Button>
-                          </div>
-                        )}
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
