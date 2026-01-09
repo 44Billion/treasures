@@ -98,19 +98,9 @@ export function MobileHeader() {
           </SheetTrigger>
 
           {/* Side Sheet Content - Optimized for limited vertical space */}
-          <SheetContent side="left" className="mobile-nav-sheet flex flex-col w-[280px] xs:w-[320px] sm:w-[400px] p-0">
-            {/* Compact Header */}
-            <div className="mobile-nav-header flex items-center gap-2 px-3 py-4 pr-10 border-b bg-muted/50 dark:bg-muted shrink-0">
-              <img
-                src="/icon.svg"
-                alt="Treasures"
-                className={cn("h-6 w-6 xs:h-7 xs:w-7 transition-all duration-200", themeClasses.icon)}
-              />
-              <span className={cn("font-bold text-sm", isAdventureTheme && "font-adventure")}>{t('navigation.appName')}</span>
-            </div>
-
+          <SheetContent side="left" closePosition="left" className="mobile-nav-sheet flex flex-col w-[280px] xs:w-[320px] sm:w-[400px] p-0">
             {/* Scrollable Content Area */}
-            <div className="mobile-nav-scroll flex-1 overflow-y-auto">
+            <div className="mobile-nav-scroll flex-1 overflow-y-auto pt-12">
               {/* Navigation Links - List Layout */}
               <div className="nav-section p-2 xs:p-3">
                 <div className="space-y-1">
