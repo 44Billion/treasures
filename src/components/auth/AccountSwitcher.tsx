@@ -186,8 +186,8 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           </Select>
         </div>
 
-        {/* Relay Selector - Desktop only */}
-        <div className='hidden md:block px-2 py-1.5'>
+        {/* Relay Selector */}
+        <div className='px-2 py-1.5'>
           <DropdownMenuLabel className='px-0 py-1 text-xs text-muted-foreground font-normal'>
             {t('settings.relay.title')}
           </DropdownMenuLabel>
