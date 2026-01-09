@@ -567,18 +567,7 @@ export default function Map() {
                           {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
                         </span>
 
-                        {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                            <span>{t('map.loading.searching')}</span>
-                          </div>
-                        )}
-                        {baseGeocaches.isFetching && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                            <span>{t('map.loading.updating')}</span>
-                          </div>
-                        )}
+
                       </div>
                     </div>
                   </div>
@@ -620,15 +609,7 @@ export default function Map() {
             isMapCenterLocked={isMapCenterLocked}
           />
 
-          {/* Progressive loading indicator for geocaches */}
-          {(isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0 && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground/30 border-t-primary"></div>
-                <span>{t('map.loading.finding')}</span>
-              </div>
-            </div>
-          )}
+
 
 
         </div>
@@ -770,18 +751,7 @@ export default function Map() {
                             {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
                             {searchInView && ` • ${t('map.results.inView')}`}
                           </span>
-                          {((isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0) && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <div className="animate-spin rounded-full h-3 w-3 border border-muted-foreground/30 border-t-muted-foreground"></div>
-                              <span>{t('map.loading.searching')}</span>
-                            </div>
-                          )}
-                          {baseGeocaches.isFetching && (
-                            <div className="flex items-center gap-1 text-xs">
-                              <div className="animate-pulse h-2 w-2 bg-primary rounded-full"></div>
-                              <span>{t('map.loading.updating')}</span>
-                            </div>
-                          )}
+
                         </div>
                       </div>
                       {isProximitySearchActive && (
@@ -898,15 +868,7 @@ export default function Map() {
                   isMapCenterLocked={isMapCenterLocked}
                 />
 
-                {/* Progressive loading indicator for mobile map */}
-                {(isProximitySearchActive ? isLoading : baseGeocaches.isLoading) && filteredGeocaches.length === 0 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground/30 border-t-primary"></div>
-                      <span>{t('map.loading.finding')}</span>
-                    </div>
-                  </div>
-                )}
+
             </div>
           </MapViewTabs>
         </div>
