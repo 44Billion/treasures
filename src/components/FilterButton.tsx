@@ -233,10 +233,7 @@ export function FilterButton({
                 <SelectTrigger className="h-9">
                   <SelectValue>
                     {difficulty === undefined ? (
-                      <span className="flex items-center gap-2">
-                        <ListFilter className="h-4 w-4" />
-                        {t('filters.all')}
-                      </span>
+                      t('filters.all')
                     ) : (
                       (() => {
                         const option = difficultyOptions.find(opt => opt.value === difficulty.toString());
@@ -253,10 +250,7 @@ export function FilterButton({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
-                    <span className="flex items-center gap-2">
-                      <ListFilter className="h-4 w-4" />
-                      {t('filters.all')}
-                    </span>
+                    {t('filters.all')}
                   </SelectItem>
                   {difficultyOptions.map((option) => {
                     const IconComponent = option.icon;
@@ -285,10 +279,7 @@ export function FilterButton({
                 <SelectTrigger className="h-9">
                   <SelectValue>
                     {terrain === undefined ? (
-                      <span className="flex items-center gap-2">
-                        <ListFilter className="h-4 w-4" />
-                        {t('filters.all')}
-                      </span>
+                      t('filters.all')
                     ) : (
                       (() => {
                         const option = terrainOptions.find(opt => opt.value === terrain.toString());
@@ -305,10 +296,7 @@ export function FilterButton({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
-                    <span className="flex items-center gap-2">
-                      <ListFilter className="h-4 w-4" />
-                      {t('filters.all')}
-                    </span>
+                    {t('filters.all')}
                   </SelectItem>
                   {terrainOptions.map((option) => {
                     const IconComponent = option.icon;
@@ -337,10 +325,7 @@ export function FilterButton({
                 <SelectTrigger className="h-9">
                   <SelectValue>
                     {cacheType === undefined || cacheType === "all" ? (
-                      <span className="flex items-center gap-2">
-                        <ListFilter className="h-4 w-4" />
-                        {t('filters.allTypes')}
-                      </span>
+                      t('filters.allTypes')
                     ) : (
                       (() => {
                         const option = cacheTypeOptions.find(opt => opt.value === cacheType);
@@ -357,10 +342,7 @@ export function FilterButton({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
-                    <span className="flex items-center gap-2">
-                      <ListFilter className="h-4 w-4" />
-                      {t('filters.allTypes')}
-                    </span>
+                    {t('filters.allTypes')}
                   </SelectItem>
                   {cacheTypeOptions.map((option) => {
                     const IconComponent = option.icon;
