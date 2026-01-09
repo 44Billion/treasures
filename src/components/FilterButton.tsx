@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComparisonFilter, type ComparisonOperator } from "@/components/ui/comparison-filter";
 import { Badge } from "@/components/ui/badge";
+import { CacheIcon } from "@/features/geocache/utils/cacheIcons";
+import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
 interface FilterButtonProps {
@@ -45,6 +47,7 @@ export function FilterButton({
   compact = false,
 }: FilterButtonProps) {
   const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   // Create translated difficulty/terrain options that update when language changes
@@ -152,32 +155,52 @@ export function FilterButton({
             />
 
             {/* Cache Type Filter */}
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label className="text-sm font-medium text-foreground">
                 {t('filters.cacheType')}
               </Label>
-              <Select
-                value={cacheType || "all"}
-                onValueChange={handleCacheTypeChange}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue>
-                    {cacheType === undefined || cacheType === "all" ? (
-                      t('filters.allTypes')
-                    ) : (
-                      cacheTypeOptions.find(opt => opt.value === cacheType)?.label || cacheType
+              <div className="grid grid-cols-4 gap-2">
+                {/* All Types Button */}
+                <button
+                  type="button"
+                  onClick={() => handleCacheTypeChange("all")}
+                  className={cn(
+                    "p-2 rounded-lg border text-center transition-all",
+                    !cacheType || cacheType === "all"
+                      ? "border-primary bg-primary/10 dark:bg-primary/20"
+                      : "border-border bg-background hover:border-muted-foreground"
+                  )}
+                >
+                  <div className="h-5 w-5 mx-auto mb-1 flex items-center justify-center">
+                    <ListFilter className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium text-xs text-foreground block truncate">
+                    {t('filters.all')}
+                  </span>
+                </button>
+
+                {/* Cache Type Buttons with Icons */}
+                {cacheTypeOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleCacheTypeChange(option.value)}
+                    className={cn(
+                      "p-2 rounded-lg border text-center transition-all",
+                      cacheType === option.value
+                        ? "border-primary bg-primary/10 dark:bg-primary/20"
+                        : "border-border bg-background hover:border-muted-foreground"
                     )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
-                  {cacheTypeOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                  >
+                    <div className="h-5 w-5 mx-auto mb-1">
+                      <CacheIcon type={option.value} size="md" theme={theme} />
+                    </div>
+                    <span className="font-medium text-xs text-foreground block truncate">
                       {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
