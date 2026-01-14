@@ -629,9 +629,26 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       <div className="space-y-4">
         <details className="group">
           <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Enter coordinates manually
+            Manual Coordinates
           </summary>
           <div className="mt-3 space-y-3">
+            {/* Selected location display */}
+            {value && (
+              <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
+                <p className="text-sm font-medium text-foreground">
+                  Selected: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
+                </p>
+                <a
+                  href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline inline-block mt-1"
+                >
+                  View on OpenStreetMap →
+                </a>
+              </div>
+            )}
+
             <p className="text-xs text-muted-foreground">
               Accepts formats like: 40.7128, -74.0060
             </p>
@@ -669,23 +686,6 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             </Button>
           </div>
         </details>
-
-        {/* Selected location display */}
-        {value && (
-          <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
-            <p className="text-sm font-medium text-foreground">
-              Selected: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
-            </p>
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:underline inline-block mt-1"
-            >
-              View on OpenStreetMap →
-            </a>
-          </div>
-        )}
       </div>
     </div>
   );
