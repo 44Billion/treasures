@@ -96,7 +96,7 @@ function CustomZoomControl() {
     container.className = 'custom-zoom-control';
     container.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      bottom: 24px;
       left: 10px;
       z-index: 10000;
       pointer-events: auto;
@@ -233,7 +233,7 @@ function MapStyleControl({
     container.className = 'map-style-control-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 106px;
+      bottom: 114px;
       left: 10px;
       z-index: 10000;
       pointer-events: auto;
@@ -328,7 +328,7 @@ function NearMeControl({
     container.className = 'near-me-button-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      bottom: 24px;
       right: 16px;
       z-index: 10000;
       pointer-events: auto;
@@ -570,18 +570,20 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   return (
     <div className="space-y-4">
-      {/* Search */}
-      <OmniSearch
-        onLocationSelect={handleLocationSearch}
-        onGeocacheSelect={() => {}} // No geocache selection on create page
-        onTextSearch={() => {}} // No text search on create page
-        geocaches={[]}
-        placeholder="Search for a location or enter coordinates..."
-        mobilePlaceholder="Search location..."
-      />
-
       {/* Map */}
       <div className="w-full h-96 rounded-lg overflow-hidden border relative">
+        {/* Search bar overlay */}
+        <div className="absolute top-3 left-3 right-3 z-[10000] pointer-events-auto">
+          <OmniSearch
+            onLocationSelect={handleLocationSearch}
+            onGeocacheSelect={() => {}} // No geocache selection on create page
+            onTextSearch={() => {}} // No text search on create page
+            geocaches={[]}
+            placeholder="Search for a location or enter coordinates..."
+            mobilePlaceholder="Search location..."
+          />
+        </div>
+
         <MapContainer
           center={mapCenter}
           zoom={value ? 15 : 10}
