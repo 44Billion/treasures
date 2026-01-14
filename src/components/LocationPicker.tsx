@@ -98,7 +98,7 @@ function CustomZoomControl() {
       position: absolute;
       bottom: 16px;
       left: 10px;
-      z-index: 1000;
+      z-index: 10000;
       pointer-events: auto;
     `;
 
@@ -235,7 +235,7 @@ function MapStyleControl({
       position: absolute;
       bottom: 106px;
       left: 10px;
-      z-index: 1000;
+      z-index: 10000;
       pointer-events: auto;
     `;
 
@@ -330,7 +330,7 @@ function NearMeControl({
       position: absolute;
       bottom: 16px;
       right: 16px;
-      z-index: 1000;
+      z-index: 10000;
       pointer-events: auto;
     `;
 
