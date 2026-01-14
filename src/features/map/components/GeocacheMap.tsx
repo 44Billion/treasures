@@ -1201,7 +1201,14 @@ export function GeocacheMap({
       const dTag = event.detail;
       const geocache = geocaches.find(g => g.dTag === dTag);
       if (geocache) {
-        handleMarkerClick(geocache);
+        // On mobile (< 768px), navigate directly to the geocache detail page
+        // On desktop, use handleMarkerClick which may open a modal
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+          navigateToGeocache(geocache, { fromMap: true });
+        } else {
+          handleMarkerClick(geocache);
+        }
       }
     };
 
@@ -1212,7 +1219,7 @@ export function GeocacheMap({
     return () => {
       window.removeEventListener('geocache-view-details', handleViewDetails as EventListener);
     };
-  }, [geocaches, onMarkerClick, handleMarkerClick]);
+  }, [geocaches, onMarkerClick, handleMarkerClick, navigateToGeocache]);
 
   return (
     <div
