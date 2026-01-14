@@ -4,7 +4,7 @@ import { LatLngExpression } from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LocationSearch } from "@/components/LocationSearch";
+import { OmniSearch } from "@/components/OmniSearch";
 import { MapStyleSelector } from "@/features/map/components/MapStyleSelector";
 import { NearMeButton } from "@/features/map/components/NearMeButton";
 import { MAP_STYLES } from "@/features/map/constants/mapStyles";
@@ -96,7 +96,7 @@ function CustomZoomControl() {
     container.className = 'custom-zoom-control';
     container.style.cssText = `
       position: absolute;
-      top: 10px;
+      bottom: 16px;
       left: 10px;
       z-index: 10000;
       pointer-events: auto;
@@ -233,7 +233,7 @@ function MapStyleControl({
     container.className = 'map-style-control-container';
     container.style.cssText = `
       position: absolute;
-      top: 100px;
+      bottom: 106px;
       left: 10px;
       z-index: 10000;
       pointer-events: auto;
@@ -328,8 +328,8 @@ function NearMeControl({
     container.className = 'near-me-button-container';
     container.style.cssText = `
       position: absolute;
-      top: 10px;
-      right: 10px;
+      bottom: 16px;
+      right: 16px;
       z-index: 10000;
       pointer-events: auto;
     `;
@@ -570,8 +570,18 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   return (
     <div className="space-y-4">
-      {/* Map - no card wrapper on mobile */}
-      <div className="w-full h-64 rounded-lg overflow-hidden border relative">
+      {/* Search */}
+      <OmniSearch
+        onLocationSelect={handleLocationSearch}
+        onGeocacheSelect={() => {}} // No geocache selection on create page
+        onTextSearch={() => {}} // No text search on create page
+        geocaches={[]}
+        placeholder="Search for a location or enter coordinates..."
+        mobilePlaceholder="Search location..."
+      />
+
+      {/* Map */}
+      <div className="w-full h-96 rounded-lg overflow-hidden border relative">
         <MapContainer
           center={mapCenter}
           zoom={value ? 15 : 10}
@@ -613,21 +623,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         )}
       </p>
 
-      {/* Location Options */}
+      {/* Manual Coordinates - Collapsible */}
       <div className="space-y-4">
-        {/* Location Search */}
-        <div>
-          <Label className="text-sm font-medium text-foreground">Search for a location</Label>
-          <div className="mt-1">
-            <LocationSearch
-              onLocationSelect={handleLocationSearch}
-              placeholder="Search city, zip code, or address..."
-              mobilePlaceholder="Search for a location..."
-            />
-          </div>
-        </div>
-
-        {/* Manual Coordinates - Collapsible */}
         <details className="group">
           <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Enter coordinates manually
