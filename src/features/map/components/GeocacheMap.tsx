@@ -811,6 +811,18 @@ function CustomZoomControl() {
       pointer-events: auto;
     `;
 
+    // Get background color with opacity from CSS variable
+    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+    const backgroundColor = bgColor ? `hsl(${bgColor} / 0.9)` : 'rgba(255, 255, 255, 0.9)';
+
+    // Get accent color for hover
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const accentBgColor = accentColor ? `hsl(${accentColor})` : 'rgba(240, 240, 240, 1)';
+
+    // Get foreground color
+    const fgColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+    const foregroundColor = fgColor ? `hsl(${fgColor})` : '#374151';
+
     // Create zoom in button
     const zoomInBtn = document.createElement('button');
     zoomInBtn.innerHTML = '+';
@@ -821,10 +833,10 @@ function CustomZoomControl() {
       justify-content: center;
       width: 40px;
       height: 40px;
-      background: var(--control-bg);
+      background: ${backgroundColor};
       border: 1px solid hsl(var(--border));
       border-bottom: none;
-      color: var(--control-text);
+      color: ${foregroundColor};
       font-size: 18px;
       font-weight: 500;
       line-height: 1;
@@ -835,12 +847,10 @@ function CustomZoomControl() {
       backdrop-filter: blur(8px);
     `;
     zoomInBtn.onmouseover = () => {
-      zoomInBtn.style.background = 'var(--control-hover-bg)';
-      zoomInBtn.style.color = 'var(--control-hover-text)';
+      zoomInBtn.style.background = accentBgColor;
     };
     zoomInBtn.onmouseout = () => {
-      zoomInBtn.style.background = 'var(--control-bg)';
-      zoomInBtn.style.color = 'var(--control-text)';
+      zoomInBtn.style.background = backgroundColor;
     };
     zoomInBtn.onclick = () => {
       map.zoomIn();
@@ -856,9 +866,9 @@ function CustomZoomControl() {
       justify-content: center;
       width: 40px;
       height: 40px;
-      background: var(--control-bg);
+      background: ${backgroundColor};
       border: 1px solid hsl(var(--border));
-      color: var(--control-text);
+      color: ${foregroundColor};
       font-size: 18px;
       font-weight: 500;
       line-height: 1;
@@ -869,12 +879,10 @@ function CustomZoomControl() {
       backdrop-filter: blur(8px);
     `;
     zoomOutBtn.onmouseover = () => {
-      zoomOutBtn.style.background = 'var(--control-hover-bg)';
-      zoomOutBtn.style.color = 'var(--control-hover-text)';
+      zoomOutBtn.style.background = accentBgColor;
     };
     zoomOutBtn.onmouseout = () => {
-      zoomOutBtn.style.background = 'var(--control-bg)';
-      zoomOutBtn.style.color = 'var(--control-text)';
+      zoomOutBtn.style.background = backgroundColor;
     };
     zoomOutBtn.onclick = () => {
       map.zoomOut();
