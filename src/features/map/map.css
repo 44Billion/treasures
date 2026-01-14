@@ -664,33 +664,34 @@
   }
 }
 
-/* ===== PWA FULLSCREEN MODE ADJUSTMENTS ===== */
-/* Adjust button positioning when in fullscreen/standalone mode (PWA) */
-@media (display-mode: standalone) {
+/* ===== MOBILE NAVIGATION BAR ADJUSTMENTS ===== */
+/* On mobile (below lg breakpoint), add extra spacing to clear the bottom nav bar */
+/* Desktop has no bottom nav, so it uses the default positioning */
+@media (max-width: 1023px) {
   .map-style-control-container {
-    bottom: 106px !important;
+    bottom: 126px !important;
   }
 
   .custom-zoom-control {
-    bottom: 16px !important;
+    bottom: 36px !important;
   }
 
   .near-me-button-container {
-    bottom: 16px !important;
-  }
-}
-
-/* iOS standalone mode */
-@media (display-mode: standalone) and (-webkit-touch-callout: none) {
-  .map-style-control-container {
-    bottom: 106px !important;
+    bottom: 36px !important;
   }
 
-  .custom-zoom-control {
-    bottom: 16px !important;
-  }
+  /* In PWA fullscreen mode on mobile, reduce spacing since nav bar isn't visible */
+  @media (display-mode: standalone) {
+    .map-style-control-container {
+      bottom: 106px !important;
+    }
 
-  .near-me-button-container {
-    bottom: 16px !important;
+    .custom-zoom-control {
+      bottom: 16px !important;
+    }
+
+    .near-me-button-container {
+      bottom: 16px !important;
+    }
   }
 }
