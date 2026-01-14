@@ -664,8 +664,6 @@
   }
 }
 
-/* Map controls use standard positioning - the map container itself handles nav bar spacing */
-
 /* ===== MOBILE MAP CONTAINER VIEWPORT FIX ===== */
 /* Handle dynamic browser UI (address bar) on mobile */
 .mobile-map-container {
@@ -681,5 +679,36 @@
   .mobile-map-container {
     height: calc(100vh - 3rem);
     height: calc(100dvh - 3rem);
+  }
+}
+
+/* ===== MOBILE MAP CONTROLS SPACING ===== */
+/* On mobile, add spacing to clear the bottom nav bar (4rem = 64px) */
+@media (max-width: 1023px) {
+  .map-style-control-container {
+    bottom: calc(106px + 4rem) !important;
+  }
+
+  .custom-zoom-control {
+    bottom: calc(16px + 4rem) !important;
+  }
+
+  .near-me-button-container {
+    bottom: calc(16px + 4rem) !important;
+  }
+
+  /* In fullscreen/standalone mode, remove the extra spacing */
+  @media (display-mode: standalone) {
+    .map-style-control-container {
+      bottom: 106px !important;
+    }
+
+    .custom-zoom-control {
+      bottom: 16px !important;
+    }
+
+    .near-me-button-container {
+      bottom: 16px !important;
+    }
   }
 }
