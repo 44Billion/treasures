@@ -329,7 +329,7 @@ function NearMeControl({
     container.style.cssText = `
       position: absolute;
       bottom: 24px;
-      right: 16px;
+      right: 10px;
       z-index: 10000;
       pointer-events: auto;
     `;
