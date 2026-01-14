@@ -96,7 +96,7 @@ function CustomZoomControl() {
     container.className = 'custom-zoom-control';
     container.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      top: 10px;
       left: 10px;
       z-index: 10000;
       pointer-events: auto;
@@ -233,7 +233,7 @@ function MapStyleControl({
     container.className = 'map-style-control-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 106px;
+      top: 100px;
       left: 10px;
       z-index: 10000;
       pointer-events: auto;
@@ -328,8 +328,8 @@ function NearMeControl({
     container.className = 'near-me-button-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 16px;
-      right: 16px;
+      top: 10px;
+      right: 10px;
       z-index: 10000;
       pointer-events: auto;
     `;
