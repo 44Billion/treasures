@@ -43,7 +43,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className={`w-72 md:w-80 p-3 ${isAdventureTheme ? 'adventure-popover' : ''}`}
+        className={`w-64 sm:w-72 md:w-80 p-3 z-[500] ${isAdventureTheme ? 'adventure-popover' : ''}`}
         align="start"
         side="right"
         sideOffset={8}
