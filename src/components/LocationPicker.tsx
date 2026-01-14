@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LocationSearch } from "@/components/LocationSearch";
 import { MapStyleSelector } from "@/features/map/components/MapStyleSelector";
+import { NearMeButton } from "@/features/map/components/NearMeButton";
 import { MAP_STYLES } from "@/features/map/constants/mapStyles";
 import { useGeolocation } from "@/features/map/hooks/useGeolocation";
 import { useInitialLocation } from "@/features/map/hooks/useInitialLocation";
@@ -303,25 +304,28 @@ function NearMeControl({
 }) {
   const map = useMap();
   const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
   const isInitializedRef = useRef(false);
 
-  // Use refs to avoid re-rendering issues
+  // Use refs to store the latest props to avoid dependency issues
   const onGetLocationRef = useRef(onGetLocation);
   const isGettingLocationRef = useRef(isGettingLocation);
 
+  // Update refs when props change
   useEffect(() => {
     onGetLocationRef.current = onGetLocation;
     isGettingLocationRef.current = isGettingLocation;
   });
 
   useEffect(() => {
+    // Only initialize once
     if (isInitializedRef.current) return;
 
     const mapContainer = map.getContainer();
 
     // Create container div for the near me button
     const container = document.createElement('div');
-    container.className = 'near-me-control-container';
+    container.className = 'near-me-button-container';
     container.style.cssText = `
       position: absolute;
       bottom: 16px;
@@ -330,80 +334,61 @@ function NearMeControl({
       pointer-events: auto;
     `;
 
-    // Get background color with opacity from CSS variable
-    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
-    const backgroundColor = bgColor ? `hsl(${bgColor} / 0.9)` : 'rgba(255, 255, 255, 0.9)';
-
-    // Get accent color for hover
-    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    const accentBgColor = accentColor ? `hsl(${accentColor})` : 'rgba(240, 240, 240, 1)';
-
-    // Get foreground color
-    const fgColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
-    const foregroundColor = fgColor ? `hsl(${fgColor})` : '#374151';
-
-    // Create button
-    const button = document.createElement('button');
-    button.className = 'near-me-btn';
-    button.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: ${backgroundColor};
-      border: 1px solid hsl(var(--border));
-      color: ${foregroundColor};
-      cursor: pointer;
-      border-radius: 0.375rem;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-    `;
-
-    // Navigation icon SVG
-    const iconSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`;
-    button.innerHTML = iconSvg;
-
-    button.onmouseover = () => {
-      button.style.background = accentBgColor;
-    };
-    button.onmouseout = () => {
-      button.style.background = backgroundColor;
-    };
-    button.onclick = () => {
-      onGetLocationRef.current();
-    };
-
-    // Update button when loading state changes
-    const updateButton = () => {
-      if (isGettingLocationRef.current) {
-        button.style.opacity = '0.5';
-        button.style.cursor = 'not-allowed';
-      } else {
-        button.style.opacity = '1';
-        button.style.cursor = 'pointer';
-      }
-    };
-
-    updateButton();
-
-    container.appendChild(button);
+    // Add container to map container
     mapContainer.appendChild(container);
     containerRef.current = container;
-    isInitializedRef.current = true;
 
-    // Set up interval to check loading state
-    const intervalId = setInterval(updateButton, 100);
+    // Create React root and render the NearMeButton
+    rootRef.current = createRoot(container);
+    rootRef.current.render(
+      <NearMeButton
+        onNearMe={onGetLocationRef.current}
+        isActive={false}
+        isLocating={isGettingLocationRef.current}
+        isAdventureTheme={false}
+      />
+    );
+
+    isInitializedRef.current = true;
 
     // Cleanup
     return () => {
-      clearInterval(intervalId);
       if (containerRef.current && containerRef.current.parentNode) {
         containerRef.current.parentNode.removeChild(containerRef.current);
       }
+
+      if (rootRef.current) {
+        const root = rootRef.current;
+        rootRef.current = null;
+
+        setTimeout(() => {
+          try {
+            if (root && typeof root.unmount === 'function') {
+              root.unmount();
+            }
+          } catch (error) {
+            console.debug('NearMeControl unmount:', error);
+          }
+        }, 0);
+      }
+
       isInitializedRef.current = false;
     };
   }, [map]);
+
+  // Update the rendered component when props change
+  useEffect(() => {
+    if (rootRef.current && isInitializedRef.current) {
+      rootRef.current.render(
+        <NearMeButton
+          onNearMe={onGetLocationRef.current}
+          isActive={false}
+          isLocating={isGettingLocationRef.current}
+          isAdventureTheme={false}
+        />
+      );
+    }
+  }, [isGettingLocation]);
 
   return null;
 }
