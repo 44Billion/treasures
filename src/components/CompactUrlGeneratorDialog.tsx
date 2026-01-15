@@ -36,7 +36,7 @@ interface CompactUrlData {
 }
 
 export function CompactUrlGeneratorDialog({ open, onOpenChange, pubkey }: CompactUrlGeneratorDialogProps) {
-  const [count, setCount] = useState(9);
+  const [count, setCount] = useState(1);
   const [urls, setUrls] = useState<CompactUrlData[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
