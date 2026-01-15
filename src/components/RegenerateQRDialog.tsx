@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { RotateCcw, AlertTriangle, QrCode, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -34,84 +34,38 @@ export function RegenerateQRDialog({
 }: RegenerateQRDialogProps) {
   const [showNewQR, setShowNewQR] = useState(false);
   const [newVerificationKeyPair, setNewVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
-  const [operationTimeout, setOperationTimeout] = useState<NodeJS.Timeout | null>(null);
   const [useCompact, setUseCompact] = useState(false);
   
   const { mutate: regenerateKey, isPending, reset } = useRegenerateVerificationKey({ pubkey, dTag, relays });
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (operationTimeout) {
-        clearTimeout(operationTimeout);
-      }
-    };
-  }, [operationTimeout]);
-
   const handleRegenerate = (compact: boolean = false) => {
     setUseCompact(compact);
-    // Clear any existing timeout
-    if (operationTimeout) {
-      clearTimeout(operationTimeout);
-    }
-
-    // Set a timeout to reset the operation if it takes too long (30 seconds)
-    const timeout = setTimeout(() => {
-      reset();
-      console.warn('QR regeneration operation timed out after 30 seconds');
-    }, 30000);
-    setOperationTimeout(timeout);
-
-    // This creates a new Nostr event (kind 37516) with a new verification key
-    // The new event replaces the previous geocache event, invalidating old QR codes
+    console.log('[RegenerateQR] Starting regeneration', { compact, dTag });
+    
     regenerateKey(undefined, {
       onSuccess: (result) => {
-        // Clear the timeout on success
-        if (operationTimeout) {
-          clearTimeout(operationTimeout);
-          setOperationTimeout(null);
-        }
-        
-        // Extract the verification key pair from the result
+        console.log('[RegenerateQR] Success', { eventId: result.event.id });
         const verificationKeyPair = result.verificationKeyPair;
         setNewVerificationKeyPair(verificationKeyPair);
         setShowNewQR(true);
         onOpenChange(false);
       },
-      onError: () => {
-        // Clear the timeout on error
-        if (operationTimeout) {
-          clearTimeout(operationTimeout);
-          setOperationTimeout(null);
-        }
+      onError: (error) => {
+        console.error('[RegenerateQR] Error', error);
       },
     });
   };
 
   const handleCancel = () => {
-    // Clear any pending timeout
-    if (operationTimeout) {
-      clearTimeout(operationTimeout);
-      setOperationTimeout(null);
-    }
-    
-    // Reset the mutation state if it's pending
     if (isPending) {
       reset();
     }
-    
     onOpenChange(false);
   };
 
   const handleQRDialogClose = () => {
     setShowNewQR(false);
     setNewVerificationKeyPair(null);
-    
-    // Clear any remaining timeout
-    if (operationTimeout) {
-      clearTimeout(operationTimeout);
-      setOperationTimeout(null);
-    }
   };
 
   

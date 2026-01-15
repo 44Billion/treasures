@@ -31,20 +31,33 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
   return useMutation({
     mutationKey: ['regenerate-verification-key', naddr],
     mutationFn: async () => {
+      console.log('[RegenerateVerificationKey] Starting', { pubkey, dTag, naddr });
+      
       if (isLoadingGeocache) {
+        console.warn('[RegenerateVerificationKey] Geocache still loading');
         throw new Error("Geocache data is still loading");
       }
 
       if (!geocache) {
+        console.error('[RegenerateVerificationKey] No geocache found', { naddr });
         throw new Error("Could not load geocache data. The cache may not exist or there might be a network issue.");
       }
 
+      console.log('[RegenerateVerificationKey] Geocache loaded', { 
+        name: geocache.name, 
+        existingDTag: geocache.dTag,
+        verificationPubkey: geocache.verificationPubkey 
+      });
+
       // Generate new verification key pair
       const newVerificationKeyPair = await generateVerificationKeyPair();
+      console.log('[RegenerateVerificationKey] New verification key generated', { 
+        pubkey: newVerificationKeyPair.publicKey 
+      });
 
       // Create updated geocache event with new verification key
       const tags = buildGeocacheTags({
-        dTag: geocache.dTag,
+        dTag: geocache.dTag,  // Use existing d-tag
         name: geocache.name,
         location: geocache.location,
         difficulty: geocache.difficulty,
@@ -59,12 +72,18 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
         kind: geocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 
-      // Create a new Nostr event with the original kind and new verification key
+      console.log('[RegenerateVerificationKey] Publishing event', { 
+        kind: geocache.kind || NIP_GC_KINDS.GEOCACHE,
+        dTag: geocache.dTag 
+      });
+
       const event = await publishEvent({
         kind: geocache.kind || NIP_GC_KINDS.GEOCACHE,
         content: geocache.description,
         tags,
       });
+
+      console.log('[RegenerateVerificationKey] Event published', { eventId: event.id });
 
       return {
         event,

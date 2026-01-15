@@ -6,23 +6,22 @@
  * Current format (221 chars):
  *   https://treasures.to/{naddr}#verify={nsec}
  * 
- * Compact format (116 chars):
+ * Compact format (variable length):
  *   http://treasures.to/c/{base64url-payload}
  * 
- * Payload structure (70 bytes):
+ * Payload structure (variable bytes):
  *   - pubkey:          32 bytes (raw)
- *   - d-tag:            6 bytes (6-char hex string)
+ *   - d-tag length:    1 byte (0-255)
+ *   - d-tag:           variable bytes (UTF-8 encoded string)
  *   - verify privkey:  32 bytes (raw)
  * 
  * Note: kind is always 37516 (NIP_GC_KINDS.GEOCACHE), so it's not stored.
- * D-tag length is fixed at 6 bytes, so no length byte needed.
+ * D-tag can be any length string (up to 255 bytes), supporting both new compact d-tags
+ * (6 hex chars) and existing long d-tags (e.g., "my-cache-name-abc12345").
  */
 
 import { nip19 } from 'nostr-tools';
 import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
-
-// D-tag is now a fixed 6-character hex string
-const DTAG_LENGTH = 6;
 
 /**
  * Get the compact URL prefix based on current environment
@@ -39,11 +38,12 @@ function getCompactUrlPrefix(): string {
 
 /**
  * Encode geocache data into a compact URL
+ * Supports variable-length d-tags (not just 6 hex chars)
  * Note: kind parameter is ignored - always uses GEOCACHE kind (37516)
  */
 export function encodeCompactUrl(
   pubkey: string,
-  dTag: string,
+  dTag: string,  // Can be any length now
   nsec: string,
   _kind?: number // Kept for API compatibility but ignored
 ): string {
@@ -60,23 +60,27 @@ export function encodeCompactUrl(
     throw new Error('Invalid pubkey length');
   }
 
-  // Encode d-tag (should be exactly 6 hex chars like "a1b2c3")
-  if (dTag.length !== DTAG_LENGTH) {
-    throw new Error(`D-tag must be exactly ${DTAG_LENGTH} hex characters, got ${dTag.length}: ${dTag}`);
+  // Encode d-tag as UTF-8 bytes (supports any string, not just hex)
+  const dTagBytes = new TextEncoder().encode(dTag);
+  if (dTagBytes.length > 255) {
+    throw new Error(`D-tag too long: ${dTag.length} chars (max 255 bytes)`);
   }
-  const dTagBytes = hexToBytes(dTag.padEnd(DTAG_LENGTH + (DTAG_LENGTH % 2), '0'));
 
-  // Build payload: pubkey (32) + dTag (3) + privkey (32) = 67 bytes
-  const payload = new Uint8Array(67);
+  // Build payload: pubkey (32) + dTagLength (1) + dTag (variable) + privkey (32)
+  const payload = new Uint8Array(32 + 1 + dTagBytes.length + 32);
   let offset = 0;
 
   // Pubkey (32 bytes)
   payload.set(pubkeyBytes, offset);
   offset += 32;
 
-  // D-tag (3 bytes from 6 hex chars)
+  // D-tag length (1 byte)
+  payload[offset] = dTagBytes.length;
+  offset += 1;
+
+  // D-tag (variable bytes)
   payload.set(dTagBytes, offset);
-  offset += 3;
+  offset += dTagBytes.length;
 
   // Verification private key (32 bytes)
   payload.set(privateKeyBytes, offset);
@@ -89,6 +93,7 @@ export function encodeCompactUrl(
 
 /**
  * Decode a compact URL back to its components
+ * Supports variable-length d-tags
  */
 export function decodeCompactUrl(url: string): {
   pubkey: string;
@@ -113,7 +118,7 @@ export function decodeCompactUrl(url: string): {
 
     // Decode base64url to bytes
     const payload = base64UrlToBytes(base64url);
-    if (payload.length !== 67) {
+    if (payload.length < 65) { // Minimum: 32 (pubkey) + 1 (length) + 0 (d-tag) + 32 (privkey)
       return null;
     }
 
@@ -124,10 +129,21 @@ export function decodeCompactUrl(url: string): {
     const pubkey = bytesToHex(pubkeyBytes);
     offset += 32;
 
-    // D-tag (3 bytes = 6 hex chars)
-    const dTagBytes = payload.slice(offset, offset + 3);
-    const dTag = bytesToHex(dTagBytes);
-    offset += 3;
+    // D-tag length (1 byte)
+    if (offset >= payload.length) {
+      return null; // Not enough bytes for d-tag length
+    }
+    const dTagLength = payload[offset];
+    offset += 1;
+
+    if (dTagLength === undefined || dTagLength === 0 || offset + dTagLength + 32 > payload.length) {
+      return null; // Invalid length
+    }
+
+    // D-tag (variable bytes)
+    const dTagBytes = payload.slice(offset, offset + dTagLength);
+    const dTag = new TextDecoder().decode(dTagBytes);
+    offset += dTagLength;
 
     // Verification private key (32 bytes)
     const privateKeyBytes = payload.slice(offset, offset + 32);

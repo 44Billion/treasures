@@ -102,27 +102,44 @@ async function loadAndResizeImage(src: string, size: number): Promise<HTMLCanvas
 
 
 /**
+ * Build a standard verification URL from naddr and nsec
+ * Standard format: {origin}/{naddr}#verify={nsec}
+ * Note: naddr encodes pubkey + kind + d-tag, so this format requires the naddr
+ */
+export function buildStandardVerificationUrl(naddr: string, nsec: string): string {
+  if (!naddr || !nsec) {
+    throw new Error('Missing required parameters: naddr and nsec are required');
+  }
+  if (!nsec.startsWith('nsec1')) {
+    throw new Error('Invalid nsec format: must start with nsec1');
+  }
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://treasures.to';
+  return `${origin}/${naddr}#verify=${nsec}`;
+}
+
+/**
  * Generate QR code data URL for verification with centered icon and descriptive text
+ * 
+ * @param verificationUrl - Full URL to encode in QR code. Can be either:
+ *   - Standard format: `{origin}/{naddr}#verify={nsec}` (uses naddr which encodes pubkey+kind+d-tag)
+ *   - Compact format: `{origin}/c/{base64-payload}` (encodes pubkey+d-tag+nsec directly, no naddr needed)
  */
 export async function generateVerificationQR(
-  naddr: string,
-  nsec: string,
+  verificationUrl: string,
   qrType: 'full' | 'cutout' | 'micro' = 'full',
   textStrings: {
     line1: string;
     line2: string;
   }
 ): Promise<string> {
-  // Validate inputs
-  if (!naddr || !nsec) {
-    throw new Error('Missing required parameters: naddr and nsec are required');
+  // Validate input
+  if (!verificationUrl) {
+    throw new Error('Missing required parameter: verificationUrl is required');
   }
 
-  if (!nsec.startsWith('nsec1')) {
-    throw new Error('Invalid nsec format: must start with nsec1');
+  if (!verificationUrl.startsWith('http://') && !verificationUrl.startsWith('https://')) {
+    throw new Error('Invalid verificationUrl: must be a full URL starting with http:// or https://');
   }
-
-  const verificationUrl = `https://treasures.to/${naddr}#verify=${nsec}`;
 
   try {
     switch (qrType) {
@@ -698,7 +715,10 @@ export async function generateQRGridImage(
   ctx.textAlign = 'center';
   ctx.font = `${fontSize}px Arial`;
 
-  const qrCodePromises = sheetData.map(d => generateVerificationQR(d.naddr, d.keyPair.nsec, 'full', textStrings));
+  const qrCodePromises = sheetData.map(d => {
+    const verificationUrl = buildStandardVerificationUrl(d.naddr, d.keyPair.nsec);
+    return generateVerificationQR(verificationUrl, 'full', textStrings);
+  });
 
   const qrCodes = await Promise.all(qrCodePromises);
 

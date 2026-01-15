@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Copy, QrCode, ChevronDown, Printer } from 'lucide-react';
 import {
@@ -15,7 +15,6 @@ import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from
 import { encodeCompactUrl } from '@/shared/utils/compactUrl';
 import { naddrToGeocache } from '@/shared/utils/naddr-utils';
 import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
-import { generateCompactDTag } from '@/features/geocache/utils/dTag';
 
 interface VerificationQRDialogProps {
   isOpen: boolean;
@@ -41,27 +40,41 @@ export function VerificationQRDialog({
 
   const { toast } = useToast();
 
-  // Generate compact d-tag once when dialog opens
-  const [compactDTag] = useState(() => generateCompactDTag());
+  // Extract d-tag from naddr (use existing d-tag when regenerating)
+  const naddrData = useMemo(() => naddrToGeocache(naddr), [naddr]);
+  const existingDTag = naddrData.identifier; // AddressPointer uses 'identifier' for d-tag
   
-  const naddrData = naddrToGeocache(naddr);
-  const compactUrl = encodeCompactUrl(naddrData.pubkey, compactDTag, verificationKeyPair.nsec, NIP_GC_KINDS.GEOCACHE);
-  const standardUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair.nsec}`;
-  const verificationUrl = useCompact ? compactUrl : standardUrl;
+  // Use the existing d-tag from the geocache (works for both new and regenerated caches)
+  const compactUrl = useMemo(() => {
+    if (!useCompact) return null;
+    return encodeCompactUrl(naddrData.pubkey, existingDTag, verificationKeyPair.nsec, NIP_GC_KINDS.GEOCACHE);
+  }, [useCompact, naddrData.pubkey, existingDTag, verificationKeyPair.nsec]);
+  
+  const standardUrl = useMemo(() => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://treasures.to';
+    return `${origin}/${naddr}#verify=${verificationKeyPair.nsec}`;
+  }, [naddr, verificationKeyPair.nsec]);
+  const verificationUrl = useMemo(() => {
+    return useCompact && compactUrl ? compactUrl : standardUrl;
+  }, [useCompact, compactUrl, standardUrl]);
 
   useEffect(() => {
     if (isOpen && naddr && verificationKeyPair.nsec) {
+      console.log('[VerificationQR] Generating QR', { useCompact, dTag: existingDTag, urlLength: verificationUrl.length });
       setIsGenerating(true);
       setQrDataUrl(''); // Clear previous QR code
       
-      generateVerificationQR(verificationUrl, verificationKeyPair.nsec, qrType, {
+      // verificationUrl is already a full URL (either standard or compact format)
+      generateVerificationQR(verificationUrl, qrType, {
         line1: t('qrCode.foundTreasure'),
         line2: t('qrCode.scanToLog')
       })
         .then((dataUrl) => {
+          console.log('[VerificationQR] QR generated successfully');
           setQrDataUrl(dataUrl);
         })
         .catch((error) => {
+          console.error('[VerificationQR] QR generation failed', error);
           toast({
             title: 'QR Generation Failed',
             description: error instanceof Error ? error.message : 'Unable to generate QR code. Please try again.',
@@ -70,34 +83,8 @@ export function VerificationQRDialog({
         })
         .finally(() => setIsGenerating(false));
     }
-  }, [isOpen, naddr, verificationKeyPair.nsec, toast, qrType, t]);
-
-  // Separate effect to handle QR type changes when dialog is already open
-  useEffect(() => {
-    if (isOpen && qrDataUrl && naddr && verificationKeyPair.nsec) {
-      setIsGenerating(true);
-      setQrDataUrl(''); // Clear previous QR code immediately
-      
-      // Small delay to ensure state update is processed
-      setTimeout(() => {
-        generateVerificationQR(verificationUrl, verificationKeyPair.nsec, qrType, {
-          line1: t('qrCode.foundTreasure'),
-          line2: t('qrCode.scanToLog')
-        })
-          .then((dataUrl) => {
-            setQrDataUrl(dataUrl);
-          })
-          .catch((error) => {
-            toast({
-              title: 'QR Generation Failed',
-              description: error instanceof Error ? error.message : 'Unable to generate QR code. Please try again.',
-              variant: 'destructive',
-            });
-          })
-          .finally(() => setIsGenerating(false));
-      }, 50);
-    }
-  }, [qrType]); // Only depend on qrType for this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, naddr, verificationKeyPair.nsec, qrType, verificationUrl]); // Only depend on values that should trigger regeneration
 
   const handleQrTypeChange = (type: 'full' | 'cutout' | 'micro') => {
     setQrType(type);

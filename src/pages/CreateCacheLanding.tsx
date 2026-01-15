@@ -17,6 +17,7 @@ import { useToast } from "@/shared/hooks/useToast";
 import {
   generateVerificationKeyPair,
   generateVerificationQR,
+  buildStandardVerificationUrl,
   downloadQRCode,
   generateQRGridImage,
   type VerificationKeyPair,
@@ -156,15 +157,11 @@ export default function CreateCacheLanding() {
         setQrDataUrl(gridUrl);
       } else {
         setSheetData([]);
-        const dataUrl = await generateVerificationQR(
-          naddr,
-          verificationKeyPair.nsec,
-          qrType,
-          {
-            line1: t('qrCode.foundTreasure'),
-            line2: t('qrCode.scanToLog')
-          }
-        );
+        const verificationUrl = buildStandardVerificationUrl(naddr, verificationKeyPair.nsec);
+        const dataUrl = await generateVerificationQR(verificationUrl, qrType, {
+          line1: t('qrCode.foundTreasure'),
+          line2: t('qrCode.scanToLog')
+        });
         setQrDataUrl(dataUrl);
       }
     } catch (error) {

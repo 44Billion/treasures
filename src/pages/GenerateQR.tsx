@@ -18,7 +18,8 @@ import {
   downloadQRCode,
   generateVerificationQR,
   generateQRGridImage,
-  type VerificationKeyPair
+  type VerificationKeyPair,
+  buildStandardVerificationUrl
 } from "@/features/geocache/utils/verification";
 import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
 import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
@@ -58,7 +59,8 @@ export default function GenerateQR() {
       setCacheName(finalCacheName);
       setNaddr(naddr);
       setVerificationKeyPair(keyPair);
-      const dataUrl = await generateVerificationQR(naddr, keyPair.nsec, 'full', {
+      const verificationUrl = buildStandardVerificationUrl(naddr, keyPair.nsec);
+      const dataUrl = await generateVerificationQR(verificationUrl, 'full', {
         line1: t('qrCode.foundTreasure'),
         line2: t('qrCode.scanToLog')
       });
@@ -91,7 +93,8 @@ export default function GenerateQR() {
         setQrDataUrl(gridUrl);
       } else {
         setSheetData([]);
-        const dataUrl = await generateVerificationQR(naddr, verificationKeyPair!.nsec, qrType, {
+        const verificationUrl = buildStandardVerificationUrl(naddr, verificationKeyPair!.nsec);
+        const dataUrl = await generateVerificationQR(verificationUrl, qrType, {
           line1: t('qrCode.foundTreasure'),
           line2: t('qrCode.scanToLog')
         });

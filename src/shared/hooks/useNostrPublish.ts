@@ -101,19 +101,33 @@ export function useNostrPublish() {
         
         // Verify the event was published by querying for it
         if (publishSuccess) {
+          console.log('[useNostrPublish] Verifying event publication', { eventId: event.id });
+          const verifyStartTime = Date.now();
           try {
             const verification = await nostr.query(
               [{ ids: [event.id] }], 
               { signal: AbortSignal.timeout(TIMEOUTS.FAST_QUERY) }
             );
+            const verifyDuration = Date.now() - verifyStartTime;
             
             if (verification.length === 0) {
-              console.warn('Event not found in verification query, but publish succeeded');
+              console.warn('[useNostrPublish] Event not found in verification query', { 
+                eventId: event.id, 
+                duration: verifyDuration 
+              });
             } else {
-              console.log('Event successfully verified on relay');
+              console.log('[useNostrPublish] Event successfully verified', { 
+                eventId: event.id, 
+                duration: verifyDuration 
+              });
             }
           } catch (verifyError) {
-            console.warn('Verification query failed, but publish succeeded:', verifyError);
+            const verifyDuration = Date.now() - verifyStartTime;
+            console.warn('[useNostrPublish] Verification query failed', { 
+              eventId: event.id, 
+              error: verifyError, 
+              duration: verifyDuration 
+            });
           }
         }
         
