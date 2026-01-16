@@ -670,18 +670,18 @@ export function downloadQRCode(dataUrl: string, filename: string = 'geocache-ver
 
 /**
  * Generate a printable grid of compact QR codes (stamp).
- * Creates a dense grid (5x6 = 30 codes) with text labels but no log lines.
+ * Creates a dense grid (6x7 = 42 codes) with text labels but no log lines.
  */
 export async function generateQRStampImage(
   stampData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
   textStrings: { line1: string; line2: string }
 ): Promise<string> {
-  // Use 150 DPI - balance between quality and fitting on page
-  const dpi = 150;
+  // Use screen DPI for smaller output that fits on one page
+  const dpi = 96;
 
   const paperWidth = 8.5 * dpi;
   const paperHeight = 11 * dpi;
-  const margin = 0.15 * dpi; // Minimal margins
+  const margin = 0.2 * dpi; // Minimal margins to maximize space
 
   const canvas = document.createElement('canvas');
   canvas.width = paperWidth;
@@ -699,15 +699,15 @@ export async function generateQRStampImage(
   const contentWidth = paperWidth - 2 * margin;
   const contentHeight = paperHeight - 2 * margin;
 
-  // 5 columns x 6 rows = 30 QR codes
-  const cols = 5;
-  const rows = 6;
+  // 6 columns x 7 rows = 42 QR codes
+  const cols = 6;
+  const rows = 7;
   const cellWidth = contentWidth / cols;
   const cellHeight = contentHeight / rows;
 
-  // Calculate QR code size - make smaller to fit on page
-  const textHeight = 16; // Smaller text area
-  const qrSize = Math.min(cellWidth * 0.80, cellHeight - textHeight - 2); // 80% - smaller codes
+  // Calculate QR code size to fit with text - maximize space usage
+  const textHeight = 12; // Small fixed pixel height for text area
+  const qrSize = Math.min(cellWidth * 0.95, cellHeight - textHeight - 2); // Minimal padding
 
   // Generate all QR codes first
   const qrCodePromises = stampData.map(d => {
@@ -780,7 +780,7 @@ export async function generateQRStampImage(
       }
 
       // Add text below QR code
-      const textStartY = qrY + qrSize + 3; // Small gap between QR and text
+      const textStartY = qrY + qrSize + 2; // Minimal gap between QR and text
       const line1 = textStrings.line1;
       const line2 = textStrings.line2;
 
@@ -788,13 +788,13 @@ export async function generateQRStampImage(
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
-      const fontSize1 = 6; // Smaller font
+      const fontSize1 = 5; // Very small font size
       ctx.font = `bold ${fontSize1}px "Segoe UI", Arial, sans-serif`;
-      ctx.fillText(line1, x + cellWidth / 2, textStartY, cellWidth * 0.96);
+      ctx.fillText(line1, x + cellWidth / 2, textStartY, cellWidth * 0.98);
 
-      const fontSize2 = 5; // Smaller second line
+      const fontSize2 = 4; // Even smaller for second line
       ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
-      ctx.fillText(line2, x + cellWidth / 2, textStartY + fontSize1 + 0.5, cellWidth * 0.96);
+      ctx.fillText(line2, x + cellWidth / 2, textStartY + fontSize1, cellWidth * 0.98);
     }
   }
 

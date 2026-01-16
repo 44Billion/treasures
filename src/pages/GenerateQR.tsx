@@ -95,9 +95,9 @@ export default function GenerateQR() {
         });
         setQrDataUrl(gridUrl);
       } else if (qrType === 'stamp') {
-        // Generate 30 codes for stamp (5x6 grid)
+        // Generate 42 codes for stamp (6x7 grid)
         const dataPromises = [];
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 42; i++) {
           const name = uniqueNamesGenerator(customConfig);
           const dTag = generateDeterministicDTag(name, user.pubkey);
           const naddr = geocacheToNaddr(user.pubkey, dTag);

@@ -160,7 +160,7 @@ export default function CreateCacheLanding() {
         setQrDataUrl(gridUrl);
       } else if (qrType === 'stamp') {
         const dataPromises = [];
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 42; i++) {
           const name = uniqueNamesGenerator(customConfig);
           const dTag = generateDeterministicDTag(name, targetPubkey);
           const naddr = geocacheToNaddr(targetPubkey, dTag);
