@@ -676,13 +676,12 @@ export async function generateQRStampImage(
   stampData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
   textStrings: { line1: string; line2: string }
 ): Promise<string> {
-  // Use lower DPI for mobile devices to prevent print overflow
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const dpi = isMobile ? 120 : 300;
+  // Use consistent DPI for reliable printing
+  const dpi = 150; // Lower DPI to ensure everything fits
 
   const paperWidth = 8.5 * dpi;
   const paperHeight = 11 * dpi;
-  const margin = isMobile ? 0.4 * dpi : 0.25 * dpi;
+  const margin = 0.25 * dpi; // Smaller margins
 
   const canvas = document.createElement('canvas');
   canvas.width = paperWidth;
@@ -706,11 +705,11 @@ export async function generateQRStampImage(
   const cellWidth = contentWidth / cols;
   const cellHeight = contentHeight / rows;
 
-  // Calculate QR code size (leave room for text)
-  const textHeight = dpi * 0.08; // Space for text
-  const qrSize = Math.min(cellWidth * 0.85, (cellHeight - textHeight) * 0.9);
+  // Calculate QR code size to fit with text
+  const textHeight = 20; // Fixed pixel height for text area
+  const qrSize = Math.min(cellWidth * 0.85, cellHeight - textHeight - 5); // Leave 5px padding
 
-  // Generate all QR codes first (plain, no text)
+  // Generate all QR codes first
   const qrCodePromises = stampData.map(d => {
     const verificationUrl = buildStandardVerificationUrl(d.naddr, d.keyPair.nsec);
     return QRCode.toDataURL(verificationUrl, {
@@ -744,7 +743,7 @@ export async function generateQRStampImage(
 
       // Center the QR code horizontally, place at top of cell
       const qrX = x + (cellWidth - qrSize) / 2;
-      const qrY = y + (cellHeight - qrSize - textHeight) / 2;
+      const qrY = y + 2; // Small top padding
 
       ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
@@ -759,7 +758,7 @@ export async function generateQRStampImage(
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
         ctx.beginPath();
-        ctx.arc(qrX + qrSize / 2 + 2, qrY + qrSize / 2 + 2, bgRadius, 0, 2 * Math.PI);
+        ctx.arc(qrX + qrSize / 2 + 1, qrY + qrSize / 2 + 1, bgRadius, 0, 2 * Math.PI);
         ctx.fill();
 
         ctx.fillStyle = '#FFFFFF';
@@ -768,7 +767,7 @@ export async function generateQRStampImage(
         ctx.fill();
 
         ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.stroke();
 
         ctx.imageSmoothingEnabled = true;
@@ -781,22 +780,21 @@ export async function generateQRStampImage(
       }
 
       // Add text below QR code
-      const textStartY = qrY + qrSize + textHeight * 0.3;
+      const textStartY = qrY + qrSize + 8; // Small gap between QR and text
       const line1 = textStrings.line1;
       const line2 = textStrings.line2;
 
       ctx.fillStyle = '#1a1a1a';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textBaseline = 'top';
 
-      const fontSize1 = Math.floor(qrSize * 0.04);
+      const fontSize1 = 6; // Small font size
       ctx.font = `bold ${fontSize1}px "Segoe UI", Arial, sans-serif`;
       ctx.fillText(line1, x + cellWidth / 2, textStartY, cellWidth * 0.95);
 
-      const fontSize2 = Math.floor(qrSize * 0.035);
-      const lineSpacing = fontSize1 * 0.9;
+      const fontSize2 = 5; // Even smaller
       ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
-      ctx.fillText(line2, x + cellWidth / 2, textStartY + lineSpacing, cellWidth * 0.95);
+      ctx.fillText(line2, x + cellWidth / 2, textStartY + fontSize1 + 1, cellWidth * 0.95);
     }
   }
 
