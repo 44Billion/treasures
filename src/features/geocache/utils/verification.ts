@@ -676,12 +676,12 @@ export async function generateQRStampImage(
   stampData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
   textStrings: { line1: string; line2: string }
 ): Promise<string> {
-  // Use high DPI (300) for print quality
-  const dpi = 300;
+  // Use screen DPI for smaller output that fits on one page
+  const dpi = 96;
 
   const paperWidth = 8.5 * dpi;
   const paperHeight = 11 * dpi;
-  const margin = 0.25 * dpi; // Minimal margins for tight fit
+  const margin = 0.2 * dpi; // Minimal margins to maximize space
 
   const canvas = document.createElement('canvas');
   canvas.width = paperWidth;
@@ -705,9 +705,9 @@ export async function generateQRStampImage(
   const cellWidth = contentWidth / cols;
   const cellHeight = contentHeight / rows;
 
-  // Calculate QR code size - small stamp size (about 1 inch square)
-  const textHeight = 24; // Compact text area
-  const qrSize = Math.min(300, cellWidth * 0.7, cellHeight - textHeight - 4); // Cap at ~1 inch (300px at 300 DPI)
+  // Calculate QR code size to fit with text - maximize space usage
+  const textHeight = 12; // Small fixed pixel height for text area
+  const qrSize = Math.min(cellWidth * 0.95, cellHeight - textHeight - 2); // Minimal padding
 
   // Generate all QR codes first
   const qrCodePromises = stampData.map(d => {
@@ -741,22 +741,22 @@ export async function generateQRStampImage(
       const x = margin + col * cellWidth;
       const y = margin + row * cellHeight;
 
-      // Center the QR code horizontally, minimal vertical padding
+      // Center the QR code horizontally, place at top of cell
       const qrX = x + (cellWidth - qrSize) / 2;
-      const qrY = y + 3; // Minimal top padding
+      const qrY = y + 2; // Small top padding
 
       ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
       // Add icon overlay to each QR code
       try {
-        const iconSize = Math.floor(qrSize * 0.16); // Small icon for stamp size
+        const iconSize = Math.floor(qrSize * 0.22);
         const iconCanvas = await loadAndResizeImage('/icon-192x192.png', iconSize);
         const centerX = qrX + (qrSize - iconSize) / 2;
         const centerY = qrY + (qrSize - iconSize) / 2;
-        const padding = Math.floor(iconSize * 0.1);
+        const padding = Math.floor(iconSize * 0.15);
         const bgRadius = (iconSize + padding * 2) / 2;
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
         ctx.beginPath();
         ctx.arc(qrX + qrSize / 2 + 1, qrY + qrSize / 2 + 1, bgRadius, 0, 2 * Math.PI);
         ctx.fill();
@@ -767,7 +767,7 @@ export async function generateQRStampImage(
         ctx.fill();
 
         ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 0.8; // Very thin stroke
+        ctx.lineWidth = 0.5;
         ctx.stroke();
 
         ctx.imageSmoothingEnabled = true;
@@ -788,13 +788,13 @@ export async function generateQRStampImage(
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
-      const fontSize1 = 9; // Small stamp-sized font
+      const fontSize1 = 5; // Very small font size
       ctx.font = `bold ${fontSize1}px "Segoe UI", Arial, sans-serif`;
       ctx.fillText(line1, x + cellWidth / 2, textStartY, cellWidth * 0.98);
 
-      const fontSize2 = 7; // Tiny font for second line
+      const fontSize2 = 4; // Even smaller for second line
       ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
-      ctx.fillText(line2, x + cellWidth / 2, textStartY + fontSize1 + 1, cellWidth * 0.98);
+      ctx.fillText(line2, x + cellWidth / 2, textStartY + fontSize1, cellWidth * 0.98);
     }
   }
 
