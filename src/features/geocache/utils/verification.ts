@@ -705,9 +705,9 @@ export async function generateQRStampImage(
   const cellWidth = contentWidth / cols;
   const cellHeight = contentHeight / rows;
 
-  // Calculate QR code size - leave room for spacing and text
-  const textHeight = 18; // Fixed pixel height for text area
-  const qrSize = Math.min(cellWidth * 0.84, cellHeight - textHeight - 3); // 84% with tighter spacing
+  // Calculate QR code size - make smaller to fit on page
+  const textHeight = 16; // Smaller text area
+  const qrSize = Math.min(cellWidth * 0.80, cellHeight - textHeight - 2); // 80% - smaller codes
 
   // Generate all QR codes first
   const qrCodePromises = stampData.map(d => {
@@ -788,11 +788,11 @@ export async function generateQRStampImage(
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
-      const fontSize1 = 6.5; // Readable font size at 150 DPI
+      const fontSize1 = 6; // Smaller font
       ctx.font = `bold ${fontSize1}px "Segoe UI", Arial, sans-serif`;
       ctx.fillText(line1, x + cellWidth / 2, textStartY, cellWidth * 0.96);
 
-      const fontSize2 = 5.5; // Slightly smaller for second line
+      const fontSize2 = 5; // Smaller second line
       ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
       ctx.fillText(line2, x + cellWidth / 2, textStartY + fontSize1 + 0.5, cellWidth * 0.96);
     }
