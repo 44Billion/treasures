@@ -1027,10 +1027,10 @@ function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
       maxZoom={18} // Reduced max zoom for better performance
       minZoom={2} // Allow zooming out further to see world wrapping
       // Optimize for fastest possible loading
-      keepBuffer={2} // Larger buffer for world wrapping
-      updateWhenIdle={true} // Update when idle for better performance during interaction
+      keepBuffer={1} // Smaller buffer for faster initial load
+      updateWhenIdle={false} // Update immediately for faster rendering
       updateWhenZooming={false} // Don't update during zoom for smoother experience
-      updateInterval={200} // Throttle updates for better performance
+      updateInterval={100} // Faster updates for quicker tile rendering
       // Additional performance optimizations
       crossOrigin={true} // Enable CORS for better caching
       // Reduce tile loading overhead
@@ -1380,8 +1380,8 @@ export function GeocacheMap({
       {/* Geocache markers with clustering */}
       <MarkerClusterGroup
         chunkedLoading={true}
-        chunkInterval={50} // Faster chunk processing
-        chunkDelay={10} // Reduced delay between chunks
+        chunkInterval={20} // Faster chunk processing for quicker initial load
+        chunkDelay={5} // Minimal delay between chunks for instant rendering
         maxClusterRadius={40} // Smaller cluster radius for better performance
         spiderfyOnMaxZoom={false} // Disable spiderfy for better performance
         showCoverageOnHover={false}
@@ -1396,7 +1396,7 @@ export function GeocacheMap({
         spiderfyDistanceMultiplier={1.5} // Better spiderfy behavior
         clusterPane="markerPane" // Ensure proper layering
         // Handle world wrapping properly
-        chunkedLoadingDelay={50} // Add delay for chunked loading
+        chunkedLoadingDelay={0} // No delay for instant marker rendering
         // Prevent popup issues during clustering operations
         iconCreateFunction={(cluster: { getChildCount: () => any; }) => {
           const count = cluster.getChildCount();

@@ -33,7 +33,7 @@ export function useMapController({
     // Clear all interaction locks for explicit user actions
     userIsInteracting.current = false;
     userHasInteracted.current = false;
-    
+
     if (interactionTimeoutRef.current) {
       clearTimeout(interactionTimeoutRef.current);
       interactionTimeoutRef.current = null;
@@ -42,7 +42,7 @@ export function useMapController({
     // Mark as programmatic move and manual card click to prevent useEffect from triggering
     isProgrammaticMove.current = true;
     isManualCardClick.current = true;
-    
+
     map.setView([newCenter.lat, newCenter.lng], newZoom, {
       animate: false, // No animation for immediate response
       duration: 0
@@ -66,25 +66,25 @@ export function useMapController({
       if (isProgrammaticMove.current) {
         return;
       }
-      
+
       userIsInteracting.current = true;
       userHasInteracted.current = true;
-      
+
       // Clear any existing timeout
       if (interactionTimeoutRef.current) {
         clearTimeout(interactionTimeoutRef.current);
       }
     };
-    
+
     const handleInteractionEnd = () => {
       userIsInteracting.current = false;
-      
+
       // Set a reasonable timeout before allowing automatic updates
       interactionTimeoutRef.current = setTimeout(() => {
         userHasInteracted.current = false;
       }, 8000); // 8 seconds - balanced protection that's not too long
     };
-    
+
     // Track map movement state
     const handleMoveStart = (event?: L.LeafletEvent) => {
       isMovingRef.current = true;
@@ -93,7 +93,7 @@ export function useMapController({
         handleInteractionStart(event);
       }
     };
-    
+
     const handleMoveEnd = () => {
       isMovingRef.current = false;
       // Reset programmatic move flag after move completes
@@ -101,7 +101,7 @@ export function useMapController({
         isProgrammaticMove.current = false;
       }
     };
-    
+
     // Listen to all possible user interactions
     map.on('dragstart', handleInteractionStart);
     map.on('dragend', handleInteractionEnd);
@@ -109,13 +109,13 @@ export function useMapController({
     map.on('zoomend', handleInteractionEnd);
     map.on('movestart', handleMoveStart);
     map.on('moveend', handleMoveEnd);
-    
+
     // Also track movement for popup timing
     map.on('movestart', handleMoveStart);
     map.on('moveend', handleMoveEnd);
     map.on('zoomstart', handleMoveStart);
     map.on('zoomend', handleMoveEnd);
-    
+
     // Also listen for mouse/touch events as backup
     const mapContainer = map.getContainer();
     const handleDomInteractionStart = (_e: Event) => {
@@ -123,7 +123,7 @@ export function useMapController({
     };
     mapContainer.addEventListener('mousedown', handleDomInteractionStart);
     mapContainer.addEventListener('touchstart', handleDomInteractionStart);
-    
+
     return () => {
       map.off('dragstart', handleInteractionStart);
       map.off('dragend', handleInteractionEnd);
@@ -131,15 +131,15 @@ export function useMapController({
       map.off('zoomend', handleInteractionEnd);
       map.off('movestart', handleMoveStart);
       map.off('moveend', handleMoveEnd);
-      
+
       map.off('movestart', handleMoveStart);
       map.off('moveend', handleMoveEnd);
       map.off('zoomstart', handleMoveStart);
       map.off('zoomend', handleMoveEnd);
-      
+
       mapContainer.removeEventListener('mousedown', handleDomInteractionStart);
       mapContainer.removeEventListener('touchstart', handleDomInteractionStart);
-      
+
       if (interactionTimeoutRef.current) {
         clearTimeout(interactionTimeoutRef.current);
       }
@@ -151,19 +151,30 @@ export function useMapController({
       // Create a key to track if the center has actually changed
       const centerArray = Array.isArray(center) ? center : [(center as { lat: number; lng: number }).lat, (center as { lat: number; lng: number }).lng];
       const centerKey = `${centerArray[0]},${centerArray[1]},${zoom}`;
-      
-      // Only update if center has actually changed, user isn't currently interacting, 
+
+      // If isMapCenterLocked is false (which happens when Near Me or other explicit actions are triggered),
+      // clear the interaction state to allow the map to update
+      if (!isMapCenterLocked && userHasInteracted.current) {
+        userHasInteracted.current = false;
+        userIsInteracting.current = false;
+        if (interactionTimeoutRef.current) {
+          clearTimeout(interactionTimeoutRef.current);
+          interactionTimeoutRef.current = null;
+        }
+      }
+
+      // Only update if center has actually changed, user isn't currently interacting,
       // and this is not a manual card click (which is handled separately)
-      if (centerKey !== lastCenterRef.current && 
+      if (centerKey !== lastCenterRef.current &&
           !userIsInteracting.current &&
           !isMapCenterLocked &&
           !isManualCardClick.current) {
-        
+
         lastCenterRef.current = centerKey;
-        
+
         // Mark this as a programmatic move to prevent triggering user interaction tracking
         isProgrammaticMove.current = true;
-        
+
         // Reset user interaction state for explicit card clicks (high zoom levels)
         if (zoom >= 15) {
           userHasInteracted.current = false;
@@ -171,11 +182,11 @@ export function useMapController({
             clearTimeout(interactionTimeoutRef.current);
           }
         }
-        
+
         // If we have a search location with radius, use radius-based zoom
         if (searchLocation && searchRadius) {
           const targetZoom = getZoomForRadius(searchRadius);
-          
+
           map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
             animate: true,
             duration: 0.5
@@ -184,13 +195,13 @@ export function useMapController({
         } else {
           // For card clicks (when zoom is 16 or higher), use no animation for immediate response
           const useAnimation = zoom < 15;
-          
+
           map.setView(center, zoom, {
             animate: useAnimation,
             duration: useAnimation ? 0.5 : 0
           });
         }
-        
+
         // Reset programmatic move flag after a short delay
         setTimeout(() => {
           isProgrammaticMove.current = false;
@@ -201,24 +212,24 @@ export function useMapController({
 
   // Handle radius changes independently of center changes
   useEffect(() => {
-    if (searchLocation && searchRadius && 
-        lastRadiusRef.current !== searchRadius && 
+    if (searchLocation && searchRadius &&
+        lastRadiusRef.current !== searchRadius &&
         !userIsInteracting.current &&
         !isMapCenterLocked) {
-      
+
       lastRadiusRef.current = searchRadius;
-      
+
       // Mark this as a programmatic move to prevent triggering user interaction tracking
       isProgrammaticMove.current = true;
-      
+
       // Calculate appropriate zoom level based on radius and update map
       const targetZoom = getZoomForRadius(searchRadius);
-      
+
       map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
         animate: true,
         duration: 0.25
       });
-      
+
       // Reset programmatic move flag after a short delay
       setTimeout(() => {
         isProgrammaticMove.current = false;
