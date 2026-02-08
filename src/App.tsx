@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NostrLoginProvider } from '@nostrify/react/login';
+import { AutoLogin } from '@/components/AutoLogin';
 import AppRouter from './AppRouter';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -64,6 +65,7 @@ export function App() {
       >
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
+            <AutoLogin />
             <NostrProvider>
               <NostrSync />
               <DittoThemeInjector />
