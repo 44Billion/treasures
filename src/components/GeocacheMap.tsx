@@ -279,6 +279,179 @@ function ThemeController({
   return null;
 }
 
+/**
+ * Calculate autopan padding that accounts for floating UI elements
+ * (search bar at top, zoom/style controls at left, near-me button at right).
+ * Returns {top, left, bottom, right} pixel padding for the map viewport.
+ */
+function getPopupAutoPanPadding(map: L.Map): { top: number; left: number; bottom: number; right: number } {
+  const container = map.getContainer();
+
+  // Default safe padding
+  let top = 20;
+  let left = 20;
+  let bottom = 20;
+  let right = 20;
+
+  // Detect floating search bar at top of map (mobile map view)
+  // The search bar is positioned at top:12px and is roughly 48-56px tall + gap for radius selector
+  const floatingSearch = container.closest('.relative')?.querySelector('[class*="absolute"][class*="top-3"]') as HTMLElement;
+  if (floatingSearch) {
+    const searchRect = floatingSearch.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    // Calculate how far down the search bar extends relative to the map container
+    const searchBottom = searchRect.bottom - containerRect.top;
+    if (searchBottom > 0) {
+      top = Math.max(top, searchBottom + 12); // 12px breathing room
+    }
+  }
+
+  // Detect zoom control at bottom-left (40px wide, ~96px tall, positioned 16px from bottom/10px from left)
+  const zoomControl = container.querySelector('.custom-zoom-control') as HTMLElement;
+  if (zoomControl) {
+    const zoomRect = zoomControl.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const zoomRight = zoomRect.right - containerRect.left;
+    const zoomTop = zoomRect.top - containerRect.top;
+    if (zoomRight > 0) {
+      left = Math.max(left, zoomRight + 8);
+    }
+    // Also protect bottom-left area
+    const zoomBottom = containerRect.bottom - zoomRect.top;
+    if (zoomBottom > 0) {
+      bottom = Math.max(bottom, containerRect.bottom - zoomTop + 8);
+    }
+  }
+
+  // Detect map style control above zoom
+  const styleControl = container.querySelector('.map-style-control-container') as HTMLElement;
+  if (styleControl) {
+    const styleRect = styleControl.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const styleRight = styleRect.right - containerRect.left;
+    if (styleRight > 0) {
+      left = Math.max(left, styleRight + 8);
+    }
+  }
+
+  // Detect near-me button at bottom-right
+  const nearMe = container.querySelector('.near-me-button-container') as HTMLElement;
+  if (nearMe) {
+    const nearMeRect = nearMe.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const nearMeLeft = containerRect.right - nearMeRect.left;
+    if (nearMeLeft > 0) {
+      right = Math.max(right, nearMeLeft + 8);
+    }
+  }
+
+  return { top, left, bottom, right };
+}
+
+/**
+ * Pan the map so a popup is fully visible, respecting UI overlay padding.
+ */
+function panMapForPopup(map: L.Map, popup: L.Popup) {
+  const popupEl = popup.getElement();
+  if (!popupEl) return;
+
+  const containerRect = map.getContainer().getBoundingClientRect();
+  const popupRect = popupEl.getBoundingClientRect();
+  const padding = getPopupAutoPanPadding(map);
+
+  let dx = 0;
+  let dy = 0;
+
+  // Check if popup overflows above the safe area (accounting for search bar)
+  if (popupRect.top < containerRect.top + padding.top) {
+    dy = popupRect.top - (containerRect.top + padding.top); // negative = pan up
+  }
+  // Check if popup overflows below the safe area
+  if (popupRect.bottom > containerRect.bottom - padding.bottom) {
+    dy = popupRect.bottom - (containerRect.bottom - padding.bottom); // positive = pan down
+  }
+  // Check left overflow
+  if (popupRect.left < containerRect.left + padding.left) {
+    dx = popupRect.left - (containerRect.left + padding.left);
+  }
+  // Check right overflow
+  if (popupRect.right > containerRect.right - padding.right) {
+    dx = popupRect.right - (containerRect.right - padding.right);
+  }
+
+  if (dx !== 0 || dy !== 0) {
+    map.panBy([dx, dy], { animate: true, duration: 0.3 });
+  }
+}
+
+/**
+ * Open a Leaflet popup on a marker after React renders content into a container.
+ * Uses a MutationObserver with a single fallback. Returns a cleanup function.
+ */
+function openPopupWhenReady(
+  marker: L.Marker,
+  container: HTMLDivElement,
+  map: L.Map,
+  abortSignal: { aborted: boolean },
+): () => void {
+  let observer: MutationObserver | null = null;
+  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+  let panTimer: ReturnType<typeof setTimeout> | null = null;
+  let opened = false;
+
+  const doOpen = () => {
+    if (opened || abortSignal.aborted) return;
+    opened = true;
+
+    // Disconnect observer and clear fallback
+    if (observer) { observer.disconnect(); observer = null; }
+    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+
+    if (!marker.isPopupOpen()) {
+      marker.openPopup();
+    }
+
+    // After popup is open and painted, pan to ensure it's fully visible
+    // Use two rAF to wait for layout + paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (abortSignal.aborted) return;
+        panTimer = setTimeout(() => {
+          const popup = marker.getPopup();
+          if (popup && map.hasLayer(popup)) {
+            panMapForPopup(map, popup);
+          }
+        }, 60);
+      });
+    });
+  };
+
+  // Watch for React to render content into the container
+  observer = new MutationObserver(() => {
+    if (container.childNodes.length > 0) {
+      doOpen();
+    }
+  });
+  observer.observe(container, { childList: true, subtree: true });
+
+  // If content is already there (unlikely but safe)
+  if (container.childNodes.length > 0) {
+    doOpen();
+  }
+
+  // Safety fallback: if React doesn't render within 800ms, open anyway
+  fallbackTimer = setTimeout(() => {
+    doOpen();
+  }, 800);
+
+  return () => {
+    abortSignal.aborted = true;
+    if (observer) { observer.disconnect(); observer = null; }
+    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+    if (panTimer) { clearTimeout(panTimer); panTimer = null; }
+  };
+}
+
 // Component to handle popup opening for highlighted geocache.
 // Map movement is handled externally (useMapController). This component
 // waits for the map to finish moving, then finds the marker and opens the popup.
@@ -293,7 +466,6 @@ function PopupController({
 }) {
   const map = useMap();
   const lastHighlightedRef = useRef<string | null>(null);
-  const isOpeningRef = useRef<boolean>(false);
   const cleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -305,29 +477,41 @@ function PopupController({
 
     if (highlightedGeocache && highlightedGeocache !== lastHighlightedRef.current) {
       lastHighlightedRef.current = highlightedGeocache;
-      isOpeningRef.current = true;
 
       const geocache = geocaches.find(g => g.dTag === highlightedGeocache);
       if (!geocache?.location || !isFinite(geocache.location.lat) || !isFinite(geocache.location.lng)) {
-        isOpeningRef.current = false;
         return;
       }
 
       map.closePopup();
 
+      // Track all pending timers so cleanup can cancel them all
+      const pendingTimers: ReturnType<typeof setTimeout>[] = [];
+      let cancelled = false;
+      let popupCleanup: (() => void) | null = null;
+
+      const addTimer = (fn: () => void, delay: number) => {
+        if (cancelled) return;
+        const timer = setTimeout(() => {
+          // Remove from tracking array
+          const idx = pendingTimers.indexOf(timer);
+          if (idx >= 0) pendingTimers.splice(idx, 1);
+          if (!cancelled) fn();
+        }, delay);
+        pendingTimers.push(timer);
+      };
+
       const maxAttempts = 25;
-      let attemptTimer: ReturnType<typeof setTimeout> | null = null;
 
       const findAndOpenMarker = (attempt: number) => {
-        if (attempt > maxAttempts || !isOpeningRef.current) {
-          isOpeningRef.current = false;
+        if (attempt > maxAttempts || cancelled) {
           return;
         }
 
         let markerFound = false;
 
         map.eachLayer((layer: L.Layer) => {
-          if (markerFound) return;
+          if (markerFound || cancelled) return;
           if (!(layer instanceof L.Marker) || !('getLatLng' in layer)) return;
 
           const marker = layer as L.Marker;
@@ -341,7 +525,6 @@ function PopupController({
             if (!(marker as unknown as Record<string, unknown>)._icon) return;
 
             markerFound = true;
-            isOpeningRef.current = false;
 
             map.closePopup();
 
@@ -351,89 +534,68 @@ function PopupController({
             if (marker.getPopup()) {
               marker.unbindPopup();
             }
+
+            const padding = getPopupAutoPanPadding(map);
             marker.bindPopup(container, {
               maxWidth: 400,
               minWidth: 200,
               className: 'geocache-popup react-popup',
               closeButton: true,
-              autoPan: false, // Don't auto-pan on open — we pan manually after content renders
-              keepInView: true,
+              autoPan: true,
+              autoPanPaddingTopLeft: L.point(padding.left, padding.top),
+              autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
+              keepInView: false,
               closeOnClick: false,
               closeOnEscapeKey: true,
             });
 
             // Pass the geocache + container to the callback so React can portal into it.
-            // This triggers setState which will cause React to render into the container.
             onMarkerClick(geocache, container);
 
-            // Wait for React to render content into the container before opening
-            // the popup, so the tip and content appear together.
-            const observer = new MutationObserver(() => {
-              if (container.childNodes.length > 0) {
-                observer.disconnect();
-                marker.openPopup();
-
-                // After the popup is open with its real content size,
-                // pan the map so the full popup is visible (with padding).
-                requestAnimationFrame(() => {
-                  setTimeout(() => {
-                    const popup = marker.getPopup();
-                    if (popup && map.hasLayer(popup)) {
-                      const px = map.project(popup.getLatLng());
-                      const popupEl = popup.getElement();
-                      if (popupEl) {
-                        const popupHeight = popupEl.offsetHeight;
-                        const newCenter = map.unproject(px.subtract([0, popupHeight / 2 + 20]));
-                        map.panTo(newCenter, { animate: true, duration: 0.25 });
-                      }
-                    }
-                  }, 50);
-                });
-              }
-            });
-            observer.observe(container, { childList: true });
-
-            // Safety fallback: if React doesn't render within 500ms, open anyway
-            setTimeout(() => {
-              observer.disconnect();
-              if (!marker.isPopupOpen()) {
-                marker.openPopup();
-              }
-            }, 500);
+            // Wait for React to render then open popup with UI-aware panning
+            const abortSignal = { aborted: false };
+            popupCleanup = openPopupWhenReady(marker, container, map, abortSignal);
           }
         });
 
         // If marker wasn't found (e.g. cluster still processing), retry
-        if (!markerFound && isOpeningRef.current) {
+        if (!markerFound && !cancelled) {
           const delay = Math.min(80 * Math.pow(1.2, attempt), 1000);
-          attemptTimer = setTimeout(() => findAndOpenMarker(attempt + 1), delay);
+          addTimer(() => findAndOpenMarker(attempt + 1), delay);
         }
       };
 
       // Wait for the map to finish moving before searching for the marker.
-      // useMapController calls setView which fires moveend when done.
+      let moveEndFired = false;
       const onMoveEnd = () => {
+        if (moveEndFired || cancelled) return;
+        moveEndFired = true;
         map.off('moveend', onMoveEnd);
         // Allow cluster group time to process at the new zoom level
-        attemptTimer = setTimeout(() => findAndOpenMarker(1), 150);
+        addTimer(() => findAndOpenMarker(1), 150);
       };
       map.on('moveend', onMoveEnd);
 
       // Safety: if the map is already at the target (no move needed),
-      // moveend won't fire, so also start a fallback timer
-      attemptTimer = setTimeout(() => {
-        map.off('moveend', onMoveEnd);
-        findAndOpenMarker(1);
+      // moveend won't fire, so also start a fallback timer.
+      // If moveend already fired, this is a no-op.
+      addTimer(() => {
+        if (!moveEndFired && !cancelled) {
+          moveEndFired = true;
+          map.off('moveend', onMoveEnd);
+          findAndOpenMarker(1);
+        }
       }, 600);
 
       cleanupRef.current = () => {
-        isOpeningRef.current = false;
+        cancelled = true;
         map.off('moveend', onMoveEnd);
-        if (attemptTimer) clearTimeout(attemptTimer);
+        for (const t of pendingTimers) clearTimeout(t);
+        pendingTimers.length = 0;
+        if (popupCleanup) { popupCleanup(); popupCleanup = null; }
       };
     } else if (!highlightedGeocache) {
       lastHighlightedRef.current = null;
-      isOpeningRef.current = false;
     }
   }, [map, highlightedGeocache, geocaches, onMarkerClick]);
 
@@ -1277,15 +1439,15 @@ export function GeocacheMap({
               icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
               eventHandlers={{
                 click: (e) => {
-                  const marker = e.target;
-                  const map = marker._map;
+                  const marker = e.target as L.Marker;
+                  const markerMap = marker._map as L.Map;
 
                   L.DomEvent.stopPropagation(e as unknown as Event);
                   L.DomEvent.preventDefault(e as unknown as Event);
 
                   // Close all existing popups
-                  if (map) {
-                    map.closePopup();
+                  if (markerMap) {
+                    markerMap.closePopup();
                   }
 
                   // Create a container div for the React portal
@@ -1296,13 +1458,17 @@ export function GeocacheMap({
                   if (marker.getPopup()) {
                     marker.unbindPopup();
                   }
+
+                  const padding = markerMap ? getPopupAutoPanPadding(markerMap) : { top: 20, left: 20, bottom: 20, right: 20 };
                   marker.bindPopup(container, {
                     maxWidth: 400,
                     minWidth: 200,
                     className: 'geocache-popup react-popup',
                     closeButton: true,
                     autoPan: true,
-                    keepInView: true,
+                    autoPanPaddingTopLeft: L.point(padding.left, padding.top),
+                    autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
+                    keepInView: false,
                     closeOnClick: false,
                     closeOnEscapeKey: true,
                   });
@@ -1310,21 +1476,10 @@ export function GeocacheMap({
                   // Trigger React render first, then open popup once content exists
                   handleMarkerClick(geocache, container);
 
-                  const observer = new MutationObserver(() => {
-                    if (container.childNodes.length > 0) {
-                      observer.disconnect();
-                      marker.openPopup();
-                    }
-                  });
-                  observer.observe(container, { childList: true });
-
-                  // Safety fallback
-                  setTimeout(() => {
-                    observer.disconnect();
-                    if (!marker.isPopupOpen()) {
-                      marker.openPopup();
-                    }
-                  }, 500);
+                  // Use the shared open helper that properly handles the observer + fallback
+                  if (markerMap) {
+                    openPopupWhenReady(marker, container, markerMap, { aborted: false });
+                  }
                 },
                 popupclose: () => {
                   // Notify parent that popup closed
