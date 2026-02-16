@@ -365,11 +365,16 @@ export default function Map() {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
 
-    // On desktop (or when in map tab), center map on the geocache and highlight it to show popup
-    // Mobile users will navigate directly via the geocache card's handleNavigate
+    // Center map on the geocache and highlight it to show popup
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
     setMapZoom(16);
-    setHighlightedGeocache(geocache.dTag);
+    // Reset highlighted geocache first to ensure PopupController detects the change
+    // even if clicking the same geocache again
+    setHighlightedGeocache(null);
+    // Use microtask to ensure the null state is processed before setting the new value
+    queueMicrotask(() => {
+      setHighlightedGeocache(geocache.dTag);
+    });
 
     // Clear any location-based searches to prevent conflicts
     setShowNearMe(false);

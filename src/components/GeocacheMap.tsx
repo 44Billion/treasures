@@ -12,95 +12,11 @@ import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useMapController } from "@/hooks/useMapController";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import type { Geocache } from "@/types/geocache";
-import { getTypeLabel, getSizeLabel } from "@/utils/geocache-utils";
 import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
-import i18n from "@/lib/i18n";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
 import "@/styles/map-features.css";
-
-// Create HTML popup content for geocaches
-const createGeocachePopupHTML = (geocache: Geocache) => {
-  const description = geocache.description.length > 120
-    ? geocache.description.substring(0, 120) + '...'
-    : geocache.description;
-
-  const previewImage = geocache.images && geocache.images.length > 0 ? geocache.images[0] : undefined;
-  const imageCount = geocache.images?.length || 0;
-
-  return `
-    <div class="p-0 min-w-[240px] max-w-[300px] overflow-hidden geocache-popup-card">
-      ${previewImage ? `
-        <div class="relative w-full h-36 overflow-hidden popup-image-placeholder">
-          <img
-            src="${previewImage}"
-            alt="${geocache.name}"
-            class="absolute inset-0 w-full h-full object-cover object-center"
-            loading="lazy"
-          />
-          ${imageCount > 1 ? `
-            <span class="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-              +${imageCount - 1}
-            </span>
-          ` : ''}
-        </div>
-      ` : `
-        <div class="w-full h-16 popup-image-placeholder flex items-center justify-center">
-          <svg class="h-6 w-6 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-          </svg>
-        </div>
-      `}
-
-      <div class="p-3 space-y-2">
-        <div>
-          <h3 class="font-semibold text-sm leading-snug">${geocache.name}</h3>
-          <div class="flex items-center gap-1 mt-1" style="font-size: 11px; color: var(--popup-muted);">
-            <span class="font-medium rounded px-1 py-px" style="background: var(--badge-bg); color: var(--badge-text);">D${geocache.difficulty}</span>
-            <span class="font-medium rounded px-1 py-px" style="background: var(--badge-bg); color: var(--badge-text);">T${geocache.terrain}</span>
-            <span style="margin: 0 2px;">·</span>
-            <span>${getSizeLabel(geocache.size)}</span>
-            <span style="margin: 0 2px;">·</span>
-            <span>${getTypeLabel(geocache.type)}</span>
-          </div>
-        </div>
-
-        <p class="text-xs line-clamp-2" style="color: var(--popup-muted);">${description}</p>
-
-        <div class="flex items-center gap-1" style="font-size: 11px; color: var(--popup-muted); font-family: ui-monospace, monospace;">
-          <svg class="h-3 w-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-          </svg>
-          ${geocache.location.lat.toFixed(5)}, ${geocache.location.lng.toFixed(5)}
-        </div>
-
-        <div class="flex gap-2 pt-1">
-          <button
-            class="popup-btn-primary flex-1 text-xs font-medium px-3 py-2 rounded-md transition-colors flex items-center justify-center gap-1"
-            onclick="window.dispatchEvent(new CustomEvent('geocache-view-details', { detail: '${geocache.dTag}' }))"
-          >
-            ${i18n.t('map.popup.viewDetails')}
-            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
-          <button
-            class="popup-btn-outline inline-flex items-center justify-center p-2 rounded-md transition-colors"
-            onclick="window.open('https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}', '_blank')"
-            title="${i18n.t('map.popup.getDirections')}"
-          >
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-};
 
 // Create cache icons with optional adventure theme styling
 const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
@@ -364,125 +280,95 @@ function ThemeController({
 }
 
 // Component to handle popup opening for highlighted geocache
+// Replicates the marker click handler logic to open the React portal popup
 function PopupController({
   highlightedGeocache,
-  geocaches
+  geocaches,
+  onMarkerClick
 }: {
   highlightedGeocache?: string;
   geocaches: Geocache[];
+  onMarkerClick: (geocache: Geocache, container: HTMLDivElement) => void;
 }) {
   const map = useMap();
   const lastHighlightedRef = useRef<string | null>(null);
-  const popupAttemptsRef = useRef<number>(0);
-  const maxAttempts = 15;
   const isOpeningRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (highlightedGeocache && highlightedGeocache !== lastHighlightedRef.current) {
       lastHighlightedRef.current = highlightedGeocache;
-      popupAttemptsRef.current = 0;
       isOpeningRef.current = true;
 
-      // Find the geocache
       const geocache = geocaches.find(g => g.dTag === highlightedGeocache);
-      if (geocache) {
-        const attemptOpenPopup = (attempt: number) => {
-          if (attempt > maxAttempts || !isOpeningRef.current) {
-            if (attempt > maxAttempts) {
-              console.warn(`Could not find marker for geocache ${geocache.dTag} after ${maxAttempts} attempts`);
-            }
-            isOpeningRef.current = false;
-            return;
-          }
-
-          let markerFound = false;
-
-          // Search through all layers to find the marker, including cluster groups
-          map.eachLayer((layer: L.Layer) => {
-            if (layer instanceof L.Marker && 'getLatLng' in layer && !markerFound) {
-              const markerLatLng = (layer as L.Marker).getLatLng();
-              if (Math.abs(markerLatLng.lat - geocache.location.lat) < 0.0001 &&
-                  Math.abs(markerLatLng.lng - geocache.location.lng) < 0.0001) {
-
-                const marker = layer as L.Marker;
-
-                // Close ALL open popups first to ensure only one is open at a time
-                map.eachLayer((l: L.Layer) => {
-                  if (l instanceof L.Marker && l.getPopup && l.getPopup() && l.isPopupOpen()) {
-                    l.closePopup();
-                  }
-                });
-                map.closePopup();
-
-                // Check if marker has a popup bound
-                if (marker.getPopup()) {
-                  // Force open the popup with a small delay to ensure it's ready
-                  setTimeout(() => {
-                    try {
-                      marker.openPopup();
-                      markerFound = true;
-                      isOpeningRef.current = false;
-                    } catch (error) {
-                      console.warn('Failed to open popup:', error);
-                      // Try again if it fails
-                      setTimeout(() => {
-                        popupAttemptsRef.current = attempt + 1;
-                        attemptOpenPopup(attempt + 1);
-                      }, 200);
-                    }
-                  }, 50);
-                } else {
-                  // If no popup is bound yet, bind one and open it
-                  const popupContent = createGeocachePopupHTML(geocache);
-                  marker.bindPopup(popupContent, {
-                    maxWidth: 300,
-                    className: 'geocache-popup',
-                    closeButton: true,
-                    autoClose: false,
-                    autoPan: true,
-                    keepInView: true,
-                    closeOnClick: false
-                  });
-
-                  setTimeout(() => {
-                    try {
-                      marker.openPopup();
-                      markerFound = true;
-                      isOpeningRef.current = false;
-                    } catch (error) {
-                      console.warn('Failed to open popup after binding:', error);
-                      setTimeout(() => {
-                        popupAttemptsRef.current = attempt + 1;
-                        attemptOpenPopup(attempt + 1);
-                      }, 200);
-                    }
-                  }, 100);
-                }
-              }
-            }
-          });
-
-          // If marker wasn't found, try again with exponential backoff
-          if (!markerFound && isOpeningRef.current) {
-            const delay = Math.min(50 * Math.pow(1.3, attempt), 800); // Exponential backoff, max 800ms
-            setTimeout(() => {
-              popupAttemptsRef.current = attempt + 1;
-              attemptOpenPopup(attempt + 1);
-            }, delay);
-          }
-        };
-
-        // Start attempting to open popup after a very short delay for map to settle
-        setTimeout(() => {
-          attemptOpenPopup(1);
-        }, 100); // Reduced initial wait time
+      if (!geocache) {
+        isOpeningRef.current = false;
+        return;
       }
+
+      const maxAttempts = 15;
+
+      const attemptOpenPopup = (attempt: number) => {
+        if (attempt > maxAttempts || !isOpeningRef.current) {
+          isOpeningRef.current = false;
+          return;
+        }
+
+        let markerFound = false;
+
+        map.eachLayer((layer: L.Layer) => {
+          if (markerFound) return;
+          if (!(layer instanceof L.Marker) || !('getLatLng' in layer)) return;
+
+          const markerLatLng = (layer as L.Marker).getLatLng();
+          if (Math.abs(markerLatLng.lat - geocache.location.lat) < 0.0001 &&
+              Math.abs(markerLatLng.lng - geocache.location.lng) < 0.0001) {
+            markerFound = true;
+            isOpeningRef.current = false;
+
+            const marker = layer as L.Marker;
+
+            // Close all existing popups
+            map.closePopup();
+
+            // Create a container div for the React portal
+            const container = document.createElement('div');
+            container.className = 'react-popup-root';
+
+            // Bind and open a Leaflet popup with the empty container
+            if (marker.getPopup()) {
+              marker.unbindPopup();
+            }
+            marker.bindPopup(container, {
+              maxWidth: 400,
+              minWidth: 200,
+              className: 'geocache-popup react-popup',
+              closeButton: true,
+              autoPan: true,
+              keepInView: true,
+              closeOnClick: false,
+              closeOnEscapeKey: true,
+            });
+            marker.openPopup();
+
+            // Pass the geocache + container to the callback so React can portal into it
+            onMarkerClick(geocache, container);
+          }
+        });
+
+        // If marker wasn't found (e.g. still clustered), retry with backoff
+        if (!markerFound && isOpeningRef.current) {
+          const delay = Math.min(50 * Math.pow(1.3, attempt), 800);
+          setTimeout(() => attemptOpenPopup(attempt + 1), delay);
+        }
+      };
+
+      // Short delay to let the map settle after setView
+      setTimeout(() => attemptOpenPopup(1), 150);
     } else if (!highlightedGeocache) {
       lastHighlightedRef.current = null;
-      popupAttemptsRef.current = 0;
       isOpeningRef.current = false;
     }
-  }, [map, highlightedGeocache, geocaches]);
+  }, [map, highlightedGeocache, geocaches, onMarkerClick]);
 
   return null;
 }
@@ -567,119 +453,6 @@ function WorldWrapController({ geocaches }: { geocaches: Geocache[] }) {
 
     return () => {
       map.off('moveend', handleMoveEnd);
-    };
-  }, [map, geocaches]);
-
-  return null;
-}
-
-// Component to ensure popups remain functional during zoom operations
-function ZoomPopupManager({ geocaches }: { geocaches: Geocache[] }) {
-  const map = useMap();
-  const isZoomingRef = useRef(false);
-  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const handleZoomStart = () => {
-      isZoomingRef.current = true;
-
-      // Clear any existing timeout
-      if (zoomTimeoutRef.current) {
-        clearTimeout(zoomTimeoutRef.current);
-        zoomTimeoutRef.current = null;
-      }
-    };
-
-    const handleZoomEnd = () => {
-      // Mark zoom as complete after a short delay to ensure all clustering is done
-      zoomTimeoutRef.current = setTimeout(() => {
-        isZoomingRef.current = false;
-
-        // Ensure all markers have proper popup bindings after zoom
-        map.eachLayer((layer: L.Layer) => {
-          if (layer instanceof L.Marker && layer.getLatLng()) {
-            const latlng = layer.getLatLng();
-
-            // Find the corresponding geocache
-            const geocache = geocaches.find(g =>
-              g.location &&
-              Math.abs(g.location.lat - latlng.lat) < 0.0001 &&
-              Math.abs(g.location.lng - latlng.lng) < 0.0001
-            );
-
-            if (geocache && !layer.getPopup()) {
-              // Rebind popup if it was lost during zoom
-              const popupContent = () => createGeocachePopupHTML(geocache);
-              layer.bindPopup(popupContent, {
-                maxWidth: 300,
-                className: 'geocache-popup',
-                closeButton: true,
-                autoClose: false,
-                autoPan: true,
-                keepInView: true,
-                closeOnClick: false,
-                closeOnEscapeKey: true,
-                minWidth: 200,
-                maxHeight: 400
-              });
-            }
-          }
-        });
-      }, 300); // Wait for clustering to complete
-    };
-
-    const handleMoveEnd = () => {
-      // Also handle move end for comprehensive coverage
-      if (!isZoomingRef.current) {
-        // Only rebind if not currently zooming
-        setTimeout(() => {
-          if (!isZoomingRef.current) {
-            map.eachLayer((layer: L.Layer) => {
-              if (layer instanceof L.Marker && layer.getLatLng()) {
-                const latlng = layer.getLatLng();
-
-                const geocache = geocaches.find(g =>
-                  g.location &&
-                  Math.abs(g.location.lat - latlng.lat) < 0.0001 &&
-                  Math.abs(g.location.lng - latlng.lng) < 0.0001
-                );
-
-                if (geocache && !layer.getPopup()) {
-                  const popupContent = () => createGeocachePopupHTML(geocache);
-                  layer.bindPopup(popupContent, {
-                    maxWidth: 300,
-                    className: 'geocache-popup',
-                    closeButton: true,
-                    autoClose: false,
-                    autoPan: true,
-                    keepInView: true,
-                    closeOnClick: false,
-                    closeOnEscapeKey: true,
-                    minWidth: 200,
-                    maxHeight: 400
-                  });
-                }
-              }
-            });
-          }
-        }, 200);
-      }
-    };
-
-    // Listen to zoom and move events
-    map.on('zoomstart', handleZoomStart);
-    map.on('zoomend', handleZoomEnd);
-    map.on('moveend', handleMoveEnd);
-
-    return () => {
-      map.off('zoomstart', handleZoomStart);
-      map.off('zoomend', handleZoomEnd);
-      map.off('moveend', handleMoveEnd);
-
-      if (zoomTimeoutRef.current) {
-        clearTimeout(zoomTimeoutRef.current);
-        zoomTimeoutRef.current = null;
-      }
     };
   }, [map, geocaches]);
 
@@ -1293,7 +1066,11 @@ export function GeocacheMap({
 
       <MapRefController mapRef={mapRef} onMapReady={() => setIsMapReady(true)} />
 
-
+      <PopupController
+        highlightedGeocache={highlightedGeocache}
+        geocaches={geocaches}
+        onMarkerClick={handleMarkerClick}
+      />
 
       <MapController
         center={mapCenter}
