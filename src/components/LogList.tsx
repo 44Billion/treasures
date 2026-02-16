@@ -1,4 +1,5 @@
 import { LogText } from "./LogText";
+import { Link } from "react-router-dom";
 import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,13 +41,13 @@ interface LogListProps {
   onProfileClick?: (pubkey: string) => void;
 }
 
-export function LogList({ logs, compact = false, onProfileClick }: LogListProps) {
+export function LogList({ logs, compact = false }: LogListProps) {
   // Logs received from LogsSection
   
   return (
     <div className="px-2 space-y-3 md:space-y-4">
       {logs.map((log) => (
-        <LogCard key={log.id} log={log} compact={compact} onProfileClick={onProfileClick} />
+        <LogCard key={log.id} log={log} compact={compact} />
       ))}
     </div>
   );
@@ -55,10 +56,9 @@ export function LogList({ logs, compact = false, onProfileClick }: LogListProps)
 interface LogCardProps {
   log: GeocacheLog;
   compact?: boolean;
-  onProfileClick?: (pubkey: string) => void;
 }
 
-function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
+function LogCard({ log, compact = false }: LogCardProps) {
   // The log is always signed by the actual user now
   const { t } = useTranslation();
   const author = useAuthor(log.pubkey);
@@ -107,12 +107,6 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
   const isOwnLog = user?.pubkey === log.pubkey;
   
   // Log card rendering
-
-  const handleProfileClick = () => {
-    if (onProfileClick) {
-      onProfileClick(log.pubkey);
-    }
-  };
 
   const handleDeleteLog = () => {
     deleteLog(log.id);
@@ -226,16 +220,12 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
             </div>
             
             <div className="flex-1 min-w-0">
-              {onProfileClick ? (
-                <button
-                  onClick={handleProfileClick}
-                  className={`font-medium hover:underline cursor-pointer truncate block ${compact ? "text-sm" : "text-sm"}`}
-                >
-                  {authorName}
-                </button>
-              ) : (
-                <span className={`font-medium truncate block ${compact ? "text-sm" : "text-sm"}`}>{authorName}</span>
-              )}
+              <Link
+                to={`/profile/${log.pubkey}`}
+                className={`font-medium hover:underline cursor-pointer truncate block ${compact ? "text-sm" : "text-sm"}`}
+              >
+                {authorName}
+              </Link>
             </div>
             
             {/* Actions - always visible on mobile */}
@@ -330,7 +320,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
           </div>
           
           {/* Log text - mobile */}
-          <LogText text={log.text} onProfileClick={onProfileClick} />
+          <LogText text={log.text} />
           
           
         </div>
@@ -355,17 +345,13 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
             <div className="flex-1 space-y-2 overflow-hidden">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    {onProfileClick ? (
-                      <button
-                        onClick={handleProfileClick}
-                        className={`font-medium hover:underline cursor-pointer ${compact ? "text-sm" : ""}`}
-                      >
-                        {authorName}
-                      </button>
-                    ) : (
-                      <span className={`font-medium ${compact ? "text-sm" : ""}`}>{authorName}</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                    <Link
+                      to={`/profile/${log.pubkey}`}
+                      className={`font-medium hover:underline cursor-pointer ${compact ? "text-sm" : ""}`}
+                    >
+                      {authorName}
+                    </Link>
                     <Badge variant={getLogTypeBadgeVariant()} className={`gap-1 ${compact ? "text-xs py-0 px-2" : ""}`}>
                       {getLogIcon()}
                       {getLogTypeLabel()}
@@ -451,7 +437,7 @@ function LogCard({ log, compact = false, onProfileClick }: LogCardProps) {
                 </div>
               </div>
               
-              <LogText text={log.text} onProfileClick={onProfileClick} />
+              <LogText text={log.text} />
               
               
             </div>

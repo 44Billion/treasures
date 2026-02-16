@@ -2,12 +2,6 @@
  * Profile type definitions
  */
 
-export interface ProfileDialogProps {
-  pubkey: string | null;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 export interface EditProfileFormProps {
   onSuccess?: () => void;
 }

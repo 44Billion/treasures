@@ -1,4 +1,5 @@
 import { nip19 } from 'nostr-tools';
+import { Link } from 'react-router-dom';
 import { useAuthor } from '@/hooks/useAuthor';
 
 interface NostrPubkeyProps {
@@ -6,7 +7,7 @@ interface NostrPubkeyProps {
   onProfileClick?: (pubkey: string) => void;
 }
 
-export function NostrPubkey({ npub, onProfileClick }: NostrPubkeyProps) {
+export function NostrPubkey({ npub }: NostrPubkeyProps) {
   // Decode the npub to get the hex pubkey - always attempt decoding
   let pubkey: string | null = null;
   try {
@@ -26,20 +27,14 @@ export function NostrPubkey({ npub, onProfileClick }: NostrPubkeyProps) {
                      author.data?.metadata?.display_name ||
                      npub.slice(0, 12) + '...';
 
-  const handleClick = () => {
-    if (onProfileClick && pubkey) {
-      onProfileClick(pubkey);
-    }
-  };
-
-  if (onProfileClick && pubkey) {
+  if (pubkey) {
     return (
-      <button
-        onClick={handleClick}
+      <Link
+        to={`/profile/${pubkey}`}
         className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer inline"
       >
         @{displayName}
-      </button>
+      </Link>
     );
   }
 

@@ -10,7 +10,7 @@ interface LogTextProps {
 
 const URL_REGEX = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)|nostr:nevent\w+|nostr:npub\w+|nostr:note\w+)/gi;
 
-export function LogText({ text, onProfileClick, hideNostrLinks = false }: LogTextProps) {
+export function LogText({ text, hideNostrLinks = false }: LogTextProps) {
   const parts = text.split(URL_REGEX).filter(Boolean);
 
   return (
@@ -24,7 +24,7 @@ export function LogText({ text, onProfileClick, hideNostrLinks = false }: LogTex
           const neventId = part.replace('nostr:', '');
           return (
             <div key={index} className="space-y-2">
-              <NostrEventCard nevent={neventId} onProfileClick={onProfileClick} />
+              <NostrEventCard nevent={neventId} />
               <a
                 href={`https://njump.me/${neventId}`}
                 target="_blank"
@@ -38,7 +38,7 @@ export function LogText({ text, onProfileClick, hideNostrLinks = false }: LogTex
         }
         if (part.match(/^nostr:npub/)) {
           // Always render npub links, even when hideNostrLinks is true
-          return <NostrPubkey key={index} npub={part.replace('nostr:', '')} onProfileClick={onProfileClick} />;
+          return <NostrPubkey key={index} npub={part.replace('nostr:', '')} />;
         }
         if (part.match(/^nostr:note/)) {
           if (hideNostrLinks) {

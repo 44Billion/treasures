@@ -39,7 +39,6 @@ interface LogsSectionProps {
 export function LogsSection({
   logs,
   geocache,
-  onProfileClick,
   compact = false,
   isOwner = false,
   className,
@@ -281,7 +280,7 @@ export function LogsSection({
       )}
 
       {logs && logs.length > 0 ? (
-        <LogList logs={logs} compact={compact} onProfileClick={onProfileClick} />
+        <LogList logs={logs} compact={compact} />
       ) : (
         <EmptyStateCard
           icon={MessageSquare}

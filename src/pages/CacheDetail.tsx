@@ -42,7 +42,6 @@ import { Label } from "@/components/ui/label";
 
 import { ImageGallery } from "@/components/ImageGallery";
 import { BlurredImage } from "@/components/BlurredImage";
-import { ProfileDialog } from "@/components/ProfileDialog";
 import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
 import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
@@ -148,10 +147,6 @@ export default function CacheDetail() {
 
   // Hint visibility state
   const [isHintVisible, setIsHintVisible] = useState(false);
-
-  // Profile dialog state
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [selectedProfilePubkey, setSelectedProfilePubkey] = useState<string | null>(null);
 
   // Regenerate QR dialog state
   const [regenerateQRDialogOpen, setRegenerateQRDialogOpen] = useState(false);
@@ -381,11 +376,6 @@ export default function CacheDetail() {
   const handleImageClick = (index: number) => {
     setGalleryIndex(index);
     setGalleryOpen(true);
-  };
-
-  const handleProfileClick = (pubkey: string) => {
-    setSelectedProfilePubkey(pubkey);
-    setProfileDialogOpen(true);
   };
 
   const handleCopyToClipboard = async (text: string, itemType: string) => {
@@ -647,22 +637,22 @@ export default function CacheDetail() {
 
                 {/* Author and date info below title */}
                 <div className="text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm pt-2">
-                  <span className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    {t('cacheDetail.author.hiddenBy')}{' '}
-                    <button
-                      onClick={() => handleProfileClick(geocache.pubkey)}
-                      className="hover:underline cursor-pointer"
+                  <span className="inline-flex items-center gap-1 flex-wrap">
+                    <User className="h-4 w-4 flex-shrink-0" />
+                    <span>{t('cacheDetail.author.hiddenBy')}</span>
+                    <Link
+                      to={`/profile/${geocache.pubkey}`}
+                      className="inline-flex items-center gap-1 hover:underline cursor-pointer"
                     >
                       {authorName}
-                    </button>
-                    {profilePicture && (
-                      <img
-                        src={profilePicture}
-                        alt={authorName}
-                        className="h-4 w-4 rounded-full object-cover"
-                      />
-                    )}
+                      {profilePicture && (
+                        <img
+                          src={profilePicture}
+                          alt={authorName}
+                          className="h-4 w-4 rounded-full object-cover"
+                        />
+                      )}
+                    </Link>
                   </span>
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1">
@@ -824,7 +814,6 @@ export default function CacheDetail() {
               <LogsSection
                 logs={logs as GeocacheLog[]}
                 geocache={geocache as Geocache}
-                onProfileClick={handleProfileClick}
                 isOwner={isOwner}
                 verificationKey={verificationKey || undefined}
                 isVerificationValid={isVerificationValid}
@@ -1000,13 +989,6 @@ export default function CacheDetail() {
           initialIndex={galleryIndex}
         />
       )}
-
-      {/* Profile Dialog */}
-      <ProfileDialog
-        pubkey={selectedProfilePubkey}
-        isOpen={profileDialogOpen}
-        onOpenChange={setProfileDialogOpen}
-      />
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

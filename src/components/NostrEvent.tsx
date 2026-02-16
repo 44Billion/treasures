@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { nip19 } from 'nostr-tools';
+import { Link } from 'react-router-dom';
 import { useNostr } from '@nostrify/react';
 import { Card, CardContent } from '@/components/ui/card';
 import { NostrEvent } from '@nostrify/nostrify';
@@ -13,7 +14,7 @@ interface NostrEventProps {
   onProfileClick?: (pubkey: string) => void;
 }
 
-export function NostrEventCard({ nevent, onProfileClick }: NostrEventProps) {
+export function NostrEventCard({ nevent }: NostrEventProps) {
   const { nostr } = useNostr();
   const [event, setEvent] = useState<NostrEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,18 +53,12 @@ export function NostrEventCard({ nevent, onProfileClick }: NostrEventProps) {
     return <p>Event not found.</p>;
   }
 
-  return <EventCard event={event} onProfileClick={onProfileClick} />;
+  return <EventCard event={event} />;
 }
 
-function EventCard({ event, onProfileClick }: { event: NostrEvent; onProfileClick?: (pubkey: string) => void }) {
+function EventCard({ event }: { event: NostrEvent }) {
   const author = useAuthor(event.pubkey);
   const authorName = author.data?.metadata?.name || event.pubkey.slice(0, 8);
-
-  const handleAuthorClick = () => {
-    if (onProfileClick) {
-      onProfileClick(event.pubkey);
-    }
-  };
 
   return (
     <Card className="my-2">
@@ -79,22 +74,18 @@ function EventCard({ event, onProfileClick }: { event: NostrEvent; onProfileClic
             <div className="w-8 h-8 rounded-full bg-gray-200 mr-2" />
           )}
           <div>
-            {onProfileClick ? (
-              <button
-                onClick={handleAuthorClick}
-                className="font-bold hover:underline cursor-pointer"
-              >
-                {authorName}
-              </button>
-            ) : (
-              <p className="font-bold">{authorName}</p>
-            )}
+            <Link
+              to={`/profile/${event.pubkey}`}
+              className="font-bold hover:underline cursor-pointer"
+            >
+              {authorName}
+            </Link>
             <p className="text-sm text-gray-500">
               {formatDistanceToNow(new Date(event.created_at * 1000), { addSuffix: true })}
             </p>
           </div>
         </div>
-        <LogText text={event.content} onProfileClick={onProfileClick} hideNostrLinks={true} />
+        <LogText text={event.content} hideNostrLinks={true} />
       </CardContent>
     </Card>
   );

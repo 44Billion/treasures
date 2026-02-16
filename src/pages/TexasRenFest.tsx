@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from 'react-i18next';
 import { MapPin, Sparkles } from "lucide-react";
 import L from "leaflet";
@@ -6,7 +7,7 @@ import { DesktopHeader } from "@/components/DesktopHeader";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
-import { GeocacheDialog } from "@/components/GeocacheDialog";
+import { GeocachePopupCard } from "@/components/GeocachePopupCard";
 
 import type { Geocache } from "@/types/geocache";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -44,7 +45,7 @@ export default function TexasRenFest() {
   const isMobile = useIsMobile();
 
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("map");
 
@@ -89,21 +90,27 @@ export default function TexasRenFest() {
   const error = baseGeocaches.error;
   const refetch = baseGeocaches.refetch;
 
-  const handleMarkerClick = (geocache: Geocache) => {
+  const handleMarkerClick = (geocache: Geocache, container?: HTMLDivElement) => {
+    if (!geocache && !container) {
+      // Popup closed
+      setSelectedGeocache(null);
+      setPopupContainer(null);
+      return;
+    }
     setSelectedGeocache(geocache);
-    setDialogOpen(true);
+    setPopupContainer(container || null);
     setHighlightedGeocache(null);
   };
 
   const handleCardClick = (geocache: Geocache) => {
     if (isMobile && activeTab === 'list') {
-      setSelectedGeocache(geocache);
-      setDialogOpen(true);
       setActiveTab('map');
-      return;
     }
 
-    setHighlightedGeocache(geocache.dTag);
+    setHighlightedGeocache(null);
+    queueMicrotask(() => {
+      setHighlightedGeocache(geocache.dTag);
+    });
 
     if (typeof window !== 'undefined' && (window as any).handleMapCardClick) {
       (window as any).handleMapCardClick(
@@ -346,17 +353,20 @@ export default function TexasRenFest() {
         </div>
       </div>
 
-      {/* Geocache Dialog */}
-      <GeocacheDialog
-        geocache={selectedGeocache}
-        isOpen={dialogOpen}
-        onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open && activeTab === 'list') {
-            setActiveTab('map');
-          }
-        }}
-      />
+      {/* React portal into Leaflet popup */}
+      {selectedGeocache && popupContainer && createPortal(
+        <GeocachePopupCard
+          geocache={selectedGeocache}
+          onClose={() => {
+            setSelectedGeocache(null);
+            setPopupContainer(null);
+            if (mapRef.current) {
+              mapRef.current.closePopup();
+            }
+          }}
+        />,
+        popupContainer
+      )}
     </div>
   );
 }
