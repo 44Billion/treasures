@@ -10,11 +10,11 @@ import {
 import { ComponentLoading } from '@/components/ui/loading';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/shared/hooks/useToast';
-import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/features/geocache/utils/verification';
-import { encodeCompactUrl } from '@/shared/utils/compactUrl';
-import { naddrToGeocache } from '@/shared/utils/naddr-utils';
-import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
+import { useToast } from '@/hooks/useToast';
+import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/utils/verification';
+import { encodeCompactUrl } from '@/utils/compactUrl';
+import { naddrToGeocache } from '@/utils/naddr-utils';
+import { NIP_GC_KINDS } from '@/utils/nip-gc';
 
 interface VerificationQRDialogProps {
   isOpen: boolean;

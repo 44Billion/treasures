@@ -1,8 +1,8 @@
 // Backward compatibility re-exports
 // This file maintains compatibility while components are migrated to the new structure
 
-export { LoginArea } from '@/features/auth/components/LoginArea';
-export { default as LoginDialog } from '@/features/auth/components/LoginDialog';
-export { default as SignupDialog } from '@/features/auth/components/SignupDialog';
-export { AccountSwitcher } from '@/features/auth/components/AccountSwitcher';
-export { WelcomeModal } from '@/features/auth/components/WelcomeModal';
+export { LoginArea } from '@/components/auth/LoginArea';
+export { default as LoginDialog } from '@/components/auth/LoginDialog';
+export { default as SignupDialog } from '@/components/auth/SignupDialog';
+export { AccountSwitcher } from '@/components/auth/AccountSwitcher';
+export { WelcomeModal } from '@/components/auth/WelcomeModal';

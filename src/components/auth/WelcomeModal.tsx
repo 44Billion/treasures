@@ -1,4 +1,4 @@
-
+// import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Crown, Sparkles } from 'lucide-react';
 import { BaseDialog } from '@/components/ui/base-dialog';
@@ -12,6 +12,11 @@ interface WelcomeModalProps {
 
 export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModalProps) {
   const { t } = useTranslation();
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('WelcomeModal render:', { isOpen, isNewUser });
+  }
+  
   return (
     <BaseDialog 
       isOpen={isOpen} 
@@ -23,7 +28,6 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
           {isNewUser ? t('welcomeModal.title.newUser') : t('welcomeModal.title.returningUser')}
         </span>
       }
-      descriptionAs="div"
       description={
         <div className="text-center text-muted-foreground">
           {isNewUser 

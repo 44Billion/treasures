@@ -33,7 +33,7 @@ describe('SearchInViewButton', () => {
   });
 
   it('should not render when map has not been moved', async () => {
-    const { SearchInViewButton } = await import('@/features/map/components/SearchInViewButton');
+    const { SearchInViewButton } = await import('@/components/SearchInViewButton');
     
     render(
       <SearchInViewButton 
@@ -50,7 +50,7 @@ describe('SearchInViewButton', () => {
   });
 
   it('should render when map has been moved', async () => {
-    const { SearchInViewButton } = await import('@/features/map/components/SearchInViewButton');
+    const { SearchInViewButton } = await import('@/components/SearchInViewButton');
     
     // Mock map movement
     mockMap.getCenter = () => ({ lat: 40.8, lng: -73.9 });
@@ -71,7 +71,7 @@ describe('SearchInViewButton', () => {
   });
 
   it('should call onSearchInView when clicked', async () => {
-    const { SearchInViewButton } = await import('@/features/map/components/SearchInViewButton');
+    const { SearchInViewButton } = await import('@/components/SearchInViewButton');
     
     // Mock map movement
     mockMap.getCenter = () => ({ lat: 40.8, lng: -73.9 });
@@ -106,7 +106,7 @@ describe('SearchInViewButton', () => {
   });
 
   it('should show loading state when searching', async () => {
-    const { SearchInViewButton } = await import('@/features/map/components/SearchInViewButton');
+    const { SearchInViewButton } = await import('@/components/SearchInViewButton');
     
     // Mock map movement
     mockMap.getCenter = () => ({ lat: 40.8, lng: -73.9 });
@@ -143,7 +143,7 @@ describe('SearchInViewButton', () => {
   });
 
   it('should apply adventure theme styling', async () => {
-    const { SearchInViewButton } = await import('@/features/map/components/SearchInViewButton');
+    const { SearchInViewButton } = await import('@/components/SearchInViewButton');
     
     // Mock map movement
     mockMap.getCenter = () => ({ lat: 40.8, lng: -73.9 });

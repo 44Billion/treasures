@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, Info, ChevronDown, Compass, QrCode, ScanQrCode, Scroll, Settings, BookOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { useTheme } from "@/shared/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface DesktopHeaderProps {
   variant?: 'default' | 'map';

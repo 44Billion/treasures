@@ -1,28 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppContext } from "@/shared/hooks/useAppContext";
+import { useAppContext } from "@/hooks/useAppContext";
 import { useSearchParams } from "react-router-dom";
 import { X, RefreshCw, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/features/geocache/hooks/useReliableProximitySearch";
-import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
-import { useGeolocation } from "@/features/map/hooks/useGeolocation";
-import { useInitialLocation } from "@/features/map/hooks/useInitialLocation";
+import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/hooks/useReliableProximitySearch";
+import { useGeocaches } from "@/hooks/useGeocaches";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
 import { OmniSearch } from "@/components/OmniSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
-import { type ComparisonOperator } from "@/components/ui/comparison-filter";
+import { type ComparisonOperator } from "@/components/FilterButton";
 import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
-import { useIsMobile } from "@/shared/hooks/useIsMobile";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { cn } from "@/shared/utils/utils";
+import { cn } from "@/utils/utils";
 
 
 
@@ -30,7 +29,6 @@ export default function Map() {
   const { t } = useTranslation();
   const { config } = useAppContext();
   const [searchParams] = useSearchParams();
-  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
   const [difficultyOperator, setDifficultyOperator] = useState<ComparisonOperator>("all");
@@ -50,7 +48,7 @@ export default function Map() {
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchRadius, setSearchRadius] = useState(25); // km
   const [searchInView, setSearchInView] = useState(false);
-  const [showMobileSearchOptions, setShowMobileSearchOptions] = useState(false);
+  const [, setShowMobileSearchOptions] = useState(false);
 
 
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);

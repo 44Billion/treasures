@@ -4,10 +4,10 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Copy, Check } from "lucide-react";
 
 import { useStore } from 'zustand';
-import { useZapStore } from '@/shared/stores/useZapStore';
+import { useZapStore } from '@/stores/useZapStore';
 import { ZapButton } from "@/components/ZapButton";
 import { GeocacheLoading } from "@/components/GeocacheLoading";
-import { useDirectNavigation } from '@/shared/hooks/useDirectNavigation';
+import { useDirectNavigation } from '@/hooks/useDirectNavigation';
 
 import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,21 +19,21 @@ import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog"
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { ErrorState } from "@/components/ui/loading";
 import { SaveButton } from "@/components/SaveButton";
-import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
-import { useGeocacheByNaddr } from "@/features/geocache/hooks/useGeocacheByNaddr";
-import { useGeocacheLogs } from "@/features/geocache/hooks/useGeocacheLogs";
-import { useDeleteWithConfirmation } from "@/shared/hooks/useDeleteWithConfirmation";
-import { useEditGeocache } from "@/features/geocache/hooks/useEditGeocache";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useGeocacheByNaddr } from "@/hooks/useGeocacheByNaddr";
+import { useGeocacheLogs } from "@/hooks/useGeocacheLogs";
+import { useDeleteWithConfirmation } from "@/hooks/useDeleteWithConfirmation";
+import { useEditGeocache } from "@/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
-import { LogsSection } from "@/features/logging/components/LogsSection";
-import { useAuthor } from "@/features/auth/hooks/useAuthor";
-import { useToast } from "@/shared/hooks/useToast";
-import { formatDistanceToNow } from "@/shared/utils/date";
+import { LogsSection } from "@/components/LogsSection";
+import { useAuthor } from "@/hooks/useAuthor";
+import { useToast } from "@/hooks/useToast";
+import { formatDistanceToNow } from "@/utils/date";
 
 import { LocationWarnings } from "@/components/LocationWarnings";
-import { verifyLocation, type LocationVerification } from "@/features/geocache/utils/osmVerification";
-import { getTypeLabel, getSizeLabel } from "@/features/geocache/utils/geocache-utils";
-import { getDefaultCacheValues } from "@/features/geocache/utils/geocache-constants";
+import { verifyLocation, type LocationVerification } from "@/utils/osmVerification";
+import { getTypeLabel, getSizeLabel } from "@/utils/geocache-utils";
+import { getDefaultCacheValues } from "@/utils/geocache-constants";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import { GeocacheForm } from "@/components/ui/geocache-form";
 import type { GeocacheFormData } from "@/components/ui/geocache-form.types";
@@ -45,9 +45,9 @@ import { BlurredImage } from "@/components/BlurredImage";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
-import { parseVerificationFromHash, verifyKeyPair } from "@/features/geocache/utils/verification";
-import { naddrToGeocache } from "@/shared/utils/naddr-utils";
-import { encodeGeohash } from "@/features/geocache/utils/nip-gc";
+import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
+import { naddrToGeocache } from "@/utils/naddr-utils";
+import { encodeGeohash } from "@/utils/nip-gc";
 import type { Geocache, GeocacheLog } from "@/types/geocache";
 
 export default function CacheDetail() {

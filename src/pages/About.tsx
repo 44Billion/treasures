@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { ExternalLink, MapPin, Compass, Zap, Globe, Users, Shield } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageLayout } from "@/components/layout";
+import { PageLayout } from "@/components/PageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CacheIcon } from "@/features/geocache/utils/cacheIcons";
-import { useTheme } from "@/shared/hooks/useTheme";
-import { NIP_GC_KINDS } from "@/features/geocache/utils/nip-gc";
+import { CacheIcon } from "@/utils/cacheIcons";
+import { useTheme } from "@/hooks/useTheme";
+import { NIP_GC_KINDS } from "@/utils/nip-gc";
 
 export default function About() {
   const { t } = useTranslation();

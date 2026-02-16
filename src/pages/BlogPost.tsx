@@ -1,15 +1,15 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { PageLayout } from '@/components/layout/PageLayout';
+import { PageLayout } from '@/components/PageLayout';
 import { FullPageLoading } from '@/components/ui/loading';
 import { Card, CardContent } from '@/components/ui/card';
-import { BlogPostDetail } from '@/features/blog/components/BlogPostDetail';
-import { BlogPostEditor } from '@/features/blog/components/BlogPostEditor';
-import { useBlogPost, useIsAuthorizedAuthor } from '@/features/blog/hooks/useBlogPosts';
-import { useDeleteBlogPost } from '@/features/blog/hooks/useBlogPublish';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { BlogPostDetail } from '@/components/BlogPostDetail';
+import { BlogPostEditor } from '@/components/BlogPostEditor';
+import { useBlogPost, useIsAuthorizedAuthor } from '@/hooks/useBlogPosts';
+import { useDeleteBlogPost } from '@/hooks/useBlogPublish';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useState } from 'react';
-import { useToast } from '@/shared/hooks/useToast';
+import { useToast } from '@/hooks/useToast';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,

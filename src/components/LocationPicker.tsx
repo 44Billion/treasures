@@ -3,16 +3,15 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-lea
 import { LatLngExpression } from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { OmniSearch } from "@/components/OmniSearch";
-import { MapStyleSelector } from "@/features/map/components/MapStyleSelector";
-import { NearMeButton } from "@/features/map/components/NearMeButton";
-import { MAP_STYLES } from "@/features/map/constants/mapStyles";
-import { useGeolocation } from "@/features/map/hooks/useGeolocation";
-import { useInitialLocation } from "@/features/map/hooks/useInitialLocation";
-import { useTheme } from "@/shared/hooks/useTheme";
-import { autocorrectCoordinates, parseCoordinate, formatCoordinateForInput } from "@/features/map/utils/coordinates";
-import { mapIcons } from "@/features/map/utils/mapIcons";
+import { MapStyleSelector } from "@/components/MapStyleSelector";
+import { NearMeButton } from "@/components/NearMeButton";
+import { MAP_STYLES } from "@/config/mapStyles";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useInitialLocation } from "@/hooks/useInitialLocation";
+import { useTheme } from "@/hooks/useTheme";
+import { autocorrectCoordinates, parseCoordinate, formatCoordinateForInput } from "@/utils/coordinates";
+import { mapIcons } from "@/utils/mapIcons";
 import { createRoot } from "react-dom/client";
 
 import "leaflet/dist/leaflet.css";

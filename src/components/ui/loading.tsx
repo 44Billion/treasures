@@ -2,8 +2,8 @@ import React from 'react';
 import { LucideIcon, MapPin, Compass, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/shared/utils/utils';
-import { useTheme } from "@/shared/hooks/useTheme";
+import { cn } from '@/utils/utils';
+import { useTheme } from "@/hooks/useTheme";
 
 // ============================================================================
 // COMPASS SPINNER - Base component for all loading states

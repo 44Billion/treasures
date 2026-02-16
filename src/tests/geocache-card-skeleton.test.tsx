@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { GeocacheCard } from '@/features/geocache/components/geocache-card';
+import { GeocacheCard } from '@/components/geocache-card';
 import { describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
 
@@ -38,30 +38,30 @@ vi.mock('@/components/CacheMenu', () => ({
   CacheMenu: () => <div data-testid="cache-menu" />,
 }));
 
-vi.mock('@/shared/components/common/SaveButton', () => ({
+vi.mock('@/components/SaveButton', () => ({
   SaveButton: () => <div data-testid="save-button" />,
 }));
 
-vi.mock('@/features/auth/hooks/useAuthor', () => ({
+vi.mock('@/hooks/useAuthor', () => ({
   useAuthor: () => ({
     data: null,
     isLoading: false,
   }),
 }));
 
-vi.mock('@/features/geocache/hooks/useGeocacheNavigation', () => ({
+vi.mock('@/hooks/useGeocacheNavigation', () => ({
   useGeocacheNavigation: () => ({
     navigateToGeocache: vi.fn(),
   }),
 }));
 
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: null,
   }),
 }));
 
-vi.mock('@/shared/hooks/useTheme', () => ({
+vi.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
     theme: 'light',
     resolvedTheme: 'light',

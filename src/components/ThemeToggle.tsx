@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Moon, Sun, Sword, Monitor } from "lucide-react"
-import { useTheme } from "@/shared/hooks/useTheme"
+import { useTheme } from "@/hooks/useTheme"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"

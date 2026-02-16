@@ -1,8 +1,8 @@
 import { UserCheck, Users, Globe, Swords, ChevronDown, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useWotStore } from '../shared/stores/useWotStore';
+import { useWotStore } from '@/stores/useWotStore';
 import { useNostr } from '@nostrify/react';
-import { useCurrentUser } from '../features/auth/hooks/useCurrentUser';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';

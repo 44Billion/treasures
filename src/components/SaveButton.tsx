@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
 import { CompassSpinner } from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
-import { useSavedCaches } from '@/features/geocache/hooks/useSavedCaches';
-import { useToast } from '@/shared/hooks/useToast';
+import { useSavedCaches } from '@/hooks/useSavedCaches';
+import { useToast } from '@/hooks/useToast';
 import type { Geocache } from '@/types/geocache';
 
 interface SaveButtonProps {

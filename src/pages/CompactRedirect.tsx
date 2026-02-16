@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { decodeCompactUrl, compactToNaddr } from "@/shared/utils/compactUrl";
+import { decodeCompactUrl, compactToNaddr } from "@/utils/compactUrl";
 import { ComponentLoading } from "@/components/ui/loading";
-import { PageLayout } from "@/components/layout";
+import { PageLayout } from "@/components/PageLayout";
 
 /**
  * Handles compact URL format: /c/{base64url-payload}

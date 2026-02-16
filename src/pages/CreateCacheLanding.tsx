@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { QrCode, ChevronDown, Download, Printer, Settings, Gift, Edit } from "lucide-react";
-import { Chest } from "@/features/geocache/constants/cacheIconConstants";
+import { Chest } from "@/config/cacheIconConstants";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,10 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PageLayout } from "@/components/layout";
-import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { PageLayout } from "@/components/PageLayout";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
-import { useToast } from "@/shared/hooks/useToast";
+import { useToast } from "@/hooks/useToast";
 import {
   generateVerificationKeyPair,
   generateVerificationQR,
@@ -22,9 +22,9 @@ import {
   generateQRGridImage,
   generateQRStampImage,
   type VerificationKeyPair,
-} from "@/features/geocache/utils/verification";
-import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
-import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
+} from "@/utils/verification";
+import { geocacheToNaddr } from "@/utils/naddr-utils";
+import { generateDeterministicDTag } from "@/utils/dTag";
 import { nip19 } from 'nostr-tools';
 import { ComponentLoading } from "@/components/ui/loading";
 import {
@@ -34,10 +34,6 @@ import {
   colors,
   animals,
 } from "unique-names-generator";
-import { useAuthor } from "@/features/auth/hooks/useAuthor";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CompactUrlGeneratorDialog } from "@/components/CompactUrlGeneratorDialog";
 
 const customConfig: Config = {
@@ -73,59 +69,6 @@ export default function CreateCacheLanding() {
     } catch {
       return false;
     }
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const GiftAuthorCard = ({ npub }: { npub: string }) => {
-    let authorPubkey = '';
-    if (npub?.startsWith('npub')) {
-      const decoded = nip19.decode(npub);
-      if (decoded.type === 'npub') {
-        authorPubkey = decoded.data;
-      }
-    }
-    const { data: author, isLoading } = useAuthor(authorPubkey);
-
-    if (!authorPubkey) {
-      return null;
-    }
-
-    if (isLoading) {
-      return (
-        <Card>
-          <CardContent className="flex items-center gap-3 p-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="space-y-1">
-              <Skeleton className="h-3 w-[120px]" />
-              <Skeleton className="h-3 w-[80px]" />
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    if (!author) {
-      return null;
-    }
-
-    const metadata = author.metadata;
-
-    return (
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="flex items-center gap-3 p-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={metadata?.picture} alt={metadata?.name} />
-            <AvatarFallback>{metadata?.name?.charAt(0) || '?'}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-sm text-left">{metadata?.name || t('createCache.unknownUser')}</p>
-            <p className="text-xs text-muted-foreground text-left">
-              {npub.slice(0, 12)}...{npub.slice(-4)}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
   };
 
   const getPubkeyForNaddr = useCallback((): string => {

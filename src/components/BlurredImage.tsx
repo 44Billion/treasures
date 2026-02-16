@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, Image as ImageIcon } from 'lucide-react';
-import { cn } from '@/shared/utils/utils';
+import { cn } from '@/utils/utils';
 
 interface BlurredImageProps {
   src: string;

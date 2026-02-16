@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, AlertTriangle, CheckCircle, Check, QrCode, Edit3, FileEdit } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { useTheme } from "@/shared/hooks/useTheme";
-import { MAP_STYLES } from "@/features/map/constants/mapStyles";
+import { useTheme } from "@/hooks/useTheme";
+import { MAP_STYLES } from "@/config/mapStyles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -19,12 +19,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PageLayout } from "@/components/layout";
-import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
-import { useCreateGeocache } from "@/features/geocache/hooks/useCreateGeocache";
+import { PageLayout } from "@/components/PageLayout";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCreateGeocache } from "@/hooks/useCreateGeocache";
 import { LocationPicker } from "@/components/LocationPicker";
-import { useToast } from "@/features/geocache/hooks/useToast";
-import { verifyLocation, getVerificationSummary, type LocationVerification } from "@/features/geocache/utils/osmVerification";
+import { useToast } from "@/hooks/useToast";
+import { verifyLocation, getVerificationSummary, type LocationVerification } from "@/utils/osmVerification";
 import { LocationWarnings } from "@/components/LocationWarnings";
 import { createDefaultGeocacheFormData } from "@/components/ui/geocache-form.utils";
 import type { GeocacheFormData } from "@/components/ui/geocache-form.types";
@@ -41,13 +41,13 @@ import {
   CacheHiddenField
 } from "@/components/ui/geocache-form.fields";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
-import { mapIcons } from "@/features/map/utils/mapIcons";
+import { mapIcons } from "@/utils/mapIcons";
 
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
-import { parseVerificationFromHash } from "@/features/geocache/utils/verification";
-import { naddrToGeocache } from "@/shared/utils/naddr-utils";
+import { parseVerificationFromHash } from "@/utils/verification";
+import { naddrToGeocache } from "@/utils/naddr-utils";
 
 
 // CSS override for confirmation map
@@ -181,7 +181,7 @@ export default function CreateCache() {
   };
 
   const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
-  const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
+  const [hasManuallySelectedStyle] = useState(false);
   const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
 
   // Listen for theme changes and update map style accordingly - using same logic as GeocacheMap
@@ -500,7 +500,7 @@ export default function CreateCache() {
         const relays = event.tags.filter((t: string[]) => t[0] === 'relay').map((t: string[]) => t[1]);
         console.log('🔗 Extracted relays:', relays);
 
-        const { geocacheToNaddr } = await import('@/shared/utils/naddr-utils');
+        const { geocacheToNaddr } = await import('@/utils/naddr-utils');
 
         // If this was created from a claim URL, don't include relays in the naddr
         // Otherwise, include relays for regular cache creation

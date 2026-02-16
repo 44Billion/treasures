@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle, XCircle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { LocationVerification, getVerificationSummary } from "@/features/geocache/utils/osmVerification";
+import { LocationVerification, getVerificationSummary } from "@/utils/osmVerification";
 import { useState } from "react";
 
 interface LocationWarningsProps {

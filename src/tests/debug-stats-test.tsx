@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAdaptiveReliableGeocaches } from '@/features/geocache/hooks/useReliableProximitySearch';
+import { useAdaptiveReliableGeocaches } from '@/hooks/useReliableProximitySearch';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Simple test data
@@ -23,7 +23,7 @@ const testGeocaches = [
   },
 ];
 
-vi.mock('@/shared/stores/hooks', () => ({
+vi.mock('@/stores/hooks', () => ({
   useGeocacheStoreContext: () => ({
     fetchGeocaches: vi.fn().mockResolvedValue({
       success: true,
@@ -40,24 +40,24 @@ vi.mock('@nostrify/react', () => ({
   }),
 }));
 
-vi.mock('@/shared/stores/useZapStore', () => ({
+vi.mock('@/stores/useZapStore', () => ({
   useZapStore: vi.fn(() => ({
     setZaps: vi.fn(),
   })),
 }));
 
-vi.mock('@/shared/utils/batchQuery', () => ({
+vi.mock('@/utils/batchQuery', () => ({
   batchedQuery: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock('@/shared/utils/wot', () => ({
+vi.mock('@/utils/wot', () => ({
   useIsWotEnabled: () => false,
   useWotStore: () => ({
     wotPubkeys: new Set(),
   }),
 }));
 
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: null,
   }),

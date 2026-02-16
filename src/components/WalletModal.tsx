@@ -25,11 +25,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useNWC } from '@/shared/hooks/useNWCContext';
-import { useWallet } from '@/shared/hooks/useWallet';
-import { useToast } from '@/shared/hooks/useToast';
-import { useIsMobile } from '@/shared/hooks/useIsMobile';
-import type { NWCConnection, NWCInfo } from '@/shared/hooks/useNWC';
+import { useNWC } from '@/hooks/useNWCContext';
+import { useWallet } from '@/hooks/useWallet';
+import { useToast } from '@/hooks/useToast';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import type { NWCConnection, NWCInfo } from '@/hooks/useNWC';
 
 interface WalletModalProps {
   children?: React.ReactNode;

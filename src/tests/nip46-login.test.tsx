@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { generateNostrConnectParams, generateNostrConnectURI } from '@/features/auth/hooks/useLoginActions';
+import { generateNostrConnectParams, generateNostrConnectURI } from '@/hooks/useLoginActions';
 
 describe('NIP-46 Login Support', () => {
   describe('generateNostrConnectParams', () => {

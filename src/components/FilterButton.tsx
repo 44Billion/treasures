@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+export type ComparisonOperator = "all" | "eq" | "gt" | "gte" | "lt" | "lte";
 import { Badge } from "@/components/ui/badge";
-import { CacheIcon } from "@/features/geocache/utils/cacheIcons";
-import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
 // Create React components from Lucide Lab icons
@@ -79,19 +78,16 @@ const ChestIcon = ({ className, ...props }: { className?: string }) => (
 );
 
 interface FilterButtonProps {
-  // Difficulty filters
   difficulty?: number;
   difficultyOperator: ComparisonOperator;
   onDifficultyChange: (value: number | undefined) => void;
   onDifficultyOperatorChange: (operator: ComparisonOperator) => void;
 
-  // Terrain filters
   terrain?: number;
   terrainOperator: ComparisonOperator;
   onTerrainChange: (value: number | undefined) => void;
   onTerrainOperatorChange: (operator: ComparisonOperator) => void;
 
-  // Cache type filter
   cacheType?: string;
   onCacheTypeChange: (value: string | undefined) => void;
 
@@ -114,8 +110,16 @@ export function FilterButton({
   compact = false,
 }: FilterButtonProps) {
   const { t, i18n } = useTranslation();
-  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+
+  const operatorSymbols: Record<ComparisonOperator, string> = {
+    all: "All",
+    eq: "=",
+    gt: ">",
+    gte: "≥",
+    lt: "<",
+    lte: "≤",
+  };
 
   // Difficulty options with icons
   const difficultyOptions = useMemo(() => [
@@ -145,6 +149,7 @@ export function FilterButton({
   // Helper functions for consistent value handling
   const createValueChangeHandler = (
     setter: (value: number | undefined) => void,
+    currentOperator: ComparisonOperator,
     operatorSetter: (operator: ComparisonOperator) => void
   ) => (value: string) => {
     if (value === "all") {
@@ -152,8 +157,9 @@ export function FilterButton({
       operatorSetter("all");
     } else {
       setter(parseInt(value));
-      // Keep current operator if it's not "all", otherwise set to "eq"
-      operatorSetter((current) => current === "all" ? "eq" : current);
+      if (currentOperator === "all") {
+        operatorSetter("eq");
+      }
     }
   };
 
@@ -226,45 +232,61 @@ export function FilterButton({
               <Label className="text-sm font-medium text-foreground">
                 {t('filters.difficulty')}
               </Label>
-              <Select
-                value={getValueForDisplay(difficulty)}
-                onValueChange={createValueChangeHandler(onDifficultyChange, onDifficultyOperatorChange)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue>
-                    {difficulty === undefined ? (
-                      t('filters.all')
-                    ) : (
-                      (() => {
-                        const option = difficultyOptions.find(opt => opt.value === difficulty.toString());
-                        const IconComponent = option?.icon;
-                        return (
+              <div className="flex">
+                {difficulty !== undefined && (
+                  <Select value={difficultyOperator} onValueChange={onDifficultyOperatorChange}>
+                    <SelectTrigger className="w-10 h-9 rounded-r-none border-r-0 px-0 justify-center [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                      <span className="text-sm font-medium">
+                        {operatorSymbols[difficultyOperator]}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="eq">=</SelectItem>
+                      <SelectItem value="gte">≥</SelectItem>
+                      <SelectItem value="lte">≤</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select
+                  value={getValueForDisplay(difficulty)}
+                  onValueChange={createValueChangeHandler(onDifficultyChange, difficultyOperator, onDifficultyOperatorChange)}
+                >
+                  <SelectTrigger className={cn("h-9 flex-1", difficulty !== undefined && "rounded-l-none")}>
+                    <SelectValue>
+                      {difficulty === undefined ? (
+                        t('filters.all')
+                      ) : (
+                        (() => {
+                          const option = difficultyOptions.find(opt => opt.value === difficulty.toString());
+                          const IconComponent = option?.icon;
+                          return (
+                            <span className="flex items-center gap-2">
+                              {IconComponent && <IconComponent className={cn("h-4 w-4", option.color)} />}
+                              {option?.label || difficulty}
+                            </span>
+                          );
+                        })()
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {t('filters.all')}
+                    </SelectItem>
+                    {difficultyOptions.map((option) => {
+                      const IconComponent = option.icon;
+                      return (
+                        <SelectItem key={option.value} value={option.value}>
                           <span className="flex items-center gap-2">
-                            {IconComponent && <IconComponent className={cn("h-4 w-4", option.color)} />}
-                            {option?.label || difficulty}
+                            <IconComponent className={cn("h-4 w-4", option.color)} />
+                            {option.label}
                           </span>
-                        );
-                      })()
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t('filters.all')}
-                  </SelectItem>
-                  {difficultyOptions.map((option) => {
-                    const IconComponent = option.icon;
-                    return (
-                      <SelectItem key={option.value} value={option.value}>
-                        <span className="flex items-center gap-2">
-                          <IconComponent className={cn("h-4 w-4", option.color)} />
-                          {option.label}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Terrain Filter */}
@@ -272,45 +294,61 @@ export function FilterButton({
               <Label className="text-sm font-medium text-foreground">
                 {t('filters.terrain')}
               </Label>
-              <Select
-                value={getValueForDisplay(terrain)}
-                onValueChange={createValueChangeHandler(onTerrainChange, onTerrainOperatorChange)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue>
-                    {terrain === undefined ? (
-                      t('filters.all')
-                    ) : (
-                      (() => {
-                        const option = terrainOptions.find(opt => opt.value === terrain.toString());
-                        const IconComponent = option?.icon;
-                        return (
+              <div className="flex">
+                {terrain !== undefined && (
+                  <Select value={terrainOperator} onValueChange={onTerrainOperatorChange}>
+                    <SelectTrigger className="w-10 h-9 rounded-r-none border-r-0 px-0 justify-center [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                      <span className="text-sm font-medium">
+                        {operatorSymbols[terrainOperator]}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="eq">=</SelectItem>
+                      <SelectItem value="gte">≥</SelectItem>
+                      <SelectItem value="lte">≤</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select
+                  value={getValueForDisplay(terrain)}
+                  onValueChange={createValueChangeHandler(onTerrainChange, terrainOperator, onTerrainOperatorChange)}
+                >
+                  <SelectTrigger className={cn("h-9 flex-1", terrain !== undefined && "rounded-l-none")}>
+                    <SelectValue>
+                      {terrain === undefined ? (
+                        t('filters.all')
+                      ) : (
+                        (() => {
+                          const option = terrainOptions.find(opt => opt.value === terrain.toString());
+                          const IconComponent = option?.icon;
+                          return (
+                            <span className="flex items-center gap-2">
+                              {IconComponent && <IconComponent className={cn("h-4 w-4", option.color)} />}
+                              {option?.label || terrain}
+                            </span>
+                          );
+                        })()
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {t('filters.all')}
+                    </SelectItem>
+                    {terrainOptions.map((option) => {
+                      const IconComponent = option.icon;
+                      return (
+                        <SelectItem key={option.value} value={option.value}>
                           <span className="flex items-center gap-2">
-                            {IconComponent && <IconComponent className={cn("h-4 w-4", option.color)} />}
-                            {option?.label || terrain}
+                            <IconComponent className={cn("h-4 w-4", option.color)} />
+                            {option.label}
                           </span>
-                        );
-                      })()
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t('filters.all')}
-                  </SelectItem>
-                  {terrainOptions.map((option) => {
-                    const IconComponent = option.icon;
-                    return (
-                      <SelectItem key={option.value} value={option.value}>
-                        <span className="flex items-center gap-2">
-                          <IconComponent className={cn("h-4 w-4", option.color)} />
-                          {option.label}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Cache Type Filter */}

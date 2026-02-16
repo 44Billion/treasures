@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List } from 'lucide-react';
+import { Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
-import { useLoggedInAccounts } from '@/features/geocache/hooks/useLoggedInAccounts';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useTheme } from "@/shared/hooks/useTheme";
-import { cn } from '@/shared/utils/utils';
+import { useTheme } from "@/hooks/useTheme";
+import { cn } from '@/utils/utils';
 
 // Helper function for consistent theme-aware styling
 function getThemeClasses(isAdventureTheme: boolean) {

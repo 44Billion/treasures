@@ -11,13 +11,11 @@ import AppRouter from './AppRouter';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
-import { StoreProvider } from '@/shared/stores/StoreProvider';
+import { StoreProvider } from '@/stores/StoreProvider';
 import { NWCProvider } from '@/components/NWCProvider';
 
-import { initializeCacheCleanup } from '@/features/geocache/utils/cacheCleanup';
-import { DEFAULT_RELAY, PRESET_RELAYS } from '@/shared/config/relays';
+import { DEFAULT_RELAY, PRESET_RELAYS } from '@/config/relays';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
-import { useEffect } from 'react';
 import './lib/i18n';
 import './styles/leaflet-overrides.css';
 import './styles/print.css';
@@ -42,15 +40,6 @@ const defaultConfig: AppConfig = {
 };
 
 export function App() {
-  // Initialize cache cleanup manager
-  useEffect(() => {
-    const cacheCleanup = initializeCacheCleanup(queryClient);
-
-    return () => {
-      cacheCleanup.stop();
-    };
-  }, []);
-
   return (
     <AppProvider storageKey="treasures:app-config" defaultConfig={defaultConfig} presetRelays={PRESET_RELAYS}>
       <ThemeProvider

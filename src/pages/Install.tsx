@@ -5,7 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Download, MapPin, Smartphone, Wifi, Zap, CheckCircle } from 'lucide-react';
 import { DesktopHeader } from '@/components/DesktopHeader';
 
-import { usePWAInstall } from '@/shared/hooks/usePWAInstall';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 export default function Install() {
   const { installable, installing, installed, install } = usePWAInstall();

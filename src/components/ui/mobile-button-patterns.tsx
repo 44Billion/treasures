@@ -1,9 +1,9 @@
 import { ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, List, Map, Cloud, KeyRound } from 'lucide-react';
+import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, Cloud, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/shared/utils/utils';
+import { cn } from '@/utils/utils';
 
 // === MOBILE TABS ===
 
@@ -294,11 +294,11 @@ interface MapViewTabsProps {
   defaultValue?: string;
 }
 
-export function MapViewTabs({ children, className }: MapViewTabsProps) {
+export function MapViewTabs({ children, className, value, onValueChange, defaultValue = 'map' }: MapViewTabsProps) {
   return (
-    <div className={cn("w-full h-full", className)}>
+    <Tabs defaultValue={defaultValue} value={value} onValueChange={onValueChange} className={cn("w-full h-full", className)}>
       {children}
-    </div>
+    </Tabs>
   );
 }
 

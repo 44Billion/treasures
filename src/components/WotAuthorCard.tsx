@@ -1,4 +1,4 @@
-import { useAuthor } from '../features/auth/hooks/useAuthor';
+import { useAuthor } from '@/hooks/useAuthor';
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';

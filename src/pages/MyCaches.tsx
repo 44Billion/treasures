@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Bookmark, MapPin, Trash2, Cloud, MoreVertical, RefreshCcw } from 'lucide-react';
-import { DetailedGeocacheCard } from '@/features/geocache/components/geocache-card';
+import { DetailedGeocacheCard } from '@/components/geocache-card';
 import { EmptyStateCard } from '@/components/ui/card-patterns';
-import { DesktopHeader } from '@/shared/components/layout/DesktopHeader';
+import { DesktopHeader } from '@/components/DesktopHeader';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
-import { useSavedCaches } from '@/features/geocache/hooks/useSavedCaches';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
-import { formatDistanceToNow } from '@/shared/utils/date';
-import { useGeolocation } from '@/features/map/hooks/useGeolocation';
+import { useSavedCaches } from '@/hooks/useSavedCaches';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { formatDistanceToNow } from '@/utils/date';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { ComponentLoading } from '@/components/ui/loading';
 
 

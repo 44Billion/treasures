@@ -1,5 +1,5 @@
-import { PageLayout } from '@/components/layout/PageLayout';
-import { BlogList } from '@/features/blog/components/BlogList';
+import { PageLayout } from '@/components/PageLayout';
+import { BlogList } from '@/components/BlogList';
 
 export default function Blog() {
   return (

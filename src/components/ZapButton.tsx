@@ -1,9 +1,9 @@
 import { Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { ZapTarget } from '@/types/zaps';
 import { ZapDialog } from './ZapDialog';
-import { useAuthor } from '@/features/auth/hooks/useAuthor';
+import { useAuthor } from '@/hooks/useAuthor';
 
 interface ZapButtonProps {
   target: ZapTarget;

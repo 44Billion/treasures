@@ -8,9 +8,6 @@ export default {
 		hoverOnlyWhenSupported: true,
 	},
 	content: [
-		"./pages/**/*.{ts,tsx}",
-		"./components/**/*.{ts,tsx}",
-		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
 	],
 	prefix: "",
@@ -91,17 +88,7 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
-			},
+				},
 			fontFamily: {
 				'pirata': ['Pirata One', 'cursive'],
 				'adventure': ['Pirata One', 'cursive'],
@@ -156,18 +143,7 @@ export default {
 						transform: 'translateY(0)'
 					}
 				},
-				'button-pulse': {
-					'0%': {
-						transform: 'scale(1)'
-					},
-					'50%': {
-						transform: 'scale(1.05)'
-					},
-					'100%': {
-						transform: 'scale(1)'
-					}
-				}
-			},
+				},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
@@ -176,7 +152,6 @@ export default {
 				'slide-up': 'slide-up 0.6s ease-out',
 				'slide-up-delay': 'slide-up 0.6s ease-out 0.2s both',
 				'slide-up-delay-2': 'slide-up 0.6s ease-out 0.4s both',
-				'button-pulse': 'button-pulse 0.6s ease-out 1.3s'
 			}
 		}
 	},

@@ -1,17 +1,17 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import { useEffect, useState, useMemo } from "react";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { useTheme } from "@/shared/hooks/useTheme";
-import { MAP_STYLES, type MapStyle } from "@/features/map/constants/mapStyles";
-import type { Geocache } from "@/shared/types";
-import { getCacheIconSvg, getCacheColor } from "@/features/geocache/utils/cacheIconUtils";
+import { useTheme } from "@/hooks/useTheme";
+import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
+import type { Geocache } from "@/types/geocache";
+import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
 import i18n from "@/lib/i18n";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
-import "../features/map/map.css";
+import "@/styles/map-features.css";
 
 // Create cache icons with optional adventure theme styling
 const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {

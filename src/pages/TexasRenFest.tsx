@@ -3,18 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { MapPin, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
+import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocacheDialog } from "@/components/GeocacheDialog";
-import { TreasureMapWelcomeModal } from "@/components/TreasureMapWelcomeModal";
+
 import type { Geocache } from "@/types/geocache";
-import { useIsMobile } from "@/shared/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { useTheme } from "@/shared/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 
 // Texas Renaissance Festival coordinates
 const TEXAS_REN_FEST_CENTER = {
@@ -115,7 +115,6 @@ export default function TexasRenFest() {
 
   return (
     <div className="h-screen flex flex-col adventure">
-      <TreasureMapWelcomeModal />
       <DesktopHeader />
 
       {/* Hero Banner */}

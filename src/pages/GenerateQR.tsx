@@ -9,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { PageLayout } from "@/components/layout";
-import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { PageLayout } from "@/components/PageLayout";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
-import { useToast } from "@/shared/hooks/useToast";
+import { useToast } from "@/hooks/useToast";
 import {
   generateVerificationKeyPair,
   downloadQRCode,
@@ -21,9 +21,9 @@ import {
   generateQRStampImage,
   type VerificationKeyPair,
   buildStandardVerificationUrl
-} from "@/features/geocache/utils/verification";
-import { geocacheToNaddr } from "@/shared/utils/naddr-utils";
-import { generateDeterministicDTag } from "@/features/geocache/utils/dTag";
+} from "@/utils/verification";
+import { geocacheToNaddr } from "@/utils/naddr-utils";
+import { generateDeterministicDTag } from "@/utils/dTag";
 import { ComponentLoading } from "@/components/ui/loading";
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 
@@ -45,7 +45,7 @@ export default function GenerateQR() {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrType, setQrType] = useState<'full' | 'cutout' | 'micro' | 'sheet' | 'stamp'>('full');
   const [sheetData, setSheetData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
-  const [stampData, setStampData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
+  const [, setStampData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
 
   const [isGenerating, setIsGenerating] = useState(false);
 

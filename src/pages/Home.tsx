@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppContext } from "@/shared/hooks/useAppContext";
+import { useAppContext } from "@/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, Scroll, Crown, Shield, Users, Globe, ScanQrCode } from "lucide-react";
+import { MapPin, Plus, Search, Compass, Scroll, Crown, Shield, ScanQrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FeatureCard } from "@/components/ui/card-patterns";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
-import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
-import { useGeocaches } from "@/features/geocache/hooks/useGeocaches";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";

@@ -3,18 +3,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Key, Compass, Scroll, Shield, Crown, Sparkles, MapPin, Gem, Map, Star, Zap, Lock, CheckCircle, Copy, Upload } from 'lucide-react';
+import { Download, Key, Compass, Scroll, Shield, Crown, Sparkles, MapPin, Gem, Map, Star, Zap, Lock, CheckCircle, Copy, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { BaseDialog } from '@/components/ui/base-dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/shared/hooks/useToast';
-import { useLoginActions } from '@/features/auth/hooks/useLoginActions';
-import { useNostrPublish } from '@/shared/hooks/useNostrPublish';
-import { useUploadFile } from '@/shared/hooks/useUploadFile';
+import { toast } from '@/hooks/useToast';
+import { useLoginActions } from '@/hooks/useLoginActions';
+import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useUploadFile } from '@/hooks/useUploadFile';
 import { generateSecretKey, nip19 } from 'nostr-tools';
-import { sanitizeFilename } from '@/shared/utils/security';
+import { sanitizeFilename } from '@/utils/security';
 
 interface SignupDialogProps {
   isOpen: boolean;
@@ -43,17 +43,17 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
   const generateKey = () => {
     setIsLoading(true);
     setShowSparkles(true);
-    
+
     // Add a dramatic pause for the treasure generation effect
     setTimeout(() => {
       try {
         // Generate a new secret key
         const sk = generateSecretKey();
-        
+
         // Convert to nsec format
         setNsec(nip19.nsecEncode(sk));
         setStep('download');
-        
+
         toast({
           title: t('signup.toast.keyReady.title'),
           description: t('signup.toast.keyReady.description'),
@@ -157,6 +157,12 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
       return;
     }
 
+    // Show uploading toast
+    toast({
+      title: t('signup.toast.uploadingAvatar.title'),
+      description: t('signup.toast.uploadingAvatar.description', { fileName: file.name }),
+    });
+
     try {
       const tags = await uploadFile(file);
       // Get the URL from the first tag
@@ -169,9 +175,10 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
         });
       }
     } catch (error) {
+      const errorObj = error as { message?: string };
       toast({
         title: t('signup.toast.uploadFailed.title'),
-        description: t('signup.toast.uploadFailed.description'),
+        description: errorObj.message || t('signup.toast.uploadFailed.description'),
         variant: 'destructive',
       });
     }
@@ -180,7 +187,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
   const finishSignup = async (skipProfile = false) => {
     // Mark signup completion time for fallback welcome modal
     localStorage.setItem('treasures_last_signup', Date.now().toString());
-    
+
     try {
       // Publish profile if user provided information
       if (!skipProfile && (profileData.name || profileData.about || profileData.picture)) {
@@ -224,7 +231,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
         description: t('signup.toast.profileSetupFailed.description'),
         variant: 'destructive',
       });
-      
+
       // Still proceed to completion even if profile failed
       onClose();
       if (onComplete) {
@@ -327,12 +334,12 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
       }, 100);
       return () => clearInterval(interval);
     }
-    return;
+    return undefined;
   }, [showSparkles]);
 
   return (
-    <BaseDialog 
-      isOpen={isOpen} 
+    <BaseDialog
+      isOpen={isOpen}
       onOpenChange={onClose}
       size="auth"
       title={<span className='font-semibold text-center text-lg'>{getTitle()}</span>}
@@ -357,7 +364,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                   <Star className='w-4 h-4 text-yellow-500 absolute -top-1 -left-1 animate-pulse' style={{animationDelay: '0.3s'}} />
                 </div>
               </div>
-              
+
               {/* Adventure benefits */}
               <div className='grid grid-cols-1 gap-2 text-sm'>
                 <div className='flex items-center justify-center gap-2 text-green-700 dark:text-green-300 adventure:text-amber-800 adventure:dark:text-amber-200'>
@@ -379,7 +386,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
               <p className='text-muted-foreground px-5 whitespace-pre-line'>
                 {t('signup.dialog.welcome.joinText')}
               </p>
-              
+
               <Button
                 className='w-full rounded-full py-6 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg'
                 onClick={() => setStep('generate')}
@@ -387,7 +394,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Zap className='w-5 h-5 mr-2' />
                 {t('signup.dialog.welcome.beginQuest')}
               </Button>
-              
+
               <p className='text-xs text-muted-foreground'>
                 {t('signup.dialog.welcome.freeForever')}
               </p>
@@ -403,7 +410,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
               {showSparkles && (
                 <div className='absolute inset-0'>
                   {[...Array(12)].map((_, i) => (
-                    <Sparkles 
+                    <Sparkles
                       key={i}
                       className={`absolute w-4 h-4 text-yellow-400 animate-ping`}
                       style={{
@@ -415,7 +422,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                   ))}
                 </div>
               )}
-              
+
               <div className='relative z-10'>
                 {isLoading ? (
                   <div className='space-y-3'>
@@ -479,7 +486,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Sparkles className='absolute bottom-4 left-6 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '1s'}} />
                 <Star className='absolute bottom-3 right-4 w-3 h-3 text-yellow-500 animate-pulse' style={{animationDelay: '1.5s'}} />
               </div>
-              
+
               <div className='relative z-10 flex justify-center items-center mb-3'>
                 <div className='relative'>
                   <div className='w-16 h-16 bg-gradient-to-br from-yellow-200 to-amber-300 adventure:from-amber-200 adventure:to-orange-300 rounded-full flex items-center justify-center shadow-lg animate-pulse'>
@@ -490,12 +497,12 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                   </div>
                 </div>
               </div>
-              
+
               <div className='relative z-10 space-y-2'>
                 <p className='text-base font-semibold'>
                   {t('signup.dialog.download.behold')}
                 </p>
-                
+
                 {/* Whimsical warning with scroll design */}
                 <div className='relative mx-auto max-w-sm'>
                   <div className='p-3 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-950/40 dark:via-yellow-950/20 dark:to-amber-950/40 adventure:from-orange-100 adventure:via-amber-50 adventure:to-orange-100 adventure:dark:from-orange-950/40 adventure:dark:via-amber-950/20 adventure:dark:to-orange-950/40 rounded-lg border-2 border-amber-300 dark:border-amber-700 adventure:border-orange-400 adventure:dark:border-orange-600 shadow-md'>
@@ -537,8 +544,8 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
               <div className='grid grid-cols-1 gap-2'>
                 {/* Copy Option */}
                 <Card className={`cursor-pointer transition-all duration-200 ${
-                  keySecured === 'copied' 
-                    ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20' 
+                  keySecured === 'copied'
+                    ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20'
                     : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
@@ -549,8 +556,8 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                     >
                       <div className='flex items-center gap-3 w-full'>
                         <div className={`p-1.5 rounded-lg ${
-                          keySecured === 'copied' 
-                            ? 'bg-green-100 dark:bg-green-900 adventure:bg-amber-100 adventure:dark:bg-amber-900' 
+                          keySecured === 'copied'
+                            ? 'bg-green-100 dark:bg-green-900 adventure:bg-amber-100 adventure:dark:bg-amber-900'
                             : 'bg-muted'
                         }`}>
                           {keySecured === 'copied' ? (
@@ -579,8 +586,8 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
 
                 {/* Download Option */}
                 <Card className={`cursor-pointer transition-all duration-200 ${
-                  keySecured === 'downloaded' 
-                    ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20' 
+                  keySecured === 'downloaded'
+                    ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20'
                     : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
@@ -591,8 +598,8 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                     >
                       <div className='flex items-center gap-3 w-full'>
                         <div className={`p-1.5 rounded-lg ${
-                          keySecured === 'downloaded' 
-                            ? 'bg-green-100 dark:bg-green-900 adventure:bg-amber-100 adventure:dark:bg-amber-900' 
+                          keySecured === 'downloaded'
+                            ? 'bg-green-100 dark:bg-green-900 adventure:bg-amber-100 adventure:dark:bg-amber-900'
                             : 'bg-muted'
                         }`}>
                           {keySecured === 'downloaded' ? (
@@ -659,7 +666,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 <Star className='absolute top-6 right-6 w-3 h-3 text-yellow-500 animate-pulse' style={{animationDelay: '0.5s'}} />
                 <Crown className='absolute bottom-4 left-6 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '1s'}} />
               </div>
-              
+
               <div className='relative z-10 flex justify-center items-center mb-3'>
                 <div className='relative'>
                   <div className='w-16 h-16 bg-gradient-to-br from-blue-200 to-indigo-300 adventure:from-amber-200 adventure:to-yellow-300 rounded-full flex items-center justify-center shadow-lg'>
@@ -670,7 +677,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                   </div>
                 </div>
               </div>
-              
+
               <div className='relative z-10 space-y-2'>
                 <p className='text-base font-semibold'>
                   {t('signup.dialog.profile.almostThere')}
@@ -755,7 +762,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                     title={isUploading ? t('form.uploading') : t('signup.dialog.profile.uploadTitle')}
                   >
                     {isUploading ? (
-                      <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' />
+                      <Loader2 className='w-4 h-4 animate-spin' />
                     ) : (
                       <Upload className='w-4 h-4' />
                     )}
@@ -783,7 +790,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                   </>
                 )}
               </Button>
-              
+
               <Button
                 variant='outline'
                 className='w-full rounded-full py-3 disabled:opacity-50 disabled:cursor-not-allowed'

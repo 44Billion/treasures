@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Globe } from "lucide-react";
-import { useTheme } from "@/shared/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { PageLayout } from "../components/layout";
+import { PageLayout } from "@/components/PageLayout";
 import { Label } from "../components/ui/label";
 
 import { RelaySelector } from "../components/RelaySelector";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { WotSettings } from "../components/WotSettings";
 
-import { useRelayConfig } from "@/features/geocache/hooks/useRelayConfig";
+import { useRelayConfig } from "@/hooks/useRelayConfig";
 
 export default function Settings() {
   const { setTheme, theme } = useTheme();

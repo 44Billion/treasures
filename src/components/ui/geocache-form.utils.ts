@@ -1,4 +1,17 @@
-// Backward compatibility re-export - Utils only
-// This file maintains compatibility while components are migrated to the new structure
+import type { GeocacheFormData } from '@/types/geocache-form';
+import { getDefaultCacheValues } from '@/utils/geocache-constants';
 
-export { createDefaultGeocacheFormData, validateGeocacheForm } from '@/features/geocache/utils/geocache-form-utils';
+export function createDefaultGeocacheFormData(): GeocacheFormData {
+  const defaults = getDefaultCacheValues();
+  return {
+    name: "",
+    description: "",
+    hint: "",
+    difficulty: defaults.difficulty,
+    terrain: defaults.terrain,
+    size: defaults.size,
+    type: defaults.type,
+    hidden: false,
+    contentWarning: "",
+  };
+}

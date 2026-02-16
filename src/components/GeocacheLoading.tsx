@@ -1,7 +1,6 @@
-import React from 'react';
 import { Compass, Server } from 'lucide-react';
 import { FullPageLoading } from '@/components/ui/loading';
-import { PRESET_RELAYS } from '@/shared/config/relays';
+import { PRESET_RELAYS } from '@/config/relays';
 
 interface GeocacheLoadingProps {
   title?: string;
@@ -40,7 +39,7 @@ export function GeocacheLoading({
             </div>
             
             <div className="space-y-2">
-              {PRESET_RELAYS.map((relay, index) => {
+              {PRESET_RELAYS.map((relay) => {
                 const isAttempted = relayAttempts.some(attempt => attempt.includes(relay.url));
                 const isCurrentAttempt = relayAttempts[relayAttempts.length - 1]?.includes(relay.url);
                 

@@ -37,7 +37,7 @@ vi.mock('@/components/AppProvider', () => ({
   AppProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock('@/shared/stores/StoreProvider', () => ({
+vi.mock('@/stores/StoreProvider', () => ({
   StoreProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
@@ -55,13 +55,13 @@ vi.mock('@nostrify/react', () => ({
   }),
 }));
 
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({ user: null }),
 }));
 
 
 
-vi.mock('@/shared/utils/connectivityChecker', () => ({
+vi.mock('@/utils/connectivityChecker', () => ({
   connectivityChecker: {
     forceCheck: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn(),
@@ -70,7 +70,7 @@ vi.mock('@/shared/utils/connectivityChecker', () => ({
   },
 }));
 
-vi.mock('@/features/geocache/utils/cacheCleanup', () => ({
+vi.mock('@/utils/cacheCleanup', () => ({
   initializeCacheCleanup: vi.fn().mockReturnValue({
     stop: vi.fn(),
   }),

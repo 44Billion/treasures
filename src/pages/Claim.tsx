@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle, QrCode } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/shared/hooks/useToast';
-import { parseVerificationFromHash } from '@/features/geocache/utils/verification';
+import { useToast } from '@/hooks/useToast';
+import { parseVerificationFromHash } from '@/utils/verification';
 import { DesktopHeader } from '@/components/DesktopHeader';
 
 export default function Claim() {

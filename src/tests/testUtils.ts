@@ -306,8 +306,8 @@ export function createMockNostr(customBehavior: Record<string, any> = {}) {
  * Setup standard mocks for all tests
  */
 export function setupStandardMocks() {
-  vi.mock('@/shared/config', () => commonMocks.constants);
-  vi.mock('@/features/geocache/utils/nip-gc', () => commonMocks.nipGc);
+  vi.mock('@/config', () => commonMocks.constants);
+  vi.mock('@/utils/nip-gc', () => commonMocks.nipGc);
   
   
   // Note: simpleStores removed - use direct store mocks instead

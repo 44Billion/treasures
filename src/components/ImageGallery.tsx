@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { cn } from "@/lib/utils";
 import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
-import { useToast } from '@/shared/hooks/useToast';
+import { useToast } from '@/hooks/useToast';
 
 interface ImageGalleryProps {
   images: string[];

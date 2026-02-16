@@ -10,10 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { generateVerificationKeyPair, type VerificationKeyPair } from '@/features/geocache/utils/verification';
-import { generateCompactDTag } from '@/features/geocache/utils/dTag';
-import { encodeCompactUrl } from '@/shared/utils/compactUrl';
-import { NIP_GC_KINDS } from '@/features/geocache/utils/nip-gc';
+import { generateVerificationKeyPair, type VerificationKeyPair } from '@/utils/verification';
+import { generateCompactDTag } from '@/utils/dTag';
+import { encodeCompactUrl } from '@/utils/compactUrl';
+import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 
 const customConfig: Config = {

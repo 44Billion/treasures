@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { getDifficultyLabel, getSizeLabel, getSizeLevel } from '@/features/geocache/utils/geocache-utils';
-import { useTheme } from "@/shared/hooks/useTheme";
+import { getDifficultyLabel, getSizeLabel, getSizeLevel } from '@/utils/geocache-utils';
+import { useTheme } from "@/hooks/useTheme";
 
 // Difficulty/terrain/size rating display component
 export function DifficultyTerrainRating({

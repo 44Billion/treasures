@@ -12,10 +12,10 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useLoggedInAccounts } from '@/features/geocache/hooks/useLoggedInAccounts';
+import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { useNavigate } from 'react-router-dom';
 import { WalletModal } from '@/components/WalletModal';
-import { useTheme } from '@/shared/hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 import { RelayCombobox } from '@/components/RelayCombobox';
 import {
   Select,
@@ -42,7 +42,6 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
       <DropdownMenuTrigger asChild>
         <button className='flex items-center gap-3 p-2 rounded-full hover:bg-accent adventure:hover:bg-stone-200 transition-all text-foreground'>
           <Avatar className='w-8 h-8'>
-            {/* Show loading state for avatar to prevent layout shift */}
             {isLoadingCurrentUser ? (
               <AvatarFallback>
                 <div className="animate-pulse bg-muted rounded-full w-full h-full flex items-center justify-center">

@@ -1,17 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import { VerificationQRDialog } from '@/components/VerificationQRDialog';
-import { generateVerificationQR } from '@/features/geocache/utils/verification';
+import { generateVerificationQR } from '@/utils/verification';
 
 // Mock the toast hook
-vi.mock('@/shared/hooks/useToast', () => ({
+vi.mock('@/hooks/useToast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
 
 // Mock the generateVerificationQR function
-vi.mock('@/features/geocache/utils/verification', () => ({
+vi.mock('@/utils/verification', () => ({
   generateVerificationQR: vi.fn(),
   downloadQRCode: vi.fn(),
 }));

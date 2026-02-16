@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Sparkles, Crown, MapPin, Star, Zap } from 'lucide-react';
+import { ShieldCheck, Sparkles, Crown, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseDialog } from '@/components/ui/base-dialog';
 import { Card, CardContent } from '@/components/ui/card';

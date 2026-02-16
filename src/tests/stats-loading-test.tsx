@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useGeocaches } from '@/features/geocache/hooks/useGeocaches';
+import { useGeocaches } from '@/hooks/useGeocaches';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock many geocaches to test stats loading beyond 10
@@ -24,7 +24,7 @@ const mockFetchGeocaches = vi.fn().mockResolvedValue({
   data: mockManyGeocaches,
 });
 
-vi.mock('@/shared/stores/hooks', () => ({
+vi.mock('@/stores/hooks', () => ({
   useGeocacheStoreContext: () => ({
     fetchGeocaches: mockFetchGeocaches,
   }),
@@ -38,13 +38,13 @@ vi.mock('@nostrify/react', () => ({
   }),
 }));
 
-vi.mock('@/shared/stores/useZapStore', () => ({
+vi.mock('@/stores/useZapStore', () => ({
   useZapStore: vi.fn(() => ({
     setZaps: vi.fn(),
   })),
 }));
 
-vi.mock('@/shared/utils/batchQuery', () => ({
+vi.mock('@/utils/batchQuery', () => ({
   batchedQuery: vi.fn().mockImplementation(async (_nostr, filters, batchSize, _signal) => {
     console.log('Mock batchedQuery called with:', {
       filterCount: filters.length,
@@ -80,14 +80,14 @@ vi.mock('@/shared/utils/batchQuery', () => ({
   }),
 }));
 
-vi.mock('@/shared/utils/wot', () => ({
+vi.mock('@/utils/wot', () => ({
   useIsWotEnabled: () => false,
   useWotStore: () => ({
     wotPubkeys: new Set(),
   }),
 }));
 
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: null,
   }),
@@ -148,7 +148,7 @@ describe('Stats Loading Test', () => {
     }
 
     // Verify that batchedQuery was called with consolidated filters
-    const { batchedQuery } = await import('@/shared/utils/batchQuery');
+    const { batchedQuery } = await import('@/utils/batchQuery');
     expect(batchedQuery).toHaveBeenCalled();
     
     // Check that it was called with 3 filters (found logs, comment logs, zaps) not 45 filters (15 geocaches * 3)

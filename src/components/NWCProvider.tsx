@@ -1,5 +1,5 @@
-import { useNWCInternal } from '@/shared/hooks/useNWC';
-import { NWCContext } from '@/shared/hooks/useNWCContext';
+import { useNWCInternal } from '@/hooks/useNWC';
+import { NWCContext } from '@/hooks/useNWCContext';
 import { ReactNode } from 'react';
 
 interface NWCProviderProps {

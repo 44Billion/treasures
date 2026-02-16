@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ShareDialog } from '@/components/ShareDialog';
-import { useSavedCaches } from '@/features/geocache/hooks/useSavedCaches';
-import { useToast } from '@/shared/hooks/useToast';
+import { useSavedCaches } from '@/hooks/useSavedCaches';
+import { useToast } from '@/hooks/useToast';
 import { CompassSpinner } from '@/components/ui/loading';
 import type { Geocache } from '@/types/geocache';
 

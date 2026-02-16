@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
-import { useAppContext } from "@/shared/hooks/useAppContext";
-import { useTheme } from "@/shared/hooks/useTheme";
+import { useAppContext } from "@/hooks/useAppContext";
+import { useTheme } from "@/hooks/useTheme";
 
 interface RelayComboboxProps {
   className?: string;

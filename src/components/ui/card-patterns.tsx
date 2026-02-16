@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/shared/utils/utils';
+import { cn } from '@/utils/utils';
 
 // Feature Card - Used for main features/benefits (like in Home page)
 interface FeatureCardProps {

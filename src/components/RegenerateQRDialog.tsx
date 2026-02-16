@@ -10,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { VerificationQRDialog } from '@/components/VerificationQRDialog';
-import { useRegenerateVerificationKey } from '@/features/geocache/hooks/useRegenerateVerificationKey';
-import type { VerificationKeyPair } from '@/features/geocache/utils/verification';
+import { useRegenerateVerificationKey } from '@/hooks/useRegenerateVerificationKey';
+import type { VerificationKeyPair } from '@/utils/verification';
 
 interface RegenerateQRDialogProps {
   isOpen: boolean;

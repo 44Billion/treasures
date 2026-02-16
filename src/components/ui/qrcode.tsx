@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
-import { cn } from '@/shared/utils/utils';
+import { cn } from '@/utils/utils';
 
 interface QRCodeProps {
   value: string;

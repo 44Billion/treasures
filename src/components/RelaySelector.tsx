@@ -11,8 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppContext } from "@/shared/hooks/useAppContext";
-import { useTheme } from "@/shared/hooks/useTheme";
+import { useAppContext } from "@/hooks/useAppContext";
+import { useTheme } from "@/hooks/useTheme";
 import { RelayCombobox } from "@/components/RelayCombobox";
 
 interface RelaySelectorProps {
