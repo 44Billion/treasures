@@ -96,7 +96,7 @@ export function GeocachePopupCard({ geocache, onClose }: GeocachePopupCardProps)
   };
 
   return (
-    <div className="w-[300px] overflow-hidden">
+    <div className="w-[340px] overflow-hidden">
       {/* Hero image */}
       {hasImages ? (
         <div className="relative w-full h-36 bg-muted overflow-hidden">
