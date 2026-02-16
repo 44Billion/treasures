@@ -63,7 +63,7 @@ Found log events record successful visits to geocaches:
   "kind": 7516,
   "content": "<log message>",
   "tags": [
-    ["a", "37515:<pubkey>:<d-tag>"]
+    ["a", "37516:<pubkey>:<d-tag>"]
   ]
 }
 ```
@@ -83,11 +83,11 @@ Non-found logs use comment events (kind `1111`) following NIP-22 comment structu
   "kind": 1111,
   "content": "<log message>",
   "tags": [
-    ["A", "37515:<pubkey>:<d-tag>"],
-    ["K", "37515"],
+    ["A", "37516:<pubkey>:<d-tag>"],
+    ["K", "37516"],
     ["P", "<cache-owner-pubkey>"],
-    ["a", "37515:<pubkey>:<d-tag>"],
-    ["k", "37515"],
+    ["a", "37516:<pubkey>:<d-tag>"],
+    ["k", "37516"],
     ["p", "<cache-owner-pubkey>"],
     ["t", "<log-type>"]
   ]
@@ -103,10 +103,10 @@ Owners of the cache can officially retire caches using an `archived` tag value i
 ### Tags
 
 - `A` (required) - root geocache reference (same as `a` for top-level comments)
-- `K` (required) - root kind number (`37515`)
+- `K` (required) - root kind number (`37516`)
 - `P` (required) - root author (cache owner pubkey)
 - `a` (required) - parent reference (same as `A` for top-level comments)
-- `k` (required) - parent kind number (`37515`)
+- `k` (required) - parent kind number (`37516`)
 - `p` (required) - parent author (cache owner pubkey)
 - `t` (optional) - log type: `dnf`, `note`, `maintenance`, `archived`. If omitted, assumed to be `note`
 - `image` (optional) - photos from the visit
@@ -226,7 +226,7 @@ For the best Geocaching experience, clients implementing geocaching support shou
   "kind": 7516,
   "content": "Found it! Great hiding spot.",
   "tags": [
-    ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"]
+    ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"]
   ]
 }
 ```
@@ -238,11 +238,11 @@ For the best Geocaching experience, clients implementing geocaching support shou
   "kind": 1111,
   "content": "Searched for 30 minutes but couldn't find it. Maybe it's missing?",
   "tags": [
-    ["A", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
-    ["K", "37515"],
+    ["A", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
+    ["K", "37516"],
     ["P", "0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd"],
-    ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
-    ["k", "37515"],
+    ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
+    ["k", "37516"],
     ["p", "0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd"],
     ["t", "dnf"]
   ]
@@ -256,11 +256,11 @@ For the best Geocaching experience, clients implementing geocaching support shou
   "kind": 1111,
   "content": "Lots of muggles around during the day. Best to visit in the evening.",
   "tags": [
-    ["A", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
-    ["K", "37515"],
+    ["A", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
+    ["K", "37516"],
     ["P", "0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd"],
-    ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
-    ["k", "37515"],
+    ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
+    ["k", "37516"],
     ["p", "0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd"],
     ["t", "note"]
   ]
@@ -289,7 +289,7 @@ For the best Geocaching experience, clients implementing geocaching support shou
   "kind": 7516,
   "content": "Found it! Great hiding spot.",
   "tags": [
-    ["a", "37515:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669"],
+    ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669"],
     ["verification", "{\"kind\":7517,\"content\":\"Geocache verification for npub1qc0lc5lxnhxnfxlw2lxkv4x4vp6xsf4d5qwvlhfx6qmz6x4nfhqd8h2z3\",\"tags\":[[\"a\",\"0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:naddr1qqxnzd3e8q6n2dfk8qcnjve48qmnsw3jsqgswaehxw309aex2mrp0yhx6tpdsek6w309aex2mrp0yh56tnwdus8vatjvs6kzdrz956k7tjzw6qzypzgd2dmgxhxf34hnlw2y03nckr8f4g6mw9flxqq65v94zkp77rqfgrf8\"]],\"pubkey\":\"6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07\",\"created_at\":1672531200,\"sig\":\"a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456789012345678901234567890abcdef1234567890abcdef1234567890abcdef12\"}"]
   ]
 }
