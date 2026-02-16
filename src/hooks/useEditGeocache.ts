@@ -316,5 +316,3 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
   });
 }
 
-
-// Geohash functions are now imported from @/features/geocache/utils/nip-gc
