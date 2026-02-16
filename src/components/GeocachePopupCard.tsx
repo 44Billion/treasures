@@ -187,10 +187,10 @@ export function GeocachePopupCard({ geocache, onClose }: GeocachePopupCardProps)
         {recentLog && (
           <button
             onClick={handleViewFullDetails}
-            className="flex items-start gap-2 w-full bg-muted/40 hover:bg-muted/70 transition-colors rounded-lg px-2.5 py-1.5 text-left"
+            className="flex items-center gap-2 w-full min-w-0 overflow-hidden bg-muted/40 hover:bg-muted/70 transition-colors rounded-lg px-2.5 py-1.5 text-left"
           >
             {getLogTypeIcon(recentLog.type)}
-            <p className="text-[11px] text-muted-foreground line-clamp-1 flex-1">
+            <p className="text-[11px] text-muted-foreground truncate min-w-0 flex-1">
               <span className="font-medium text-foreground">{recentLogAuthorName}</span>
               {" — "}
               {recentLog.text
@@ -199,7 +199,7 @@ export function GeocachePopupCard({ geocache, onClose }: GeocachePopupCardProps)
               }
             </p>
             {logs.length > 1 && (
-              <span className="text-[10px] text-muted-foreground/60 flex-shrink-0 mt-0.5">
+              <span className="text-[10px] text-muted-foreground/60 flex-shrink-0">
                 +{logs.length - 1}
               </span>
             )}
