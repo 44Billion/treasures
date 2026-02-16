@@ -873,7 +873,7 @@
   "treasureMapWelcome.message2.secret": "secret geocaches",
   "treasureMapWelcome.message2.suffix": "waiting to be discovered. Each treasure marks a spot of wonder, mystery, and adventure.",
   "treasureMapWelcome.button": "Begin the Adventure",
-  "geocacheDialog.actions.viewFullDetails": "View Full Details",
+  "geocacheDialog.actions.viewFullDetails": "View Treasure",
   "geocacheDialog.actions.getDirections": "Get Directions",
   "geocacheDialog.actions.saveForLater": "Save for Later",
   "geocacheDialog.actions.removeFromSaved": "Remove from Saved",

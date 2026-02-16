@@ -872,7 +872,7 @@
   "treasureMapWelcome.message2.secret": "geocache ลับ",
   "treasureMapWelcome.message2.suffix": "ที่รอการค้นพบ สมบัติแต่ละชิ้นทำเครื่องหมายจุดแห่งความมหัศจรรย์ ความลึกลับ และการผจญภัย",
   "treasureMapWelcome.button": "เริ่มการผจญภัย",
-  "geocacheDialog.actions.viewFullDetails": "ดูรายละเอียดเต็ม",
+  "geocacheDialog.actions.viewFullDetails": "ดูสมบัติ",
   "geocacheDialog.actions.getDirections": "ขอเส้นทาง",
   "geocacheDialog.actions.saveForLater": "บันทึกไว้ภายหลัง",
   "geocacheDialog.actions.removeFromSaved": "ลบออกจากบันทึก",

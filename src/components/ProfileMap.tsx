@@ -7,7 +7,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import type { Geocache } from "@/types/geocache";
 import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
-import i18n from "@/lib/i18n";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
@@ -122,50 +121,10 @@ const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
   });
 };
 
-// Create HTML popup content for geocaches
-const createGeocachePopupHTML = (geocache: Geocache) => {
-  // Pre-escape and truncate description
-  const description = geocache.description.length > 100
-    ? geocache.description.substring(0, 100) + '...'
-    : geocache.description;
-
-  return `
-    <div class="p-3 min-w-[200px] max-w-[280px]">
-      <h3 class="font-semibold text-sm leading-tight mb-2">${geocache.name}</h3>
-
-      <div class="flex flex-wrap gap-1 mb-2">
-        <span class="px-2 py-1 text-xs bg-secondary rounded">D${geocache.difficulty}</span>
-        <span class="px-2 py-1 text-xs bg-secondary rounded">T${geocache.terrain}</span>
-        <span class="px-2 py-1 text-xs bg-secondary rounded">${geocache.size}</span>
-        <span class="px-2 py-1 text-xs bg-secondary rounded">${geocache.type}</span>
-      </div>
-
-      <p class="text-xs text-gray-600 mb-3 line-clamp-2">${description}</p>
-
-      <div class="flex gap-2">
-        <button
-          class="flex-1 bg-blue-600 text-white text-xs px-3 py-2 rounded hover:bg-blue-700 transition-colors"
-          onclick="window.dispatchEvent(new CustomEvent('profile-geocache-view-details', { detail: '${geocache.dTag}' }))"
-        >
-          ${i18n.t('map.popup.viewDetails')}
-        </button>
-        <button
-          class="inline-flex items-center justify-center p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-          onclick="window.open('https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}', '_blank')"
-          title="${i18n.t('map.popup.getDirections')}"
-        >
-          <svg class="h-3 w-3" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2">
-            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `;
-};
-
 interface ProfileMapProps {
   geocaches: Geocache[];
   onGeocacheClick?: (geocache: Geocache) => void;
+  onMarkerClick?: (geocache: Geocache, popupContainer?: HTMLDivElement) => void;
 }
 
 // Component to handle theme styling
@@ -254,7 +213,7 @@ function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
   );
 }
 
-export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
+export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: ProfileMapProps) {
   const { theme, systemTheme } = useTheme();
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -388,22 +347,40 @@ export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
     worldCopyJump: false,
   };
 
-  // Set up event listeners for popup buttons
-  useEffect(() => {
-    const handleViewDetails = (event: CustomEvent) => {
-      const dTag = event.detail;
-      const geocache = validGeocaches.find(g => g.dTag === dTag);
-      if (geocache && onGeocacheClick) {
-        onGeocacheClick(geocache);
+  // Handle marker click - create React popup container
+  const handleMarkerClickInternal = (geocache: Geocache, marker: L.Marker) => {
+    const map = marker._map;
+
+    // Close all existing popups
+    if (map) {
+      map.closePopup();
+    }
+
+    if (onMarkerClick) {
+      // React popup approach - same as main map
+      const container = document.createElement('div');
+      container.className = 'react-popup-root';
+
+      if (marker.getPopup()) {
+        marker.unbindPopup();
       }
-    };
+      marker.bindPopup(container, {
+        maxWidth: 400,
+        minWidth: 200,
+        className: 'geocache-popup react-popup',
+        closeButton: true,
+        autoPan: true,
+        keepInView: true,
+        closeOnClick: false,
+        closeOnEscapeKey: true,
+      });
+      marker.openPopup();
 
-    window.addEventListener('profile-geocache-view-details', handleViewDetails as EventListener);
-
-    return () => {
-      window.removeEventListener('profile-geocache-view-details', handleViewDetails as EventListener);
-    };
-  }, [validGeocaches, onGeocacheClick]);
+      onMarkerClick(geocache, container);
+    } else if (onGeocacheClick) {
+      onGeocacheClick(geocache);
+    }
+  };
 
   if (validGeocaches.length === 0) {
     return (
@@ -521,23 +498,15 @@ export function ProfileMap({ geocaches, onGeocacheClick }: ProfileMapProps) {
               position={[geocache.location.lat, geocache.location.lng]}
               icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
               eventHandlers={{
-                add: (e) => {
-                  // Bind HTML popup when marker is added
-                  const marker = e.target;
-                  marker.bindPopup(() => createGeocachePopupHTML(geocache), {
-                    maxWidth: 300,
-                    className: 'geocache-popup',
-                    closeButton: true,
-                    autoClose: true,
-                    autoPan: true,
-                    keepInView: true
-                  });
-                },
                 click: (e) => {
-                  // Ensure popup opens on marker click
                   const marker = e.target;
-                  if (!marker.isPopupOpen()) {
-                    marker.openPopup();
+                  L.DomEvent.stopPropagation(e as unknown as Event);
+                  L.DomEvent.preventDefault(e as unknown as Event);
+                  handleMarkerClickInternal(geocache, marker);
+                },
+                popupclose: () => {
+                  if (onMarkerClick) {
+                    onMarkerClick(null as unknown as Geocache, null as unknown as HTMLDivElement);
                   }
                 }
               }}

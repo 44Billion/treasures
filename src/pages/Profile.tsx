@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +19,7 @@ import { FullPageLoading, ComponentLoading } from '@/components/ui/loading';
 
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
 import { GeocacheCard } from '@/components/ui/geocache-card';
+import { GeocachePopupCard } from '@/components/GeocachePopupCard';
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -31,6 +33,7 @@ import { useGeocaches } from '@/hooks/useGeocaches';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { ProfileMap } from '@/components/ProfileMap';
 import { useToast } from '@/hooks/useToast';
+import type { Geocache } from '@/types/geocache';
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -40,11 +43,19 @@ export default function Profile() {
   const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [_copiedField, setCopiedField] = useState<string | null>(null);
+  const [selectedPopupGeocache, setSelectedPopupGeocache] = useState<Geocache | null>(null);
+  const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
 
-  // Handler for geocache clicks from the map
-  const handleGeocacheClick = (geocache: any) => {
-    // Navigate to geocache detail page
-    window.location.href = `/cache/${geocache.dTag}`;
+  // Handler for marker clicks from the profile map (React popup portal)
+  const handleMarkerClick = (geocache: Geocache, container?: HTMLDivElement) => {
+    if (!geocache && !container) {
+      // Popup closed
+      setSelectedPopupGeocache(null);
+      setPopupContainer(null);
+      return;
+    }
+    setSelectedPopupGeocache(geocache);
+    setPopupContainer(container || null);
   };
 
   // Use current user's pubkey if no pubkey in URL
@@ -250,7 +261,7 @@ export default function Profile() {
               <div className="mb-6">
                 <ProfileMap
                   geocaches={userGeocachesWithStats}
-                  onGeocacheClick={handleGeocacheClick}
+                  onMarkerClick={handleMarkerClick}
                 />
               </div>
             )}
@@ -389,6 +400,18 @@ export default function Profile() {
           </Link>
         </div>
       </div>
+
+      {/* React portal into Leaflet popup - same system as main map */}
+      {selectedPopupGeocache && popupContainer && createPortal(
+        <GeocachePopupCard
+          geocache={selectedPopupGeocache}
+          onClose={() => {
+            setSelectedPopupGeocache(null);
+            setPopupContainer(null);
+          }}
+        />,
+        popupContainer
+      )}
     </div>
   );
 }

@@ -194,8 +194,8 @@ export function GeocachePopupCard({ geocache, onClose }: GeocachePopupCardProps)
               <span className="font-medium text-foreground">{recentLogAuthorName}</span>
               {" — "}
               {recentLog.text
-                ? recentLog.text.replace(/nostr:\w+/g, '').replace(/https?:\/\/\S+/g, '').trim().slice(0, 80) || (recentLog.type === 'found' ? 'found this cache' : 'logged this cache')
-                : recentLog.type === 'found' ? 'found this cache' : 'logged this cache'
+                ? recentLog.text.replace(/nostr:\w+/g, '').replace(/https?:\/\/\S+/g, '').trim().slice(0, 40) || (recentLog.type === 'found' ? 'Found it!' : 'logged this cache')
+                : recentLog.type === 'found' ? 'Found it!' : 'logged this cache'
               }
             </p>
             {logs.length > 1 && (
@@ -205,12 +205,6 @@ export function GeocachePopupCard({ geocache, onClose }: GeocachePopupCardProps)
             )}
           </button>
         )}
-
-        {/* Coordinates */}
-        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/70 font-mono">
-          <MapPin className="h-3 w-3" />
-          {geocache.location.lat.toFixed(5)}, {geocache.location.lng.toFixed(5)}
-        </div>
 
         {/* Actions */}
         <div className="flex items-center gap-1.5">
@@ -254,7 +248,7 @@ export function GeocachePopupCard({ geocache, onClose }: GeocachePopupCardProps)
 
           <ZapButton
             target={geocache}
-            className="h-8 w-8 p-0 flex-shrink-0"
+            className="h-8 w-8 p-0 flex-shrink-0 border-amber-200 text-amber-500 hover:bg-amber-50 hover:text-amber-600 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950 dark:hover:text-amber-300"
           />
         </div>
       </div>

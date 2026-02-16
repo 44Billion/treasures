@@ -872,7 +872,7 @@
   "treasureMapWelcome.message2.secret": "秘密のジオキャッシュ",
   "treasureMapWelcome.message2.suffix": "が発見を待っています。各宝物は驚き、神秘、冒険の場所を示しています。",
   "treasureMapWelcome.button": "冒険を始める",
-  "geocacheDialog.actions.viewFullDetails": "詳細を表示",
+  "geocacheDialog.actions.viewFullDetails": "宝を見る",
   "geocacheDialog.actions.getDirections": "道順を取得",
   "geocacheDialog.actions.saveForLater": "後で保存",
   "geocacheDialog.actions.removeFromSaved": "保存済みから削除",
