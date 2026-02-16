@@ -154,9 +154,3 @@ export function validateBlogPostData(data: CreateBlogPostData): string[] {
   return errors;
 }
 
-/**
- * Check if a pubkey is an authorized author
- */
-export function isAuthorizedAuthor(pubkey: string, authorizedAuthors: string[]): boolean {
-  return authorizedAuthors.includes(pubkey);
-}

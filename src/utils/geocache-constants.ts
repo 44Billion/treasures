@@ -1,7 +1,7 @@
 // Shared constants for geocache ratings and options
 import i18next from 'i18next';
 
-export const DIFFICULTY_TERRAIN_OPTIONS = [
+const DIFFICULTY_TERRAIN_OPTIONS = [
   { value: "1", label: "1 - Easy" },
   { value: "2", label: "2 - Moderate" },
   { value: "3", label: "3 - Hard" },
@@ -9,7 +9,7 @@ export const DIFFICULTY_TERRAIN_OPTIONS = [
   { value: "5", label: "5 - Expert" },
 ];
 
-export const CACHE_SIZE_OPTIONS = [
+const CACHE_SIZE_OPTIONS = [
   { value: "micro", label: "Micro" },
   { value: "small", label: "Small" },
   { value: "regular", label: "Regular" },
@@ -17,7 +17,7 @@ export const CACHE_SIZE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-export const CACHE_TYPE_OPTIONS = [
+const CACHE_TYPE_OPTIONS = [
   { value: "traditional", label: "Traditional" },
   { value: "multi", label: "Multi-cache" },
   { value: "mystery", label: "Mystery/Puzzle" },
@@ -33,10 +33,6 @@ export function getDifficultyLabel(difficulty: number): string {
     5: i18next.t('geocache.difficulty.expert'),
   };
   return difficultyMap[difficulty] || "";
-}
-
-export function getTerrainLabel(terrain: number): string {
-  return getDifficultyLabel(terrain); // Same mapping for terrain
 }
 
 export function getCacheSizeLabel(size: string): string {

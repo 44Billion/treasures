@@ -10,7 +10,7 @@ import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { useMemo } from 'react';
 import { batchedQuery } from '@/utils/batchQuery';
 
-export interface GeocacheWithStats {
+interface GeocacheWithStats {
   foundCount: number;
   logCount: number;
   zapTotal: number;
@@ -400,34 +400,3 @@ function getZapAmount(event: any): number {
   return 0;
 }
 
-/**
- * Hook for getting geocaches near a specific location
- */
-export function useNearbyGeocaches(lat?: number, lon?: number, radiusKm = 50) {
-  const geocacheStore = useGeocacheStoreContext();
-  const isWotEnabled = useIsWotEnabled();
-  const { wotPubkeys } = useWotStore();
-
-  return useQuery({
-    queryKey: ['nearby-geocaches', lat, lon, radiusKm, isWotEnabled, Array.from(wotPubkeys).sort().join(',')],
-    queryFn: async () => {
-      if (!lat || !lon) return [];
-
-      const result = await geocacheStore.fetchNearbyGeocaches(lat, lon, radiusKm);
-      if (!result.success) {
-        throw result.error;
-      }
-      
-      let geocaches = result.data || [];
-      
-      // Apply WoT filtering if enabled
-      if (isWotEnabled && wotPubkeys.size > 0) {
-        geocaches = geocaches.filter(geocache => wotPubkeys.has(geocache.pubkey));
-      }
-      
-      return geocaches;
-    },
-    enabled: lat !== undefined && lon !== undefined,
-    staleTime: 120000, // 2 minutes for location-based data
-  });
-}

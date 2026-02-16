@@ -160,13 +160,6 @@ export function decodeCompactUrl(url: string): {
 }
 
 /**
- * Check if a URL/path is a compact geocache URL
- */
-export function isCompactUrl(url: string): boolean {
-  return url.includes('/c/') || url.startsWith('/c/');
-}
-
-/**
  * Convert compact URL data to standard naddr format for relay queries
  */
 export function compactToNaddr(pubkey: string, dTag: string, kind: number): string {

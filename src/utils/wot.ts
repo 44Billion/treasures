@@ -1,6 +1,6 @@
 import { useWotStore } from '@/stores/useWotStore';
 
-export const isWotEnabled = (trustLevel: number): boolean => trustLevel > 0;
+const isWotEnabled = (trustLevel: number): boolean => trustLevel > 0;
 
 export const useIsWotEnabled = (): boolean => {
   const trustLevel = useWotStore((state) => state.trustLevel);

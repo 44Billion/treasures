@@ -1,8 +1,6 @@
 // Helper functions for relay management
 
-import { DEFAULT_RELAY, DEFAULT_RELAYS } from '@/config';
-
-export const DEFAULT_GEOCACHING_RELAYS = DEFAULT_RELAYS;
+import { DEFAULT_RELAYS } from '@/config';
 
 export function getGeocachingRelays(): string[] {
   const saved = localStorage.getItem('geocaching-relays');
@@ -16,22 +14,5 @@ export function getGeocachingRelays(): string[] {
       // Fall through to defaults
     }
   }
-  return DEFAULT_GEOCACHING_RELAYS;
-}
-
-export function getPrimaryGeocachingRelay(): string {
-  const relays = getGeocachingRelays();
-  return relays[0] || DEFAULT_RELAY;
-}
-
-// Extract relay URLs from a geocache event's relay tags
-export function getGeocacheRelays(event: { tags: string[][] }): string[] {
-  const relayTags = event.tags.filter(tag => tag[0] === 'relay');
-  return relayTags.map(tag => tag[1]).filter((url): url is string => Boolean(url));
-}
-
-// Get the primary relay from a geocache event (first relay tag)
-export function getGeocachePrimaryRelay(event: { tags: string[][] }): string | undefined {
-  const relays = getGeocacheRelays(event);
-  return relays[0];
+  return DEFAULT_RELAYS;
 }

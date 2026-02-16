@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useRef, useEffect, useMemo } from 'react';
-import { useQueryClient, QueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { 
   BaseStoreState, 
@@ -311,14 +311,6 @@ export function createQueryKey(store: string, operation: string, ...params: unkn
 }
 
 /**
- * Utility function to check if data is stale
- */
-export function isDataStale(lastUpdate: Date | null, maxAge: number): boolean {
-  if (!lastUpdate) return true;
-  return Date.now() - lastUpdate.getTime() > maxAge;
-}
-
-/**
  * Utility function to batch operations
  */
 export async function batchOperations<T, R>(
@@ -344,114 +336,3 @@ export async function batchOperations<T, R>(
   return results;
 }
 
-/**
- * Utility function for optimistic updates
- */
-export function createOptimisticUpdate<T>(
-  queryKey: unknown[],
-  updateFn: (oldData: T | undefined) => T,
-  queryClient: QueryClient
-) {
-  const previousData = queryClient.getQueryData(queryKey);
-  
-  // Apply optimistic update
-  queryClient.setQueryData(queryKey, updateFn(previousData as T | undefined));
-  
-  // Return rollback function
-  return () => {
-    queryClient.setQueryData(queryKey, previousData);
-  };
-}
-
-/**
- * Query batching utility for efficient Nostr queries
- */
-export class QueryBatcher {
-  private batch: any[] = [];
-  private timeout: NodeJS.Timeout | null = null;
-  private maxBatchSize = 10;
-  private batchDelay = 50; // ms
-
-  constructor(
-    private queryFn: (filters: any[]) => Promise<any[]>,
-    maxSize = 10,
-    delay = 50
-  ) {
-    this.maxBatchSize = maxSize;
-    this.batchDelay = delay;
-  }
-
-  async add(filter: any): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this.batch.push({ filter, resolve, reject });
-      
-      if (this.batch.length >= this.maxBatchSize) {
-        this.execute();
-      } else if (!this.timeout) {
-        this.timeout = setTimeout(() => this.execute(), this.batchDelay);
-      }
-    });
-  }
-
-  private async execute() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-
-    if (this.batch.length === 0) return;
-
-    const currentBatch = [...this.batch];
-    this.batch = [];
-
-    try {
-      const filters = currentBatch.map(item => item.filter);
-      const results = await this.queryFn(filters);
-      
-      // Distribute results back to individual promises
-      currentBatch.forEach((item, index) => {
-        if (index < results.length) {
-          item.resolve(results.filter(event => this.matchesFilter(event, item.filter)));
-        } else {
-          item.resolve([]);
-        }
-      });
-    } catch (error) {
-      currentBatch.forEach(item => item.reject(error));
-    }
-  }
-
-  private matchesFilter(event: any, filter: any): boolean {
-    // Basic filter matching logic
-    if (filter.kinds && !filter.kinds.includes(event.kind)) return false;
-    if (filter.authors && !filter.authors.includes(event.pubkey)) return false;
-    if (filter.ids && !filter.ids.includes(event.id)) return false;
-    return true;
-  }
-
-  clear() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-    this.batch = [];
-  }
-}
-
-/**
- * Batch multiple queries efficiently
- */
-export function createBatchedQuery(filters: any[]): any[] {
-  // Group filters by similar properties to optimize batching
-  const grouped = new Map<string, any[]>();
-  
-  filters.forEach(filter => {
-    const key = `${filter.kinds?.join(',')}-${filter.authors?.join(',')}-${filter.limit || ''}`;
-    if (!grouped.has(key)) {
-      grouped.set(key, []);
-    }
-    grouped.get(key)!.push(filter);
-  });
-  
-  return Array.from(grouped.values()).flat();
-}

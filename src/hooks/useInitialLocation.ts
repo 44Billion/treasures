@@ -83,11 +83,4 @@ async function detectInitialLocation(): Promise<InitialLocation> {
   return DEFAULT_LOCATION;
 }
 
-/**
- * Clear the cached location (useful for testing)
- */
-export function clearCachedLocation() {
-  cachedInitialLocation = null;
-  isDetecting = false;
-  detectionPromise = null;
-}
+

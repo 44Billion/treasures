@@ -54,22 +54,11 @@ export function autocorrectCoordinates(lat: number, lng: number): { lat: number;
 }
 
 /**
- * Format coordinates for display
- * @param lat Latitude
- * @param lng Longitude
- * @param precision Number of decimal places
- * @returns Formatted string
- */
-export function formatCoordinates(lat: number, lng: number, precision: number = 6): string {
-  return `${lat.toFixed(precision)}, ${lng.toFixed(precision)}`;
-}
-
-/**
  * Determine the precision (number of decimal places) of a coordinate value
  * @param value The coordinate value
  * @returns Number of decimal places
  */
-export function getCoordinatePrecision(value: number): number {
+function getCoordinatePrecision(value: number): number {
   const str = value.toString();
   const decimalIndex = str.indexOf('.');
 

@@ -4,7 +4,7 @@
  */
 
 // US States: GeoNames uses FIPS codes, we need postal abbreviations
-export const US_ADMIN_TO_STATE: Record<string, string> = {
+const US_ADMIN_TO_STATE: Record<string, string> = {
   'AL': 'AL', // Alabama
   'AK': 'AK', // Alaska
   'AZ': 'AZ', // Arizona
@@ -59,7 +59,7 @@ export const US_ADMIN_TO_STATE: Record<string, string> = {
 };
 
 // Canadian Provinces
-export const CA_ADMIN_TO_STATE: Record<string, string> = {
+const CA_ADMIN_TO_STATE: Record<string, string> = {
   '01': 'AB', // Alberta
   '02': 'BC', // British Columbia
   '03': 'MB', // Manitoba
@@ -76,7 +76,7 @@ export const CA_ADMIN_TO_STATE: Record<string, string> = {
 };
 
 // Australian States
-export const AU_ADMIN_TO_STATE: Record<string, string> = {
+const AU_ADMIN_TO_STATE: Record<string, string> = {
   '01': 'ACT', // Australian Capital Territory
   '02': 'NSW', // New South Wales
   '03': 'NT',  // Northern Territory
@@ -88,7 +88,7 @@ export const AU_ADMIN_TO_STATE: Record<string, string> = {
 };
 
 // Brazilian States
-export const BR_ADMIN_TO_STATE: Record<string, string> = {
+const BR_ADMIN_TO_STATE: Record<string, string> = {
   '01': 'AC', // Acre
   '02': 'AL', // Alagoas
   '03': 'AP', // Amapá
@@ -120,7 +120,7 @@ export const BR_ADMIN_TO_STATE: Record<string, string> = {
 
 // Indian States (using GeoNames admin1 codes mapped to postal abbreviations)
 // Note: GeoNames uses numeric codes for Indian states
-export const IN_ADMIN_TO_STATE: Record<string, string> = {
+const IN_ADMIN_TO_STATE: Record<string, string> = {
   '28': 'AP', // Andhra Pradesh
   '37': 'AR', // Arunachal Pradesh
   '03': 'AS', // Assam
@@ -156,7 +156,7 @@ export const IN_ADMIN_TO_STATE: Record<string, string> = {
 };
 
 // Mexican States
-export const MX_ADMIN_TO_STATE: Record<string, string> = {
+const MX_ADMIN_TO_STATE: Record<string, string> = {
   '01': 'AG', // Aguascalientes
   '02': 'BC', // Baja California
   '03': 'BS', // Baja California Sur

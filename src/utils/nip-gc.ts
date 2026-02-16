@@ -19,9 +19,9 @@ export const NIP_GC_KINDS = {
   BOOKMARK_LIST: 30001,
 } as const;
 
-export const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;
-export const VALID_CACHE_SIZES = ['micro', 'small', 'regular', 'large', 'other'] as const;
-export const VALID_COMMENT_LOG_TYPES = ['dnf', 'note', 'maintenance', 'archived'] as const;
+const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;
+const VALID_CACHE_SIZES = ['micro', 'small', 'regular', 'large', 'other'] as const;
+const VALID_COMMENT_LOG_TYPES = ['dnf', 'note', 'maintenance', 'archived'] as const;
 
 export type ValidCacheType = typeof VALID_CACHE_TYPES[number];
 export type ValidCacheSize = typeof VALID_CACHE_SIZES[number];
@@ -75,7 +75,7 @@ export function encodeGeohash(lat: number, lng: number, precision: number = 6): 
   return geohash;
 }
 
-export function decodeGeohash(geohash: string): { lat: number; lng: number } {
+function decodeGeohash(geohash: string): { lat: number; lng: number } {
   let evenBit = true;
   let latMin = -90, latMax = 90;
   let lngMin = -180, lngMax = 180;
@@ -544,61 +544,10 @@ export function buildCommentLogTags(data: {
 
 // ===== GEOHASH PROXIMITY UTILITIES =====
 
-/**
- * Calculate geohash precision needed for a given distance
- * @param distanceKm Desired precision radius in kilometers
- * @returns Optimal geohash precision level
- */
-export function getOptimalPrecision(distanceKm: number): number {
-  // Enhanced precision mapping to handle 8-9 character geohashes
-  if (distanceKm >= 100) return 2;
-  if (distanceKm >= 50) return 3;
-  if (distanceKm >= 25) return 3;
-  if (distanceKm >= 10) return 4;
-  if (distanceKm >= 5) return 4;
-  if (distanceKm >= 2) return 5;
-  if (distanceKm >= 1) return 6;
-  if (distanceKm >= 0.5) return 7;
-  if (distanceKm >= 0.1) return 8;
-  return 9; // Use 9 for very small distances to match geocache precision
-}
-
 // ===== UTILITIES =====
 
 export function createGeocacheCoordinate(pubkey: string, dTag: string, kind: number = NIP_GC_KINDS.GEOCACHE): string {
   return `${kind}:${pubkey}:${dTag}`;
-}
-
-export function parseGeocacheCoordinate(coordinate: string): { pubkey: string; dTag: string; kind: number } | null {
-  const [kind, pubkey, dTag] = coordinate.split(':');
-  if (!kind || !pubkey || !dTag) {
-    return null;
-  }
-  const kindNum = parseInt(kind);
-  if (kindNum !== NIP_GC_KINDS.GEOCACHE && kindNum !== NIP_GC_KINDS.GEOCACHE_LEGACY) {
-    return null;
-  }
-  return { pubkey, dTag, kind: kindNum };
-}
-
-export function isGeocacheEvent(event: NostrEvent): boolean {
-  return event.kind === NIP_GC_KINDS.GEOCACHE || event.kind === NIP_GC_KINDS.GEOCACHE_LEGACY;
-}
-
-export function isFoundLogEvent(event: NostrEvent): boolean {
-  return event.kind === NIP_GC_KINDS.FOUND_LOG;
-}
-
-export function isCommentLogEvent(event: NostrEvent): boolean {
-  return event.kind === NIP_GC_KINDS.COMMENT_LOG;
-}
-
-export function isVerificationEvent(event: NostrEvent): boolean {
-  return event.kind === NIP_GC_KINDS.VERIFICATION;
-}
-
-export function isLogEvent(event: NostrEvent): boolean {
-  return isFoundLogEvent(event) || isCommentLogEvent(event);
 }
 
 // ===== VERIFICATION EVENT UTILITIES =====
@@ -616,23 +565,3 @@ export function buildVerificationEventContent(finderNpub: string): string {
   return `Geocache verification for ${finderNpub}`;
 }
 
-export function parseVerificationEvent(event: NostrEvent): {
-  finderPubkey: string;
-  geocacheNaddr: string;
-} | null {
-  if (event.kind !== NIP_GC_KINDS.VERIFICATION) {
-    return null;
-  }
-
-  const aTag = event.tags.find(t => t[0] === 'a')?.[1];
-  if (!aTag) {
-    return null;
-  }
-
-  const [finderPubkey, geocacheNaddr] = aTag.split(':', 2);
-  if (!finderPubkey || !geocacheNaddr) {
-    return null;
-  }
-
-  return { finderPubkey, geocacheNaddr };
-}

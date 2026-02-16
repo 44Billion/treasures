@@ -256,7 +256,7 @@ function isActuallyUnderwater(_lat: number, _lng: number, elements: any[]): bool
 }
 
 // Function to clean up duplicate and similar warnings
-export function cleanupDuplicateWarnings(warnings: string[]): string[] {
+function cleanupDuplicateWarnings(warnings: string[]): string[] {
   const cleaned: string[] = [];
   
   for (const warning of warnings) {

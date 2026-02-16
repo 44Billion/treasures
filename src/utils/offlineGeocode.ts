@@ -182,15 +182,3 @@ export async function offlineGeocode(lat: number, lng: number): Promise<string> 
   }
 }
 
-/**
- * Prefetch location names for multiple coordinates
- * Useful for batch processing geocaches
- */
-export async function prefetchLocations(coordinates: Array<{ lat: number; lng: number }>): Promise<void> {
-  // Process all coordinates in parallel
-  await Promise.all(
-    coordinates.map(coord => offlineGeocode(coord.lat, coord.lng))
-  );
-}
-
-

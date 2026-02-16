@@ -473,18 +473,6 @@ export async function createVerificationEvent(
 }
 
 /**
- * Check if a log has embedded verification
- */
-export function hasEmbeddedVerification(event: NostrEvent): boolean {
-  try {
-    const embeddedVerification = getEmbeddedVerification(event);
-    return embeddedVerification !== null;
-  } catch (error) {
-    return false;
-  }
-}
-
-/**
  * Check if a log has embedded verification event
  */
 export function getEmbeddedVerification(event: NostrEvent): NostrEvent | null {
@@ -500,18 +488,6 @@ export function getEmbeddedVerification(event: NostrEvent): NostrEvent | null {
 
     // Parse the embedded verification event
     return JSON.parse(verificationTag[1]);
-  } catch (error) {
-    return null;
-  }
-}
-
-/**
- * Check if a log has embedded verification and return its ID
- */
-export function hasVerificationReference(event: NostrEvent): string | null {
-  try {
-    const embeddedVerification = getEmbeddedVerification(event);
-    return embeddedVerification ? embeddedVerification.id : null;
   } catch (error) {
     return null;
   }
@@ -566,7 +542,7 @@ export async function verifyEmbeddedVerification(
  * Verify that a verification event is valid for a specific log
  * According to NIP-GC specification
  */
-export async function verifyVerificationEvent(
+async function verifyVerificationEvent(
   verificationEvent: NostrEvent,
   logEvent: NostrEvent,
   expectedVerificationPubkey: string
@@ -634,26 +610,6 @@ export async function verifyVerificationEvent(
   } catch (error) {
     return false;
   }
-}
-
-/**
- * Validate that a verification key is the current one for a geocache
- */
-export function isCurrentVerificationKey(
-  verificationPubkey: string,
-  currentVerificationPubkey: string
-): boolean {
-  return verificationPubkey === currentVerificationPubkey;
-}
-
-/**
- * Check if a verification attempt uses an outdated key
- */
-export function isOutdatedVerificationKey(
-  verificationPubkey: string,
-  currentVerificationPubkey: string
-): boolean {
-  return verificationPubkey !== currentVerificationPubkey;
 }
 
 /**

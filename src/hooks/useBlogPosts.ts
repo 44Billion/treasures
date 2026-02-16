@@ -42,44 +42,6 @@ export function useBlogPosts() {
 }
 
 /**
- * Hook to fetch blog posts by a specific author
- */
-export function useBlogPostsByAuthor(pubkey: string) {
-  const { nostr } = useNostr();
-
-  return useQuery({
-    queryKey: ['blog', 'posts', 'author', pubkey],
-    queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.QUERY)]);
-      
-      const events = await nostr.query([
-        {
-          kinds: [BLOG_POST_KIND],
-          authors: [pubkey],
-          '#t': [BLOG_TAG],
-          limit: BLOG_QUERY_LIMITS.AUTHOR_POSTS,
-        }
-      ], { signal });
-
-      const posts: BlogPost[] = [];
-      
-      for (const event of events) {
-        const post = eventToBlogPost(event);
-        if (post) {
-          posts.push(post);
-        }
-      }
-
-      // Sort by published date (newest first)
-      return posts.sort((a, b) => b.publishedAt - a.publishedAt);
-    },
-    staleTime: BLOG_CACHE_TIMES.POSTS,
-    gcTime: BLOG_CACHE_TIMES.POSTS * 2,
-    enabled: !!pubkey,
-  });
-}
-
-/**
  * Hook to fetch a single blog post by author and d tag
  */
 export function useBlogPost(pubkey: string, dTag: string) {

@@ -42,9 +42,3 @@ export function parseNaddr(naddr: string): { pubkey: string; dTag: string; relay
   }
 }
 
-/**
- * Check if a string is a valid naddr
- */
-export function isValidNaddr(value: string): boolean {
-  return parseNaddr(value) !== null;
-}

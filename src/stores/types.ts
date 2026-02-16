@@ -58,7 +58,7 @@ export interface GeocacheStoreState extends BaseStoreState {
   cacheStats: CacheStats;
 }
 
-export interface GeocacheStoreActions {
+interface GeocacheStoreActions {
   // Data fetching
   fetchGeocaches: () => Promise<StoreActionResult<Geocache[]>>;
   fetchGeocache: (id: string) => Promise<StoreActionResult<Geocache>>;
@@ -105,7 +105,7 @@ export interface LogStoreState extends BaseStoreState {
   cacheStats: CacheStats;
 }
 
-export interface LogStoreActions {
+interface LogStoreActions {
   // Data fetching
   fetchLogs: (geocacheId: string) => Promise<StoreActionResult<GeocacheLog[]>>;
   fetchLogsForGeocache: (geocachePubkey: string, geocacheDTag: string, geocacheKind?: number) => Promise<StoreActionResult<GeocacheLog[]>>;
@@ -151,7 +151,7 @@ export interface AuthorStoreState extends BaseStoreState {
   cacheStats: CacheStats;
 }
 
-export interface AuthorStoreActions {
+interface AuthorStoreActions {
   // Data fetching
   fetchAuthor: (pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>;
   fetchAuthors: (pubkeys: string[]) => Promise<StoreActionResult<AuthorMetadata[]>>;

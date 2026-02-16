@@ -1,13 +1,5 @@
 import { useNostrLogin } from '@nostrify/react/login';
-import { NostrMetadata } from '@nostrify/nostrify';
 import { useAuthors } from '@/hooks/useAuthors';
-
-export interface Account {
-  id: string;
-  pubkey: string;
-  metadata: NostrMetadata;
-  isLoadingMetadata?: boolean;
-}
 
 export function useLoggedInAccounts() {
   const { logins, setLogin, removeLogin } = useNostrLogin();

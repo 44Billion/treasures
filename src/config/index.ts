@@ -7,5 +7,4 @@ export * from './limits';
 export * from './polling';
 export * from './retry';
 export * from './relays';
-export * from './cache';
 export * from './legacy';

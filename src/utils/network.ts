@@ -1,5 +1,3 @@
-import { TIMEOUTS } from '@/config';
-
 /**
  * Detect if the user is on a slow connection and adjust timeouts accordingly
  */
@@ -29,37 +27,3 @@ export function getAdaptiveTimeout(baseTimeout: number): number {
   return baseTimeout;
 }
 
-/**
- * Get timeout values adjusted for current network conditions
- */
-export function getAdaptiveTimeouts() {
-  return {
-    QUERY: getAdaptiveTimeout(TIMEOUTS.QUERY),
-    FAST_QUERY: getAdaptiveTimeout(TIMEOUTS.FAST_QUERY),
-    CONNECTIVITY_CHECK: getAdaptiveTimeout(TIMEOUTS.CONNECTIVITY_CHECK),
-  };
-}
-
-/**
- * Check if the current connection is likely to be slow
- */
-export function isSlowConnection(): boolean {
-  const connection = (navigator as any).connection;
-  
-  if (connection) {
-    const { effectiveType, downlink } = connection;
-    return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g' || downlink < 1;
-  }
-  
-  // Assume mobile might be slow
-  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
-/**
- * Get a timeout with exponential backoff for retries
- */
-export function getRetryTimeout(baseTimeout: number, attempt: number, _maxAttempts: number): number {
-  const adaptiveBase = getAdaptiveTimeout(baseTimeout);
-  const backoffMultiplier = 1 + (attempt - 1) * 0.5; // 1x, 1.5x, 2x, etc.
-  return Math.min(adaptiveBase * backoffMultiplier, adaptiveBase * 3); // Cap at 3x
-}

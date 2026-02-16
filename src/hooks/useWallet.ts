@@ -3,7 +3,7 @@ import { useNWC } from '@/hooks/useNWCContext';
 import type { WebLNProvider } from 'webln';
 import { requestProvider } from 'webln';
 
-export interface WalletStatus {
+interface WalletStatus {
   hasWebLN: boolean;
   hasNWC: boolean;
   webln: WebLNProvider | null;

@@ -341,12 +341,3 @@ export function MobileBottomNav() {
   );
 }
 
-// Keep the original export for backward compatibility
-export function MobileNav() {
-  return (
-    <>
-      <MobileHeader />
-      <MobileBottomNav />
-    </>
-  );
-}

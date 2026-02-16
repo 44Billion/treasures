@@ -11,11 +11,3 @@ export function getGeocachingRelays(): string[] {
     return [DEFAULT_RELAY];
   }
 }
-
-/**
- * Get the primary relay for geocaching
- */
-export function getPrimaryGeocachingRelay(): string {
-  const relays = getGeocachingRelays();
-  return relays[0] || DEFAULT_RELAY;
-}

@@ -594,7 +594,3 @@ export function CompactGeocacheCard(props: Omit<CompactGeocacheCardProps, 'varia
 export function DetailedGeocacheCard(props: Omit<DetailedGeocacheCardProps, 'variant'>) {
   return <GeocacheCard {...props} variant="detailed" />;
 }
-
-export function FeaturedGeocacheCard(props: Omit<FeaturedGeocacheCardProps, 'variant'>) {
-  return <GeocacheCard {...props} variant="featured" />;
-}

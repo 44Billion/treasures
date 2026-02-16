@@ -43,9 +43,3 @@ export function generateCompactDTag(): string {
   return generateRandomHex(6);
 }
 
-/**
- * Generate a fallback random dTag (for cases where deterministic generation fails)
- */
-export function generateRandomDTag(): string {
-  return `cache-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-}

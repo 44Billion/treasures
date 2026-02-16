@@ -14,16 +14,6 @@ export interface BlogPost {
   event: NostrEvent;
 }
 
-export interface BlogAuthor {
-  pubkey: string;
-  name?: string;
-  displayName?: string;
-  picture?: string;
-  about?: string;
-  nip05?: string;
-  website?: string;
-}
-
 export interface CreateBlogPostData {
   title: string;
   content: string;
