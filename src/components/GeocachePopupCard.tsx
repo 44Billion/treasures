@@ -124,8 +124,8 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
         {/* Title + badges */}
         <div>
           <h3
-            className={`font-semibold text-sm leading-snug ${compact ? 'cursor-pointer hover:text-green-700 dark:hover:text-green-400 transition-colors' : ''}`}
-            onClick={compact ? handleViewFullDetails : undefined}
+            className="font-semibold text-sm leading-snug cursor-pointer hover:text-green-700 dark:hover:text-green-400 transition-colors"
+            onClick={handleViewFullDetails}
           >
             {geocache.name}
           </h3>
