@@ -13,6 +13,7 @@ import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
 import { StoreProvider } from '@/stores/StoreProvider';
 import { NWCProvider } from '@/components/NWCProvider';
+import { PlausibleProvider } from '@/components/PlausibleProvider';
 
 import { DEFAULT_RELAY, PRESET_RELAYS } from '@/config/relays';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
@@ -37,11 +38,14 @@ const queryClient = new QueryClient({
 
 const defaultConfig: AppConfig = {
   relayUrl: DEFAULT_RELAY,
+  plausibleDomain: import.meta.env.VITE_PLAUSIBLE_DOMAIN || '',
+  plausibleEndpoint: import.meta.env.VITE_PLAUSIBLE_ENDPOINT || '',
 };
 
 export function App() {
   return (
     <AppProvider storageKey="treasures:app-config" defaultConfig={defaultConfig} presetRelays={PRESET_RELAYS}>
+      <PlausibleProvider>
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
@@ -68,6 +72,7 @@ export function App() {
           </NostrLoginProvider>
         </QueryClientProvider>
       </ThemeProvider>
+      </PlausibleProvider>
     </AppProvider>
   );
 }

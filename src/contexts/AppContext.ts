@@ -3,6 +3,10 @@ import { createSafeContext } from "@/utils/safeContext";
 export interface AppConfig {
   /** Selected relay URL */
   relayUrl: string;
+  /** Plausible Analytics domain (empty string = disabled). */
+  plausibleDomain: string;
+  /** Plausible Analytics API endpoint (empty string = use default). */
+  plausibleEndpoint: string;
 }
 
 export interface AppContextType {
