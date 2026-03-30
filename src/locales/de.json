@@ -229,7 +229,7 @@
   "createCache.confirmLocation.useDespiteWarnings": "Trotz Warnungen verwenden",
   "createCache.confirmLocation.useLocation": "Diesen Standort verwenden",
   "qrCode.foundTreasure": "Du hast einen Schatz gefunden!",
-  "qrCode.scanToLog": "Scanne diesen QR-Code, um dein Abenteuer zu protokollieren."
+  "qrCode.scanToLog": "Scanne diesen QR-Code, um dein Abenteuer zu protokollieren.",
   "home.install.badge": "Mach dich auf die Quest",
   "home.install.badgeAdventure": "Beginne deine Reise",
   "home.install.subtitle": "PWA installieren",
@@ -414,7 +414,7 @@
   "editProfile.upload.profilePicture": "Profilbild",
   "editProfile.upload.banner": "Banner",
   "form.uploadImage": "Bild hochladen",
-  "form.uploading": "Hochlade..."
+  "form.uploading": "Lade hoch...",
   "cacheDetail.loading.title": "Geocache wird geladen...",
   "cacheDetail.loading.description": "Hole Cache-Details aus dem Netzwerk",
   "cacheDetail.error.invalidLink.title": "Ungültiger Cache-Link",
@@ -644,7 +644,7 @@
   "zap.dialog.zapAmount": "Zap {{amount}} Sats",
   "zap.dialog.invoiceCopied.title": "Rechnung kopiert",
   "zap.dialog.invoiceCopied.description": "Lightning-Rechnung in die Zwischenablage kopiert",
-  "zap.dialog.close": "Schließen"  
+  "zap.dialog.close": "Schließen",  
   "signup.dialog.welcome.title": "Beginne deine Quest",
   "signup.dialog.welcome.description": "Bereit, versteckte Geocaches auf der ganzen Welt zu entdecken?",
   "signup.dialog.welcome.benefit1": "Begib dich auf legendäre Quests weltweit",
@@ -665,7 +665,7 @@
   "signup.dialog.download.description": "Dieser Schlüssel ist dein Reisepass zum Abenteuer – bewahre ihn sicher auf!",
   "signup.dialog.download.behold": "Siehe da! Dein magischer Schatzschlüssel!",
   "signup.dialog.download.warningTitle": "Uralte Warnung",
-  "signup.dialog.download.warningText": "\"Bewahre diesen Schlüssel mit deinem Leben, denn wenn er einmal den digitalen Winden verloren geht, kehrt er niemals zurück...\"",
+  "signup.dialog.download.warningText": "\"Bewahre diesen Schlüssel mit deinem Leben, denn wenn er einmal in den digitalen Winden verloren geht, kehrt er niemals zurück...\"",
   "signup.dialog.download.keyLabel": "Dein Schatzschlüssel",
   "signup.dialog.download.chooseMethod": "Wähle, wie du deinen Schlüssel sichern möchtest:",
   "signup.dialog.download.copyLabel": "In die Zwischenablage kopieren",
@@ -814,7 +814,7 @@
   "about.treasures.feature4.description": "Sofortige Synchronisierung",
   "about.cacheTypes.title": "Unterstützte Cache-Typen",
   "about.cacheTypes.description": "Treasures unterstützt die beliebtesten Geocache-Typen",
-  "about.cacheTypes.traditional.title": "Traditional",
+  "about.cacheTypes.traditional.title": "Traditionell",
   "about.cacheTypes.traditional.description": "Der klassische Geocache-Typ. Ein Behälter, der an den angegebenen Koordinaten versteckt ist und ein Logbuch enthält.",
   "about.cacheTypes.traditional.badge": "Am häufigsten",
   "about.cacheTypes.multi.title": "Multi-Cache",
@@ -849,7 +849,7 @@
   "about.nip.kind4.description": "Kommentarlods für DNF, Notizen und Wartungsberichte",
   "about.nip.readSpec": "Die vollständige NIP-GC-Spezifikation lesen",
   "about.footer.description": "Treasures ist Open Source und Community-getrieben.",
-  "about.footer.viewSource": "Quellcode anzeigen"  
+  "about.footer.viewSource": "Quellcode anzeigen",  
   "texasRenFest.title": "Texas Renaissance Festival",
   "texasRenFest.subtitle": "Entdecke verborgene Schätze auf dem Festivalgelände",
   "texasRenFest.location": "Todd Mission, TX",
@@ -950,5 +950,5 @@
   "blog.post.notFound.title": "Beitrag nicht gefunden",
   "blog.post.notFound.description": "Der gesuchte Blogbeitrag existiert nicht oder wurde entfernt.",
   "notFound.message": "Ups! Seite nicht gefunden",
-  "notFound.returnHome": "Zur Startseite"  
+  "notFound.returnHome": "Zur Startseite"    
   }
