@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translation files
 import enTranslations from '../locales/en.json';
+import deTranslations from '../locales/de.json';
 import jaTranslations from '../locales/ja.json';
 import thTranslations from '../locales/th.json';
 
@@ -12,10 +13,13 @@ i18n
 	.use(initReactI18next)
 	.init({
 		fallbackLng: 'en',
-		supportedLngs: ['en', 'ja', 'th'],
+		supportedLngs: ['en', 'de', 'ja', 'th'],
 		resources: {
 			en: {
 				translation: enTranslations,
+			},
+			de: {
+				translation: deTranslations,
 			},
 			ja: {
 				translation: jaTranslations,

@@ -14,6 +14,7 @@ interface LanguageSelectorProps {
 
 const languages = [
   { code: 'en', name: 'English', nativeName: 'English' },
+  { code: 'de', name: 'German', nativeName: 'Deutsch' },
   { code: 'ja', name: 'Japanese', nativeName: '日本語' },
   { code: 'th', name: 'Thai', nativeName: 'ไทย' },
 ];
