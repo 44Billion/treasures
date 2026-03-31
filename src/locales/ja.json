@@ -855,6 +855,8 @@
   "texasRenFest.location": "テキサス州トッド・ミッション",
   "texasRenFest.festivalArea": "フェスティバルエリア",
   "texasRenFest.cacheCount": "{{count}}キャッシュ",
+  "texasRenFest.cacheCount_one": "{{count}}キャッシュ",
+  "texasRenFest.cacheCount_other": "{{count}}キャッシュ",
   "texasRenFest.elsewhere": "...世界の他の場所の宝物",
   "texasRenFest.noCaches": "キャッシュが見つかりませんでした",
   "map.popup.viewDetails": "詳細を表示",

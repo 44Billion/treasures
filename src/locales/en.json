@@ -854,6 +854,7 @@
   "texasRenFest.subtitle": "Discover hidden treasures at the festival grounds",
   "texasRenFest.location": "Todd Mission, TX",
   "texasRenFest.festivalArea": "Festival Area",
+  "texasRenFest.cacheCount": "{{count}} caches",
   "texasRenFest.cacheCount_one": "{{count}} cache",
   "texasRenFest.cacheCount_other": "{{count}} caches",
   "texasRenFest.elsewhere": "...treasures elsewhere in the world",

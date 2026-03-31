@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    https: false, // Set to true for production testing
+    // https: false, // Set to true for production testing
   },
   build: {
     // Enable source maps for better debugging
@@ -19,14 +19,7 @@ export default defineConfig(({ mode }) => ({
     commonjsOptions: {
       include: [/node_modules/]
     },
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Split cities.json into its own chunk for better caching
-          'cities-data': ['cities.json'],
-        },
-      },
-    },
+    rollupOptions: {},
   },
   plugins: [
     react(),
@@ -45,7 +38,7 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Exclude the large cities-data chunk from precaching
         // It will be loaded on-demand when needed and cached by the browser
-        globIgnores: ['**/cities-data-*.js'],
+        globIgnores: ['**/cities-data-*.js', '**/citiesData-*.js'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit for large bundles
         cleanupOutdatedCaches: true, // Automatically cleanup old caches
         runtimeCaching: [
@@ -99,7 +92,7 @@ export default defineConfig(({ mode }) => ({
         start_url: '/',
         id: '/',
         categories: ['games', 'travel', 'lifestyle', 'social'],
-        permissions: ['geolocation', 'device-orientation'],
+
         scope_extensions: [
           {
             origin: 'treasures.to'

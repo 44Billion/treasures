@@ -855,6 +855,8 @@
   "texasRenFest.location": "Todd Mission, TX",
   "texasRenFest.festivalArea": "พื้นที่เทศกาล",
   "texasRenFest.cacheCount": "{{count}} แคช",
+  "texasRenFest.cacheCount_one": "{{count}} แคช",
+  "texasRenFest.cacheCount_other": "{{count}} แคช",
   "texasRenFest.elsewhere": "...สมบัติในที่อื่นๆ ในโลก",
   "texasRenFest.noCaches": "ไม่พบแคช",
   "map.popup.viewDetails": "ดูรายละเอียด",
