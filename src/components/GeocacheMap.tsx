@@ -1390,8 +1390,8 @@ export function GeocacheMap({
             opacity: 0.7,
             className: 'search-radius-circle adventure-circle'
           } : {
-            color: '#059669', // Emerald-600
-            fillColor: '#10b981', // Emerald-500
+            color: '#228c4e', // Brand green dark
+            fillColor: '#299e5e', // Brand green (primary)
             fillOpacity: 0.12,
             weight: 4,
             dashArray: '15, 8',

@@ -256,7 +256,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
   const getTitle = () => {
     if (step === 'welcome') return (
       <span className="flex items-center justify-center gap-2">
-        <Map className="w-5 h-5 text-green-600 adventure:text-amber-700" />
+        <Map className="w-5 h-5 text-primary adventure:text-amber-700" />
         {t('signup.dialog.welcome.title')}
       </span>
     );
@@ -268,19 +268,19 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
     );
     if (step === 'download') return (
       <span className="flex items-center justify-center gap-2">
-        <Lock className="w-5 h-5 text-green-600 adventure:text-amber-700" />
+        <Lock className="w-5 h-5 text-primary adventure:text-amber-700" />
         {t('signup.dialog.download.title')}
       </span>
     );
     if (step === 'profile') return (
       <span className="flex items-center justify-center gap-2">
-        <Crown className="w-5 h-5 text-green-600 adventure:text-amber-700" />
+        <Crown className="w-5 h-5 text-primary adventure:text-amber-700" />
         {t('signup.dialog.profile.title')}
       </span>
     );
     return (
       <span className="flex items-center justify-center gap-2">
-        <Crown className="w-5 h-5 text-green-600 adventure:text-amber-700" />
+        <Crown className="w-5 h-5 text-primary adventure:text-amber-700" />
         {t('signup.dialog.done.title')}
       </span>
     );
@@ -352,30 +352,30 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
         {step === 'welcome' && (
           <div className='text-center space-y-4'>
             {/* Hero illustration */}
-            <div className='relative p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50'>
+            <div className='relative p-6 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50'>
               <div className='flex justify-center items-center space-x-4 mb-3'>
                 <div className='relative'>
-                  <MapPin className='w-12 h-12 text-green-600 adventure:text-amber-700 animate-bounce' />
+                  <MapPin className='w-12 h-12 text-primary adventure:text-amber-700 animate-bounce' />
                   <Sparkles className='w-4 h-4 text-yellow-500 absolute -top-1 -right-1 animate-pulse' />
                 </div>
-                <Compass className='w-16 h-16 text-green-700 adventure:text-amber-800 animate-spin-slow' />
+                <Compass className='w-16 h-16 text-primary adventure:text-amber-800 animate-spin-slow' />
                 <div className='relative'>
-                  <Gem className='w-12 h-12 text-green-600 adventure:text-amber-700 animate-bounce' style={{animationDelay: '0.5s'}} />
+                  <Gem className='w-12 h-12 text-primary adventure:text-amber-700 animate-bounce' style={{animationDelay: '0.5s'}} />
                   <Star className='w-4 h-4 text-yellow-500 absolute -top-1 -left-1 animate-pulse' style={{animationDelay: '0.3s'}} />
                 </div>
               </div>
 
               {/* Adventure benefits */}
               <div className='grid grid-cols-1 gap-2 text-sm'>
-                <div className='flex items-center justify-center gap-2 text-green-700 dark:text-green-300 adventure:text-amber-800 adventure:dark:text-amber-200'>
+                <div className='flex items-center justify-center gap-2 text-muted-foreground adventure:text-amber-800 adventure:dark:text-amber-200'>
                   <Shield className='w-4 h-4' />
                   {t('signup.dialog.welcome.benefit1')}
                 </div>
-                <div className='flex items-center justify-center gap-2 text-green-700 dark:text-green-300 adventure:text-amber-800 adventure:dark:text-amber-200'>
+                <div className='flex items-center justify-center gap-2 text-muted-foreground adventure:text-amber-800 adventure:dark:text-amber-200'>
                   <Crown className='w-4 h-4' />
                   {t('signup.dialog.welcome.benefit2')}
                 </div>
-                <div className='flex items-center justify-center gap-2 text-green-700 dark:text-green-300 adventure:text-amber-800 adventure:dark:text-amber-200'>
+                <div className='flex items-center justify-center gap-2 text-muted-foreground adventure:text-amber-800 adventure:dark:text-amber-200'>
                   <Map className='w-4 h-4' />
                   {t('signup.dialog.welcome.benefit3')}
                 </div>
@@ -388,7 +388,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
               </p>
 
               <Button
-                className='w-full rounded-full py-6 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg'
+                className='w-full rounded-full py-6 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg'
                 onClick={() => setStep('generate')}
               >
                 <Zap className='w-5 h-5 mr-2' />
@@ -478,7 +478,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
         {step === 'download' && (
           <div className='text-center space-y-4'>
             {/* Magical treasure chest reveal */}
-            <div className='relative p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 overflow-hidden'>
+            <div className='relative p-6 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 overflow-hidden'>
               {/* Magical sparkles floating around */}
               <div className='absolute inset-0 pointer-events-none'>
                 <Sparkles className='absolute top-3 left-4 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />
@@ -492,7 +492,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                   <div className='w-16 h-16 bg-gradient-to-br from-yellow-200 to-amber-300 adventure:from-amber-200 adventure:to-orange-300 rounded-full flex items-center justify-center shadow-lg animate-pulse'>
                     <Key className='w-8 h-8 text-amber-800 adventure:text-orange-900' />
                   </div>
-                  <div className='absolute -top-1 -right-1 w-5 h-5 bg-green-500 adventure:bg-emerald-600 rounded-full flex items-center justify-center animate-bounce'>
+                  <div className='absolute -top-1 -right-1 w-5 h-5 bg-primary adventure:bg-primary rounded-full flex items-center justify-center animate-bounce'>
                     <Sparkles className='w-3 h-3 text-white' />
                   </div>
                 </div>
@@ -545,7 +545,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 {/* Copy Option */}
                 <Card className={`cursor-pointer transition-all duration-200 ${
                   keySecured === 'copied'
-                    ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20'
+                    ? 'ring-2 ring-ring adventure:ring-amber-500 bg-primary/5 dark:bg-primary/10 adventure:bg-amber-50 adventure:dark:bg-amber-950/20'
                     : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
@@ -557,11 +557,11 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                       <div className='flex items-center gap-3 w-full'>
                         <div className={`p-1.5 rounded-lg ${
                           keySecured === 'copied'
-                            ? 'bg-green-100 dark:bg-green-900 adventure:bg-amber-100 adventure:dark:bg-amber-900'
+                            ? 'bg-primary/10 dark:bg-primary/20 adventure:bg-amber-100 adventure:dark:bg-amber-900'
                             : 'bg-muted'
                         }`}>
                           {keySecured === 'copied' ? (
-                            <CheckCircle className='w-4 h-4 text-green-600 adventure:text-amber-600' />
+                            <CheckCircle className='w-4 h-4 text-primary adventure:text-amber-600' />
                           ) : (
                             <Copy className='w-4 h-4 text-muted-foreground' />
                           )}
@@ -575,7 +575,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                           </div>
                         </div>
                         {keySecured === 'copied' && (
-                          <div className='text-xs font-medium text-green-600 adventure:text-amber-600'>
+                          <div className='text-xs font-medium text-primary adventure:text-amber-600'>
                             {t('signup.dialog.download.copied')}
                           </div>
                         )}
@@ -587,7 +587,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 {/* Download Option */}
                 <Card className={`cursor-pointer transition-all duration-200 ${
                   keySecured === 'downloaded'
-                    ? 'ring-2 ring-green-500 adventure:ring-amber-500 bg-green-50 dark:bg-green-950/20 adventure:bg-amber-50 adventure:dark:bg-amber-950/20'
+                    ? 'ring-2 ring-ring adventure:ring-amber-500 bg-primary/5 dark:bg-primary/10 adventure:bg-amber-50 adventure:dark:bg-amber-950/20'
                     : 'hover:bg-muted/50 dark:bg-muted'
                 }`}>
                   <CardContent className='p-3'>
@@ -599,11 +599,11 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                       <div className='flex items-center gap-3 w-full'>
                         <div className={`p-1.5 rounded-lg ${
                           keySecured === 'downloaded'
-                            ? 'bg-green-100 dark:bg-green-900 adventure:bg-amber-100 adventure:dark:bg-amber-900'
+                            ? 'bg-primary/10 dark:bg-primary/20 adventure:bg-amber-100 adventure:dark:bg-amber-900'
                             : 'bg-muted'
                         }`}>
                           {keySecured === 'downloaded' ? (
-                            <CheckCircle className='w-4 h-4 text-green-600 adventure:text-amber-600' />
+                            <CheckCircle className='w-4 h-4 text-primary adventure:text-amber-600' />
                           ) : (
                             <Download className='w-4 h-4 text-muted-foreground' />
                           )}
@@ -617,7 +617,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                           </div>
                         </div>
                         {keySecured === 'downloaded' && (
-                          <div className='text-xs font-medium text-green-600 adventure:text-amber-600'>
+                          <div className='text-xs font-medium text-primary adventure:text-amber-600'>
                             {t('signup.dialog.download.downloaded')}
                           </div>
                         )}
@@ -631,7 +631,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
               <Button
                 className={`w-full rounded-full py-4 text-base font-semibold transform transition-all duration-200 shadow-lg ${
                   keySecured !== 'none'
-                    ? 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 hover:scale-105'
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 hover:scale-105'
                     : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
                 onClick={finishKeySetup}

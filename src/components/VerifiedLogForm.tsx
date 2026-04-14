@@ -94,11 +94,11 @@ export function VerifiedLogForm({
   };
 
   return (
-    <div className={`lg:rounded-lg lg:border lg:border-green-500 lg:bg-green-50 dark:lg:bg-green-950 lg:shadow-sm ${className}`}>
+    <div className={`lg:rounded-lg lg:border lg:border-primary lg:bg-primary/5 dark:lg:bg-primary/10 lg:shadow-sm ${className}`}>
       {!compact && (
         <div className="lg:p-6 lg:pb-0 p-4 lg:pt-6 pt-2">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-green-700 dark:text-green-300">
-            <ShieldCheck className="h-5 w-5 text-green-600" />
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-primary">
+            <ShieldCheck className="h-5 w-5 text-primary" />
             Post a Verified Log
           </h3>
         </div>
@@ -139,7 +139,7 @@ export function VerifiedLogForm({
           onClick={handleCreateLog} 
           disabled={!logText.trim() || isCreatingLog || isSharing}
           size={compact ? "sm" : "default"}
-          className="w-full bg-green-600 hover:bg-green-700"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <ShieldCheck className="h-4 w-4 mr-2" />
           {isCreatingLog || isSharing ? "Posting Verified Log (please wait)..." : "Post Verified Log"}

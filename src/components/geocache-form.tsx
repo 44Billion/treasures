@@ -407,17 +407,17 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
               onClick={() => onChange(level.level.toString())}
               className={`p-2 rounded-lg border text-center transition-all ${
                 numericValue === level.level
-                  ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                  ? 'border-primary bg-primary/5 dark:bg-primary/10'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
             >
-              <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+              <IconComponent className="h-4 w-4 mx-auto mb-1 text-primary" />
               <div className="flex gap-1 justify-center mb-1">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
                     className={`h-1.5 w-1.5 rounded ${
-                      i <= level.level ? "bg-green-600" : "bg-gray-200"
+                      i <= level.level ? "bg-primary" : "bg-gray-200"
                     }`}
                   />
                 ))}
@@ -441,17 +441,17 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 onClick={() => onChange(level.level.toString())}
                 className={`p-2 rounded-lg border text-center transition-all ${
                   numericValue === level.level
-                    ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
               >
-                <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                <IconComponent className="h-4 w-4 mx-auto mb-1 text-primary" />
                 <div className="flex gap-1 justify-center mb-1">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
                       className={`h-1.5 w-1.5 rounded ${
-                        i <= level.level ? "bg-green-600" : "bg-gray-200"
+                        i <= level.level ? "bg-primary" : "bg-gray-200"
                       }`}
                     />
                   ))}
@@ -473,17 +473,17 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 onClick={() => onChange(level.level.toString())}
                 className={`p-2 rounded-lg border text-center transition-all w-24 ${
                   numericValue === level.level
-                    ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
               >
-                <IconComponent className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                <IconComponent className="h-4 w-4 mx-auto mb-1 text-primary" />
                 <div className="flex gap-1 justify-center mb-1">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
                       className={`h-1.5 w-1.5 rounded ${
-                        i <= level.level ? "bg-green-600" : "bg-gray-200"
+                        i <= level.level ? "bg-primary" : "bg-gray-200"
                       }`}
                     />
                   ))}
@@ -497,7 +497,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
 
       {numericValue > 0 && (
         <div className="bg-muted/30 p-2 rounded-md">
-          <p className="text-xs text-green-700 dark:text-green-300">
+          <p className="text-xs text-primary dark:text-primary">
             {difficultyLevels.find(l => l.level === numericValue)?.description}
           </p>
         </div>

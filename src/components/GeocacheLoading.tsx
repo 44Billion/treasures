@@ -21,7 +21,7 @@ export function GeocacheLoading({
       <div className="min-h-screen bg-muted/30 dark:bg-muted flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           {/* Compass spinner */}
-          <Compass className="h-12 w-12 text-green-600 animate-spin mx-auto mb-6" />
+          <Compass className="h-12 w-12 text-primary animate-spin mx-auto mb-6" />
           
           <h2 className="text-xl font-semibold text-foreground mb-2">
             {title}
@@ -48,14 +48,14 @@ export function GeocacheLoading({
                     key={relay.url}
                     className={`
                       flex items-center gap-2 p-2 rounded text-sm
-                      ${isCurrentAttempt ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 
+                      ${isCurrentAttempt ? 'bg-primary/10 dark:bg-primary/15 text-primary' : 
                         isAttempted ? 'bg-muted text-muted-foreground' : 
                         'text-muted-foreground/50'}
                     `}
                   >
                     <div className={`
                       w-2 h-2 rounded-full
-                      ${isCurrentAttempt ? 'bg-green-500 animate-pulse' : 
+                      ${isCurrentAttempt ? 'bg-primary animate-pulse' : 
                         isAttempted ? 'bg-muted-foreground' : 
                         'bg-muted-foreground/30'}
                     `} />

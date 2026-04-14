@@ -60,7 +60,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
           <div className="flex items-center gap-2 pb-2 border-b" style={isAdventureTheme ? {
             borderColor: adventureColors.primary,
           } : {}}>
-            <MapIcon className={`h-4 w-4 ${isAdventureTheme ? '' : 'text-emerald-600'}`} style={isAdventureTheme ? {
+            <MapIcon className={`h-4 w-4 ${isAdventureTheme ? '' : 'text-primary'}`} style={isAdventureTheme ? {
               color: adventureColors.accent,
             } : {}} />
             <h4 className="font-semibold text-sm" style={isAdventureTheme ? {
@@ -82,7 +82,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                   className={`
                     flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left w-full
                     ${!isAdventureTheme && isActive
-                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-sm'
+                      ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-sm'
                       : !isAdventureTheme
                         ? 'border hover:border-muted-foreground hover:bg-muted/50 dark:bg-muted'
                         : ''
@@ -98,7 +98,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                   <div className={`
                     flex items-center justify-center w-8 h-8 rounded-full transition-all
                     ${!isAdventureTheme && isActive
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300'
+                      ? 'bg-primary/10 dark:bg-primary/20 text-primary'
                       : !isAdventureTheme
                         ? 'bg-muted text-muted-foreground'
                         : ''

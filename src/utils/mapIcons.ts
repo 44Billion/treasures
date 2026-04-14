@@ -57,7 +57,7 @@ export const foundGeocacheIcon = L.divIcon({
   html: `
     <div style="position: relative;">
       <svg width="24" height="30" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C7.029 0 3 4.029 3 9c0 6.75 9 18 9 18s9-11.25 9-18c0-4.971-4.029-9-9-9z" fill="#22c55e"/>
+        <path d="M12 0C7.029 0 3 4.029 3 9c0 6.75 9 18 9 18s9-11.25 9-18c0-4.971-4.029-9-9-9z" fill="#299e5e"/>
         <circle cx="12" cy="9" r="3" fill="white"/>
       </svg>
     </div>

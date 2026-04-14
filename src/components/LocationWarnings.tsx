@@ -160,7 +160,7 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
                       key={idx} 
                       variant="outline"
                       className={`text-xs h-5 ${
-                        feature.type === 'positive' ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' :
+                        feature.type === 'positive' ? 'bg-primary/5 dark:bg-primary/10 text-primary dark:text-primary border-primary/20 dark:border-primary/30' :
                         feature.type === 'headsup' || feature.type === 'hindrance' ? 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' :
                         'bg-muted text-foreground border'
                       }`}

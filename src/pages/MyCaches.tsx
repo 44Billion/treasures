@@ -52,7 +52,7 @@ export default function MyCaches() {
 
   if (!user) {
     return (
-      <div className="h-mobile-page md:min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-green-950 dark:to-emerald-950 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 flex flex-col relative">
+      <div className="h-mobile-page md:min-h-screen bg-gradient-to-br from-secondary via-background to-secondary dark:from-background dark:via-secondary/20 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 flex flex-col relative">
         {/* Parchment background for adventure mode only - behind everything */}
         <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
           backgroundImage: 'url(/parchment-300.jpg)',
@@ -75,7 +75,7 @@ export default function MyCaches() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-green-950 dark:to-emerald-950 adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 ${savedCaches.length === 0 ? 'max-md:h-mobile-fit max-md:overflow-hidden' : ''} relative`}>
+    <div className={`min-h-screen bg-gradient-to-br from-secondary via-background to-secondary dark:from-background dark:via-secondary/20 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 ${savedCaches.length === 0 ? 'max-md:h-mobile-fit max-md:overflow-hidden' : ''} relative`}>
       {/* Parchment background for adventure mode only - behind everything */}
       <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
         backgroundImage: 'url(/parchment-300.jpg)',
@@ -97,7 +97,7 @@ export default function MyCaches() {
             {/* Nostr sync status */}
             {isNostrEnabled && (
               <div className={`flex items-center gap-2 text-sm ${
-                isSyncing ? 'text-blue-600 dark:text-blue-400' : 'text-green-600'
+                isSyncing ? 'text-blue-600 dark:text-blue-400' : 'text-primary'
               }`}>
                 {isSyncing ? (
                   <>

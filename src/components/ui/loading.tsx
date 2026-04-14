@@ -33,7 +33,7 @@ export function CompassSpinner({
   // Use green for page loads (like the old compass-loading.tsx), grey for components
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
-  const colorClass = variant === 'page' ? isAdventureTheme ? 'text-stone-600' : 'text-green-600' : 'text-muted-foreground';
+  const colorClass = variant === 'page' ? isAdventureTheme ? 'text-stone-600' : 'text-primary' : 'text-muted-foreground';
 
   return (
     <Compass

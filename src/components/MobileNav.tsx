@@ -19,7 +19,7 @@ function getThemeClasses(isAdventureTheme: boolean) {
       : 'bg-white dark:bg-background/95 border-gray-300 dark:border-border',
     text: isAdventureTheme ? 'text-stone-200' : 'text-gray-900 dark:text-foreground',
     textMuted: isAdventureTheme ? 'text-stone-400' : 'text-gray-500 dark:text-muted-foreground',
-    textActive: isAdventureTheme ? 'text-stone-200' : 'text-green-600 dark:text-green-400',
+    textActive: isAdventureTheme ? 'text-stone-200' : 'text-primary',
     button: isAdventureTheme
       ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100'
       : 'text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground border-gray-300 dark:border-border',

@@ -231,19 +231,19 @@ export function LogsSection({
             {/* Special prompt for verified found logs */}
             {verificationKey && isVerificationValid ? (
               <div className="space-y-4">
-                <div className="relative p-4 rounded-lg bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-green-200 dark:border-green-800 adventure:border-amber-200 adventure:dark:border-amber-800">
+                <div className="relative p-4 rounded-lg bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800">
                   <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck className="h-5 w-5 text-green-600 adventure:text-amber-700" />
-                    <span className="font-semibold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200">
+                    <ShieldCheck className="h-5 w-5 text-primary adventure:text-amber-700" />
+                    <span className="font-semibold text-foreground adventure:text-amber-800 adventure:dark:text-amber-200">
                       {t('logs.verified.available')}
                     </span>
                   </div>
-                  <p className="text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3">
+                  <p className="text-sm text-muted-foreground adventure:text-amber-700 adventure:dark:text-amber-300 mb-3">
                     {t('logs.verified.description')}
                   </p>
                   <Button
                     onClick={handleSignupClick}
-                    className="w-full bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-amber-700 adventure:hover:bg-amber-800"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     {t('logs.verified.createAccount')}

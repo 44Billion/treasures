@@ -45,7 +45,7 @@ export function getCacheColor(type: string): string {
   const cacheType = type.toLowerCase() as CacheType;
   
   const colors = {
-    traditional: '#10b981', // Emerald-500
+    traditional: '#299e5e', // Brand green (primary)
     multi: '#f59e0b',      // Amber-500
     mystery: '#8b5cf6',    // Purple-500
   };

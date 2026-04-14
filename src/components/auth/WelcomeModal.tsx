@@ -24,7 +24,7 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
       size="auth"
       title={
         <span className='font-semibold text-center text-lg flex items-center justify-center gap-2'>
-          <Crown className="w-5 h-5 text-green-600 adventure:text-amber-700" />
+          <Crown className="w-5 h-5 text-primary adventure:text-amber-700" />
           {isNewUser ? t('welcomeModal.title.newUser') : t('welcomeModal.title.returningUser')}
         </span>
       }
@@ -42,16 +42,16 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
       <div className='px-6 pt-2 pb-4 space-y-4 flex-1'>
         <div className='text-center py-8 space-y-4'>
           <div className='relative'>
-            <div className='w-24 h-24 mx-auto bg-gradient-to-br from-green-400 to-emerald-500 adventure:from-amber-400 adventure:to-orange-500 rounded-full flex items-center justify-center'>
+            <div className='w-24 h-24 mx-auto bg-primary adventure:bg-gradient-to-br adventure:from-amber-400 adventure:to-orange-500 rounded-full flex items-center justify-center'>
               <Crown className='w-12 h-12 text-white' />
             </div>
             <div className='absolute inset-0 flex items-center justify-center'>
-              <div className='w-32 h-32 border-4 border-green-300 adventure:border-amber-300 rounded-full animate-ping opacity-75'></div>
+              <div className='w-32 h-32 border-4 border-primary/30 adventure:border-amber-300 rounded-full animate-ping opacity-75'></div>
             </div>
           </div>
           
           <div className='space-y-2'>
-            <h3 className='text-2xl font-bold text-green-700 adventure:text-amber-700 flex items-center justify-center gap-2'>
+            <h3 className='text-2xl font-bold text-primary adventure:text-amber-700 flex items-center justify-center gap-2'>
               <Sparkles className='w-6 h-6' />
               {isNewUser ? t('welcomeModal.title.newUser') : t('welcomeModal.title.returningUser')}
             </h3>
@@ -65,7 +65,7 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
           
           <Button
             onClick={onClose}
-            className='mt-6 rounded-full py-3 px-6 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg'
+            className='mt-6 rounded-full py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-gradient-to-r adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg'
           >
             {isNewUser ? t('welcomeModal.button.newUser') : t('welcomeModal.button.returningUser')}
           </Button>

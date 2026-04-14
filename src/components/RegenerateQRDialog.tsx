@@ -137,7 +137,7 @@ export function RegenerateQRDialog({
                     Standard QR Code
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleRegenerate(true)}>
-                    <span className="text-green-600 font-medium">Compact QR Code</span>
+                    <span className="text-primary font-medium">Compact QR Code</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

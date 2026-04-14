@@ -25,7 +25,7 @@ export function DifficultyTerrainRating({
   const sizeLevel = cacheSize ? getSizeLevel(cacheSize) : 0;
 
   // Use more neutral colors in adventure mode
-  const difficultyActiveColor = isAdventureTheme ? "bg-stone-600" : "bg-green-600";
+  const difficultyActiveColor = isAdventureTheme ? "bg-stone-600" : "bg-primary";
   const terrainActiveColor = isAdventureTheme ? "bg-stone-500" : "bg-blue-600";
   const sizeActiveColor = isAdventureTheme ? "bg-stone-400" : "bg-purple-600";
   const inactiveColor = isAdventureTheme ? "bg-stone-200" : "bg-gray-200";

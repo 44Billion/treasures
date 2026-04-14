@@ -590,8 +590,8 @@ export default function CreateCache() {
                     onClick={() => navigate('/generate-qr')}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
-                        <QrCode className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-full">
+                        <QrCode className="h-6 w-6 text-primary" />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold mb-1">{t('createCache.overlay.qrOption.title')}</h3>
@@ -689,15 +689,15 @@ export default function CreateCache() {
                   {[1, 2, 3, 4].map((step, index) => (
                     <React.Fragment key={step}>
                       <div className={`w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs xs:text-sm font-medium shrink-0 ${
-                        step < currentStep ? 'bg-green-500 text-white' :
-                        step === currentStep ? 'bg-primary dark:text-black text-white' :
-                        'bg-secondary text-gray-500'
+                        step < currentStep ? 'bg-primary text-primary-foreground' :
+                        step === currentStep ? 'bg-primary text-primary-foreground' :
+                        'bg-secondary text-muted-foreground'
                       }`}>
                         {step < currentStep ? '✓' : step}
                       </div>
                       {index < totalSteps - 1 && (
                         <div className={`h-0.5 xs:h-1 mx-0.5 xs:mx-1 sm:mx-2 flex-1 min-w-[0.5rem] ${
-                          step < currentStep ? 'bg-green-500' : 'bg-secondary'
+                          step < currentStep ? 'bg-primary' : 'bg-secondary'
                         }`} />
                       )}
                     </React.Fragment>
@@ -951,15 +951,15 @@ export default function CreateCache() {
                 {[1, 2, 3, 4].map((step, index) => (
                   <React.Fragment key={step}>
                     <div className={`w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs xs:text-sm font-medium shrink-0 ${
-                      step < currentStep ? 'bg-green-500 text-white' :
-                      step === currentStep ? 'bg-primary dark:text-black text-white' :
-                      'bg-secondary text-gray-500'
-                    }`}>
-                      {step < currentStep ? '✓' : step}
-                    </div>
-                    {index < totalSteps - 1 && (
-                      <div className={`h-0.5 xs:h-1 mx-0.5 xs:mx-1 sm:mx-2 flex-1 min-w-[0.5rem] ${
-                        step < currentStep ? 'bg-green-500' : 'bg-secondary'
+                      step < currentStep ? 'bg-primary text-primary-foreground' :
+                        step === currentStep ? 'bg-primary text-primary-foreground' :
+                        'bg-secondary text-muted-foreground'
+                      }`}>
+                        {step < currentStep ? '✓' : step}
+                      </div>
+                      {index < totalSteps - 1 && (
+                        <div className={`h-0.5 xs:h-1 mx-0.5 xs:mx-1 sm:mx-2 flex-1 min-w-[0.5rem] ${
+                          step < currentStep ? 'bg-primary' : 'bg-secondary'
                       }`} />
                     )}
                   </React.Fragment>
@@ -1228,19 +1228,19 @@ export default function CreateCache() {
                         <div className="font-medium mb-2 text-foreground">{t('createCache.confirmLocation.confirmLabel')}</div>
                         <div className="space-y-1 text-xs text-muted-foreground">
                           <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-primary" />
                             <span>{t('createCache.confirmLocation.permission')}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-primary" />
                             <span>{t('createCache.confirmLocation.accessible')}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-primary" />
                             <span>{t('createCache.confirmLocation.safe')}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-primary" />
                             <span>{t('createCache.confirmLocation.accurate')}</span>
                           </div>
                         </div>
@@ -1269,7 +1269,7 @@ export default function CreateCache() {
               className={`flex items-center gap-2 ${
                 locationVerification && getVerificationSummary(locationVerification).status === 'restricted'
                   ? 'bg-yellow-600 hover:bg-yellow-700'
-                  : 'bg-green-600 hover:bg-green-700'
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
               }`}
             >
               {locationVerification && getVerificationSummary(locationVerification).status === 'restricted' ? (

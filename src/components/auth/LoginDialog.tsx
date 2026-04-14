@@ -259,7 +259,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     >
       <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-auto flex-1'>
         {/* Prominent Sign Up Section */}
-        <div className='relative p-4 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-green-200 dark:border-green-800 adventure:border-amber-200 adventure:dark:border-amber-800 overflow-hidden'>
+        <div className='relative p-4 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800 overflow-hidden'>
           {/* Magical sparkles */}
           <div className='absolute inset-0 pointer-events-none'>
             <Sparkles className='absolute top-2 right-3 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />
@@ -269,14 +269,14 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
           
           <div className='relative z-10 text-center space-y-3'>
             <div className='flex justify-center items-center gap-2 mb-2'>
-              <Crown className='w-5 h-5 text-green-600 adventure:text-amber-700' />
-              <span className='font-semibold text-green-800 dark:text-green-200 adventure:text-amber-800 adventure:dark:text-amber-200'>
+              <Crown className='w-5 h-5 text-primary adventure:text-amber-700' />
+              <span className='font-semibold text-foreground adventure:text-amber-800 adventure:dark:text-amber-200'>
                 <span className='adventure:hidden'>{t('login.newToGeocaching')}</span>
                 <span className='hidden adventure:inline'>{t('login.newToQuest')}</span>
               </span>
             </div>
             
-            <p className='text-sm text-green-700 dark:text-green-300 adventure:text-amber-700 adventure:dark:text-amber-300 mb-3'>
+            <p className='text-sm text-muted-foreground adventure:text-amber-700 adventure:dark:text-amber-300 mb-3'>
               <span className='adventure:hidden'>
                 {t('login.joinGuild')}
               </span>
@@ -287,7 +287,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
             
             <Button
               onClick={handleSignupClick}
-              className='w-full rounded-full py-3 text-base font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg border-0'
+              className='w-full rounded-full py-3 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-gradient-to-r adventure:from-amber-700 adventure:to-orange-700 adventure:hover:from-amber-800 adventure:hover:to-orange-800 transform transition-all duration-200 hover:scale-105 shadow-lg border-0'
             >
               <Sparkles className='w-4 h-4 mr-2' />
               <span className='adventure:hidden'>{t('login.startAdventure')}</span>

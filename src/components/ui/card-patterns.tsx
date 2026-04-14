@@ -17,7 +17,7 @@ export function FeatureCard({
   icon: Icon, 
   title, 
   description, 
-  iconColor = "text-green-600 adventure:text-amber-600",
+  iconColor = "text-primary adventure:text-amber-600",
   centered = false,
   className 
 }: FeatureCardProps) {

@@ -1,9 +1,9 @@
 /* ===== ADVENTURE THEME CSS VARIABLES ===== */
 :root {
-  --adventure-grid-primary: rgb(34 197 94 / 0.35);
-  --adventure-grid-secondary: rgb(34 197 94 / 0.4);
-  --adventure-grid-tertiary: rgb(34 197 94 / 0.3);
-  --adventure-grid-quaternary: rgb(34 197 94 / 0.4);
+  --adventure-grid-primary: rgb(41 158 94 / 0.35);
+  --adventure-grid-secondary: rgb(41 158 94 / 0.4);
+  --adventure-grid-tertiary: rgb(41 158 94 / 0.3);
+  --adventure-grid-quaternary: rgb(41 158 94 / 0.4);
 }
 
 .adventure {

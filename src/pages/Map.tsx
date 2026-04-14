@@ -528,19 +528,19 @@ export default function Map() {
                 <div className="space-y-3">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                      <div className="bg-card rounded-lg border p-3">
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0"></div>
+                          <div className="w-8 h-8 bg-muted rounded-full shrink-0"></div>
                           <div className="flex-1 min-w-0 space-y-2">
-                            <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                            <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                            <div className="h-4 w-3/4 bg-muted rounded"></div>
+                            <div className="h-3 w-1/2 bg-muted rounded"></div>
                             <div className="flex gap-1">
-                              <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                              <div className="h-5 w-8 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                              <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                              <div className="h-5 w-8 bg-muted rounded"></div>
+                              <div className="h-5 w-8 bg-muted rounded"></div>
+                              <div className="h-5 w-12 bg-muted rounded"></div>
                             </div>
                           </div>
-                          <div className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded shrink-0"></div>
+                          <div className="w-7 h-7 bg-muted rounded shrink-0"></div>
                         </div>
                       </div>
                     </div>

@@ -67,20 +67,20 @@ export function PWAUpdatePrompt() {
         <button
           onClick={handleUpdate}
           disabled={isUpdating}
-          className={`relative flex items-center gap-2 px-4 py-2.5 ${!isUpdating ? 'pr-10' : ''} bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/90 dark:to-emerald-900/90 border-2 border-green-500 dark:border-green-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100 max-w-full truncate`}
+          className={`relative flex items-center gap-2 px-4 py-2.5 ${!isUpdating ? 'pr-10' : ''} bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/20 dark:to-primary/30 border-2 border-primary dark:border-primary rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100 max-w-full truncate`}
         >
-          <Compass className={`h-5 w-5 text-green-600 dark:text-green-400 ${isUpdating ? 'animate-spin' : 'group-hover:rotate-12 transition-transform duration-300'}`} />
-          <span className="text-sm font-medium whitespace-nowrap max-w-full truncate text-green-900 dark:text-green-100">
+          <Compass className={`h-5 w-5 text-primary dark:text-primary ${isUpdating ? 'animate-spin' : 'group-hover:rotate-12 transition-transform duration-300'}`} />
+          <span className="text-sm font-medium whitespace-nowrap max-w-full truncate text-foreground dark:text-foreground">
             {isUpdating ? 'Updating...' : 'Update available — Click to refresh'}
           </span>
         </button>
         {!isUpdating && (
           <button
             onClick={handleDismiss}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-green-200 dark:hover:bg-green-800 transition-colors duration-200"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors duration-200"
             aria-label="Dismiss update notification"
           >
-            <X className="h-4 w-4 text-green-700 dark:text-green-300" />
+            <X className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
       </div>

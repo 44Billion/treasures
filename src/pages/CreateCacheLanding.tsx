@@ -222,7 +222,7 @@ export default function CreateCacheLanding() {
         {/* Hero Section */}
         <div className="space-y-2">
           <div className="flex items-center gap-3 justify-center mb-2">
-            <div className="bg-green-600 adventure:bg-amber-700 p-2 rounded-lg flex-shrink-0">
+            <div className="bg-primary adventure:bg-amber-700 p-2 rounded-lg flex-shrink-0">
               <Chest className="text-white h-6 w-6" />
             </div>
             <div className="text-left">
@@ -238,10 +238,10 @@ export default function CreateCacheLanding() {
 
         {/* QR Code Section */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary/10 adventure:border-amber-200">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <QrCode className="h-5 w-5 text-green-600 adventure:text-amber-600" />
-              <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
+              <QrCode className="h-5 w-5 text-primary adventure:text-amber-600" />
+              <h2 className="text-lg font-semibold text-primary adventure:text-amber-700">
                 {t('createCache.verificationQR.title')}
               </h2>
             </div>
@@ -263,7 +263,7 @@ export default function CreateCacheLanding() {
                   className="w-full [@media(max-height:680px)]:h-[120px] [@media(max-height:900px)]:max-w-[50vw] sm:h-auto rounded-lg shadow-sm max-w-xs object-contain"
                 />
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-green-50 dark:bg-green-950 adventure:bg-amber-50 adventure:dark:bg-amber-950 rounded-lg">
+                <div className="w-48 h-48 flex items-center justify-center bg-primary/5 dark:bg-primary/10 adventure:bg-amber-50 adventure:dark:bg-amber-950 rounded-lg">
                   <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
                 </div>
               )}
@@ -295,7 +295,7 @@ export default function CreateCacheLanding() {
                     {t('createCache.verificationQR.styleStamp')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowCompactDialog(true)} className="border-t mt-1 pt-1">
-                    <span className="text-green-600 font-medium">Compact URLs</span>
+                    <span className="text-primary font-medium">Compact URLs</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -312,10 +312,10 @@ export default function CreateCacheLanding() {
 
         {/* Action Section */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary/10 adventure:border-amber-200">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <Chest className="h-5 w-5 text-green-600 adventure:text-amber-600" />
-              <h2 className="text-lg font-semibold text-green-700 adventure:text-amber-700">
+              <Chest className="h-5 w-5 text-primary adventure:text-amber-600" />
+              <h2 className="text-lg font-semibold text-primary adventure:text-amber-700">
                 {t('createCache.listing.title')}
               </h2>
             </div>
@@ -335,7 +335,7 @@ export default function CreateCacheLanding() {
                   <Button
                     onClick={handleFillOutNow}
                     disabled={!qrDataUrl}
-                    className="bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800 text-white"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-amber-700 adventure:hover:bg-amber-800"
                   >
                     <Edit className="h-4 w-4 mr-2" />
                     {t('createCache.listing.createNow')}
@@ -343,7 +343,7 @@ export default function CreateCacheLanding() {
                   <Button
                     variant="outline"
                     onClick={() => navigate("/")}
-                    className="border-green-100 text-green-700 hover:bg-green-50 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
+                    className="border-primary/10 text-primary hover:bg-primary/5 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
                   >
                     {t('createCache.listing.later')}
                   </Button>
@@ -355,10 +355,10 @@ export default function CreateCacheLanding() {
 
         {/* Simplified Advanced Options */}
         {showAdvanced && (
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-green-100 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-primary/10 adventure:border-amber-200">
             <div className="flex items-center gap-2 mb-3">
-              <Gift className="h-4 w-4 text-green-600 adventure:text-amber-600" />
-              <span className="text-sm font-medium text-green-700 adventure:text-amber-700">{t('createCache.gift.title')}</span>
+              <Gift className="h-4 w-4 text-primary adventure:text-amber-600" />
+              <span className="text-sm font-medium text-primary adventure:text-amber-700">{t('createCache.gift.title')}</span>
             </div>
             <input
               type="text"
@@ -373,7 +373,7 @@ export default function CreateCacheLanding() {
                   setNpubError("");
                 }
               }}
-              className="w-full px-3 py-2 text-sm border rounded-md bg-background text-primary focus:outline-none focus:ring-2 focus:ring-green-500 adventure:focus:ring-amber-500"
+              className="w-full px-3 py-2 text-sm border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring adventure:focus:ring-amber-500"
             />
             {npubError && (
               <p className="text-xs text-destructive mt-1">{npubError}</p>
@@ -388,7 +388,7 @@ export default function CreateCacheLanding() {
                     description: t('createCache.gift.updatedDescription'),
                   });
                 }}
-                className="w-full mt-2 bg-green-600 hover:bg-green-700 adventure:bg-amber-700 adventure:hover:bg-amber-800"
+                className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-amber-700 adventure:hover:bg-amber-800"
               >
                 <Gift className="h-4 w-4 mr-1" />
                 {t('createCache.gift.createQR')}

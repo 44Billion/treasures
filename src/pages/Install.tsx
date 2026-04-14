@@ -37,9 +37,9 @@ export default function Install() {
 
           {/* Installation Status */}
           {installed && (
-            <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <AlertDescription className="text-green-800 dark:text-green-200">
+            <Alert className="mb-6 border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-foreground">
                 <strong>App already installed!</strong> You can access Treasures from your home screen or app drawer.
               </AlertDescription>
             </Alert>
@@ -47,10 +47,10 @@ export default function Install() {
 
           {/* Install Button - Only show if browser supports installation */}
           {installable && !installed && (
-            <Card className="mb-6 border-green-200 dark:border-green-800">
+            <Card className="mb-6 border-primary/20 dark:border-primary/30">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <Download className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                  <Download className="h-12 w-12 text-primary mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Ready to Install</h3>
                   <p className="text-muted-foreground mb-4">
                     Your browser supports app installation. Click below to add Treasures to your device.
@@ -60,7 +60,7 @@ export default function Install() {
                     size="lg" 
                     onClick={handleInstall}
                     disabled={installing}
-                    className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     <Download className="h-5 w-5 mr-2" />
                     {installing ? 'Installing...' : 'Install Treasures App'}
@@ -189,7 +189,7 @@ export default function Install() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Smartphone className="h-5 w-5 text-green-500" />
+                  <Smartphone className="h-5 w-5 text-primary" />
                   Native Feel
                 </CardTitle>
               </CardHeader>

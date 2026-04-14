@@ -158,7 +158,7 @@ function LogCard({ log, compact = false }: LogCardProps) {
   const getLogIcon = () => {
     switch (log.type) {
       case "found":
-        return <Trophy className="h-5 w-5 text-green-600" />;
+        return <Trophy className="h-5 w-5 text-primary" />;
       case "dnf":
         return <X className="h-5 w-5 text-red-600" />;
       case "note":
@@ -299,7 +299,7 @@ function LogCard({ log, compact = false }: LogCardProps) {
               <span>{getLogTypeLabel().split(' ')[0]}</span>
             </Badge>
             {log.isVerified && (
-              <Badge variant="outline" className={`gap-1 border-green-500 text-green-700 ${compact ? "text-xs py-0.5 px-1.5 h-5" : "text-xs py-0.5 px-1.5 h-5"}`}>
+              <Badge variant="outline" className={`gap-1 border-primary text-primary ${compact ? "text-xs py-0.5 px-1.5 h-5" : "text-xs py-0.5 px-1.5 h-5"}`}>
                 <ShieldCheck className="h-3 w-3" />
                 <span>✓</span>
               </Badge>
@@ -357,7 +357,7 @@ function LogCard({ log, compact = false }: LogCardProps) {
                       {getLogTypeLabel()}
                     </Badge>
                     {log.isVerified && (
-                      <Badge variant="outline" className={`gap-1 border-green-500 text-green-700 ${compact ? "text-xs py-0 px-2" : ""}`}>
+                      <Badge variant="outline" className={`gap-1 border-primary text-primary ${compact ? "text-xs py-0 px-2" : ""}`}>
                         <ShieldCheck className="h-3 w-3" />
                         Verified
                       </Badge>

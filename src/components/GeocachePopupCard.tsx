@@ -91,7 +91,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
 
   const getLogTypeIcon = (type: string) => {
     switch (type) {
-      case 'found': return <Trophy className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />;
+      case 'found': return <Trophy className="h-3.5 w-3.5 text-primary flex-shrink-0" />;
       case 'dnf': return <XIcon className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />;
       default: return <MessageSquare className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />;
     }
@@ -124,7 +124,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
         {/* Title + badges */}
         <div>
           <h3
-            className="font-semibold text-sm leading-snug cursor-pointer hover:text-green-700 dark:hover:text-green-400 transition-colors"
+            className="font-semibold text-sm leading-snug cursor-pointer hover:text-primary transition-colors"
             onClick={handleViewFullDetails}
           >
             {geocache.name}
@@ -171,7 +171,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
           <div className="ml-auto flex items-center gap-2 text-[11px] text-muted-foreground flex-shrink-0">
             {findCount > 0 && (
               <span className="flex items-center gap-0.5">
-                <Trophy className="h-3 w-3 text-green-600" />
+                <Trophy className="h-3 w-3 text-primary" />
                 {findCount}
               </span>
             )}
@@ -225,7 +225,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
           <div className="flex items-center gap-1.5">
             <Button
               size="icon"
-              className="flex-1 h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
+              className="flex-1 h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={handleViewFullDetails}
             >
               {t('geocacheDialog.actions.viewFullDetails')}
@@ -235,7 +235,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950 dark:hover:text-green-300"
+              className="h-8 w-8 flex-shrink-0 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary dark:border-primary/30 dark:text-primary dark:hover:bg-primary/10"
               onClick={() => {
                 window.open(
                   `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
@@ -250,7 +250,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950 dark:hover:text-green-300"
+              className="h-8 w-8 flex-shrink-0 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary dark:border-primary/30 dark:text-primary dark:hover:bg-primary/10"
               onClick={handleSaveToggle}
               title={saved ? t('geocacheDialog.actions.removeFromSaved') : t('geocacheDialog.actions.saveForLater')}
             >

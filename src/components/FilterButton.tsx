@@ -123,11 +123,11 @@ export function FilterButton({
 
   // Difficulty options with icons
   const difficultyOptions = useMemo(() => [
-    { value: "1", label: `1 - ${t('geocache.difficulty.easy')}`, name: t('geocache.difficulty.easy'), icon: Eye, color: "text-green-600" },
-    { value: "2", label: `2 - ${t('geocache.difficulty.moderate')}`, name: t('geocache.difficulty.moderate'), icon: Search, color: "text-green-600" },
-    { value: "3", label: `3 - ${t('geocache.difficulty.hard')}`, name: t('geocache.difficulty.hard'), icon: Lightbulb, color: "text-green-600" },
-    { value: "4", label: `4 - ${t('geocache.difficulty.veryHard')}`, name: t('geocache.difficulty.veryHard'), icon: Brain, color: "text-green-600" },
-    { value: "5", label: `5 - ${t('geocache.difficulty.expert')}`, name: t('geocache.difficulty.expert'), icon: Cpu, color: "text-green-600" },
+    { value: "1", label: `1 - ${t('geocache.difficulty.easy')}`, name: t('geocache.difficulty.easy'), icon: Eye, color: "text-primary" },
+    { value: "2", label: `2 - ${t('geocache.difficulty.moderate')}`, name: t('geocache.difficulty.moderate'), icon: Search, color: "text-primary" },
+    { value: "3", label: `3 - ${t('geocache.difficulty.hard')}`, name: t('geocache.difficulty.hard'), icon: Lightbulb, color: "text-primary" },
+    { value: "4", label: `4 - ${t('geocache.difficulty.veryHard')}`, name: t('geocache.difficulty.veryHard'), icon: Brain, color: "text-primary" },
+    { value: "5", label: `5 - ${t('geocache.difficulty.expert')}`, name: t('geocache.difficulty.expert'), icon: Cpu, color: "text-primary" },
   ], [t, i18n.language]);
 
   // Terrain options with icons
@@ -141,7 +141,7 @@ export function FilterButton({
 
   // Cache type options with icons
   const cacheTypeOptions = useMemo(() => [
-    { value: "traditional", label: t('geocache.type.traditional'), icon: ChestIcon, color: "text-emerald-600" },
+    { value: "traditional", label: t('geocache.type.traditional'), icon: ChestIcon, color: "text-primary" },
     { value: "multi", label: t('geocache.type.multi'), icon: Compass, color: "text-amber-600" },
     { value: "mystery", label: t('geocache.type.mystery'), icon: HelpCircle, color: "text-purple-600" },
   ], [t, i18n.language]);

@@ -33,7 +33,7 @@ export const sizeClasses = {
 
 // Color classes for standard theme
 export const colorClasses = {
-  traditional: "text-emerald-600",
+  traditional: "text-primary",
   multi: "text-amber-600", 
   mystery: "text-purple-600"
 };

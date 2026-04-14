@@ -64,7 +64,7 @@ export function ProfileHeader({
           style={{ backgroundImage: `url(${metadata.banner})` }}
         />
       ) : isPageVariant ? (
-        <div className={`${bannerHeight} bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg mb-8`} />
+        <div className={`${bannerHeight} bg-gradient-to-r from-secondary to-secondary/80 rounded-lg mb-8`} />
       ) : (
         <div className={`${bannerHeight} bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg mb-8`} />
       )}
@@ -99,7 +99,7 @@ export function ProfileHeader({
                 {isLoadingNip05 ? (
                   <CompassSpinner size={12} variant="component" />
                 ) : isVerified ? (
-                  <ShieldCheck className="h-3 w-3 text-green-600" />
+                  <ShieldCheck className="h-3 w-3 text-primary" />
                 ) : nip05Error ? (
                   isTimeout ? (
                     <Clock className="h-3 w-3 text-amber-500" />
@@ -113,7 +113,7 @@ export function ProfileHeader({
                 ) : null}
                 <span>{nip05}</span>
                 {copiedField === 'npub' ? (
-                  <Check className="h-3 w-3 text-green-600" />
+                  <Check className="h-3 w-3 text-primary" />
                 ) : (
                   <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
@@ -128,7 +128,7 @@ export function ProfileHeader({
                   <Zap className="h-3 w-3 text-yellow-500" />
                   <span className="font-mono">{metadata.lud16 || metadata.lud06}</span>
                   {copiedField === 'lud' ? (
-                    <Check className="h-3 w-3 text-green-600" />
+                    <Check className="h-3 w-3 text-primary" />
                   ) : (
                     <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   )}

@@ -859,7 +859,7 @@ export default function CacheDetail() {
                       type="button"
                     >
                       {copiedItem === t('cacheDetail.details.coordinates') ? (
-                        <Check className="h-3 w-3 text-green-600" />
+                        <Check className="h-3 w-3 text-primary" />
                       ) : (
                         <Copy className="h-3 w-3 text-muted-foreground" />
                       )}
@@ -890,7 +890,7 @@ export default function CacheDetail() {
                       type="button"
                     >
                       {copiedItem === t('cacheDetail.details.geohash') ? (
-                        <Check className="h-3 w-3 text-green-600" />
+                        <Check className="h-3 w-3 text-primary" />
                       ) : (
                         <Copy className="h-3 w-3 text-muted-foreground" />
                       )}

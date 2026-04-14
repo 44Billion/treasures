@@ -264,7 +264,7 @@ export function GeocacheCard({
           </Badge>
         )}
         {'foundAt' in cache && (
-          <Badge variant="default" className={`flex items-center gap-1 bg-green-600 adventure:bg-stone-700 text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
+          <Badge variant="default" className={`flex items-center gap-1 bg-primary adventure:bg-stone-700 text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
             <CheckCircle className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
             {t('geocacheCard.found')}
           </Badge>
@@ -329,7 +329,7 @@ export function GeocacheCard({
         <CardContent className="p-0 flex-1 flex flex-col">
           <div className="flex relative flex-1">
             {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-green-100 dark:bg-green-900/20 adventure:bg-amber-100">
+            <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-secondary adventure:bg-amber-100">
               <div className="relative w-full h-full">
                 {previewImage && (
                   hasSpoiler ? (
@@ -370,7 +370,7 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col relative z-10 p-3.5 sm:p-4 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <h3 className="font-semibold text-[15px] sm:text-base leading-tight truncate group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
+              <h3 className="font-semibold text-[15px] sm:text-base leading-tight truncate group-hover:text-primary adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
                 {cache.name}
               </h3>
               {variant !== 'detailed' && renderActionButtons(buttonSize)}
@@ -426,7 +426,7 @@ export function GeocacheCard({
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
             {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-16 sm:w-20 h-full overflow-hidden bg-green-100 dark:bg-green-900/20 adventure:bg-amber-100">
+            <div className="shrink-0 w-16 sm:w-20 h-full overflow-hidden bg-secondary adventure:bg-amber-100">
               <div className="relative w-full h-full">
                 {previewImage && (
                   hasSpoiler ? (
@@ -467,7 +467,7 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col p-2.5 sm:p-3">
               {/* Title row with action buttons */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight truncate group-hover:text-green-600 adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1 pr-8 md:pr-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
+                <h3 className="font-semibold leading-tight truncate group-hover:text-primary adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1 pr-8 md:pr-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
                   {cache.name}
                 </h3>
                 {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", true, true)}
@@ -508,7 +508,7 @@ export function GeocacheCard({
                     </Badge>
                   )}
                   {'foundAt' in cache && (
-                    <Badge variant="default" className="flex items-center gap-0.5 bg-green-600 adventure:bg-stone-700 text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
+                    <Badge variant="default" className="flex items-center gap-0.5 bg-primary adventure:bg-stone-700 text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
                       <CheckCircle className="h-2 w-2" />
                       {t('geocacheCard.found')}
                   </Badge>

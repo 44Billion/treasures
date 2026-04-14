@@ -124,7 +124,7 @@ export function CompactUrlGeneratorDialog({ open, onOpenChange, pubkey }: Compac
                       >
                         {copiedIndex === index ? (
                           <>
-                            <Check className="h-3 w-3 text-green-600 mr-1" />
+                            <Check className="h-3 w-3 text-primary mr-1" />
                             <span className="text-xs">Copied</span>
                           </>
                         ) : (
