@@ -110,7 +110,7 @@ export default function Home() {
   }, [config.relayUrl, refresh]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary dark:from-background dark:via-secondary/20 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">      <DesktopHeader />
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">      <DesktopHeader />
 
       {/* Hero Section */}
       <section className="relative min-h-[calc(100vh-3rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
@@ -131,19 +131,19 @@ export default function Home() {
           <div className="relative w-full max-w-screen-2xl h-full">
             {/* Map markers - replacing dots */}
             <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
-              <MapPin className="w-6 h-6 text-primary/70 opacity-70 drop-shadow-sm" />
+              <MapPin className="w-6 h-6 text-green-500 dark:text-emerald-400 opacity-70 drop-shadow-sm" />
             </div>
             <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '1s'}}>
-              <MapPin className="w-5 h-5 text-primary/80 opacity-65 drop-shadow-sm" />
+              <MapPin className="w-5 h-5 text-green-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
             </div>
             <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '2s'}}>
-              <MapPin className="w-6 h-6 text-primary/65 opacity-60 drop-shadow-sm" />
+              <MapPin className="w-6 h-6 text-emerald-500 dark:text-emerald-400 opacity-60 drop-shadow-sm" />
             </div>
             <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '0.5s'}}>
-              <MapPin className="w-4 h-4 text-primary/90 opacity-55 drop-shadow-sm" />
+              <MapPin className="w-4 h-4 text-green-700 dark:text-emerald-500 opacity-55 drop-shadow-sm" />
             </div>
             <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '1.5s'}}>
-              <MapPin className="w-5 h-5 text-primary/75 opacity-65 drop-shadow-sm" />
+              <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
             </div>
           </div>
         </div>
@@ -153,28 +153,25 @@ export default function Home() {
           <div className="relative w-full max-w-screen-2xl h-full">
             <div className="absolute inset-0 pointer-events-none opacity-60">
               {/* Horizontal latitude lines - curved to appear like globe */}
-              <svg className="absolute inset-0 w-full h-full opacity-60 text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 100 100" preserveAspectRatio="none">
                 {/* Top latitude line */}
                 <path
                   d="M 10,25 Q 50,22 90,25"
-                  stroke="currentColor"
-                  strokeOpacity="0.7"
+                  stroke="rgb(74 222 128 / 0.7)"
                   strokeWidth="0.4"
                   fill="none"
                 />
                 {/* Middle latitude line */}
                 <path
                   d="M 5,50 Q 50,48 95,50"
-                  stroke="currentColor"
-                  strokeOpacity="0.8"
+                  stroke="rgb(34 197 94 / 0.8)"
                   strokeWidth="0.5"
                   fill="none"
                 />
                 {/* Bottom latitude line */}
                 <path
                   d="M 10,75 Q 50,78 90,75"
-                  stroke="currentColor"
-                  strokeOpacity="0.7"
+                  stroke="rgb(74 222 128 / 0.7)"
                   strokeWidth="0.4"
                   fill="none"
                 />
@@ -182,22 +179,19 @@ export default function Home() {
                 {/* Vertical longitude lines - curved to show globe curvature */}
                 <path
                   d="M 25,10 Q 22,50 25,90"
-                  stroke="currentColor"
-                  strokeOpacity="0.5"
+                  stroke="rgb(134 239 172 / 0.6)"
                   strokeWidth="0.3"
                   fill="none"
                 />
                 <path
                   d="M 50,5 Q 48,50 50,95"
-                  stroke="currentColor"
-                  strokeOpacity="0.7"
+                  stroke="rgb(74 222 128 / 0.7)"
                   strokeWidth="0.3"
                   fill="none"
                 />
                 <path
                   d="M 75,10 Q 78,50 75,90"
-                  stroke="currentColor"
-                  strokeOpacity="0.5"
+                  stroke="rgb(134 239 172 / 0.6)"
                   strokeWidth="0.3"
                   fill="none"
                 />
@@ -296,7 +290,7 @@ export default function Home() {
 
         <div className="container mx-auto text-center relative flex-1 flex flex-col justify-center md:block">
           <div className="mb-6 animate-fade-in">
-            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-primary/10 dark:bg-primary/20 adventure:bg-[#4682B4] text-primary dark:text-primary adventure:text-white px-4 py-1.5 rounded-full text-base adventure:text-[16px] font-medium hover:bg-primary/15 dark:hover:bg-primary/30 adventure:hover:bg-stone-700 transition-colors">
+            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-primary-100 adventure:bg-[#4682B4] text-green-700 dark:text-primary adventure:text-white px-4 py-1.5 rounded-full text-base adventure:text-[16px] font-medium hover:bg-green-200 dark:hover:bg-primary-200 adventure:hover:bg-stone-700 transition-colors">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4" />
                 <span className="adventure:hidden">{t("home.install.badge")}</span>
@@ -342,7 +336,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link to="/claim" className="flex-1 sm:flex-initial group">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/20 dark:border-primary/30 adventure:border-stone-400 hover:border-primary/40 dark:hover:border-primary/50 adventure:hover:border-stone-500 hover:bg-primary/5 dark:hover:bg-primary/10 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
                 <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
                 <Scroll className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
@@ -357,7 +351,7 @@ export default function Home() {
             </Link>
             {user ? (
               <Link to="/create" className="flex-1 sm:flex-initial group">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/20 dark:border-primary/30 adventure:border-stone-400 hover:border-primary/40 dark:hover:border-primary/50 adventure:hover:border-stone-500 hover:bg-primary/5 dark:hover:bg-primary/10 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
                   <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
                   <Crown className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
                   <span className="adventure:hidden">
@@ -374,7 +368,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto border-primary/20 dark:border-primary/30 adventure:border-stone-400 hover:border-primary/40 dark:hover:border-primary/50 adventure:hover:border-stone-500 hover:bg-primary/5 dark:hover:bg-primary/10 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
+                className="w-full sm:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
                 onClick={handleLoginClick}
               >
                 <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />
@@ -408,7 +402,7 @@ export default function Home() {
                 strokeWidth="0.5"
                 fill="none"
                 strokeDasharray="3,2"
-                className="text-primary/40 adventure:text-amber-700/50"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
               />
 
               {/* Arc from Community (right) to Global (left) */}
@@ -418,7 +412,7 @@ export default function Home() {
                 strokeWidth="0.5"
                 fill="none"
                 strokeDasharray="3,2"
-                className="text-primary/40 adventure:text-amber-700/50"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
               />
             </svg>
           </div>
@@ -435,7 +429,7 @@ export default function Home() {
                 strokeWidth="0.5"
                 fill="none"
                 strokeDasharray="3,2"
-                className="text-primary/40 adventure:text-amber-700/50"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
               />
 
               {/* Arc from Community (right) to Global (left) - raised on mobile */}
@@ -445,7 +439,7 @@ export default function Home() {
                 strokeWidth="0.5"
                 fill="none"
                 strokeDasharray="3,2"
-                className="text-primary/40 adventure:text-amber-700/50"
+                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
               />
             </svg>
           </div>
@@ -455,13 +449,13 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
           <div className="relative w-full max-w-2xl h-full">
             {/* First stripe - slanting down-right behind Decentralized */}
-            <div className="absolute top-[18%] -left-[10%] w-[120%] h-56 bg-primary/15 adventure:bg-amber-600/25 transform -rotate-[4deg]"></div>
+            <div className="absolute top-[18%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg]"></div>
 
             {/* Second stripe - slanting down-left behind Community */}
-            <div className="absolute top-[43.5%] -left-[10%] w-[120%] h-56 bg-primary/15 adventure:bg-yellow-600/25 transform rotate-[4deg]"></div>
+            <div className="absolute top-[43.5%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg]"></div>
 
             {/* Third stripe - slanting down-right behind Global */}
-            <div className="absolute top-[70%] -left-[10%] w-[120%] h-56 bg-primary/15 adventure:bg-orange-600/25 transform -rotate-[4deg]"></div>
+            <div className="absolute top-[70%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg]"></div>
           </div>
         </div>
 
@@ -482,7 +476,7 @@ export default function Home() {
             {/* Decentralized - Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-secondary to-secondary/60 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-yellow-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-primary-100 dark:to-primary-50 adventure:from-amber-50 adventure:to-yellow-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
                   <img
                     src="/feature-decentralized.webp"
                     alt="Decentralized"
@@ -505,7 +499,7 @@ export default function Home() {
             {/* Community - Image Right */}
             <div className="flex flex-row-reverse items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-secondary/80 to-secondary dark:from-primary/8 dark:to-primary/12 adventure:from-yellow-50 adventure:to-amber-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-primary-50 dark:to-primary-100 adventure:from-yellow-50 adventure:to-amber-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
                   <img
                     src="/feature-community.webp"
                     alt="Community"
@@ -528,7 +522,7 @@ export default function Home() {
             {/* Global - Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-secondary/60 to-accent dark:from-primary/5 dark:to-accent/20 adventure:from-orange-50 adventure:to-amber-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-primary-50 dark:to-accent adventure:from-orange-50 adventure:to-amber-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
                   <img
                     src="/feature-global.webp"
                     alt="Global Adventure"

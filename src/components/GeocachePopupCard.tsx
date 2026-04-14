@@ -235,7 +235,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary dark:border-primary/30 dark:text-primary dark:hover:bg-primary/10"
+              className="h-8 w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
               onClick={() => {
                 window.open(
                   `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
@@ -250,7 +250,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary dark:border-primary/30 dark:text-primary dark:hover:bg-primary/10"
+              className="h-8 w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
               onClick={handleSaveToggle}
               title={saved ? t('geocacheDialog.actions.removeFromSaved') : t('geocacheDialog.actions.saveForLater')}
             >

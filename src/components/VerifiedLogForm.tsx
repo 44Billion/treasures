@@ -94,7 +94,7 @@ export function VerifiedLogForm({
   };
 
   return (
-    <div className={`lg:rounded-lg lg:border lg:border-primary lg:bg-primary/5 dark:lg:bg-primary/10 lg:shadow-sm ${className}`}>
+    <div className={`lg:rounded-lg lg:border lg:border-primary lg:bg-primary-50 dark:lg:bg-primary-50 lg:shadow-sm ${className}`}>
       {!compact && (
         <div className="lg:p-6 lg:pb-0 p-4 lg:pt-6 pt-2">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-primary">

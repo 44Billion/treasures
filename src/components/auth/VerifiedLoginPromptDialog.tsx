@@ -50,7 +50,7 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
     >
       <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-auto flex-1'>
         {/* Success celebration */}
-        <div className='relative p-6 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 overflow-hidden'>
+        <div className='relative p-6 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary-100 dark:to-primary-50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 overflow-hidden'>
           {/* Magical sparkles */}
           <div className='absolute inset-0 pointer-events-none'>
             <Sparkles className='absolute top-2 right-3 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />
@@ -62,7 +62,7 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
           <div className='relative z-10 text-center space-y-3'>
             <div className='flex justify-center items-center gap-2 mb-2'>
               <div className='relative'>
-                <div className='w-16 h-16 bg-primary/20 adventure:from-amber-200 adventure:to-orange-300 rounded-full flex items-center justify-center shadow-lg animate-pulse'>
+                <div className='w-16 h-16 bg-primary-200 adventure:from-amber-200 adventure:to-orange-300 rounded-full flex items-center justify-center shadow-lg animate-pulse'>
                   <ShieldCheck className='w-8 h-8 text-foreground adventure:text-amber-800' />
                 </div>
                 <div className='absolute -top-1 -right-1 w-5 h-5 bg-primary adventure:bg-amber-500 rounded-full flex items-center justify-center animate-bounce'>
@@ -91,10 +91,10 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
           </div>
 
           <div className='grid grid-cols-1 gap-2'>
-            <Card className='border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800'>
+            <Card className='border-primary-200 dark:border-primary-100 adventure:border-amber-200 adventure:dark:border-amber-800'>
               <CardContent className='p-3'>
                 <div className='flex items-center gap-3'>
-                  <div className='p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 adventure:bg-amber-100 adventure:dark:bg-amber-900'>
+                  <div className='p-1.5 rounded-lg bg-primary-100 dark:bg-primary-100 adventure:bg-amber-100 adventure:dark:bg-amber-900'>
                     <ShieldCheck className='w-4 h-4 text-primary adventure:text-amber-600' />
                   </div>
                   <div className='flex-1'>
@@ -109,10 +109,10 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
               </CardContent>
             </Card>
 
-            <Card className='border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800'>
+            <Card className='border-primary-200 dark:border-primary-100 adventure:border-amber-200 adventure:dark:border-amber-800'>
               <CardContent className='p-3'>
                 <div className='flex items-center gap-3'>
-                  <div className='p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 adventure:bg-amber-100 adventure:dark:bg-amber-900'>
+                  <div className='p-1.5 rounded-lg bg-primary-100 dark:bg-primary-100 adventure:bg-amber-100 adventure:dark:bg-amber-900'>
                     <MapPin className='w-4 h-4 text-primary adventure:text-amber-600' />
                   </div>
                   <div className='flex-1'>
@@ -127,10 +127,10 @@ export const VerifiedLoginPromptDialog: React.FC<VerifiedLoginPromptDialogProps>
               </CardContent>
             </Card>
 
-            <Card className='border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800'>
+            <Card className='border-primary-200 dark:border-primary-100 adventure:border-amber-200 adventure:dark:border-amber-800'>
               <CardContent className='p-3'>
                 <div className='flex items-center gap-3'>
-                  <div className='p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 adventure:bg-amber-100 adventure:dark:bg-amber-900'>
+                  <div className='p-1.5 rounded-lg bg-primary-100 dark:bg-primary-100 adventure:bg-amber-100 adventure:dark:bg-amber-900'>
                     <Crown className='w-4 h-4 text-primary adventure:text-amber-600' />
                   </div>
                   <div className='flex-1'>

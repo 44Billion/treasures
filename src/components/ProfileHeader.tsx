@@ -64,7 +64,7 @@ export function ProfileHeader({
           style={{ backgroundImage: `url(${metadata.banner})` }}
         />
       ) : isPageVariant ? (
-        <div className={`${bannerHeight} bg-gradient-to-r from-secondary to-secondary/80 rounded-lg mb-8`} />
+        <div className={`${bannerHeight} bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg mb-8`} />
       ) : (
         <div className={`${bannerHeight} bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg mb-8`} />
       )}

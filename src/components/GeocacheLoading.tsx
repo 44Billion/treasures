@@ -48,7 +48,7 @@ export function GeocacheLoading({
                     key={relay.url}
                     className={`
                       flex items-center gap-2 p-2 rounded text-sm
-                      ${isCurrentAttempt ? 'bg-primary/10 dark:bg-primary/15 text-primary' : 
+                      ${isCurrentAttempt ? 'bg-primary-100 dark:bg-primary-50 text-primary' : 
                         isAttempted ? 'bg-muted text-muted-foreground' : 
                         'text-muted-foreground/50'}
                     `}

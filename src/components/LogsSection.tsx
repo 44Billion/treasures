@@ -231,7 +231,7 @@ export function LogsSection({
             {/* Special prompt for verified found logs */}
             {verificationKey && isVerificationValid ? (
               <div className="space-y-4">
-                <div className="relative p-4 rounded-lg bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800">
+                <div className="relative p-4 rounded-lg bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary-100 dark:to-primary-50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-primary-200 dark:border-primary-100 adventure:border-amber-200 adventure:dark:border-amber-800">
                   <div className="flex items-center gap-2 mb-2">
                     <ShieldCheck className="h-5 w-5 text-primary adventure:text-amber-700" />
                     <span className="font-semibold text-foreground adventure:text-amber-800 adventure:dark:text-amber-200">

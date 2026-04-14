@@ -37,7 +37,7 @@ export default function Install() {
 
           {/* Installation Status */}
           {installed && (
-            <Alert className="mb-6 border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10">
+            <Alert className="mb-6 border-primary-200 bg-primary-50 dark:border-primary-100 dark:bg-primary-50">
               <CheckCircle className="h-4 w-4 text-primary" />
               <AlertDescription className="text-foreground">
                 <strong>App already installed!</strong> You can access Treasures from your home screen or app drawer.
@@ -47,7 +47,7 @@ export default function Install() {
 
           {/* Install Button - Only show if browser supports installation */}
           {installable && !installed && (
-            <Card className="mb-6 border-primary/20 dark:border-primary/30">
+            <Card className="mb-6 border-primary-200 dark:border-primary-100">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <Download className="h-12 w-12 text-primary mx-auto mb-4" />

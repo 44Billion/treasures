@@ -238,7 +238,7 @@ export default function CreateCacheLanding() {
 
         {/* QR Code Section */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary/10 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary-200 adventure:border-amber-200">
             <div className="flex items-center justify-center gap-2 mb-3">
               <QrCode className="h-5 w-5 text-primary adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-primary adventure:text-amber-700">
@@ -263,7 +263,7 @@ export default function CreateCacheLanding() {
                   className="w-full [@media(max-height:680px)]:h-[120px] [@media(max-height:900px)]:max-w-[50vw] sm:h-auto rounded-lg shadow-sm max-w-xs object-contain"
                 />
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-primary/5 dark:bg-primary/10 adventure:bg-amber-50 adventure:dark:bg-amber-950 rounded-lg">
+                <div className="w-48 h-48 flex items-center justify-center bg-primary-50 dark:bg-primary-50 adventure:bg-amber-50 adventure:dark:bg-amber-950 rounded-lg">
                   <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
                 </div>
               )}
@@ -312,7 +312,7 @@ export default function CreateCacheLanding() {
 
         {/* Action Section */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary/10 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary-200 adventure:border-amber-200">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Chest className="h-5 w-5 text-primary adventure:text-amber-600" />
               <h2 className="text-lg font-semibold text-primary adventure:text-amber-700">
@@ -343,7 +343,7 @@ export default function CreateCacheLanding() {
                   <Button
                     variant="outline"
                     onClick={() => navigate("/")}
-                    className="border-primary/10 text-primary hover:bg-primary/5 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
+                    className="border-primary-200 text-primary hover:bg-primary-50 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
                   >
                     {t('createCache.listing.later')}
                   </Button>
@@ -355,7 +355,7 @@ export default function CreateCacheLanding() {
 
         {/* Simplified Advanced Options */}
         {showAdvanced && (
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-primary/10 adventure:border-amber-200">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-primary-200 adventure:border-amber-200">
             <div className="flex items-center gap-2 mb-3">
               <Gift className="h-4 w-4 text-primary adventure:text-amber-600" />
               <span className="text-sm font-medium text-primary adventure:text-amber-700">{t('createCache.gift.title')}</span>

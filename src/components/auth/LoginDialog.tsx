@@ -259,7 +259,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     >
       <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-auto flex-1'>
         {/* Prominent Sign Up Section */}
-        <div className='relative p-4 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary/10 dark:to-primary/5 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-primary/20 dark:border-primary/30 adventure:border-amber-200 adventure:dark:border-amber-800 overflow-hidden'>
+        <div className='relative p-4 rounded-2xl bg-gradient-to-br from-secondary to-secondary/80 dark:from-primary-100 dark:to-primary-50 adventure:from-amber-50 adventure:to-orange-100 adventure:dark:from-amber-950/50 adventure:dark:to-orange-950/50 border border-primary-200 dark:border-primary-100 adventure:border-amber-200 adventure:dark:border-amber-800 overflow-hidden'>
           {/* Magical sparkles */}
           <div className='absolute inset-0 pointer-events-none'>
             <Sparkles className='absolute top-2 right-3 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />

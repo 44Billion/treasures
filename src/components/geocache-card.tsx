@@ -329,7 +329,7 @@ export function GeocacheCard({
         <CardContent className="p-0 flex-1 flex flex-col">
           <div className="flex relative flex-1">
             {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-secondary adventure:bg-amber-100">
+            <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-green-100 dark:bg-primary-50 adventure:bg-amber-100">
               <div className="relative w-full h-full">
                 {previewImage && (
                   hasSpoiler ? (
@@ -426,7 +426,7 @@ export function GeocacheCard({
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
             {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-16 sm:w-20 h-full overflow-hidden bg-secondary adventure:bg-amber-100">
+            <div className="shrink-0 w-16 sm:w-20 h-full overflow-hidden bg-green-100 dark:bg-primary-50 adventure:bg-amber-100">
               <div className="relative w-full h-full">
                 {previewImage && (
                   hasSpoiler ? (

@@ -590,7 +590,7 @@ export default function CreateCache() {
                     onClick={() => navigate('/generate-qr')}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-full">
+                      <div className="p-3 bg-primary-100 dark:bg-primary-100 rounded-full">
                         <QrCode className="h-6 w-6 text-primary" />
                       </div>
                       <div className="flex-1">

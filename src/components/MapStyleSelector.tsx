@@ -82,7 +82,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                   className={`
                     flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left w-full
                     ${!isAdventureTheme && isActive
-                      ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-sm'
+                      ? 'border-primary bg-primary-50 dark:bg-primary-50 shadow-sm'
                       : !isAdventureTheme
                         ? 'border hover:border-muted-foreground hover:bg-muted/50 dark:bg-muted'
                         : ''
@@ -98,7 +98,7 @@ export function MapStyleSelector({ currentStyle, onStyleChange, className }: Map
                   <div className={`
                     flex items-center justify-center w-8 h-8 rounded-full transition-all
                     ${!isAdventureTheme && isActive
-                      ? 'bg-primary/10 dark:bg-primary/20 text-primary'
+                      ? 'bg-primary-100 dark:bg-primary-100 text-primary'
                       : !isAdventureTheme
                         ? 'bg-muted text-muted-foreground'
                         : ''

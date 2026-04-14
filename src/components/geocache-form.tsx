@@ -407,7 +407,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
               onClick={() => onChange(level.level.toString())}
               className={`p-2 rounded-lg border text-center transition-all ${
                 numericValue === level.level
-                  ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                  ? 'border-primary bg-primary-50 dark:bg-primary-50'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
             >
@@ -441,7 +441,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 onClick={() => onChange(level.level.toString())}
                 className={`p-2 rounded-lg border text-center transition-all ${
                   numericValue === level.level
-                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    ? 'border-primary bg-primary-50 dark:bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
               >
@@ -473,7 +473,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 onClick={() => onChange(level.level.toString())}
                 className={`p-2 rounded-lg border text-center transition-all w-24 ${
                   numericValue === level.level
-                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    ? 'border-primary bg-primary-50 dark:bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
               >
