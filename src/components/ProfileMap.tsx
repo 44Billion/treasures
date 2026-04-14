@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import type { Geocache } from "@/types/geocache";
 import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
+import { getLockdownFeatures } from "@/utils/lockdownMode";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
@@ -193,7 +194,7 @@ function MapSizeController() {
 }
 
 // Custom tile layer with optimizations
-function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
+function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: MapStyle; crossOriginTiles?: boolean }) {
   return (
     <TileLayer
       attribution={mapStyle.attribution}
@@ -204,7 +205,7 @@ function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
       updateWhenIdle={true}
       updateWhenZooming={false}
       updateInterval={200}
-      crossOrigin={true}
+      crossOrigin={crossOriginTiles ? "anonymous" : undefined}
       tileSize={256}
       zoomOffset={0}
       detectRetina={false}
@@ -326,6 +327,9 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
     };
   }, [validGeocaches]);
 
+  // Detect iOS Lockdown Mode and adjust features accordingly
+  const lockdownFeatures = useMemo(() => getLockdownFeatures(), []);
+
   // Optimized map options
   const mapOptions = {
     scrollWheelZoom: true,
@@ -333,9 +337,9 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
     tapTolerance: 15,
     bounceAtZoomLimits: false,
     maxBoundsViscosity: 0.3,
-    preferCanvas: true,
+    preferCanvas: lockdownFeatures.preferCanvas, // Disabled in iOS Lockdown Mode
     fadeAnimation: false,
-    zoomAnimation: true,
+    zoomAnimation: lockdownFeatures.complexAnimations, // Disabled in Lockdown Mode
     zoomAnimationThreshold: 2,
     markerZoomAnimation: false,
     trackResize: false,
@@ -420,8 +424,8 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         backgroundColor: '#f8fafc',
       }}
     >
-      {/* Clean Adventure-style Map */}
-      {currentMapStyle === 'adventure' && (
+      {/* Clean Adventure-style Map — skip blend-mode overlays in Lockdown Mode */}
+      {currentMapStyle === 'adventure' && lockdownFeatures.mixBlendMode && (
         <>
           {/* Strong parchment overlay */}
           <div
@@ -473,7 +477,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         }}
         {...mapOptions}
       >
-        <OptimizedTileLayer mapStyle={mapStyle} />
+        <OptimizedTileLayer mapStyle={mapStyle} crossOriginTiles={lockdownFeatures.crossOriginTiles} />
         <MapSizeController />
         <ThemeController
           currentStyle={currentMapStyle}

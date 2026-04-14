@@ -13,6 +13,7 @@ import { useMapController } from "@/hooks/useMapController";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import type { Geocache } from "@/types/geocache";
 import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
+import { getLockdownFeatures } from "@/utils/lockdownMode";
 
 // Import Leaflet CSS and adventure theme
 import "leaflet/dist/leaflet.css";
@@ -1071,7 +1072,7 @@ function NearMeButtonControl({
 
 
 // Custom tile layer with optimizations
-function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
+function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: MapStyle; crossOriginTiles?: boolean }) {
 
   return (
     <TileLayer
@@ -1084,8 +1085,8 @@ function OptimizedTileLayer({ mapStyle }: { mapStyle: MapStyle }) {
       updateWhenIdle={false} // Update immediately for faster rendering
       updateWhenZooming={false} // Don't update during zoom for smoother experience
       updateInterval={100} // Faster updates for quicker tile rendering
-      // Additional performance optimizations
-      crossOrigin={true} // Enable CORS for better caching
+      // CORS: disabled in iOS Lockdown Mode (cross-origin restrictions)
+      crossOrigin={crossOriginTiles ? "anonymous" : undefined}
       // Reduce tile loading overhead
       tileSize={256} // Standard tile size
       zoomOffset={0} // No zoom offset
@@ -1223,6 +1224,9 @@ export function GeocacheMap({
     }
   }, [onMarkerClick, navigateToGeocache]);
 
+  // Detect iOS Lockdown Mode and adjust features accordingly
+  const lockdownFeatures = useMemo(() => getLockdownFeatures(), []);
+
   // Optimized map options for fastest loading
   const mapOptions = {
     scrollWheelZoom: true,
@@ -1230,9 +1234,9 @@ export function GeocacheMap({
     tapTolerance: 15, // Increased tolerance for better touch performance
     bounceAtZoomLevels: false, // Disable for faster performance
     maxBoundsViscosity: 0.3, // Further reduce viscosity for better performance
-    preferCanvas: true, // Use canvas for better performance
+    preferCanvas: lockdownFeatures.preferCanvas, // Disabled in iOS Lockdown Mode (Canvas restricted)
     fadeAnimation: false, // Disable fade for faster tile display
-    zoomAnimation: true, // Keep zoom animation but make it faster
+    zoomAnimation: lockdownFeatures.complexAnimations, // Disable in Lockdown Mode
     zoomAnimationThreshold: 2, // Reduced threshold for smoother zoom
     markerZoomAnimation: false, // Disable marker zoom animation for speed
     // Additional performance optimizations
@@ -1256,8 +1260,8 @@ export function GeocacheMap({
         minHeight: '100%'
       }}
     >
-      {/* Clean Adventure-style Map */}
-      {currentMapStyle === 'adventure' && (
+      {/* Clean Adventure-style Map — skip blend-mode overlays in Lockdown Mode */}
+      {currentMapStyle === 'adventure' && lockdownFeatures.mixBlendMode && (
         <>
           {/* Strong parchment overlay */}
           <div
@@ -1319,7 +1323,7 @@ export function GeocacheMap({
         }}
         {...mapOptions}
       >
-      <OptimizedTileLayer mapStyle={mapStyle} />
+      <OptimizedTileLayer mapStyle={mapStyle} crossOriginTiles={lockdownFeatures.crossOriginTiles} />
 
       <MapSizeController isVisible={isVisible} />
       <WorldWrapController geocaches={geocaches} />
