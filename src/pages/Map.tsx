@@ -2,12 +2,20 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
-import { useSearchParams } from "react-router-dom";
-import { X, RefreshCw, Sparkles } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+import { X, RefreshCw, Sparkles, Compass, Plus, Search, ScanQrCode, QrCode, Settings, Info, BookOpen, ChevronDown } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DesktopHeader } from "@/components/DesktopHeader";
+import { LoginArea } from "@/components/auth/LoginArea";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/hooks/useReliableProximitySearch";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -29,6 +37,7 @@ import { cn } from "@/utils/utils";
 export default function Map() {
   const { t } = useTranslation();
   const { config } = useAppContext();
+  const { user } = useCurrentUser();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
@@ -450,14 +459,19 @@ export default function Map() {
 
   return (
     <div className="h-screen flex flex-col">
-      <DesktopHeader />
-
-      {/* Desktop View */}
+      {/* Desktop View — no header, full height */}
       <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
         {/* Sidebar */}
         <div className="w-96 border-r bg-background flex flex-col">
+          {/* Logo */}
+          <div className="px-4 pt-3 pb-1 flex-shrink-0">
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/icon.svg" alt="Treasures" className="h-9 w-9" />
+              <span className="text-xl font-bold text-foreground">Treasures</span>
+            </Link>
+          </div>
           {/* Filters */}
-          <div className="p-4 bg-background/95 backdrop-blur-sm flex-shrink-0">
+          <div className="px-4 pb-3 pt-2 bg-background/95 backdrop-blur-sm flex-shrink-0">
             <div className="space-y-2">
               <div className="flex gap-2">
                 <OmniSearch
@@ -618,9 +632,67 @@ export default function Map() {
             isMapCenterLocked={isMapCenterLocked}
           />
 
-
-
-
+          {/* Floating nav controls — upper-right over the map */}
+          <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm shadow-md">
+                  <Compass className="h-4 w-4 mr-1.5" />
+                  {t('navigation.explore')}
+                  <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/claim">
+                    <ScanQrCode className="h-4 w-4 mr-2" />
+                    {t('navigation.claimTreasure')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/generate-qr">
+                    <QrCode className="h-4 w-4 mr-2" />
+                    {t('navigation.generateQrCode')}
+                  </Link>
+                </DropdownMenuItem>
+                {user && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/create">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t('navigation.hideGeocache')}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/texas-ren-fest">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {t('navigation.texasRenFest')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <a href="/blog">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    {t('navigation.blog')}
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">
+                    <Settings className="h-4 w-4 mr-2" />
+                    {t('navigation.appSettings')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/about">
+                    <Info className="h-4 w-4 mr-2" />
+                    {t('navigation.about')}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <LoginArea compact />
+          </div>
         </div>
       </div>
 
