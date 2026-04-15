@@ -777,7 +777,7 @@
   "login.connect.copied": "คัดลอกแล้ว!",
   "login.connect.copy": "คัดลอกสตริงการเชื่อมต่อ",
   "login.connect.manualBunker": "การเชื่อมต่อ bunker ด้วยตนเอง",
-  "login.button": "เข้าสู่ระบบ",
+  "login.button": "เข้าร่วม",
   "myCaches.title": "แคชที่บันทึกไว้",
   "myCaches.loginRequired": "โปรดเข้าสู่ระบบด้วยบัญชี Nostr ของคุณเพื่อดูแคชของคุณ",
   "myCaches.syncing": "กำลังซิงค์...",

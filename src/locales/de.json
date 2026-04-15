@@ -777,7 +777,7 @@
   "login.connect.copied": "Kopiert!",
   "login.connect.copy": "Verbindungsstring kopieren",
   "login.connect.manualBunker": "Manuelle Bunker-Verbindung",
-  "login.button": "Anmelden",
+  "login.button": "Beitreten",
   "myCaches.title": "Gespeicherte Caches",
   "myCaches.loginRequired": "Bitte melde dich mit deinem Nostr-Konto an, um deine Caches zu sehen.",
   "myCaches.syncing": "Synchronisiere...",

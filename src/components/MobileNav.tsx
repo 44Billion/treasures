@@ -238,7 +238,7 @@ export function MobileHeader() {
 
         {/* Right Side - Login */}
         <div className="flex items-center gap-2 -mr-2">
-          <LoginArea compact />
+          <LoginArea />
         </div>
       </div>
     </header>

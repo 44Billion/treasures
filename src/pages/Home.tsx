@@ -320,9 +320,9 @@ export default function Home() {
             <span className="hidden adventure:inline">{t("home.hero.descriptionAdventure")}</span>
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
-            <Link to="/map" className="flex-1 sm:flex-initial group">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-stone-700 adventure:hover:bg-stone-800 adventure:text-stone-100 w-full sm:w-auto transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center w-fit md:w-auto mx-auto gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
+            <Link to="/map" className="group">
+              <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-stone-700 adventure:hover:bg-stone-800 adventure:text-stone-100 transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
                 <Search className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
                 <Compass className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
@@ -335,8 +335,8 @@ export default function Home() {
                 </span>
               </Button>
             </Link>
-            <Link to="/claim" className="flex-1 sm:flex-initial group">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
+            <Link to="/claim" className="group">
+              <Button size="lg" variant="outline" className="w-full border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
                 <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
                 <Scroll className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
                 <span className="adventure:hidden">
@@ -350,8 +350,8 @@ export default function Home() {
               </Button>
             </Link>
             {user ? (
-              <Link to="/create" className="flex-1 sm:flex-initial group">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
+              <Link to="/create" className="group">
+                <Button size="lg" variant="outline" className="w-full border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
                   <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
                   <Crown className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
                   <span className="adventure:hidden">
@@ -368,7 +368,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
+                className="w-full border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
                 onClick={handleLoginClick}
               >
                 <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />

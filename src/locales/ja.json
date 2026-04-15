@@ -777,7 +777,7 @@
   "login.connect.copied": "コピーしました！",
   "login.connect.copy": "接続文字列をコピー",
   "login.connect.manualBunker": "手動Bunker接続",
-  "login.button": "ログイン",
+  "login.button": "参加する",
   "myCaches.title": "保存されたキャッシュ",
   "myCaches.loginRequired": "キャッシュを表示するには、Nostrアカウントでログインしてください。",
   "myCaches.syncing": "同期中...",
