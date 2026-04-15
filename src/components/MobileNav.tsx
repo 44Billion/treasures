@@ -67,6 +67,7 @@ export function MobileHeader() {
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
   const themeClasses = getThemeClasses(isAdventureTheme);
+  const isHero = location.pathname === '/';
 
   const closeSheet = () => setIsOpen(false);
 
@@ -79,8 +80,10 @@ export function MobileHeader() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full border-b md:hidden pt-safe-top",
-      themeClasses.header
+      "w-full border-b md:hidden pt-safe-top",
+      isHero
+        ? "absolute top-0 inset-x-0 z-50 bg-transparent border-transparent"
+        : cn("sticky top-0 z-40", themeClasses.header)
     )}>
       <div className="container flex h-12 items-center justify-between px-3 xs:px-4">
         {/* Menu Button */}
@@ -89,7 +92,7 @@ export function MobileHeader() {
             <Button
               variant="ghost"
               size="sm"
-              className={cn("-ml-2", themeClasses.button)}
+              className={cn("-ml-2", isHero ? "text-white hover:bg-white/15 hover:text-white" : themeClasses.button)}
             >
               <Menu className="h-5 w-5" />
               <span className="sr-only">{t('navigation.toggleMenu')}</span>

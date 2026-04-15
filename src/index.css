@@ -305,6 +305,32 @@
   }
 }
 
+/* Hero image continuous pan — runs forever, opacity fades in/out independently */
+@keyframes heroPanRight {
+  0%   { transform: scale(1.12) translateX(-1.5%); }
+  50%  { transform: scale(1.12) translateX(1.5%); }
+  100% { transform: scale(1.12) translateX(-1.5%); }
+}
+@keyframes heroPanLeft {
+  0%   { transform: scale(1.12) translateX(1.5%); }
+  50%  { transform: scale(1.12) translateX(-1.5%); }
+  100% { transform: scale(1.12) translateX(1.5%); }
+}
+.hero-pan-right { animation: heroPanRight 20s ease-in-out infinite; }
+.hero-pan-left  { animation: heroPanLeft 20s ease-in-out infinite; }
+
+/* Hero overlay slow drift — the grid + pins float gently */
+@keyframes heroDrift {
+  0%   { transform: translate(0, 0) scale(1.15); }
+  50%  { transform: translate(-2%, 1%) scale(1.15); }
+  100% { transform: translate(0, 0) scale(1.15); }
+}
+
+.hero-overlay-drift {
+  animation: heroDrift 20s ease-in-out infinite;
+  transform: scale(1.15); /* oversized so drift doesn't reveal edges */
+}
+
 /* Animation delay utilities for staggered effects */
 @layer utilities {
   .animation-delay-300 {

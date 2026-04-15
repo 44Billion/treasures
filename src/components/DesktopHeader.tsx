@@ -15,7 +15,7 @@ import {
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface DesktopHeaderProps {
-  variant?: 'default' | 'map';
+  variant?: 'default' | 'map' | 'hero';
 }
 
 export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
@@ -23,17 +23,26 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
   const { user } = useCurrentUser();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
+  const isHero = variant === 'hero';
 
   // Map page has different styling needs due to layout constraints
   const baseClasses = variant === 'map'
     ? "hidden lg:block border-b sticky top-0 z-50"
-    : "border-b sticky top-0 z-50 hidden md:block";
+    : isHero
+      ? "border-b hidden md:block relative z-50"
+      : "border-b sticky top-0 z-50 hidden md:block";
 
-  const adventureClasses = isAdventureTheme
-    ? "bg-adventure-nav border-adventure-nav text-stone-200"
-    : "bg-background/80 backdrop-blur-sm md:bg-background md:backdrop-blur-none border-border";
+  const heroClasses = isHero
+    ? "bg-transparent border-transparent text-white relative z-50"
+    : "";
 
-  const headerClasses = `${baseClasses} ${adventureClasses}`;
+  const adventureClasses = isHero
+    ? ""
+    : isAdventureTheme
+      ? "bg-adventure-nav border-adventure-nav text-stone-200"
+      : "bg-background/80 backdrop-blur-sm md:bg-background md:backdrop-blur-none border-border";
+
+  const headerClasses = `${baseClasses} ${adventureClasses} ${heroClasses}`;
 
   return (
     <header className={headerClasses}>
@@ -43,15 +52,15 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
             <img
               src="/icon.svg"
               alt={t('navigation.appName')}
-              className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme ? 'sepia' : ''}`}
+              className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme && !isHero ? 'sepia' : ''}`}
             />
-            <h1 className={`text-2xl font-bold m-0 leading-none ${isAdventureTheme ? 'text-stone-200' : 'text-foreground'}`}>{t('navigation.appName')}</h1>
+            <h1 className={`text-2xl font-bold m-0 leading-none ${isHero ? 'text-white' : isAdventureTheme ? 'text-stone-200' : 'text-foreground'}`}>{t('navigation.appName')}</h1>
           </Link>
 
           <nav className="flex items-center gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isAdventureTheme ? "text-md text-stone-200" : ""}>
+                <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isHero ? "text-white hover:bg-white/15 hover:text-white" : isAdventureTheme ? "text-md text-stone-200" : ""}>
                   <Compass className="h-4 w-4 mr-2" />
                   {t('navigation.explore')} <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>

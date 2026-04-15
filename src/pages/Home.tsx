@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { MapPin, Plus, Search, Compass, Scroll, Crown, Shield, ScanQrCode } from "lucide-react";
+import { Plus, Search, Compass, ScanQrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginDialog } from "@/components/auth";
@@ -10,6 +10,7 @@ import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
+import { HeroGallery } from "@/components/HeroGallery";
 
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";
 
@@ -110,279 +111,114 @@ export default function Home() {
   }, [config.relayUrl, refresh]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">      <DesktopHeader />
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">
+      <DesktopHeader variant="hero" />
 
-      {/* Hero Section */}
-      <section className="relative min-h-[calc(100vh-3rem)] md:min-h-0 flex items-center pt-4 pb-20 md:pt-16 md:pb-20 px-3 xs:px-4 md:py-24 overflow-hidden">
-        {/* Parchment background for adventure mode only - behind everything */}
-        <div className="absolute inset-0 hidden adventure:block" style={{
-          backgroundImage: 'url(/parchment-300.jpg)',
-          backgroundRepeat: 'repeat',
-          backgroundSize: '300px 300px',
-          opacity: 0.4
-        }}></div>
+      {/* Hero Section — full-bleed rotating photo gallery */}
+      <section className="relative min-h-[calc(100dvh-3rem)] md:min-h-0 md:h-[60vh] md:-mt-[81px] flex items-end overflow-hidden">
+        {/* Rotating background images + grain */}
+        <HeroGallery />
 
-        {/* Full-width top depth shadow with better fade - adventure mode only */}
-        <div className="absolute top-0 left-0 right-0 h-32 adventure:bg-gradient-to-b adventure:from-black/20 adventure:via-black/15 adventure:via-black/10 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
-        {/* Full-width bottom depth shadow with better fade - adventure mode only - taller and smoother */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 md:h-64 adventure:bg-gradient-to-t adventure:from-black/20 adventure:via-black/15 adventure:via-black/10 adventure:via-black/6 adventure:via-black/3 adventure:via-black/1 adventure:to-transparent pointer-events-none"></div>
-        {/* Modern background elements (default and dark themes) */}
-        <div className="absolute inset-0 flex justify-center adventure:hidden">
-          <div className="relative w-full max-w-screen-2xl h-full">
-            {/* Map markers - replacing dots */}
-            <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
-              <MapPin className="w-6 h-6 text-green-500 dark:text-emerald-400 opacity-70 drop-shadow-sm" />
-            </div>
-            <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '1s'}}>
-              <MapPin className="w-5 h-5 text-green-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
-            </div>
-            <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '2s'}}>
-              <MapPin className="w-6 h-6 text-emerald-500 dark:text-emerald-400 opacity-60 drop-shadow-sm" />
-            </div>
-            <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '0.5s'}}>
-              <MapPin className="w-4 h-4 text-green-700 dark:text-emerald-500 opacity-55 drop-shadow-sm" />
-            </div>
-            <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '1.5s'}}>
-              <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-300 opacity-65 drop-shadow-sm" />
-            </div>
-          </div>
+        {/* Decorative overlay — treasure map dotted trails + X marks, slowly drifting */}
+        <div className="absolute inset-0 pointer-events-none z-[1] hero-overlay-drift">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.18]" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
+            {/* Wandering dotted trails — all smooth cubic beziers, no sharp angles */}
+            <path
+              d="M -5,20 C 15,10 30,12 50,22 C 70,32 85,8 110,16 C 135,24 155,12 180,20 C 195,24 200,18 210,20"
+              stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round"
+            />
+            <path
+              d="M -5,48 C 10,38 25,36 45,46 C 65,56 80,34 105,42 C 130,50 145,36 170,44 C 190,50 200,42 210,46"
+              stroke="white" strokeWidth="1" fill="none" strokeDasharray="3,4" strokeLinecap="round"
+            />
+            <path
+              d="M -5,78 C 20,68 40,70 60,80 C 80,90 95,64 120,72 C 145,80 160,68 180,76 C 195,82 200,74 210,78"
+              stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round"
+            />
+            {/* Diagonal trails — smooth curves */}
+            <path
+              d="M 10,95 C 25,82 35,72 50,60 C 65,48 80,40 95,30 C 110,20 125,12 140,8"
+              stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round"
+            />
+            <path
+              d="M 165,92 C 155,80 148,72 140,62 C 132,52 122,44 115,38 C 108,32 104,28 100,22"
+              stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round"
+            />
+
+            {/* X marks the spot */}
+            <g stroke="white" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="137" y1="5" x2="143" y2="11" />
+              <line x1="143" y1="5" x2="137" y2="11" />
+              <line x1="28" y1="14" x2="34" y2="20" />
+              <line x1="34" y1="14" x2="28" y2="20" />
+              <line x1="158" y1="48" x2="164" y2="54" />
+              <line x1="164" y1="48" x2="158" y2="54" />
+              <line x1="42" y1="76" x2="48" y2="82" />
+              <line x1="48" y1="76" x2="42" y2="82" />
+            </g>
+
+            {/* Waypoint circles along the trails */}
+            <circle cx="50" cy="22" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
+            <circle cx="45" cy="46" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
+            <circle cx="120" cy="72" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
+            <circle cx="95" cy="30" r="1.5" fill="none" stroke="white" strokeWidth="0.8" />
+            <circle cx="140" cy="62" r="1.5" fill="none" stroke="white" strokeWidth="0.8" />
+          </svg>
         </div>
 
-        {/* Globe-style curved grid lines - separate from pulsing elements */}
-        <div className="absolute inset-0 flex justify-center adventure:hidden pointer-events-none">
-          <div className="relative w-full max-w-screen-2xl h-full">
-            <div className="absolute inset-0 pointer-events-none opacity-60">
-              {/* Horizontal latitude lines - curved to appear like globe */}
-              <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* Top latitude line */}
-                <path
-                  d="M 10,25 Q 50,22 90,25"
-                  stroke="rgb(74 222 128 / 0.7)"
-                  strokeWidth="0.4"
-                  fill="none"
-                />
-                {/* Middle latitude line */}
-                <path
-                  d="M 5,50 Q 50,48 95,50"
-                  stroke="rgb(34 197 94 / 0.8)"
-                  strokeWidth="0.5"
-                  fill="none"
-                />
-                {/* Bottom latitude line */}
-                <path
-                  d="M 10,75 Q 50,78 90,75"
-                  stroke="rgb(74 222 128 / 0.7)"
-                  strokeWidth="0.4"
-                  fill="none"
-                />
-
-                {/* Vertical longitude lines - curved to show globe curvature */}
-                <path
-                  d="M 25,10 Q 22,50 25,90"
-                  stroke="rgb(134 239 172 / 0.6)"
-                  strokeWidth="0.3"
-                  fill="none"
-                />
-                <path
-                  d="M 50,5 Q 48,50 50,95"
-                  stroke="rgb(74 222 128 / 0.7)"
-                  strokeWidth="0.3"
-                  fill="none"
-                />
-                <path
-                  d="M 75,10 Q 78,50 75,90"
-                  stroke="rgb(134 239 172 / 0.6)"
-                  strokeWidth="0.3"
-                  fill="none"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Subtle background texture - properly themed - empty placeholder */}
-        <div className="absolute inset-0 flex justify-center adventure:hidden pointer-events-none">
-          <div className="relative w-full max-w-screen-2xl h-full">
-            {/* Subtle background texture */}
-          </div>
-        </div>
-
-        {/* Adventure theme background - quest-style treasure map elements */}
-        <div className="absolute inset-0 hidden adventure:flex justify-center">
-          <div className="relative w-full max-w-screen-2xl h-full" style={{ opacity: 0.4 }}>
-            {/* Vintage compass roses - with darker parchment colors */}
-            <div className="absolute top-1/4 left-1/4 animate-pulse" style={{animationDelay: '0s'}}>
-              <Compass className="w-8 h-8 text-stone-700/80 opacity-85 drop-shadow-sm transform rotate-12" />
-            </div>
-            <div className="absolute top-2/3 right-1/3 animate-pulse" style={{animationDelay: '2s'}}>
-              <Compass className="w-6 h-6 text-stone-800/70 opacity-80 drop-shadow-sm transform -rotate-45" />
-            </div>
-            <div className="absolute bottom-1/4 left-1/2 animate-pulse" style={{animationDelay: '1s'}}>
-              <Compass className="w-7 h-7 text-stone-700/80 opacity-75 drop-shadow-sm transform rotate-90" />
-            </div>
-            <div className="absolute top-1/2 left-1/3 animate-pulse" style={{animationDelay: '1.5s'}}>
-              <Compass className="w-5 h-5 text-stone-800/70 opacity-70 drop-shadow-sm transform -rotate-12" />
-            </div>
-            <div className="absolute bottom-2/3 right-1/4 animate-pulse" style={{animationDelay: '0.5s'}}>
-              <Compass className="w-6 h-6 text-stone-800/80 opacity-80 drop-shadow-sm transform rotate-180" />
-            </div>
-
-            {/* Vintage map elements - hand-drawn treasure paths */}
-            <div className="absolute inset-0 pointer-events-none">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* Meandering treasure paths - irregular, hand-drawn style */}
-                <path
-                  d="M 15,20 Q 25,18 35,22 T 55,25 Q 65,28 75,24 T 90,28"
-                  stroke="currentColor"
-                  strokeWidth="0.4"
-                  fill="none"
-                  strokeDasharray="2,1"
-                  className="text-stone-600/60"
-                />
-                <path
-                  d="M 10,45 Q 20,42 30,48 T 50,52 Q 60,55 70,50 T 85,53"
-                  stroke="currentColor"
-                  strokeWidth="0.3"
-                  fill="none"
-                  strokeDasharray="1.5,0.5"
-                  className="text-stone-700/50"
-                />
-                <path
-                  d="M 20,70 Q 30,68 40,72 T 60,75 Q 70,78 80,74"
-                  stroke="currentColor"
-                  strokeWidth="0.4"
-                  fill="none"
-                  strokeDasharray="2,1"
-                  className="text-stone-600/55"
-                />
-
-                {/* Vertical treasure routes - winding paths */}
-                <path
-                  d="M 25,15 Q 22,25 28,35 T 25,55 Q 22,65 28,75 T 25,85"
-                  stroke="currentColor"
-                  strokeWidth="0.3"
-                  fill="none"
-                  strokeDasharray="1,0.5"
-                  className="text-stone-800/45"
-                />
-                <path
-                  d="M 50,10 Q 48,20 52,30 T 50,50 Q 48,60 52,70 T 50,90"
-                  stroke="currentColor"
-                  strokeWidth="0.4"
-                  fill="none"
-                  strokeDasharray="1.5,1"
-                  className="text-stone-700/55"
-                />
-                <path
-                  d="M 75,12 Q 78,22 72,32 T 75,52 Q 78,62 72,72 T 75,88"
-                  stroke="currentColor"
-                  strokeWidth="0.3"
-                  fill="none"
-                  strokeDasharray="1,0.5"
-                  className="text-stone-800/45"
-                />
-              </svg>
-            </div>
-
-
-          </div>
-        </div>
-
-        <div className="container mx-auto text-center relative flex-1 flex flex-col justify-center md:block">
-          <div className="mb-6 animate-fade-in">
-            <Link to="/install" className="inline-flex flex-col items-center gap-0.5 bg-green-100 dark:bg-primary-100 adventure:bg-[#4682B4] text-green-700 dark:text-primary adventure:text-white px-4 py-1.5 rounded-full text-base adventure:text-[16px] font-medium hover:bg-green-200 dark:hover:bg-primary-200 adventure:hover:bg-stone-700 transition-colors">
-              <div className="flex items-center gap-2">
-                <Compass className="w-4 h-4" />
-                <span className="adventure:hidden">{t("home.install.badge")}</span>
-                <span className="hidden adventure:inline">{t("home.install.badgeAdventure")}</span>
-              </div>
-              <span className="text-[10px] adventure:text-[12px] opacity-75 leading-none">
-                <span className="adventure:hidden">{t("home.install.subtitle")}</span>
-                <span className="hidden adventure:inline">{t("home.install.subtitleAdventure")}</span>
+        {/* Content overlay — pinned to bottom */}
+        <div className="relative z-10 w-full pb-10 md:pb-14 pt-24">
+          <div className="container mx-auto text-center px-3 xs:px-4">
+            <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-5 animate-slide-up drop-shadow-lg">
+              {t("home.hero.title1")}
+              <span className="relative inline-block mx-2">
+                <span className="text-green-300">
+                  {t("home.hero.title2")}
+                </span>
+                <span className="absolute -bottom-2 left-0 w-full h-1 bg-green-400 transform scale-x-0 animate-expand-line"></span>
               </span>
-            </Link>
-          </div>
+            </h2>
 
-          <h2 className="adventure:text-4xl text-2xl xs:text-3xl md:text-5xl adventure:xs:text-5xl adventure:md:text-7xl font-bold text-foreground mb-4 md:mb-6 animate-slide-up">
-            <span className="adventure:hidden">{t("home.hero.title1")}</span>
-            <span className="hidden adventure:inline">{t("home.hero.title1Adventure")}</span>
-            <span className="relative inline-block mx-2">
-              <span className="text-primary adventure:text-stone-800">
-                <span className="adventure:hidden">{t("home.hero.title2")}</span>
-                <span className="hidden adventure:inline">{t("home.hero.title2Adventure")}</span>
-              </span>
-              <span className="absolute -bottom-2 left-0 w-full h-1 bg-primary adventure:bg-gradient-to-r adventure:from-stone-600 adventure:to-stone-800 transform scale-x-0 animate-expand-line"></span>
-            </span>
-          </h2>
+            <p className="text-sm xs:text-base md:text-lg text-white/85 mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line drop-shadow">
+              {t("home.hero.description")}
+            </p>
 
-          <p className="text-md xs:text-sm md:text-xl text-stone-600 dark:text-stone-400 mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line">
-            <span className="adventure:hidden">{t("home.hero.description")}</span>
-            <span className="hidden adventure:inline">{t("home.hero.descriptionAdventure")}</span>
-          </p>
-
-          <div className="flex flex-col md:flex-row items-stretch md:items-center w-fit md:w-auto mx-auto gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
-            <Link to="/map" className="group">
-              <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-stone-700 adventure:hover:bg-stone-800 adventure:text-stone-100 transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
-                <Search className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
-                <Compass className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
-                <span className="adventure:hidden">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center w-fit md:w-auto mx-auto gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
+              <Link to="/map" className="group">
+                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base px-4 xs:px-6">
+                  <Search className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110" />
                   <span className="hidden xs:inline">{t("home.cta.explore")}</span>
                   <span className="xs:hidden">{t("home.cta.exploreShort")}</span>
-                </span>
-                <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">{t("home.cta.exploreAdventure")}</span>
-                  <span className="xs:hidden">{t("home.cta.exploreAdventureShort")}</span>
-                </span>
-              </Button>
-            </Link>
-            <Link to="/claim" className="group">
-              <Button size="lg" variant="outline" className="w-full border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
-                <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 adventure:hidden" />
-                <Scroll className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110 hidden adventure:inline" />
-                <span className="adventure:hidden">
-                  <span className="hidden xs:inline">{t("home.cta.claim")}</span>
-                  <span className="xs:hidden">{t("home.cta.claimShort")}</span>
-                </span>
-                <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">{t("home.cta.claimAdventure")}</span>
-                  <span className="xs:hidden">{t("home.cta.claimShort")}</span>
-                </span>
-              </Button>
-            </Link>
-            {user ? (
-              <Link to="/create" className="group">
-                <Button size="lg" variant="outline" className="w-full border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6">
-                  <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90 adventure:hidden" />
-                  <Crown className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
-                  <span className="adventure:hidden">
-                    <span className="hidden xs:inline">{t("home.cta.hide")}</span>
-                    <span className="xs:hidden">{t("home.cta.hideShort")}</span>
-                  </span>
-                  <span className="hidden adventure:inline">
-                    <span className="hidden xs:inline">{t("home.cta.hideAdventure")}</span>
-                    <span className="xs:hidden">{t("home.cta.hideAdventureShort")}</span>
-                  </span>
                 </Button>
               </Link>
-            ) : (
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full md:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
-                onClick={handleLoginClick}
-              >
-                <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />
-                <Shield className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 hidden adventure:inline" />
-                <span className="adventure:hidden">
+              <Link to="/claim" className="group">
+                <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/45 hover:border-white transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
+                  <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110" />
+                  <span className="hidden xs:inline">{t("home.cta.claim")}</span>
+                  <span className="xs:hidden">{t("home.cta.claimShort")}</span>
+                </Button>
+              </Link>
+              {user ? (
+                <Link to="/create" className="group">
+                  <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/45 hover:border-white transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
+                    <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90" />
+                    <span className="hidden xs:inline">{t("home.cta.hide")}</span>
+                    <span className="xs:hidden">{t("home.cta.hideShort")}</span>
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/45 hover:border-white transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
+                  onClick={handleLoginClick}
+                >
+                  <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12" />
                   <span className="hidden xs:inline">{t("home.cta.login")}</span>
                   <span className="xs:hidden">{t("home.cta.loginShort")}</span>
-                </span>
-                <span className="hidden adventure:inline">
-                  <span className="hidden xs:inline">{t("home.cta.loginAdventure")}</span>
-                  <span className="xs:hidden">{t("home.cta.loginAdventureShort")}</span>
-                </span>
-              </Button>
-            )}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </section>
