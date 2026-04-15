@@ -10,7 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PageLayout } from "@/components/PageLayout";
+import { DesktopHeader } from "@/components/DesktopHeader";
+import { PageHero } from "@/components/PageHero";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { useToast } from "@/hooks/useToast";
@@ -206,159 +207,122 @@ export default function CreateCacheLanding() {
 
   if (!user) {
     return (
-      <PageLayout maxWidth="md" className="py-16">
-        <LoginRequiredCard
-          icon={QrCode}
-          description={t('createCache.loginRequired')}
-          className="max-w-md mx-auto"
-        />
-      </PageLayout>
+      <>
+        <DesktopHeader />
+        <PageHero icon={Chest} title={t('createCache.title')} description={t('createCache.subtitle')}>
+          <div className="container mx-auto px-4 py-10 max-w-md">
+            <LoginRequiredCard
+              icon={QrCode}
+              description={t('createCache.loginRequired')}
+              className="max-w-md mx-auto"
+            />
+          </div>
+        </PageHero>
+      </>
     );
   }
 
   return (
-    <PageLayout maxWidth="lg" background="default" className="pb-4">
-      <div className="max-w-md mx-auto text-center space-y-4">
-        {/* Hero Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 justify-center mb-2">
-            <div className="bg-primary adventure:bg-amber-700 p-2 rounded-lg flex-shrink-0">
-              <Chest className="text-white h-6 w-6" />
-            </div>
-            <div className="text-left">
-              <h1 className="text-foreground [@media(max-height:800px)]:text-xl text-2xl font-bold">
-                {t('createCache.title')}
-              </h1>
-              <p className="text-muted-foreground text-xs">
-                {t('createCache.subtitle')}
-              </p>
-            </div>
+    <>
+      <DesktopHeader />
+
+      <PageHero icon={Chest} title={t('createCache.title')} description={t('createCache.subtitle')}>
+        <div className="container mx-auto px-4 max-w-md pb-12">
+        {/* QR Code card */}
+        <div className="rounded-xl border bg-card p-5 md:p-6 mb-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <QrCode className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">{t('createCache.verificationQR.title')}</h2>
           </div>
-        </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            {t('createCache.verificationQR.description').split('\n').map((line, i) => (
+              <span key={i}>
+                {line}
+                {i < t('createCache.verificationQR.description').split('\n').length - 1 && <br />}
+              </span>
+            ))}
+          </p>
 
-        {/* QR Code Section */}
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary-200 adventure:border-amber-200">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <QrCode className="h-5 w-5 text-primary adventure:text-amber-600" />
-              <h2 className="text-lg font-semibold text-primary adventure:text-amber-700">
-                {t('createCache.verificationQR.title')}
-              </h2>
-            </div>
-
-            <p className="text-xs text-muted-foreground mb-4">
-              {t('createCache.verificationQR.description').split('\n').map((line, i) => (
-                <span key={i}>
-                  {line}
-                  {i < t('createCache.verificationQR.description').split('\n').length - 1 && <br />}
-                </span>
-              ))}
-            </p>
-
-            <div className="flex justify-center mb-4">
-              {qrDataUrl ? (
+          <div className="flex justify-center mb-4">
+            {qrDataUrl ? (
+              <div className="bg-white p-3 rounded-lg inline-block">
                 <img
                   src={qrDataUrl}
                   alt="Verification QR Code"
-                  className="w-full [@media(max-height:680px)]:h-[120px] [@media(max-height:900px)]:max-w-[50vw] sm:h-auto rounded-lg shadow-sm max-w-xs object-contain"
+                  className="w-52 h-auto rounded object-contain"
                 />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-primary-50 dark:bg-primary-50 adventure:bg-amber-50 adventure:dark:bg-amber-950 rounded-lg">
-                  <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-center gap-2 flex-wrap">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-1" />
-                    {t('createCache.verificationQR.style')}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setQrType("full")}>
-                    {t('createCache.verificationQR.styleFull')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setQrType("cutout")}>
-                    {t('createCache.verificationQR.styleCutout')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setQrType("micro")}>
-                    {t('createCache.verificationQR.styleMicro')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setQrType("sheet")}>
-                    {t('createCache.verificationQR.styleSheet')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setQrType("stamp")}>
-                    {t('createCache.verificationQR.styleStamp')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowCompactDialog(true)} className="border-t mt-1 pt-1">
-                    <span className="text-primary font-medium">Compact URLs</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button onClick={handleDownloadQR} disabled={!qrDataUrl} size="sm">
-                <Download className="h-4 w-4 mr-1" />
-                {t('createCache.verificationQR.save')}
-              </Button>
-              <Button variant="outline" onClick={handlePrint} disabled={!qrDataUrl} size="sm">
-                <Printer className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Section */}
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-primary-200 adventure:border-amber-200">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Chest className="h-5 w-5 text-primary adventure:text-amber-600" />
-              <h2 className="text-lg font-semibold text-primary adventure:text-amber-700">
-                {t('createCache.listing.title')}
-              </h2>
-            </div>
-
-            {(qrType === 'sheet' || qrType === 'stamp') ? (
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground">
-                  {qrType === 'sheet' ? t('createCache.listing.sheetDescription') : t('createCache.listing.stampDescription')}
-                </p>
               </div>
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-4">
-                  {t('createCache.listing.description')}
-                </p>
-                <div className="flex gap-2 justify-center flex-wrap">
-                  <Button
-                    onClick={handleFillOutNow}
-                    disabled={!qrDataUrl}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-amber-700 adventure:hover:bg-amber-800"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    {t('createCache.listing.createNow')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/")}
-                    className="border-primary-200 text-primary hover:bg-primary-50 adventure:border-amber-200 adventure:text-amber-700 adventure:hover:bg-amber-50"
-                  >
-                    {t('createCache.listing.later')}
-                  </Button>
-                </div>
-              </>
+              <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
+                <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
+              </div>
             )}
+          </div>
+
+          <div className="flex justify-center gap-2 flex-wrap">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  {t('createCache.verificationQR.style')}
+                  <ChevronDown className="h-3.5 w-3.5 ml-1.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setQrType("full")}>{t('createCache.verificationQR.styleFull')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType("cutout")}>{t('createCache.verificationQR.styleCutout')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType("micro")}>{t('createCache.verificationQR.styleMicro')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType("sheet")}>{t('createCache.verificationQR.styleSheet')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQrType("stamp")}>{t('createCache.verificationQR.styleStamp')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowCompactDialog(true)} className="border-t mt-1 pt-1">
+                  <span className="text-primary font-medium">Compact URLs</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button size="sm" onClick={handleDownloadQR} disabled={!qrDataUrl}>
+              <Download className="h-4 w-4 mr-1.5" />
+              {t('createCache.verificationQR.save')}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!qrDataUrl}>
+              <Printer className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        {/* Simplified Advanced Options */}
+        {/* Listing action card */}
+        <div className="rounded-xl border bg-card p-5 md:p-6 mb-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Chest className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">{t('createCache.listing.title')}</h2>
+          </div>
+
+          {(qrType === 'sheet' || qrType === 'stamp') ? (
+            <p className="text-xs text-muted-foreground">
+              {qrType === 'sheet' ? t('createCache.listing.sheetDescription') : t('createCache.listing.stampDescription')}
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground mb-4">
+                {t('createCache.listing.description')}
+              </p>
+              <div className="flex gap-2 justify-center flex-wrap">
+                <Button onClick={handleFillOutNow} disabled={!qrDataUrl}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  {t('createCache.listing.createNow')}
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/")}>
+                  {t('createCache.listing.later')}
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Advanced Options */}
         {showAdvanced && (
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-primary-200 adventure:border-amber-200">
+          <div className="rounded-xl border bg-card p-5 md:p-6 mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <Gift className="h-4 w-4 text-primary adventure:text-amber-600" />
-              <span className="text-sm font-medium text-primary adventure:text-amber-700">{t('createCache.gift.title')}</span>
+              <Gift className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">{t('createCache.gift.title')}</span>
             </div>
             <input
               type="text"
@@ -373,22 +337,17 @@ export default function CreateCacheLanding() {
                   setNpubError("");
                 }
               }}
-              className="w-full px-3 py-2 text-sm border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring adventure:focus:ring-amber-500"
+              className="w-full px-3 py-2 text-sm border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            {npubError && (
-              <p className="text-xs text-destructive mt-1">{npubError}</p>
-            )}
+            {npubError && <p className="text-xs text-destructive mt-1">{npubError}</p>}
             {customNpub && !npubError && (
               <Button
                 size="sm"
                 onClick={async () => {
                   setSubmittedNpub(customNpub);
-                  toast({
-                    title: t('createCache.gift.updated'),
-                    description: t('createCache.gift.updatedDescription'),
-                  });
+                  toast({ title: t('createCache.gift.updated'), description: t('createCache.gift.updatedDescription') });
                 }}
-                className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-amber-700 adventure:hover:bg-amber-800"
+                className="w-full mt-2"
               >
                 <Gift className="h-4 w-4 mr-1" />
                 {t('createCache.gift.createQR')}
@@ -397,20 +356,18 @@ export default function CreateCacheLanding() {
           </div>
         )}
 
-        {/* Advanced Toggle */}
-        <div className="flex justify-center">
+        <div className="flex justify-center pb-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-white/60 hover:text-white hover:bg-white/10 adventure:text-stone-500 adventure:hover:text-stone-800 adventure:hover:bg-stone-700/10 adventure:dark:text-white/60 adventure:dark:hover:text-white"
           >
             <Settings className="h-3 w-3 mr-1" />
             {showAdvanced ? t('common.hide') : t('common.show')} {t('createCache.advanced')}
           </Button>
         </div>
 
-        {/* Compact URL Generator Dialog */}
         {user && (
           <CompactUrlGeneratorDialog
             open={showCompactDialog}
@@ -418,7 +375,8 @@ export default function CreateCacheLanding() {
             pubkey={getPubkeyForNaddr()}
           />
         )}
-      </div>
-    </PageLayout>
+        </div>
+      </PageHero>
+    </>
   );
 }

@@ -52,7 +52,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
             <img
               src="/icon.svg"
               alt={t('navigation.appName')}
-              className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme && !isHero ? 'sepia' : ''}`}
+              className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme ? 'sepia' : ''}`}
             />
             <h1 className={`text-2xl font-bold m-0 leading-none ${isHero ? 'text-white' : isAdventureTheme ? 'text-stone-200' : 'text-foreground'}`}>{t('navigation.appName')}</h1>
           </Link>

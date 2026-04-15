@@ -172,10 +172,10 @@ export default function Home() {
             <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-5 animate-slide-up drop-shadow-lg">
               {t("home.hero.title1")}
               <span className="relative inline-block mx-2">
-                <span className="text-green-300">
+                <span className="text-green-300 adventure:text-amber-300">
                   {t("home.hero.title2")}
                 </span>
-                <span className="absolute -bottom-2 left-0 w-full h-1 bg-green-400 transform scale-x-0 animate-expand-line"></span>
+                <span className="absolute -bottom-2 left-0 w-full h-1 bg-green-400 adventure:bg-amber-400 transform scale-x-0 animate-expand-line"></span>
               </span>
             </h2>
 
@@ -192,7 +192,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link to="/claim" className="group">
-                <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
+                <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
                   <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110" />
                   <span className="hidden xs:inline">{t("home.cta.claim")}</span>
                   <span className="xs:hidden">{t("home.cta.claimShort")}</span>
@@ -200,7 +200,7 @@ export default function Home() {
               </Link>
               {user ? (
                 <Link to="/create" className="group">
-                  <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
+                  <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
                     <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90" />
                     <span className="hidden xs:inline">{t("home.cta.hide")}</span>
                     <span className="xs:hidden">{t("home.cta.hideShort")}</span>
@@ -210,7 +210,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
+                  className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
                   onClick={handleLoginClick}
                 >
                   <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12" />
@@ -239,7 +239,7 @@ export default function Home() {
                 fill="none"
                 strokeDasharray="2,1.5"
                 strokeLinecap="round"
-                className="text-green-500/30 dark:text-green-400/20"
+                className="text-green-500/30 dark:text-green-400/20 adventure:text-amber-600/30"
               />
             </svg>
           </div>
@@ -261,8 +261,8 @@ export default function Home() {
             {/* Step 1: Hide — Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-primary-100 dark:to-primary-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
-                  <img src="/feature-decentralized.webp" alt="Hide a Treasure" className="w-full h-full object-contain" />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-green-100 to-emerald-200 dark:from-primary-200 dark:to-primary-100 adventure:from-amber-100 adventure:to-orange-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border border-green-200/60 dark:border-primary/20 adventure:border-amber-300/60">
+                  <img src="/step_1.png" alt="Hide a Treasure" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -278,8 +278,8 @@ export default function Home() {
             {/* Step 2: Find — Image Right */}
             <div className="flex flex-row-reverse items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-primary-50 dark:to-primary-100 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
-                  <img src="/feature-community.webp" alt="Find & Claim" className="w-full h-full object-contain" />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-emerald-100 to-teal-200 dark:from-primary-100 dark:to-primary-200 adventure:from-yellow-100 adventure:to-amber-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border border-emerald-200/60 dark:border-primary/20 adventure:border-amber-300/60">
+                  <img src="/step_2.png" alt="Find & Claim" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -295,8 +295,8 @@ export default function Home() {
             {/* Step 3: Share — Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-primary-50 dark:to-accent rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
-                  <img src="/feature-global.webp" alt="Share the Adventure" className="w-full h-full object-contain" />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-teal-100 to-emerald-200 dark:from-primary-100 dark:to-primary-200 adventure:from-orange-100 adventure:to-stone-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border border-teal-200/60 dark:border-primary/20 adventure:border-amber-300/60">
+                  <img src="/step_3.png" alt="Share the Adventure" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">

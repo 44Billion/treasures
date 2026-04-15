@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, QrCode, Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/useToast';
 import { parseVerificationFromHash } from '@/utils/verification';
 import { DesktopHeader } from '@/components/DesktopHeader';
+import { PageHero } from '@/components/PageHero';
 
 export default function Claim() {
   const { t } = useTranslation();
@@ -21,27 +22,18 @@ export default function Claim() {
   const validateTreasureUrl = (url: string): { isValid: boolean; naddr?: string; nsec?: string; errorKey?: string } => {
     try {
       const urlObj = new URL(url);
-
-      // Check if it's pointing to treasures.to
       if (urlObj.hostname !== 'treasures.to') {
         return { isValid: false, errorKey: 'claim.error.qrMustPointToTreasures' };
       }
-
-      // Extract naddr from pathname (should be /{naddr})
       const pathname = urlObj.pathname;
-      const naddr = pathname.slice(1); // Remove leading slash
-
+      const naddr = pathname.slice(1);
       if (!naddr || !naddr.startsWith('naddr1')) {
         return { isValid: false, errorKey: 'claim.error.invalidFormat' };
       }
-
-      // Extract verification key from hash
       const nsec = parseVerificationFromHash(urlObj.hash);
-
       if (!nsec) {
         return { isValid: false, errorKey: 'claim.error.noVerificationKey' };
       }
-
       return { isValid: true, naddr, nsec };
     } catch (error) {
       return { isValid: false, errorKey: 'claim.error.invalidUrl' };
@@ -51,23 +43,14 @@ export default function Claim() {
   const handleUrlSubmit = (url: string) => {
     setIsProcessing(true);
     setError(null);
-
     const validation = validateTreasureUrl(url);
-
     if (validation.isValid && validation.naddr && validation.nsec) {
-      toast({
-        title: t('claim.toast.found.title'),
-        description: t('claim.toast.found.description'),
-      });
-
-      // Redirect to the cache page with verification key
+      toast({ title: t('claim.toast.found.title'), description: t('claim.toast.found.description') });
       navigate(`/${validation.naddr}#verify=${validation.nsec}`);
     } else {
       const errorKey = validation.errorKey || 'claim.error.invalidUrl';
       let errorMessage = t(errorKey);
       let toastDescription = t('claim.toast.invalid.description');
-
-      // Provide more specific guidance for common issues
       if (errorKey === 'claim.error.noVerificationKey') {
         errorMessage = t('claim.error.missingKey');
         toastDescription = t('claim.toast.invalid.missingKey');
@@ -75,173 +58,131 @@ export default function Claim() {
         errorMessage = t('claim.error.wrongFormat');
         toastDescription = t('claim.toast.invalid.wrongFormat');
       }
-
       setError(errorMessage);
       setIsProcessing(false);
-
-      toast({
-        title: t('claim.toast.invalid.title'),
-        description: toastDescription,
-        variant: 'destructive',
-      });
+      toast({ title: t('claim.toast.invalid.title'), description: toastDescription, variant: 'destructive' });
     }
   };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setManualUrl(value);
-
-    // Clear error when user starts typing
-    if (error) {
-      setError(null);
-    }
-
-    // Auto-submit if user pastes a complete URL
+    if (error) setError(null);
     if (value.includes('treasures.to') && value.includes('#verify=')) {
-      // Small delay to let the paste complete
-      setTimeout(() => {
-        handleUrlSubmit(value);
-      }, 100);
+      setTimeout(() => handleUrlSubmit(value), 100);
     }
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (manualUrl.trim()) {
-      handleUrlSubmit(manualUrl.trim());
-    }
+    if (manualUrl.trim()) handleUrlSubmit(manualUrl.trim());
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">
+    <>
       <DesktopHeader />
 
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-foreground">{t('claim.title')}</h1>
-          <p className="text-muted-foreground">
-            {t('claim.description')}
-          </p>
-        </div>
-
-        <div className="space-y-8">
+      <PageHero
+        icon={QrCode}
+        title={t('claim.title')}
+        description={t('claim.description')}
+      >
+        <div className="container mx-auto px-4 max-w-md pb-12">
+          <div className="rounded-xl border bg-card p-5 md:p-6 mb-6">
           {/* Instructional Image */}
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center mb-6">
             <img
               src="/claim-guide.png"
               alt="QR Code scanning guide"
-              className="max-w-xs w-full h-auto dark:invert"
+              className="max-w-[180px] w-full h-auto dark:invert"
             />
           </div>
 
-          {/* Simple Instructions */}
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
-                1
+          {/* Steps with dotted connectors */}
+          <div className="space-y-0">
+            {[
+              { num: '1', text: t('claim.step1', 'Open your camera app or QR scanner') },
+              { num: '2', text: t('claim.step2', 'Point it at the QR code on the geocache') },
+              { num: '3', text: t('claim.step3', 'Tap the notification to open the claim page') },
+            ].map((step, i) => (
+              <div key={step.num}>
+                {i > 0 && <div className="ml-[1.125rem] h-5 border-l-2 border-dashed border-primary/25" />}
+                <div className="flex items-center gap-4">
+                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {step.num}
+                  </div>
+                  <p className="text-sm text-foreground">{step.text}</p>
+                </div>
               </div>
-              <p className="text-base pt-1">
-                {t('claim.step1', 'Open your camera app or QR scanner')}
-              </p>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
-                2
-              </div>
-              <p className="text-base pt-1">
-                {t('claim.step2', 'Point it at the QR code on the geocache')}
-              </p>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
-                3
-              </div>
-              <p className="text-base pt-1">
-                {t('claim.step3', 'Tap the notification to open the claim page')}
-              </p>
-            </div>
+            ))}
           </div>
+        </div>
 
-          {/* Separator */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
+        {/* Manual URL card */}
+        <div className="rounded-xl border bg-card p-5 md:p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <LinkIcon className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                {t('claim.or', 'Or')}
-              </span>
-            </div>
-          </div>
-
-          {/* Manual URL Entry */}
-          <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold mb-1">
+              <h3 className="text-sm font-semibold text-foreground">
                 {t('claim.manual.title', 'Enter URL Manually')}
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {t('claim.manual.description', 'If scanning doesn\'t work, paste the URL here')}
               </p>
             </div>
-
-            <form onSubmit={handleManualSubmit} className="space-y-3">
-              <Input
-                id="treasure-url"
-                type="url"
-                placeholder="https://treasures.to/naddr1..."
-                value={manualUrl}
-                onChange={handleUrlChange}
-                disabled={isProcessing}
-                className="font-mono text-sm"
-                autoComplete="off"
-                autoCapitalize="off"
-                autoCorrect="off"
-                spellCheck="false"
-              />
-
-              <Button
-                type="submit"
-                disabled={isProcessing || !manualUrl.trim()}
-                className="w-full"
-                size="lg"
-              >
-                {isProcessing ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2 animate-spin" />
-                    {t('claim.manual.validating', 'Validating...')}
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    {t('claim.manual.submit', 'Claim Treasure')}
-                  </>
-                )}
-              </Button>
-            </form>
           </div>
 
-          {/* Error display */}
-          {error && (
-            <Alert variant="destructive" className="border-0">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Success state */}
-          {isProcessing && !error && (
-            <Alert className="border-0">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                {t('claim.alert.validating', 'Validating treasure...')}
-              </AlertDescription>
-            </Alert>
-          )}
+          <form onSubmit={handleManualSubmit} className="space-y-3">
+            <Input
+              id="treasure-url"
+              type="url"
+              placeholder="https://treasures.to/naddr1..."
+              value={manualUrl}
+              onChange={handleUrlChange}
+              disabled={isProcessing}
+              className="font-mono text-sm"
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
+            />
+            <Button
+              type="submit"
+              disabled={isProcessing || !manualUrl.trim()}
+              className="w-full"
+            >
+              {isProcessing ? (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2 animate-spin" />
+                  {t('claim.manual.validating', 'Validating...')}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {t('claim.manual.submit', 'Claim Treasure')}
+                </>
+              )}
+            </Button>
+          </form>
         </div>
-      </div>
-    </div>
+
+        {/* Error / Success */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {isProcessing && !error && (
+          <Alert className="mb-6">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{t('claim.alert.validating', 'Validating treasure...')}</AlertDescription>
+          </Alert>
+        )}
+        </div>
+      </PageHero>
+    </>
   );
 }
