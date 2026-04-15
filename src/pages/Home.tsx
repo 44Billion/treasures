@@ -368,7 +368,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
+                className="w-full md:w-auto border-primary-200 dark:border-primary-100 adventure:border-stone-400 hover:border-primary-200 dark:hover:border-primary-200 adventure:hover:border-stone-500 hover:bg-primary-50 dark:hover:bg-primary-50 adventure:hover:bg-stone-200 adventure:hover:text-stone-800 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base adventure:text-base adventure:xs:text-lg px-4 xs:px-6"
                 onClick={handleLoginClick}
               >
                 <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12 adventure:hidden" />
