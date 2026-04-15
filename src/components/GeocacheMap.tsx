@@ -492,6 +492,14 @@ function PopupController({
   const lastHighlightedRef = useRef<string | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
 
+  // Store geocaches and onMarkerClick in refs so the effect can always access
+  // the latest values without re-running (and cancelling in-progress popup setup)
+  // when their references change due to parent re-renders.
+  const geocachesRef = useRef(geocaches);
+  geocachesRef.current = geocaches;
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
+
   useEffect(() => {
     // Clean up any pending operations from a previous highlight
     if (cleanupRef.current) {
@@ -499,10 +507,13 @@ function PopupController({
       cleanupRef.current = null;
     }
 
-    if (highlightedGeocache && highlightedGeocache !== lastHighlightedRef.current) {
+    if (highlightedGeocache) {
       lastHighlightedRef.current = highlightedGeocache;
 
-      const geocache = geocaches.find(g => g.dTag === highlightedGeocache);
+      // Strip the optional `::timestamp` suffix used to force uniqueness
+      const dTag = highlightedGeocache.replace(/::.*$/, '');
+
+      const geocache = geocachesRef.current.find(g => g.dTag === dTag);
       if (!geocache?.location || !isFinite(geocache.location.lat) || !isFinite(geocache.location.lng)) {
         return;
       }
@@ -574,7 +585,8 @@ function PopupController({
             });
 
             // Pass the geocache + container to the callback so React can portal into it.
-            onMarkerClick(geocache, container);
+            // Use ref to always get the latest callback.
+            onMarkerClickRef.current(geocache, container);
 
             // Wait for React to render then open popup with UI-aware panning
             const abortSignal = { aborted: false };
@@ -621,7 +633,7 @@ function PopupController({
     } else if (!highlightedGeocache) {
       lastHighlightedRef.current = null;
     }
-  }, [map, highlightedGeocache, geocaches, onMarkerClick]);
+  }, [map, highlightedGeocache]);
 
   useEffect(() => {
     return () => {
@@ -1252,6 +1264,89 @@ export function GeocacheMap({
 
 
 
+  // Stable ref for handleMarkerClick so marker event handlers don't change identity
+  const handleMarkerClickRef = useRef(handleMarkerClick);
+  handleMarkerClickRef.current = handleMarkerClick;
+
+  // Memoize cluster icon function — only depends on nothing (pure function of cluster)
+  const clusterIconFn = useCallback((cluster: { getChildCount: () => number }) => {
+    const count = cluster.getChildCount();
+    const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
+    return L.divIcon({
+      html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
+      className: 'custom-cluster-icon',
+      iconSize: L.point(36, 36, true),
+    });
+  }, []);
+
+  // Stable cluster event handlers
+  const clusterEventHandlers = useMemo(() => ({
+    clusteringbegin: () => {},
+    clusteringend: () => {},
+    unspiderfied: () => {},
+  }), []);
+
+  // Memoize marker elements so the cluster group does not reprocess markers
+  // on every parent re-render (which would destroy open popups).
+  const markerElements = useMemo(() =>
+    geocaches.filter(g => g.location).slice(0, 200).map((geocache) => {
+      const normalizedLng = ((geocache.location.lng + 180) % 360 + 360) % 360 - 180;
+      const normalizedPosition = [geocache.location.lat, normalizedLng];
+
+      return (
+        <Marker
+          key={geocache.dTag}
+          position={normalizedPosition as LatLngExpression}
+          icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
+          eventHandlers={{
+            click: (e) => {
+              const marker = e.target as L.Marker;
+              const markerMap = (marker as unknown as Record<string, unknown>)._map as L.Map;
+
+              L.DomEvent.stopPropagation(e as unknown as Event);
+              L.DomEvent.preventDefault(e as unknown as Event);
+
+              if (markerMap) {
+                markerMap.closePopup();
+              }
+
+              const container = document.createElement('div');
+              container.className = 'react-popup-root';
+
+              if (marker.getPopup()) {
+                marker.unbindPopup();
+              }
+
+              const padding = markerMap ? getPopupAutoPanPadding(markerMap) : { top: 20, left: 20, bottom: 20, right: 20 };
+              marker.bindPopup(container, {
+                maxWidth: 400,
+                minWidth: 200,
+                className: 'geocache-popup react-popup',
+                closeButton: true,
+                autoPan: true,
+                autoPanPaddingTopLeft: L.point(padding.left, padding.top),
+                autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
+                keepInView: false,
+                closeOnClick: false,
+                closeOnEscapeKey: true,
+              });
+
+              handleMarkerClickRef.current(geocache, container);
+
+              if (markerMap) {
+                openPopupWhenReady(marker, container, markerMap, { aborted: false });
+              }
+            },
+            popupclose: () => {
+              handleMarkerClickRef.current(null as unknown as Geocache, null as unknown as HTMLDivElement);
+            }
+          }}
+        />
+      );
+    }),
+    [geocaches, currentMapStyle]
+  );
+
   return (
     <div
       className="relative h-full w-full overflow-hidden"
@@ -1430,92 +1525,10 @@ export function GeocacheMap({
         // Handle world wrapping properly
         chunkedLoadingDelay={0} // No delay for instant marker rendering
         // Prevent popup issues during clustering operations
-        iconCreateFunction={(cluster: { getChildCount: () => any; }) => {
-          const count = cluster.getChildCount();
-          const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
-
-          return L.divIcon({
-            html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
-            className: 'custom-cluster-icon',
-            iconSize: L.point(36, 36, true), // Slightly smaller for better performance
-          });
-        }}
-        eventHandlers={{
-          clusteringbegin: () => {
-            // Ensure all markers have popups before clustering
-            // This helps prevent popup loss during zoom operations
-          },
-          clusteringend: () => {
-            // Re-bind popups if needed after clustering is complete
-            // This ensures popups are available after zoom operations
-          },
-          unspiderfied: () => {
-            // Ensure individual markers have popups when unspiderfied
-          }
-        }}
+        iconCreateFunction={clusterIconFn}
+        eventHandlers={clusterEventHandlers}
       >
-        {geocaches.filter(g => g.location).slice(0, 200).map((geocache) => { // Limit to 200 markers for performance
-          // Normalize longitude to handle world wrapping
-          const normalizedLng = ((geocache.location.lng + 180) % 360 + 360) % 360 - 180;
-          const normalizedPosition = [geocache.location.lat, normalizedLng];
-
-          return (
-            <Marker
-              key={geocache.dTag}
-              position={normalizedPosition as LatLngExpression}
-              icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
-              eventHandlers={{
-                click: (e) => {
-                  const marker = e.target as L.Marker;
-                  const markerMap = marker._map as L.Map;
-
-                  L.DomEvent.stopPropagation(e as unknown as Event);
-                  L.DomEvent.preventDefault(e as unknown as Event);
-
-                  // Close all existing popups
-                  if (markerMap) {
-                    markerMap.closePopup();
-                  }
-
-                  // Create a container div for the React portal
-                  const container = document.createElement('div');
-                  container.className = 'react-popup-root';
-
-                  // Bind popup but don't open yet — wait for React content
-                  if (marker.getPopup()) {
-                    marker.unbindPopup();
-                  }
-
-                  const padding = markerMap ? getPopupAutoPanPadding(markerMap) : { top: 20, left: 20, bottom: 20, right: 20 };
-                  marker.bindPopup(container, {
-                    maxWidth: 400,
-                    minWidth: 200,
-                    className: 'geocache-popup react-popup',
-                    closeButton: true,
-                    autoPan: true,
-                    autoPanPaddingTopLeft: L.point(padding.left, padding.top),
-                    autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
-                    keepInView: false,
-                    closeOnClick: false,
-                    closeOnEscapeKey: true,
-                  });
-
-                  // Trigger React render first, then open popup once content exists
-                  handleMarkerClick(geocache, container);
-
-                  // Use the shared open helper that properly handles the observer + fallback
-                  if (markerMap) {
-                    openPopupWhenReady(marker, container, markerMap, { aborted: false });
-                  }
-                },
-                popupclose: () => {
-                  // Notify parent that popup closed
-                  handleMarkerClick(null as unknown as Geocache, null as unknown as HTMLDivElement);
-                }
-              }}
-            />
-          );
-        })}
+        {markerElements}
       </MarkerClusterGroup>
     </MapContainer>
 

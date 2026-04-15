@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -216,12 +216,13 @@ export default function Map() {
 
   // Use proximity search results when active, otherwise fall back to base geocaches
   // Apply client-side filtering when using base geocaches
-  const filteredGeocaches: GeocacheWithDistance[] = isProximitySearchActive
-    ? (geocaches || [])
-    : applyClientSideFilters(baseGeocaches.data || []);
+  // Memoized to prevent unnecessary re-renders of child components (especially PopupController)
+  const filteredGeocaches: GeocacheWithDistance[] = useMemo(() => {
+    if (isProximitySearchActive) {
+      return geocaches || [];
+    }
 
-  // Client-side filtering function for optimistic geocaches
-  function applyClientSideFilters(caches: any[]): GeocacheWithDistance[] {
+    const caches = baseGeocaches.data || [];
     let filtered = [...caches];
 
     // Text search filter
@@ -256,7 +257,7 @@ export default function Map() {
     filtered.sort((a, b) => b.created_at - a.created_at);
 
     return filtered;
-  }
+  }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType]);
 
   function applyComparison(value: number, operator: string, target: number): boolean {
     switch (operator) {
@@ -358,7 +359,7 @@ export default function Map() {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const handleMarkerClick = (geocache: Geocache, container?: HTMLDivElement) => {
+  const handleMarkerClick = useCallback((geocache: Geocache, container?: HTMLDivElement) => {
     if (!geocache && !container) {
       // Popup closed
       setSelectedGeocache(null);
@@ -368,11 +369,19 @@ export default function Map() {
     setSelectedGeocache(geocache);
     setPopupContainer(container || null);
     setHighlightedGeocache(null);
-  };
+  }, []);
 
   const handleCardClick = (geocache: Geocache) => {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
+
+    // Immediately close any existing popup and clear portal state so the old
+    // popup card is cleanly unmounted before the map moves and markers rerender.
+    if (mapRef.current) {
+      mapRef.current.closePopup();
+    }
+    setSelectedGeocache(null);
+    setPopupContainer(null);
 
     // Move the map to the geocache via useMapController
     setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
@@ -383,12 +392,9 @@ export default function Map() {
     setSearchLocation(null);
     setSearchInView(false);
 
-    // Reset highlighted geocache first to ensure PopupController detects the change
-    // even if clicking the same geocache again, then set the new value.
-    setHighlightedGeocache(null);
-    queueMicrotask(() => {
-      setHighlightedGeocache(geocache.dTag);
-    });
+    // Use a unique key so PopupController always detects the change, even when
+    // re-clicking the same geocache.  The counter suffix is stripped before lookup.
+    setHighlightedGeocache(`${geocache.dTag}::${Date.now()}`);
 
     // Use the map controller for immediate navigation
     if (typeof window !== 'undefined' && (window as any).handleMapCardClick) {
