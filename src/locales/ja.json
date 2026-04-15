@@ -426,6 +426,7 @@
   "form.uploading": "アップロード中...",
   "cacheDetail.loading.title": "ジオキャッシュを読み込み中...",
   "cacheDetail.loading.description": "ネットワークからキャッシュの詳細を取得中",
+  "cacheDetail.loading.skipToCreate": "これを隠してるよ！",
   "cacheDetail.error.invalidLink.title": "無効なキャッシュリンク",
   "cacheDetail.error.invalidLink.description": "URLにキャッシュ識別子が提供されていません。",
   "cacheDetail.error.invalidLink.browse": "キャッシュを閲覧",

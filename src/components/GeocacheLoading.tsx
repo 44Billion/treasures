@@ -1,5 +1,6 @@
-import { Compass, Server } from 'lucide-react';
+import { Compass, Server, Plus } from 'lucide-react';
 import { FullPageLoading } from '@/components/ui/loading';
+import { Button } from '@/components/ui/button';
 import { PRESET_RELAYS } from '@/config/relays';
 
 interface GeocacheLoadingProps {
@@ -7,13 +8,17 @@ interface GeocacheLoadingProps {
   description?: string;
   relayAttempts?: string[];
   isMultiRelayLoading?: boolean;
+  onSkipToCreate?: () => void;
+  skipToCreateLabel?: string;
 }
 
 export function GeocacheLoading({
   title = "Loading Geocache...",
   description = "Fetching cache details from the network",
   relayAttempts = [],
-  isMultiRelayLoading = false
+  isMultiRelayLoading = false,
+  onSkipToCreate,
+  skipToCreateLabel = "Skip to Create Geocache",
 }: GeocacheLoadingProps) {
   // If we're doing multi-relay loading, show relay attempts
   if (isMultiRelayLoading && relayAttempts.length > 0) {
@@ -74,6 +79,15 @@ export function GeocacheLoading({
               </div>
             )}
           </div>
+
+          {onSkipToCreate && (
+            <div className="mt-6">
+              <Button onClick={onSkipToCreate} variant="outline" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                {skipToCreateLabel}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );

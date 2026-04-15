@@ -426,6 +426,7 @@
   "form.uploading": "Lade hoch...",
   "cacheDetail.loading.title": "Geocache wird geladen...",
   "cacheDetail.loading.description": "Hole Cache-Details aus dem Netzwerk",
+  "cacheDetail.loading.skipToCreate": "Ich verstecke das!",
   "cacheDetail.error.invalidLink.title": "Ungültiger Cache-Link",
   "cacheDetail.error.invalidLink.description": "Keine Cache-Kennung in der URL angegeben.",
   "cacheDetail.error.invalidLink.browse": "Caches durchsuchen",

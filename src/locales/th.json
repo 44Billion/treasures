@@ -426,6 +426,7 @@
   "form.uploading": "กำลังอัปโหลด...",
   "cacheDetail.loading.title": "กำลังโหลด Geocache...",
   "cacheDetail.loading.description": "กำลังดึงข้อมูล cache จากเครือข่าย",
+  "cacheDetail.loading.skipToCreate": "ฉันกำลังซ่อนสิ่งนี้!",
   "cacheDetail.error.invalidLink.title": "ลิงก์ Cache ไม่ถูกต้อง",
   "cacheDetail.error.invalidLink.description": "ไม่มีการระบุตัวระบุ cache ใน URL",
   "cacheDetail.error.invalidLink.browse": "เรียกดู Cache",

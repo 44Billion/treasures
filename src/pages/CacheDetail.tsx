@@ -274,6 +274,17 @@ export default function CacheDetail() {
     }
   }, [naddr, navigate]);
 
+  // Check if this naddr belongs to the current user (can be determined without waiting for relay)
+  const isOwnNaddr = (() => {
+    if (!user || !naddr) return false;
+    try {
+      const decoded = naddrToGeocache(naddr);
+      return decoded.pubkey === user.pubkey;
+    } catch {
+      return false;
+    }
+  })();
+
   // Show full-page loading animation for direct navigation
   if (shouldShowFullPageLoading) {
     return (
@@ -282,6 +293,11 @@ export default function CacheDetail() {
         description={t('cacheDetail.loading.description')}
         relayAttempts={relayAttempts}
         isMultiRelayLoading={isMultiRelayLoading}
+        onSkipToCreate={isOwnNaddr ? () => {
+          const claimUrl = `${window.location.origin}${window.location.pathname}${window.location.hash}`;
+          navigate(`/create-cache?claimUrl=${encodeURIComponent(claimUrl)}`);
+        } : undefined}
+        skipToCreateLabel={t('cacheDetail.loading.skipToCreate')}
       />
     );
   }

@@ -426,6 +426,7 @@
   "form.uploading": "Uploading...",
   "cacheDetail.loading.title": "Loading Geocache...",
   "cacheDetail.loading.description": "Fetching cache details from the network",
+  "cacheDetail.loading.skipToCreate": "I'm hiding this!",
   "cacheDetail.error.invalidLink.title": "Invalid Cache Link",
   "cacheDetail.error.invalidLink.description": "No cache identifier provided in the URL.",
   "cacheDetail.error.invalidLink.browse": "Browse Caches",
