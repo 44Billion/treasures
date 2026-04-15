@@ -119,33 +119,46 @@ export default function Home() {
         {/* Rotating background images + grain */}
         <HeroGallery />
 
-        {/* Decorative overlay — treasure map dotted trails + X marks, slowly drifting */}
-        <div className="absolute inset-0 pointer-events-none z-[1] hero-overlay-drift">
-          <svg className="absolute inset-0 w-full h-full opacity-[0.18]" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
-            {/* Wandering dotted trails — all smooth cubic beziers, no sharp angles */}
-            <path
-              d="M -5,20 C 15,10 30,12 50,22 C 70,32 85,8 110,16 C 135,24 155,12 180,20 C 195,24 200,18 210,20"
-              stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round"
-            />
-            <path
-              d="M -5,48 C 10,38 25,36 45,46 C 65,56 80,34 105,42 C 130,50 145,36 170,44 C 190,50 200,42 210,46"
-              stroke="white" strokeWidth="1" fill="none" strokeDasharray="3,4" strokeLinecap="round"
-            />
-            <path
-              d="M -5,78 C 20,68 40,70 60,80 C 80,90 95,64 120,72 C 145,80 160,68 180,76 C 195,82 200,74 210,78"
-              stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round"
-            />
-            {/* Diagonal trails — smooth curves */}
-            <path
-              d="M 10,95 C 25,82 35,72 50,60 C 65,48 80,40 95,30 C 110,20 125,12 140,8"
-              stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round"
-            />
-            <path
-              d="M 165,92 C 155,80 148,72 140,62 C 132,52 122,44 115,38 C 108,32 104,28 100,22"
-              stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round"
-            />
+        {/* Decorative overlay — simplified on mobile, full on desktop */}
+        {/* Mobile: same desktop paths without the drift animation */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.18] z-[1] md:hidden"
+          viewBox="0 0 200 100"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <path d="M -5,20 C 15,10 30,12 50,22 C 70,32 85,8 110,16 C 135,24 155,12 180,20 C 195,24 200,18 210,20" stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round" />
+          <path d="M -5,48 C 10,38 25,36 45,46 C 65,56 80,34 105,42 C 130,50 145,36 170,44 C 190,50 200,42 210,46" stroke="white" strokeWidth="1" fill="none" strokeDasharray="3,4" strokeLinecap="round" />
+          <path d="M -5,78 C 20,68 40,70 60,80 C 80,90 95,64 120,72 C 145,80 160,68 180,76 C 195,82 200,74 210,78" stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round" />
+          <path d="M 10,105 C 25,88 35,72 50,60 C 65,48 80,40 95,30 C 110,20 130,8 155,-5" stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round" />
+          <path d="M 175,105 C 165,88 155,74 140,62 C 128,52 118,44 108,36 C 98,28 88,18 78,-5" stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round" />
+          <path d="M -5,5 C 10,16 22,28 36,40 C 50,52 62,64 76,76 C 88,86 100,96 115,105" stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round" />
+          <g stroke="white" strokeWidth="1.5" strokeLinecap="round">
+            <line x1="137" y1="5" x2="143" y2="11" />
+            <line x1="143" y1="5" x2="137" y2="11" />
+            <line x1="28" y1="14" x2="34" y2="20" />
+            <line x1="34" y1="14" x2="28" y2="20" />
+            <line x1="158" y1="48" x2="164" y2="54" />
+            <line x1="164" y1="48" x2="158" y2="54" />
+            <line x1="42" y1="76" x2="48" y2="82" />
+            <line x1="48" y1="76" x2="42" y2="82" />
+          </g>
+          <circle cx="50" cy="22" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
+          <circle cx="45" cy="46" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
+          <circle cx="120" cy="72" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
+          <circle cx="95" cy="30" r="1.5" fill="none" stroke="white" strokeWidth="0.8" />
+          <circle cx="140" cy="62" r="1.5" fill="none" stroke="white" strokeWidth="0.8" />
+        </svg>
 
-            {/* X marks the spot */}
+        {/* Desktop: full drifting pattern (5 paths, 4 X marks, 5 circles) */}
+        <div className="absolute inset-0 pointer-events-none z-[1] hero-overlay-drift hidden md:block">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.18]" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
+            <path d="M -5,20 C 15,10 30,12 50,22 C 70,32 85,8 110,16 C 135,24 155,12 180,20 C 195,24 200,18 210,20" stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round" />
+            <path d="M -5,48 C 10,38 25,36 45,46 C 65,56 80,34 105,42 C 130,50 145,36 170,44 C 190,50 200,42 210,46" stroke="white" strokeWidth="1" fill="none" strokeDasharray="3,4" strokeLinecap="round" />
+            <path d="M -5,78 C 20,68 40,70 60,80 C 80,90 95,64 120,72 C 145,80 160,68 180,76 C 195,82 200,74 210,78" stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round" />
+            <path d="M 10,105 C 25,88 35,72 50,60 C 65,48 80,40 95,30 C 110,20 130,8 155,-5" stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round" />
+            <path d="M 175,105 C 165,88 155,74 140,62 C 128,52 118,44 108,36 C 98,28 88,18 78,-5" stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round" />
+            <path d="M -5,25 C 10,34 22,44 36,54 C 50,64 62,74 76,84 C 88,92 100,100 115,105" stroke="white" strokeWidth="0.9" fill="none" strokeDasharray="3,3" strokeLinecap="round" />
             <g stroke="white" strokeWidth="1.5" strokeLinecap="round">
               <line x1="137" y1="5" x2="143" y2="11" />
               <line x1="143" y1="5" x2="137" y2="11" />
@@ -156,8 +169,6 @@ export default function Home() {
               <line x1="42" y1="76" x2="48" y2="82" />
               <line x1="48" y1="76" x2="42" y2="82" />
             </g>
-
-            {/* Waypoint circles along the trails */}
             <circle cx="50" cy="22" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
             <circle cx="45" cy="46" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
             <circle cx="120" cy="72" r="1.8" fill="none" stroke="white" strokeWidth="0.8" />
