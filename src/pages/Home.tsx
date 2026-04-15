@@ -192,7 +192,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link to="/claim" className="group">
-                <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/45 hover:border-white transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
+                <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
                   <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110" />
                   <span className="hidden xs:inline">{t("home.cta.claim")}</span>
                   <span className="xs:hidden">{t("home.cta.claimShort")}</span>
@@ -200,7 +200,7 @@ export default function Home() {
               </Link>
               {user ? (
                 <Link to="/create" className="group">
-                  <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/45 hover:border-white transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
+                  <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
                     <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90" />
                     <span className="hidden xs:inline">{t("home.cta.hide")}</span>
                     <span className="xs:hidden">{t("home.cta.hideShort")}</span>
@@ -210,7 +210,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/45 hover:border-white transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
+                  className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
                   onClick={handleLoginClick}
                 >
                   <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12" />
