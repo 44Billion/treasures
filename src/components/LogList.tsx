@@ -158,7 +158,7 @@ function LogCard({ log, compact = false }: LogCardProps) {
   const getLogIcon = () => {
     switch (log.type) {
       case "found":
-        return <Trophy className="h-5 w-5 text-primary" />;
+        return <Trophy className="h-5 w-5 text-primary-foreground" />;
       case "dnf":
         return <X className="h-5 w-5 text-red-600" />;
       case "note":
