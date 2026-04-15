@@ -1,24 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, QrCode, Edit3, FileEdit } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, QrCode, FileEdit, MapPinned, FileText, Gauge, Camera } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { useTheme } from "@/hooks/useTheme";
-import { MAP_STYLES } from "@/config/mapStyles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { PageLayout } from "@/components/PageLayout";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCreateGeocache } from "@/hooks/useCreateGeocache";
@@ -41,7 +28,8 @@ import {
   CacheHiddenField
 } from "@/components/ui/geocache-form.fields";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
-import { mapIcons } from "@/utils/mapIcons";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
@@ -49,40 +37,15 @@ import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
 
+// Step configuration for progress indicator
+const STEPS = [
+  { number: 1, label: "Location", icon: MapPinned },
+  { number: 2, label: "Details", icon: FileText },
+  { number: 3, label: "Challenge", icon: Gauge },
+  { number: 4, label: "Finish", icon: Camera },
+] as const;
 
-// CSS override for confirmation map
-const confirmMapStyles = `
-  .confirm-map-container.leaflet-container {
-    min-height: 128px !important;
-    height: 128px !important;
-    max-height: 128px !important;
-  }
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.textContent = confirmMapStyles;
-  document.head.appendChild(style);
-}
-
-// Component to ensure map recognizes its actual size
-function MapResizer({ location }: { location: { lat: number; lng: number } }) {
-  const map = useMap();
-
-  useEffect(() => {
-    // Force map to recognize its actual container size immediately
-    map.invalidateSize(true);
-    // Set view again with exact coordinates to force proper centering
-    map.setView([location.lat, location.lng], 16, { animate: false });
-  }, [map, location]);
-
-  return null;
-}
-
-// Helper function to convert Uint8Array to hex string - kept for potential future use
-// const toHexString = (bytes: Uint8Array) =>
-//   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+const TOTAL_STEPS = STEPS.length;
 
 export default function CreateCache() {
   const { t } = useTranslation();
@@ -92,7 +55,6 @@ export default function CreateCache() {
 
   const { mutateAsync: createGeocache, isPending } = useCreateGeocache();
   const { toast } = useToast();
-  const { theme, systemTheme } = useTheme();
 
   // Persistent form state - survives browser backgrounding
   const STORAGE_KEY = 'treasures-create-cache-draft';
@@ -120,22 +82,21 @@ export default function CreateCache() {
   const [formData, setFormData] = useState<GeocacheFormData>(draft?.formData || createDefaultGeocacheFormData());
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(draft?.location || null);
   const [images, setImages] = useState<string[]>(draft?.images || []);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(draft?.currentStep || 1);
-  const totalSteps = 4;
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [locationConfirmed, setLocationConfirmed] = useState(false);
 
   // Save draft to localStorage whenever form data changes
   useEffect(() => {
-    const draft = {
+    const draftData = {
       formData,
       location,
       images,
       currentStep,
       savedAt: new Date().toISOString(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
   }, [formData, location, images, currentStep]);
 
   // Clear draft when successfully creating geocache
@@ -144,9 +105,9 @@ export default function CreateCache() {
   };
 
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
   const [importedKind, setImportedKind] = useState<number | null>(null);
-  const [showQROverlay, setShowQROverlay] = useState(false);
   const [showDraftNotice, setShowDraftNotice] = useState(!!draft);
 
   // Function to start fresh by clearing the draft
@@ -156,125 +117,38 @@ export default function CreateCache() {
     setLocation(null);
     setImages([]);
     setCurrentStep(1);
+    setLocationConfirmed(false);
+    setLocationVerification(null);
     setShowDraftNotice(false);
   };
-
-  // Map style management for confirmation dialog - using same logic as GeocacheMap
-  const getDefaultMapStyle = () => {
-    // First check app theme setting
-    if (theme === "dark") {
-      return "dark";
-    } else if (theme === "light") {
-      return "original";
-    } else if (theme === "adventure") {
-      return "adventure";
-    } else if (theme === "system") {
-      // Use system preference if theme is set to system
-      return systemTheme === "dark" ? "dark" : "original";
-    }
-
-    // Fallback to system preference if theme is undefined (during mounting)
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return "dark";
-    }
-    return "original";
-  };
-
-  const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
-  const [hasManuallySelectedStyle] = useState(false);
-  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
-
-  // Listen for theme changes and update map style accordingly - using same logic as GeocacheMap
-  useEffect(() => {
-    const newDefaultStyle = () => {
-      if (theme === "dark") {
-        return "dark";
-      } else if (theme === "light") {
-        return "original";
-      } else if (theme === "adventure") {
-        return "adventure";
-      } else if (theme === "system") {
-        return systemTheme === "dark" ? "dark" : "original";
-      }
-
-      // Fallback to system preference if theme is undefined (during mounting)
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return "dark";
-      }
-      return "original";
-    };
-
-    const newStyle = newDefaultStyle();
-    if (currentMapStyle !== newStyle) {
-      setCurrentMapStyle(newStyle);
-    }
-  }, [theme, systemTheme, currentMapStyle]);
-
-  // Also listen for system theme changes as backup - using same logic as GeocacheMap
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      // Only respond to system changes if app theme is set to system or undefined AND user hasn't manually selected a style
-      if ((theme === "system" || !theme) && !hasManuallySelectedStyle) {
-        const newDefaultStyle = e.matches ? "dark" : "original";
-        if (currentMapStyle !== newDefaultStyle) {
-          setCurrentMapStyle(newDefaultStyle);
-        }
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleThemeChange);
-    return () => mediaQuery.removeEventListener('change', handleThemeChange);
-  }, [theme, currentMapStyle, hasManuallySelectedStyle]);
 
   // Check for claim URL in params (from pre-generated QR code)
   useEffect(() => {
     const processClaimUrl = async () => {
       const claimUrlParam = searchParams.get('claimUrl');
-      console.log('🔗 Processing claim URL:', { claimUrlParam, user: !!user });
 
       // Guard against processing the same claim URL multiple times
       if (!claimUrlParam || !user || importedDTag || importedVerificationKeyPair) {
-        console.log('🛑 Skipping claim URL processing:', {
-          hasClaimUrl: !!claimUrlParam,
-          hasUser: !!user,
-          hasImportedDTag: !!importedDTag,
-          hasImportedKeyPair: !!importedVerificationKeyPair
-        });
         return;
       }
 
       try {
-        console.log('🔗 Raw claimUrlParam:', claimUrlParam);
-
         // Handle both full URLs and relative URLs
         let claimUrl: URL;
         if (claimUrlParam.startsWith('http')) {
           claimUrl = new URL(claimUrlParam);
         } else {
-          // If it's a relative path, construct a full URL
           claimUrl = new URL(claimUrlParam, window.location.origin);
         }
 
-        console.log('🌐 Constructed claim URL:', {
-          href: claimUrl.href,
-          origin: claimUrl.origin,
-          pathname: claimUrl.pathname,
-          hash: claimUrl.hash,
-          search: claimUrl.search
-        });
-
-        // Extract naddr from pathname - it should be the entire path without leading slash
+        // Extract naddr from pathname
         const pathname = claimUrl.pathname;
-        console.log('📄 Raw pathname:', pathname);
-
-        // Handle case where pathname might be like "/naddr1..." or just "naddr1..."
         let naddr = pathname;
         if (pathname.startsWith('/')) {
           naddr = pathname.slice(1);
         }
 
-        // If the naddr starts with the origin, remove it (this would be the bug)
+        // If the naddr starts with the origin, remove it
         if (naddr.startsWith(claimUrl.origin)) {
           naddr = naddr.slice(claimUrl.origin.length);
           if (naddr.startsWith('/')) {
@@ -282,24 +156,12 @@ export default function CreateCache() {
           }
         }
 
-        console.log('🎯 Extracted naddr:', naddr);
-
         // Extract nsec from hash
         const nsec = parseVerificationFromHash(claimUrl.hash);
-        console.log('🔑 Extracted nsec:', nsec ? nsec.substring(0, 20) + '...' : null);
 
         if (naddr && nsec) {
           try {
-            console.log('🔍 Attempting to decode naddr:', naddr);
             const decodedNaddr = naddrToGeocache(naddr);
-
-            console.log('✅ Decoded naddr successfully:', {
-              pubkey: decodedNaddr.pubkey,
-              identifier: decodedNaddr.identifier,
-              kind: decodedNaddr.kind,
-              userPubkey: user.pubkey,
-              matches: decodedNaddr.pubkey === user.pubkey
-            });
 
             if (decodedNaddr.pubkey === user.pubkey) {
               // Decode the nsec to get the private key bytes
@@ -307,22 +169,14 @@ export default function CreateCache() {
 
               // Import the private key and derive the public key
               const { getPublicKey } = await import('nostr-tools');
-
-              // The privateKeyBytes is already a Uint8Array, which is what getPublicKey expects
               const publicKeyHex = getPublicKey(privateKeyBytes as Uint8Array);
-
-              console.log('🔑 Derived key pair:', {
-                publicKey: publicKeyHex,
-                publicKeyShort: `${publicKeyHex.substring(0, 10)}...`,
-                nsec: nsec.substring(0, 20) + '...'
-              });
 
               // Store the complete, valid keypair
               setImportedVerificationKeyPair({
                 nsec: nsec,
-                privateKey: privateKeyBytes, // Keep as Uint8Array to match interface
+                privateKey: privateKeyBytes,
                 publicKey: publicKeyHex,
-                npub: nip19.npubEncode(publicKeyHex), // Add npub to match interface
+                npub: nip19.npubEncode(publicKeyHex),
               });
 
               setImportedDTag(decodedNaddr.identifier);
@@ -333,10 +187,6 @@ export default function CreateCache() {
                 description: t('createCache.claimUrl.imported.description'),
               });
             } else {
-              console.log('❌ Pubkey mismatch:', {
-                decodedPubkey: decodedNaddr.pubkey,
-                userPubkey: user.pubkey
-              });
               toast({
                 title: t('createCache.claimUrl.invalid.title'),
                 description: t('createCache.claimUrl.invalid.wrongAccount'),
@@ -344,7 +194,7 @@ export default function CreateCache() {
               });
             }
           } catch (decodeError) {
-            console.error('❌ Failed to decode naddr:', naddr, decodeError);
+            console.error('Failed to decode naddr:', naddr, decodeError);
             toast({
               title: t('createCache.claimUrl.invalid.title'),
               description: t('createCache.claimUrl.invalid.decodeFailed'),
@@ -352,7 +202,6 @@ export default function CreateCache() {
             });
           }
         } else {
-          console.log('❌ Missing naddr or nsec:', { naddr, nsec });
           toast({
             title: t('createCache.claimUrl.invalid.title'),
             description: t('createCache.claimUrl.invalid.missingInfo'),
@@ -360,7 +209,7 @@ export default function CreateCache() {
           });
         }
       } catch (error) {
-        console.error('❌ Failed to parse claim URL:', { claimUrlParam, error });
+        console.error('Failed to parse claim URL:', error);
         toast({
           title: t('createCache.claimUrl.invalid.title'),
           description: t('createCache.claimUrl.invalid.notValid'),
@@ -370,18 +219,19 @@ export default function CreateCache() {
     };
 
     processClaimUrl();
-  }, [searchParams, user, importedDTag, importedVerificationKeyPair, toast, t]); // Add all dependencies
+  }, [searchParams, user, importedDTag, importedVerificationKeyPair, toast, t]);
 
   // Handle location verification when location changes
   const handleLocationChange = async (newLocation: { lat: number; lng: number } | null) => {
     setLocation(newLocation);
+    setLocationConfirmed(false); // Reset confirmation when location changes
 
     if (newLocation && currentStep === 1) {
       setIsVerifying(true);
       try {
         const verification = await verifyLocation(newLocation.lat, newLocation.lng);
         setLocationVerification(verification);
-      } catch (error) {
+      } catch {
         // Set a fallback verification with warning
         setLocationVerification({
           isRestricted: false,
@@ -427,11 +277,11 @@ export default function CreateCache() {
     if (draft?.location && currentStep === 1) {
       handleLocationChange(draft.location);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Prevent default form submission - we handle creation in handleCreateGeocache
   };
 
   const handleCreateGeocache = async () => {
@@ -463,64 +313,36 @@ export default function CreateCache() {
     }
 
     try {
-      console.log('🚀 Starting geocache creation...', {
-        name: formData.name,
-        location,
-        importedDTag,
-        importedKind,
-        difficulty: parseInt(formData.difficulty),
-        terrain: parseInt(formData.terrain),
-        verificationKeyPair: importedVerificationKeyPair,
-      });
-
-      // Location was already confirmed on step 1, so create directly
       const result = await createGeocache({
         ...formData,
         location,
         images,
         difficulty: parseInt(formData.difficulty),
         terrain: parseInt(formData.terrain),
-        dTag: importedDTag || undefined, // Use imported dTag if available
-        verificationKeyPair: importedVerificationKeyPair || undefined, // Use imported verification keypair if available
-        kind: importedKind || undefined, // Use imported kind if available
+        dTag: importedDTag || undefined,
+        verificationKeyPair: importedVerificationKeyPair || undefined,
+        kind: importedKind || undefined,
       });
 
-      console.log('✅ Geocache creation successful:', result);
+      const { event, geocache } = result;
 
-      const { event } = result;
-
-      // We have the geocache data already, so we can navigate directly with the data
-      const { geocache } = result;
-
-      // Generate naddr for the created cache (for URL consistency)
-      const dTag = event.tags.find((t: string[]) => t[0] === 'd')?.[1];
-      console.log('🏷️ Extracted dTag:', dTag);
+      // Generate naddr for the created cache
+      const dTag = event.tags.find((tag: string[]) => tag[0] === 'd')?.[1];
 
       if (dTag && geocache) {
-        const relays = event.tags.filter((t: string[]) => t[0] === 'relay').map((t: string[]) => t[1]);
-        console.log('🔗 Extracted relays:', relays);
-
+        const relays = event.tags.filter((tag: string[]) => tag[0] === 'relay').map((tag: string[]) => tag[1]);
         const { geocacheToNaddr } = await import('@/utils/naddr-utils');
 
-        // If this was created from a claim URL, don't include relays in the naddr
-        // Otherwise, include relays for regular cache creation
-        const includeRelays = !importedDTag; // Only include relays if not from claim URL
+        const includeRelays = !importedDTag;
         const naddr = geocacheToNaddr(event.pubkey, dTag, relays as string[], event.kind, includeRelays);
-
-        console.log('🎯 Generated naddr:', naddr);
-        console.log('🧭 Navigating to:', `/${naddr}`);
-        console.log('📡 Include relays:', includeRelays);
 
         toast({
           title: t('createCache.publish.success.title'),
           description: t('createCache.publish.success.redirecting'),
         });
 
-        // Clear the draft since cache was created successfully
         clearDraft();
 
-        // Navigate to the newly created cache with the data we already have
-        // This prevents the "not found" issue while relay propagation happens
         navigate(`/${naddr}`, {
           state: {
             geocacheData: geocache,
@@ -528,8 +350,6 @@ export default function CreateCache() {
           }
         });
       } else {
-        console.error('❌ No dTag found in event tags:', event.tags);
-        // Fallback: navigate to home if we can't generate naddr
         toast({
           title: t('createCache.publish.success.title'),
           description: t('createCache.publish.success.noLink'),
@@ -537,8 +357,7 @@ export default function CreateCache() {
         navigate('/');
       }
     } catch (error) {
-      console.error('❌ Failed to create geocache:', error);
-      // Show more detailed error to user
+      console.error('Failed to create geocache:', error);
       toast({
         title: t('createCache.publish.failed.title'),
         description: error instanceof Error ? error.message : t('createCache.publish.failed.unknown'),
@@ -547,17 +366,67 @@ export default function CreateCache() {
     }
   };
 
-  const handleLocationConfirm = () => {
-    setShowConfirmDialog(false);
-    // Move to next step after confirming location
-    setCurrentStep(2);
+  // Step validation logic
+  const validateAndAdvance = () => {
+    if (currentStep === 1) {
+      if (!location) {
+        toast({
+          title: t('createCache.stepValidation.locationRequired.title'),
+          description: t('createCache.stepValidation.locationRequired.description'),
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!locationVerification) {
+        toast({
+          title: t('createCache.locationVerification.title'),
+          description: t('createCache.locationVerification.description'),
+          variant: "default",
+        });
+        return;
+      }
+      if (!locationConfirmed) {
+        toast({
+          title: "Please confirm the location",
+          description: "Check the box to confirm the location is appropriate before continuing.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Check for restricted location warning
+      const summary = getVerificationSummary(locationVerification);
+      if (summary.status === 'restricted' && !locationConfirmed) {
+        toast({
+          title: "Location has restrictions",
+          description: "Please review and confirm the location despite warnings.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setCurrentStep(2);
+      return;
+    }
+
+    if (currentStep === 2) {
+      if (!formData.name.trim() || !formData.description.trim()) {
+        toast({
+          title: t('createCache.stepValidation.fieldsRequired.title'),
+          description: t('createCache.stepValidation.fieldsRequired.description'),
+          variant: "destructive",
+        });
+        return;
+      }
+      setCurrentStep(3);
+      return;
+    }
+
+    if (currentStep === 3) {
+      setCurrentStep(4);
+      return;
+    }
   };
 
-  const handleLocationReview = () => {
-    setShowConfirmDialog(false);
-    // User stays on step 1 to modify the location
-  };
-
+  // Login gate
   if (!user) {
     return (
       <PageLayout maxWidth="md" className="py-16">
@@ -570,97 +439,38 @@ export default function CreateCache() {
     );
   }
 
-
+  // Determine verification status for inline confirmation
+  const verificationSummary = locationVerification ? getVerificationSummary(locationVerification) : null;
+  const hasWarnings = verificationSummary?.status === 'restricted';
 
   return (
-    <PageLayout maxWidth="2xl" background="default" className={showQROverlay ? "h-screen" : "pb-4 md:pb-0"}>
-      {/* QR Code Choice - Bigger prettier buttons */}
-      {showQROverlay ? (
-        <div className="h-full flex items-center justify-center">
-          <div className="max-w-lg mx-auto space-y-4 px-4">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl text-foreground font-bold mb-2">{t('createCache.overlay.title')}</h2>
-                <p className="text-sm text-muted-foreground">{t('createCache.overlay.description')}</p>
-              </div>
-
-              <div className="space-y-4">
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
-                  <CardContent
-                    className="p-6"
-                    onClick={() => navigate('/generate-qr')}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-primary-100 dark:bg-primary-100 rounded-full">
-                        <QrCode className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1">{t('createCache.overlay.qrOption.title')}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {t('createCache.overlay.qrOption.description')}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
-                  <CardContent
-                    className="p-6"
-                    onClick={() => setShowQROverlay(false)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                        <Edit3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1">{t('createCache.overlay.formOption.title')}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {t('createCache.overlay.formOption.description')}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+    <PageLayout maxWidth="2xl" background="default" className="pb-4 md:pb-0">
+      <div className="max-w-2xl mx-auto create-cache-container">
+        {/* Header */}
+        <div className="px-4 py-6 md:px-0">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-foreground">{t('createCache.title')}</h1>
+            </div>
+            <div className="flex gap-2 ml-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/generate-qr')}
+                title="Generate QR Codes"
+              >
+                <QrCode className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
+          <p className="text-sm text-muted-foreground">
+            {t('createCache.description')}
+          </p>
         </div>
-      ) : (
-        <div className="max-w-2xl mx-auto create-cache-container">
-          {/* Header - mobile only */}
-            <div className="md:hidden px-4 py-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-foreground">{t('createCache.title')}</h1>
-                </div>
-                <div className="flex gap-2 ml-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/generate-qr')}
-                  >
-                    <QrCode className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <p className="text-muted-foreground">
-                {t('createCache.description')}
-              </p>
-            </div>
 
-            {/* Desktop Card Header */}
-            <Card className="hidden md:block">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-foreground">{t('createCache.title')}</CardTitle>
-                <CardDescription>
-                  Create a new geocache for others to discover. Choose your difficulty and terrain ratings carefully -
-                  they help seekers know what to expect and prepare appropriately.
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+        {/* Form - single responsive layout */}
+        <div className="md:rounded-lg md:border md:bg-card md:shadow-sm">
+          <div className="px-4 md:p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Draft Notice */}
               {showDraftNotice && (
@@ -683,21 +493,37 @@ export default function CreateCache() {
                 </Alert>
               )}
 
-              {/* Progress Indicator */}
-              <div className="flex items-center justify-center mb-4 px-4 overflow-hidden create-cache-progress">
-                <div className="flex items-center w-full max-w-xs min-w-0">
-                  {[1, 2, 3, 4].map((step, index) => (
-                    <React.Fragment key={step}>
-                      <div className={`w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs xs:text-sm font-medium shrink-0 ${
-                        step < currentStep ? 'bg-primary text-primary-foreground' :
-                        step === currentStep ? 'bg-primary text-primary-foreground' :
-                        'bg-secondary text-muted-foreground'
-                      }`}>
-                        {step < currentStep ? '✓' : step}
+              {/* Progress Indicator with Labels */}
+              <div className="flex items-center justify-center mb-4 px-2 overflow-hidden create-cache-progress">
+                <div className="flex items-center w-full max-w-md min-w-0">
+                  {STEPS.map((step, index) => (
+                    <React.Fragment key={step.number}>
+                      <div className="flex flex-col items-center shrink-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                          step.number < currentStep ? 'bg-primary text-primary-foreground' :
+                          step.number === currentStep ? 'bg-primary text-primary-foreground' :
+                          'bg-secondary text-muted-foreground'
+                        }`}>
+                          {step.number < currentStep ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <step.icon className="h-4 w-4" />
+                          )}
+                        </div>
+                        {/* Show label for current step always, others on md+ */}
+                        <span className={`text-[10px] mt-1 font-medium whitespace-nowrap ${
+                          step.number === currentStep
+                            ? 'text-primary'
+                            : step.number < currentStep
+                              ? 'text-primary/70 hidden md:block'
+                              : 'text-muted-foreground hidden md:block'
+                        }`}>
+                          {step.label}
+                        </span>
                       </div>
-                      {index < totalSteps - 1 && (
-                        <div className={`h-0.5 xs:h-1 mx-0.5 xs:mx-1 sm:mx-2 flex-1 min-w-[0.5rem] ${
-                          step < currentStep ? 'bg-primary' : 'bg-secondary'
+                      {index < TOTAL_STEPS - 1 && (
+                        <div className={`h-0.5 mx-1 sm:mx-2 flex-1 min-w-[1rem] mb-4 md:mb-5 ${
+                          step.number < currentStep ? 'bg-primary' : 'bg-secondary'
                         }`} />
                       )}
                     </React.Fragment>
@@ -705,13 +531,22 @@ export default function CreateCache() {
                 </div>
               </div>
 
-              {/* Step Content */}
+              {/* === STEP 1: Choose Location === */}
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
                     <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step1.title')}</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step1.description')}</p>
+                    <p className="text-sm text-muted-foreground">{t('createCache.step1.description')}</p>
                   </div>
+
+                  {/* What you'll need hint - only shown on first visit */}
+                  {!draft && !location && (
+                    <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                      <AlertDescription className="text-sm">
+                        <span className="font-medium">What you&apos;ll need:</span> A GPS location where you&apos;ve placed (or plan to place) your cache, a name and description, and optionally some photos of the area.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   <LocationPicker
                     value={location}
@@ -728,23 +563,55 @@ export default function CreateCache() {
                   {locationVerification && (
                     <LocationWarnings
                       verification={locationVerification}
-                      hideCreatorWarnings={true}
+                      hideCreatorWarnings={false}
                     />
                   )}
 
-                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                    <AlertDescription className="text-sm">
-                      {t('createCache.step1.permissionWarning')}
-                    </AlertDescription>
-                  </Alert>
+                  {/* Inline location confirmation (replaces AlertDialog) */}
+                  {location && locationVerification && !isVerifying && (
+                    <div className={`rounded-lg border p-4 space-y-3 ${
+                      hasWarnings
+                        ? 'border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20'
+                        : 'border-green-200 bg-green-50 dark:bg-green-950/20'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        {hasWarnings ? (
+                          <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                        ) : (
+                          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-foreground">
+                              {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="location-confirm"
+                              checked={locationConfirmed}
+                              onCheckedChange={(checked) => setLocationConfirmed(checked === true)}
+                            />
+                            <Label htmlFor="location-confirm" className="text-sm cursor-pointer text-foreground leading-snug">
+                              {hasWarnings
+                                ? "I acknowledge the warnings and confirm this location is appropriate, publicly accessible, and safe for seekers."
+                                : "I confirm this location has permission, is publicly accessible, and is safe for seekers."
+                              }
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
+              {/* === STEP 2: Cache Details + Type + Size === */}
               {currentStep === 2 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
                     <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step2.title')}</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step2.description')}</p>
+                    <p className="text-sm text-muted-foreground">{t('createCache.step2.description')}</p>
                   </div>
 
                   <CacheNameField
@@ -763,14 +630,10 @@ export default function CreateCache() {
                     value={formData.hint}
                     onChange={(value) => setFormData({...formData, hint: value})}
                   />
-                </div>
-              )}
 
-              {currentStep === 3 && (
-                <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step3.title')}</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step3.description')}</p>
+                  {/* Divider */}
+                  <div className="border-t pt-4">
+                    <p className="text-xs text-muted-foreground mb-3">What kind of container are seekers looking for?</p>
                   </div>
 
                   <CacheTypeField
@@ -778,6 +641,22 @@ export default function CreateCache() {
                     value={formData.type}
                     onChange={(value) => setFormData({...formData, type: value})}
                   />
+
+                  <CacheSizeField
+                    fieldId="cache-size"
+                    value={formData.size}
+                    onChange={(value) => setFormData({...formData, size: value})}
+                  />
+                </div>
+              )}
+
+              {/* === STEP 3: Difficulty + Terrain === */}
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step3.title')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('createCache.step3.description')}</p>
+                  </div>
 
                   <CacheDifficultyField
                     fieldId="cache-difficulty"
@@ -791,19 +670,26 @@ export default function CreateCache() {
                     onChange={(value) => setFormData({...formData, terrain: value})}
                   />
 
-                  <CacheSizeField
-                    fieldId="cache-size"
-                    value={formData.size}
-                    onChange={(value) => setFormData({...formData, size: value})}
-                  />
+                  {/* Live rating preview */}
+                  <div className="bg-muted/20 border border-muted rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">How this will appear to seekers</h4>
+                    <DifficultyTerrainRating
+                      difficulty={parseInt(formData.difficulty) || 1}
+                      terrain={parseInt(formData.terrain) || 1}
+                      cacheSize={formData.size}
+                      showLabels={true}
+                      size="default"
+                    />
+                  </div>
                 </div>
               )}
 
+              {/* === STEP 4: Photos & Final Touches === */}
               {currentStep === 4 && (
                 <div className="space-y-4">
                   <div className="text-center mb-4">
                     <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step4.title')}</h3>
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('createCache.step4.description')}</p>
+                    <p className="text-sm text-muted-foreground">{t('createCache.step4.description')}</p>
                   </div>
 
                   <CacheImageManager
@@ -822,12 +708,24 @@ export default function CreateCache() {
                     onChange={(checked) => setFormData({...formData, hidden: checked})}
                   />
 
-                  {/* Preview */}
+                  {/* Full Preview Card */}
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
                     <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.preview.title')}</h4>
-                    <div className="space-y-2">
-                      <h5 className="font-medium text-foreground">{formData.name || "Your Cache Name"}</h5>
+                    <div className="space-y-3">
+                      <h5 className="font-medium text-foreground text-lg">{formData.name || "Your Cache Name"}</h5>
                       <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
+                      {images.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {images.filter(url => url).map((url, index) => (
+                            <img
+                              key={index}
+                              src={url}
+                              alt={`Preview ${index + 1}`}
+                              className="h-16 w-16 rounded object-cover border"
+                            />
+                          ))}
+                        </div>
+                      )}
                       <DifficultyTerrainRating
                         difficulty={parseInt(formData.difficulty) || 1}
                         terrain={parseInt(formData.terrain) || 1}
@@ -835,13 +733,22 @@ export default function CreateCache() {
                         showLabels={true}
                         size="small"
                       />
+                      {formData.hint && (
+                        <p className="text-xs text-muted-foreground italic">Hint: {formData.hint}</p>
+                      )}
+                      {location && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-4 pb-4 md:pb-0">
                 {currentStep > 1 && (
                   <Button
                     type="button"
@@ -849,49 +756,17 @@ export default function CreateCache() {
                     onClick={() => setCurrentStep(currentStep - 1)}
                     className="flex-1"
                   >
-                    ← {t('common.previous')}
+                    &larr; {t('common.previous')}
                   </Button>
                 )}
 
-                {currentStep < totalSteps ? (
+                {currentStep < TOTAL_STEPS ? (
                   <Button
                     type="button"
-                    onClick={() => {
-                      // Validate current step
-                      if (currentStep === 1 && !location) {
-                        toast({
-                          title: t('createCache.stepValidation.locationRequired.title'),
-                          description: t('createCache.stepValidation.locationRequired.description'),
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-                      if (currentStep === 1 && location && !locationVerification) {
-                        toast({
-                          title: t('createCache.locationVerification.title'),
-                          description: t('createCache.locationVerification.description'),
-                          variant: "default",
-                        });
-                        return;
-                      }
-                      if (currentStep === 1 && location && locationVerification) {
-                        // Show confirmation dialog for step 1
-                        setShowConfirmDialog(true);
-                        return;
-                      }
-                      if (currentStep === 2 && (!formData.name.trim() || !formData.description.trim())) {
-                        toast({
-                          title: t('createCache.stepValidation.fieldsRequired.title'),
-                          description: t('createCache.stepValidation.fieldsRequired.description'),
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-                      setCurrentStep(currentStep + 1);
-                    }}
+                    onClick={validateAndAdvance}
                     className="flex-1"
                   >
-                    {t('common.next')} →
+                    {t('common.next')} &rarr;
                   </Button>
                 ) : (
                   <Button
@@ -918,377 +793,9 @@ export default function CreateCache() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-
-            {/* Mobile Form - no card wrapper */}
-            <div className="md:hidden px-4 pb-4 bg-background">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Draft Notice */}
-            {showDraftNotice && (
-              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                <AlertDescription className="flex items-center justify-between">
-                  <span className="text-sm flex items-center gap-2">
-                    <FileEdit className="h-4 w-4" />
-                    Continuing your draft.
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={startFresh}
-                    className="ml-2"
-                  >
-                    Start Fresh
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-4 px-2 overflow-hidden create-cache-progress">
-              <div className="flex items-center w-full max-w-xs min-w-0">
-                {[1, 2, 3, 4].map((step, index) => (
-                  <React.Fragment key={step}>
-                    <div className={`w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs xs:text-sm font-medium shrink-0 ${
-                      step < currentStep ? 'bg-primary text-primary-foreground' :
-                        step === currentStep ? 'bg-primary text-primary-foreground' :
-                        'bg-secondary text-muted-foreground'
-                      }`}>
-                        {step < currentStep ? '✓' : step}
-                      </div>
-                      {index < totalSteps - 1 && (
-                        <div className={`h-0.5 xs:h-1 mx-0.5 xs:mx-1 sm:mx-2 flex-1 min-w-[0.5rem] ${
-                          step < currentStep ? 'bg-primary' : 'bg-secondary'
-                      }`} />
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-
-            {/* Step Content */}
-            {currentStep === 1 && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">Choose the location</h3>
-                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Where will seekers find your geocache?</p>
-                </div>
-
-                <LocationPicker
-                  value={location}
-                  onChange={handleLocationChange}
-                />
-
-                {isVerifying && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 dark:bg-muted rounded-lg p-3">
-                    <CompassSpinner size={16} variant="component" />
-                    Checking location restrictions...
-                  </div>
-                )}
-
-                {locationVerification && (
-                  <LocationWarnings
-                    verification={locationVerification}
-                    hideCreatorWarnings={true}
-                  />
-                )}
-
-                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                  <AlertDescription className="text-sm">
-                    Ensure you have permission to place a cache here and that it's publicly accessible.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-
-            {currentStep === 2 && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">Tell us about your cache</h3>
-                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Give your geocache a name and description</p>
-                </div>
-
-                <CacheNameField
-                  value={formData.name}
-                  onChange={(value) => setFormData({...formData, name: value})}
-                  required={true}
-                />
-
-                <CacheDescriptionField
-                  value={formData.description}
-                  onChange={(value) => setFormData({...formData, description: value})}
-                  required={true}
-                />
-
-                <CacheHintField
-                  value={formData.hint}
-                  onChange={(value) => setFormData({...formData, hint: value})}
-                />
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">Set the challenge level</h3>
-                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers know what to expect</p>
-                </div>
-
-                <CacheTypeField
-                  fieldId="cache-type-mobile"
-                  value={formData.type}
-                  onChange={(value) => setFormData({...formData, type: value})}
-                />
-
-                <CacheDifficultyField
-                  fieldId="cache-difficulty-mobile"
-                  value={formData.difficulty}
-                  onChange={(value) => setFormData({...formData, difficulty: value})}
-                />
-
-                <CacheTerrainField
-                  fieldId="cache-terrain-mobile"
-                  value={formData.terrain}
-                  onChange={(value) => setFormData({...formData, terrain: value})}
-                />
-
-                <CacheSizeField
-                  fieldId="cache-size-mobile"
-                  value={formData.size}
-                  onChange={(value) => setFormData({...formData, size: value})}
-                />
-              </div>
-            )}
-
-            {currentStep === 4 && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">Add photos & final touches</h3>
-                  <p className="text-sm text-gray-600 dark:text-muted-foreground">Help seekers identify the area</p>
-                </div>
-
-                <CacheImageManager
-                  images={images}
-                  onImagesChange={setImages}
-                  disabled={isPending || isVerifying}
-                />
-
-                <CacheHiddenField
-                  checked={formData.hidden || false}
-                  onChange={(checked) => setFormData({...formData, hidden: checked})}
-                />
-
-                {/* Preview */}
-                <div className="bg-muted/20 border border-muted rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.preview.title')}</h4>
-                  <div className="space-y-2">
-                    <h5 className="font-medium text-foreground">{formData.name || "Your Cache Name"}</h5>
-                    <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
-                    <DifficultyTerrainRating
-                      difficulty={parseInt(formData.difficulty) || 1}
-                      terrain={parseInt(formData.terrain) || 1}
-                      cacheSize={formData.size}
-                      showLabels={true}
-                      size="small"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex gap-4 pt-4">
-              {currentStep > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  className="flex-1"
-                >
-                  ← Previous
-                </Button>
-              )}
-
-              {currentStep < totalSteps ? (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    // Validate current step
-                    if (currentStep === 1 && !location) {
-                      toast({
-                        title: "Please select a location",
-                        description: "Location is required to continue",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    if (currentStep === 1 && location && !locationVerification) {
-                      toast({
-                        title: t('createCache.locationVerification.title'),
-                        description: t('createCache.locationVerification.description'),
-                        variant: "default",
-                      });
-                      return;
-                    }
-                    if (currentStep === 1 && location && locationVerification) {
-                      // Show confirmation dialog for step 1
-                      setShowConfirmDialog(true);
-                      return;
-                    }
-                    if (currentStep === 2 && (!formData.name.trim() || !formData.description.trim())) {
-                      toast({
-                        title: "Please complete required fields",
-                        description: "Name and description are required",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    setCurrentStep(currentStep + 1);
-                  }}
-                  className="flex-1"
-                >
-                  Next →
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={handleCreateGeocache}
-                  disabled={isPending || isVerifying}
-                  className="flex-1"
-                >
-                  {isVerifying ? (
-                    <>
-                      <CompassSpinner size={16} variant="component" className="mr-2" />
-                      {t('createCache.verifyingLocation')}
-                    </>
-                  ) : isPending ? (
-                    t('createCache.creating')
-                  ) : (
-                    t('createCache.createButton')
-                  )}
-                </Button>
-              )}
-
-              <Button type="button" variant="outline" onClick={() => navigate("/")}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-            </div>
-
-          {/* Location Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('createCache.confirmLocation.title')}</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                {location && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Map Preview & Coordinates */}
-                    <div className="space-y-2">
-                      <div className="h-32 w-full rounded-md overflow-hidden border">
-                        <div className="h-32 w-full" style={{ minHeight: '128px' }}>
-                          <MapContainer
-                            center={[location.lat, location.lng]}
-                            zoom={16}
-                            style={{ height: "128px", width: "100%", minHeight: "128px" }}
-                            className="confirm-map-container"
-                            scrollWheelZoom={false}
-                            dragging={false}
-                            zoomControl={false}
-                            doubleClickZoom={false}
-                            attributionControl={false}
-                            touchZoom={false}
-                          >
-                          <TileLayer
-                            attribution={mapStyle?.attribution}
-                            url={mapStyle?.url || ""}
-                            maxZoom={19}
-                          />
-                          <MapResizer location={location} />
-                          <Marker
-                            position={[location.lat, location.lng]}
-                            icon={mapIcons.droppedPin}
-                          />
-                        </MapContainer>
-                        </div>
-                      </div>
-                      <div className="bg-muted/50 dark:bg-muted p-2 rounded text-center">
-                        <div className="font-mono text-xs">
-                          {location.lat}, {location.lng}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Confirmation */}
-                    <div className="flex items-center">
-                      <div className="text-sm">
-                        <div className="font-medium mb-2 text-foreground">{t('createCache.confirmLocation.confirmLabel')}</div>
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>{t('createCache.confirmLocation.permission')}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>{t('createCache.confirmLocation.accessible')}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>{t('createCache.confirmLocation.safe')}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>{t('createCache.confirmLocation.accurate')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Location Analysis */}
-                {locationVerification && (
-                  <LocationWarnings
-                    verification={locationVerification}
-                    className="space-y-2"
-                    hideCreatorWarnings={false}
-                  />
-                )}
-
-
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel onClick={handleLocationReview}>{t('createCache.confirmLocation.review')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleLocationConfirm}
-              className={`flex items-center gap-2 ${
-                locationVerification && getVerificationSummary(locationVerification).status === 'restricted'
-                  ? 'bg-yellow-600 hover:bg-yellow-700'
-                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
-              }`}
-            >
-              {locationVerification && getVerificationSummary(locationVerification).status === 'restricted' ? (
-                <>
-                  <AlertTriangle className="h-4 w-4" />
-                  {t('createCache.confirmLocation.useDespiteWarnings')}
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4" />
-                  {t('createCache.confirmLocation.useLocation')}
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </div>
         </div>
-      )}
+      </div>
     </PageLayout>
   );
 }

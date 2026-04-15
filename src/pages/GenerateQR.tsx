@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { QrCode, Download, Copy, ChevronDown, Printer } from "lucide-react";
+import { QrCode, Download, Copy, Printer, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,6 +34,15 @@ const customConfig: Config = {
   length: 3,
 };
 
+type QrStyle = "full" | "cutout" | "micro" | "sheet" | "stamp";
+
+const QR_STYLES: { value: QrStyle; label: string; description: string }[] = [
+  { value: "full", label: "Full", description: "Standard size with branding" },
+  { value: "cutout", label: "Cutout", description: "Center cutout for custom labels" },
+  { value: "micro", label: "Micro", description: "Compact — fits in small containers" },
+  { value: "sheet", label: "Sheet (9)", description: "Print 9 at once for multiple hides" },
+];
+
 export default function GenerateQR() {
   const { t } = useTranslation();
   const { user } = useCurrentUser();
@@ -44,11 +53,13 @@ export default function GenerateQR() {
   const [verificationKeyPair, setVerificationKeyPair] = useState<VerificationKeyPair | null>(null);
   const [naddr, setNaddr] = useState<string>('');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [qrType, setQrType] = useState<'full' | 'cutout' | 'micro' | 'sheet' | 'stamp'>('full');
+  const [qrType, setQrType] = useState<QrStyle>('full');
   const [sheetData, setSheetData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
   const [, setStampData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
 
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const isBulkType = qrType === 'sheet' || qrType === 'stamp';
 
   useEffect(() => {
     if (!user) return;
@@ -96,7 +107,6 @@ export default function GenerateQR() {
         });
         setQrDataUrl(gridUrl);
       } else if (qrType === 'stamp') {
-        // Generate 42 codes for stamp (6x7 grid)
         const dataPromises = [];
         for (let i = 0; i < 42; i++) {
           const name = uniqueNamesGenerator(customConfig);
@@ -142,14 +152,10 @@ export default function GenerateQR() {
       const iframeDoc = iframe.contentDocument;
       if (!iframeDoc) return;
 
-      // Detect if this is a grid (sheet or stamp) type
       const isGrid = qrType === 'sheet' || qrType === 'stamp';
-
-      // Detect mobile for adjusted margins
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const gridMargin = isMobile ? '0.4in' : '0.25in';
 
-      // Write proper HTML with print styles for mobile compatibility
       iframeDoc.write(`
         <!DOCTYPE html>
         <html>
@@ -236,17 +242,15 @@ export default function GenerateQR() {
   // Additional effect to handle QR type changes more robustly
   useEffect(() => {
     if (qrType && naddr && verificationKeyPair && qrDataUrl) {
-      // Clear current QR code immediately to show loading state
       setQrDataUrl('');
       setIsGenerating(true);
 
-      // Small delay to ensure state updates are processed
       setTimeout(() => {
         generateQR();
       }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qrType]); // Only trigger on qrType changes
+  }, [qrType]);
 
   if (!user) {
     return (
@@ -271,126 +275,169 @@ export default function GenerateQR() {
 
       <PageHero icon={QrCode} title={t('generateQR.title')} description={t('generateQR.description')}>
         <div className="container mx-auto px-4 max-w-md pb-12">
-        {/* QR Preview card */}
-        <div className="rounded-xl border bg-card p-5 md:p-6 mb-6 text-center">
-          <div className="flex justify-center mb-4">
-            {isGenerating ? (
-              <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
-                <ComponentLoading size="sm" title={t('generateQR.generating')} />
-              </div>
-            ) : qrDataUrl ? (
-              <div className="bg-white p-3 rounded-lg inline-block">
-                <img
-                  src={qrDataUrl}
-                  alt={t('generateQR.qrCodeAlt')}
-                  className="w-52 h-auto rounded object-contain"
-                />
-              </div>
-            ) : (
-              <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground text-center">{t('generateQR.placeholder')}</p>
-              </div>
-            )}
-          </div>
+          {/* Single unified card */}
+          <div className="rounded-xl border bg-card p-5 md:p-6 mb-6">
 
-          <div className="flex justify-center gap-2 flex-wrap">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  {t('generateQR.style')}
-                  <ChevronDown className="h-3.5 w-3.5 ml-1.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setQrType('full')}>{t('generateQR.styleFull')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('cutout')}>{t('generateQR.styleCutout')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('micro')}>{t('generateQR.styleMicro')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('sheet')}>{t('generateQR.styleSheet')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setQrType('stamp')}>{t('generateQR.styleStamp')}</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button size="sm" onClick={handleDownloadQR} disabled={!qrDataUrl}>
-              <Download className="h-4 w-4 mr-1.5" />
-              {t('generateQR.download')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!qrDataUrl}>
-              <Printer className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+            {/* 1. QR Preview */}
+            <div className="text-center mb-5">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <QrCode className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">{t('generateQR.preview.heading')}</h2>
+              </div>
 
-        {/* Details card */}
-        <div className="rounded-xl border bg-card p-5 md:p-6 mb-8 text-left">
-          {qrType === 'sheet' ? (
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">{t('generateQR.sheet.title')}</h2>
-              <p className="text-xs text-muted-foreground mb-3">{t('generateQR.sheet.description')}</p>
-              <ul className="space-y-1.5">
-                {sheetData.map((data, index) => (
-                  <li key={index} className="flex items-center justify-between gap-2 p-2 border rounded-lg bg-muted/30">
-                    <span className="text-foreground font-mono text-xs truncate">{data.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 h-7 w-7"
-                      onClick={async () => {
-                        try {
-                          const claimUrl = `https://treasures.to/${data.naddr}#verify=${data.keyPair.nsec}`;
-                          await navigator.clipboard.writeText(claimUrl);
-                          toast({ title: t('generateQR.toast.claimUrlCopied') });
-                        } catch (error) {
-                          toast({ title: t('generateQR.toast.copyFailed'), variant: "destructive" });
-                        }
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : qrType === 'stamp' ? (
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">{t('generateQR.stamp.title')}</h2>
-              <p className="text-xs text-muted-foreground">{t('generateQR.stamp.description')}</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div>
-                <h2 className="text-sm font-semibold text-foreground">{t('generateQR.details.title')}</h2>
-                <p className="text-xs text-muted-foreground">{t('generateQR.details.description')}</p>
+              <div className="flex justify-center mb-4 mt-3">
+                {isGenerating ? (
+                  <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
+                    <ComponentLoading size="sm" title={t('generateQR.generating')} />
+                  </div>
+                ) : qrDataUrl ? (
+                  <div className="bg-white p-3 rounded-lg inline-block">
+                    <img
+                      src={qrDataUrl}
+                      alt={t('generateQR.qrCodeAlt')}
+                      className="w-52 h-auto rounded object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
+                    <p className="text-sm text-muted-foreground text-center">{t('generateQR.placeholder')}</p>
+                  </div>
+                )}
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">{t('generateQR.details.cacheName')}</label>
-                <p className="text-foreground font-mono p-2 border rounded-lg text-sm bg-muted/30">{cacheName}</p>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">{t('generateQR.details.claimUrl')}</label>
-                <div className="flex items-center gap-2">
-                  <code className="text-foreground bg-muted/30 px-2 py-1.5 rounded-lg text-xs break-all flex-1 overflow-x-auto whitespace-nowrap border">
-                    https://treasures.to/{naddr}#verify={verificationKeyPair?.nsec}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="flex-shrink-0 h-7 w-7"
-                    onClick={async () => {
-                      try {
-                        const claimUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair?.nsec}`;
-                        await navigator.clipboard.writeText(claimUrl);
-                        toast({ title: t('generateQR.toast.claimUrlCopied') });
-                      } catch (error) {
-                        toast({ title: t('generateQR.toast.copyFailed'), variant: "destructive" });
-                      }
-                    }}
+            </div>
+
+            {/* 2. Style pills with overflow menu */}
+            <div className="mb-5">
+              <p className="text-xs text-muted-foreground mb-2 text-center">Style</p>
+              <div className="flex flex-wrap gap-1.5 justify-center items-center">
+                {QR_STYLES.map((style) => (
+                  <button
+                    key={style.value}
+                    type="button"
+                    onClick={() => setQrType(style.value)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      qrType === style.value
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
                   >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
+                    {style.label}
+                  </button>
+                ))}
+                {/* Overflow menu for less common options */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={`px-2 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        qrType === 'stamp'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                      }`}
+                    >
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setQrType("stamp")}>
+                      Stamp (42) — bulk print grid
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+              {/* Description of selected style */}
+              <p className="text-[11px] text-muted-foreground text-center mt-1.5">
+                {qrType === 'stamp'
+                  ? '6×7 grid for bulk hiding'
+                  : QR_STYLES.find(s => s.value === qrType)?.description}
+              </p>
             </div>
-          )}
-        </div>
+
+            {/* 3. Primary actions: Download + Print */}
+            <div className="flex gap-2 justify-center mb-5">
+              <Button onClick={handleDownloadQR} disabled={!qrDataUrl} className="flex-1 max-w-[160px]">
+                <Download className="h-4 w-4 mr-1.5" />
+                {t('generateQR.download')}
+              </Button>
+              <Button variant="outline" onClick={handlePrint} disabled={!qrDataUrl} className="flex-1 max-w-[160px]">
+                <Printer className="h-4 w-4 mr-1.5" />
+                {t('generateQR.print')}
+              </Button>
+            </div>
+
+            {/* 4. Details section */}
+            <div className="border-t pt-5">
+              {qrType === 'sheet' ? (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1">{t('generateQR.sheet.title')}</h3>
+                  <p className="text-xs text-muted-foreground mb-3">{t('generateQR.sheet.description')}</p>
+                  <ul className="space-y-1.5">
+                    {sheetData.map((data, index) => (
+                      <li key={index} className="flex items-center justify-between gap-2 p-2 border rounded-lg bg-muted/30">
+                        <span className="text-foreground font-mono text-xs truncate">{data.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="flex-shrink-0 h-7 w-7"
+                          onClick={async () => {
+                            try {
+                              const claimUrl = `https://treasures.to/${data.naddr}#verify=${data.keyPair.nsec}`;
+                              await navigator.clipboard.writeText(claimUrl);
+                              toast({ title: t('generateQR.toast.claimUrlCopied') });
+                            } catch {
+                              toast({ title: t('generateQR.toast.copyFailed'), variant: "destructive" });
+                            }
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : isBulkType ? (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1">{t('generateQR.stamp.title')}</h3>
+                  <p className="text-xs text-muted-foreground">{t('generateQR.stamp.description')}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground mb-1">{t('generateQR.details.title')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('generateQR.details.description')}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">{t('generateQR.details.cacheName')}</label>
+                    <p className="text-foreground font-mono p-2 border rounded-lg text-sm bg-muted/30">{cacheName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">{t('generateQR.details.claimUrl')}</label>
+                    <div className="flex items-center gap-2">
+                      <code className="text-foreground bg-muted/30 px-2 py-1.5 rounded-lg text-xs break-all flex-1 overflow-x-auto whitespace-nowrap border">
+                        https://treasures.to/{naddr}#verify={verificationKeyPair?.nsec}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0 h-7 w-7"
+                        onClick={async () => {
+                          try {
+                            const claimUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair?.nsec}`;
+                            await navigator.clipboard.writeText(claimUrl);
+                            toast({ title: t('generateQR.toast.claimUrlCopied') });
+                          } catch {
+                            toast({ title: t('generateQR.toast.copyFailed'), variant: "destructive" });
+                          }
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </PageHero>
     </>
