@@ -553,6 +553,7 @@
   "locationInfo.criticalIssues": "Critical Issues",
   "locationInfo.locationWarning": "Location Warning",
   "locationInfo.locationNotice": "Location Notice",
+  "locationInfo.locationClear": "No issues detected",
   "locationInfo.additionalFeatures": "Additional Features",
   "locationInfo.otherDetails": "Other Details",
   "locationInfo.showLess": "Show less",

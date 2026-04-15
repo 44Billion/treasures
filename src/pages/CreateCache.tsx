@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, QrCode, FileEdit, MapPinned, FileText, Gauge, Camera } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PageLayout } from "@/components/PageLayout";
+import { PageHero } from "@/components/PageHero";
+import { DesktopHeader } from "@/components/DesktopHeader";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCreateGeocache } from "@/hooks/useCreateGeocache";
 import { LocationPicker } from "@/components/LocationPicker";
 import { useToast } from "@/hooks/useToast";
 import { verifyLocation, getVerificationSummary, type LocationVerification } from "@/utils/osmVerification";
-import { LocationWarnings } from "@/components/LocationWarnings";
 import { createDefaultGeocacheFormData } from "@/components/ui/geocache-form.utils";
 import type { GeocacheFormData } from "@/components/ui/geocache-form.types";
 import {
@@ -429,48 +428,39 @@ export default function CreateCache() {
   // Login gate
   if (!user) {
     return (
-      <PageLayout maxWidth="md" className="py-16">
-        <LoginRequiredCard
-          icon={MapPin}
-          description={t('createCache.loginRequired')}
-          className="max-w-md mx-auto"
-        />
-      </PageLayout>
+      <>
+        <DesktopHeader />
+        <PageHero title={t('createCache.title')} description={t('createCache.subtitle')}>
+          <div className="container mx-auto px-4 py-10 max-w-md">
+            <LoginRequiredCard
+              icon={MapPin}
+              description={t('createCache.loginRequired')}
+              className="max-w-md mx-auto"
+            />
+          </div>
+        </PageHero>
+      </>
     );
   }
 
   // Determine verification status for inline confirmation
   const verificationSummary = locationVerification ? getVerificationSummary(locationVerification) : null;
-  const hasWarnings = verificationSummary?.status === 'restricted';
+  const hasWarnings = verificationSummary?.status === 'restricted' || verificationSummary?.status === 'warning';
+
+  const stepDescriptions = [
+    t('createCache.step1.description'),
+    t('createCache.step2.description'),
+    t('createCache.step3.description'),
+    t('createCache.step4.description'),
+  ];
 
   return (
-    <PageLayout maxWidth="2xl" background="default" className="pb-4 md:pb-0">
-      <div className="max-w-2xl mx-auto create-cache-container">
-        {/* Header */}
-        <div className="px-4 py-6 md:px-0">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground">{t('createCache.title')}</h1>
-            </div>
-            <div className="flex gap-2 ml-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/generate-qr')}
-                title="Generate QR Codes"
-              >
-                <QrCode className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {t('createCache.description')}
-          </p>
-        </div>
-
-        {/* Form - single responsive layout */}
-        <div className="md:rounded-lg md:border md:bg-card md:shadow-sm">
-          <div className="px-4 md:p-6">
+    <>
+      <DesktopHeader />
+      <PageHero title={t('createCache.title')} description={stepDescriptions[currentStep - 1]}>
+        <div className="container mx-auto px-4 max-w-2xl pb-12">
+          {/* Form - single responsive layout */}
+          <div className="rounded-xl border bg-card p-5 md:p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Draft Notice */}
               {showDraftNotice && (
@@ -534,10 +524,6 @@ export default function CreateCache() {
               {/* === STEP 1: Choose Location === */}
               {currentStep === 1 && (
                 <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step1.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('createCache.step1.description')}</p>
-                  </div>
 
                   {/* What you'll need hint - only shown on first visit */}
                   {!draft && !location && (
@@ -560,16 +546,9 @@ export default function CreateCache() {
                     </div>
                   )}
 
-                  {locationVerification && (
-                    <LocationWarnings
-                      verification={locationVerification}
-                      hideCreatorWarnings={false}
-                    />
-                  )}
-
-                  {/* Inline location confirmation (replaces AlertDialog) */}
+                  {/* Inline location confirmation */}
                   {location && locationVerification && !isVerifying && (
-                    <div className={`rounded-lg border p-4 space-y-3 ${
+                    <div className={`rounded-lg border p-4 ${
                       hasWarnings
                         ? 'border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20'
                         : 'border-green-200 bg-green-50 dark:bg-green-950/20'
@@ -580,17 +559,29 @@ export default function CreateCache() {
                         ) : (
                           <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
                         )}
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-foreground">
-                              {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
+                        <div className="flex-1 space-y-3">
+                          <span className="text-sm font-medium text-foreground">
+                            {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                          </span>
+
+                          {/* Warning reasons */}
+                          {hasWarnings && locationVerification.warnings.length > 0 && (
+                            <ul className="text-xs text-yellow-800 dark:text-yellow-300 space-y-1">
+                              {locationVerification.warnings.map((w, i) => (
+                                <li key={i} className="flex items-start gap-1.5">
+                                  <span className="mt-0.5 shrink-0">•</span>
+                                  <span>{w.replace(/⚠️\s*/, '')}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                          <div className="flex items-start space-x-2">
                             <Checkbox
                               id="location-confirm"
                               checked={locationConfirmed}
                               onCheckedChange={(checked) => setLocationConfirmed(checked === true)}
+                              className="mt-0.5"
                             />
                             <Label htmlFor="location-confirm" className="text-sm cursor-pointer text-foreground leading-snug">
                               {hasWarnings
@@ -609,10 +600,6 @@ export default function CreateCache() {
               {/* === STEP 2: Cache Details + Type + Size === */}
               {currentStep === 2 && (
                 <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step2.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('createCache.step2.description')}</p>
-                  </div>
 
                   <CacheNameField
                     value={formData.name}
@@ -653,10 +640,6 @@ export default function CreateCache() {
               {/* === STEP 3: Difficulty + Terrain === */}
               {currentStep === 3 && (
                 <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step3.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('createCache.step3.description')}</p>
-                  </div>
 
                   <CacheDifficultyField
                     fieldId="cache-difficulty"
@@ -687,10 +670,6 @@ export default function CreateCache() {
               {/* === STEP 4: Photos & Final Touches === */}
               {currentStep === 4 && (
                 <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">{t('createCache.step4.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('createCache.step4.description')}</p>
-                  </div>
 
                   <CacheImageManager
                     images={images}
@@ -788,14 +767,12 @@ export default function CreateCache() {
                   </Button>
                 )}
 
-                <Button type="button" variant="outline" onClick={() => navigate("/")}>
-                  {t('common.cancel')}
-                </Button>
+
               </div>
             </form>
           </div>
         </div>
-      </div>
-    </PageLayout>
+      </PageHero>
+    </>
   );
 }

@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { HeroGallery } from "./HeroGallery";
 
 interface PageHeroProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
   description?: string;
   children?: ReactNode;
@@ -58,9 +58,11 @@ export function PageHero({ icon: Icon, title, description, children }: PageHeroP
       <div className="relative z-10">
         {/* Title area */}
         <div className="container mx-auto px-4 pt-10 pb-8 md:pt-12 md:pb-10 max-w-md text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 adventure:bg-stone-700/20 backdrop-blur-sm mb-4">
-            <Icon className="h-6 w-6 text-white adventure:text-stone-800" />
-          </div>
+          {Icon && (
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 adventure:bg-stone-700/20 backdrop-blur-sm mb-4">
+              <Icon className="h-6 w-6 text-white adventure:text-stone-800" />
+            </div>
+          )}
           <h1 className="text-2xl md:text-3xl font-bold text-white adventure:text-stone-800">{title}</h1>
           {description && (
             <p className="text-white/80 adventure:text-stone-600 mt-2 text-sm md:text-base">{description}</p>
