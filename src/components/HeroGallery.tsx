@@ -4,6 +4,9 @@ const HERO_IMAGES = [
   { src: "/hero/forest.webp", alt: "Mountain lake vista through pine trees" },
   { src: "/hero/park.webp", alt: "Lush tropical park with banyan trees" },
   { src: "/hero/desert.webp", alt: "Desert trail with saguaro cactus" },
+  { src: "/hero/tree.webp", alt: "Tree in nature" },
+  { src: "/hero/mountain.webp", alt: "Mountain landscape" },
+  { src: "/hero/beach.webp", alt: "Beach shoreline" },
 ];
 
 const CYCLE_MS = 8000;

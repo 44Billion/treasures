@@ -223,157 +223,88 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features - Why Treasures? */}
+      {/* How It Works — zig-zag layout with feature images */}
       <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 overflow-hidden">
         {/* Smooth gradient fade from hero section */}
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/15 via-muted/10 via-muted/5 via-muted/2 to-transparent pointer-events-none"></div>
-        {/* Arc path lines connecting features - treasure map style - Desktop */}
-        <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/10 to-transparent pointer-events-none"></div>
+
+        {/* Dotted trail connecting steps — treasure map style */}
+        <div className="absolute inset-0 pointer-events-none flex justify-center">
           <div className="relative w-full max-w-3xl h-full">
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {/* Arc from Decentralized (left) to Community (right) */}
               <path
-                d="M 25,25 Q 50,35 75,47"
+                d="M 30,18 C 30,28 70,32 70,46 C 70,60 30,62 30,78"
                 stroke="currentColor"
-                strokeWidth="0.5"
+                strokeWidth="0.4"
                 fill="none"
-                strokeDasharray="3,2"
-                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
-              />
-
-              {/* Arc from Community (right) to Global (left) */}
-              <path
-                d="M 75,52 Q 50,62 25,73"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                fill="none"
-                strokeDasharray="3,2"
-                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
+                strokeDasharray="2,1.5"
+                strokeLinecap="round"
+                className="text-green-500/30 dark:text-green-400/20"
               />
             </svg>
-          </div>
-        </div>
-
-        {/* Arc path lines connecting features - treasure map style - Mobile */}
-        <div className="absolute inset-0 pointer-events-none flex md:hidden justify-center">
-          <div className="relative w-full max-w-3xl h-full">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {/* Arc from Decentralized (left) to Community (right) - lower on mobile */}
-              <path
-                d="M 25,32 Q 50,42 75,52"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                fill="none"
-                strokeDasharray="3,2"
-                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
-              />
-
-              {/* Arc from Community (right) to Global (left) - raised on mobile */}
-              <path
-                d="M 75,57 Q 50,64 25,72"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                fill="none"
-                strokeDasharray="3,2"
-                className="text-green-500/40 dark:text-green-400/30 adventure:text-amber-700/50"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Z-shaped ribbon stripes - three diagonal bands */}
-        <div className="absolute inset-0 pointer-events-none hidden md:flex justify-center">
-          <div className="relative w-full max-w-2xl h-full">
-            {/* First stripe - slanting down-right behind Decentralized */}
-            <div className="absolute top-[18%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-amber-600/25 transform -rotate-[4deg]"></div>
-
-            {/* Second stripe - slanting down-left behind Community */}
-            <div className="absolute top-[43.5%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-yellow-600/25 transform rotate-[4deg]"></div>
-
-            {/* Third stripe - slanting down-right behind Global */}
-            <div className="absolute top-[70%] -left-[10%] w-[120%] h-56 bg-green-600/20 dark:bg-green-500/25 adventure:bg-orange-600/25 transform -rotate-[4deg]"></div>
           </div>
         </div>
 
         <div className="container mx-auto max-w-3xl relative z-10">
           {/* Section header */}
           <div className="text-center mb-10 md:mb-14">
-            <h3 className="text-2xl md:text-3xl adventure:text-3xl adventure:md:text-4xl font-bold text-foreground mb-3">
-              <span className="adventure:hidden">{t("home.features.title")}</span>
-              <span className="hidden adventure:inline">{t("home.features.titleAdventure")}</span>
+            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+              {t("home.howItWorks.title")}
             </h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover what makes Treasures the greatest geocaching adventure
+              {t("home.howItWorks.description")}
             </p>
           </div>
 
           {/* Zig-zag layout */}
-          <div className="space-y-16 md:space-y-28">
-            {/* Decentralized - Image Left */}
+          <div className="space-y-12 md:space-y-20">
+            {/* Step 1: Hide — Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-primary-100 dark:to-primary-50 adventure:from-amber-50 adventure:to-yellow-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
-                  <img
-                    src="/feature-decentralized.webp"
-                    alt="Decentralized"
-                    className="w-full h-full object-contain adventure:sepia"
-                  />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-primary-100 dark:to-primary-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
+                  <img src="/feature-decentralized.webp" alt="Hide a Treasure" className="w-full h-full object-contain" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
                 <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                  <span className="adventure:hidden">{t("home.features.decentralized.title")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.decentralized.titleAdventure")}</span>
+                  {t("home.howItWorks.step1.title")}
                 </h4>
                 <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
-                  <span className="adventure:hidden">{t("home.features.decentralized.description")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.decentralized.descriptionAdventure")}</span>
+                  {t("home.howItWorks.step1.description")}
                 </p>
               </div>
             </div>
 
-            {/* Community - Image Right */}
+            {/* Step 2: Find — Image Right */}
             <div className="flex flex-row-reverse items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-primary-50 dark:to-primary-100 adventure:from-yellow-50 adventure:to-amber-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
-                  <img
-                    src="/feature-community.webp"
-                    alt="Community"
-                    className="w-full h-full object-contain adventure:sepia"
-                  />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-primary-50 dark:to-primary-100 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
+                  <img src="/feature-community.webp" alt="Find & Claim" className="w-full h-full object-contain" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
                 <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                  <span className="adventure:hidden">{t("home.features.community.title")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.community.titleAdventure")}</span>
+                  {t("home.howItWorks.step2.title")}
                 </h4>
                 <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
-                  <span className="adventure:hidden">{t("home.features.community.description")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.community.descriptionAdventure")}</span>
+                  {t("home.howItWorks.step2.description")}
                 </p>
               </div>
             </div>
 
-            {/* Global - Image Left */}
+            {/* Step 3: Share — Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-primary-50 dark:to-accent adventure:from-orange-50 adventure:to-amber-50 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
-                  <img
-                    src="/feature-global.webp"
-                    alt="Global Adventure"
-                    className="w-full h-full object-contain adventure:sepia"
-                  />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-primary-50 dark:to-accent rounded-xl p-4 sm:p-5 md:p-6 shadow-sm">
+                  <img src="/feature-global.webp" alt="Share the Adventure" className="w-full h-full object-contain" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
                 <h4 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                  <span className="adventure:hidden">{t("home.features.global.title")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.global.titleAdventure")}</span>
+                  {t("home.howItWorks.step3.title")}
                 </h4>
                 <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
-                  <span className="adventure:hidden">{t("home.features.global.description")}</span>
-                  <span className="hidden adventure:inline">{t("home.features.global.descriptionAdventure")}</span>
+                  {t("home.howItWorks.step3.description")}
                 </p>
               </div>
             </div>
@@ -384,10 +315,10 @@ export default function Home() {
             <Link to="/map">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground adventure:bg-stone-700 adventure:hover:bg-stone-800 transition-all group"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all group"
               >
                 <Compass className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Start Your Adventure Today
+                {t("home.howItWorks.cta")}
               </Button>
             </Link>
           </div>
