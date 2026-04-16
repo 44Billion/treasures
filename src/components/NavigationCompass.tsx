@@ -116,8 +116,11 @@ function GemDefs() {
 function GemJewel({ rotation, animated = false }: { rotation: number; animated?: boolean }) {
   return (
     <g
-      transform={`rotate(${rotation}, 120, 120)`}
-      style={{ transition: 'transform 0.2s ease-out' }}
+      style={{
+        transform: `rotate(${rotation}deg)`,
+        transformOrigin: '120px 120px',
+        transition: 'transform 0.15s ease-out',
+      }}
     >
       {/* Ambient aura */}
       <polygon
