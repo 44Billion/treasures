@@ -1,16 +1,17 @@
 import { useAppContext } from '@/hooks/useAppContext';
 
 /**
- * Hook to get and set the current relay configuration
- * @returns Current relay URL and setter function
+ * Hook to get the current relay configuration.
+ * Returns the primary relay URL from the relay metadata.
  */
 export function useRelayConfig() {
-  const { config, updateConfig } = useAppContext();
+  const { config } = useAppContext();
+
+  const relays = config.relayMetadata.relays;
+  const primaryRelay = relays.find(r => r.read)?.url ?? '';
 
   return {
-    relayUrl: config.relayUrl,
-    setRelayUrl: (relayUrl: string) => {
-      updateConfig((current) => ({ ...current, relayUrl }));
-    },
+    relayUrl: primaryRelay,
+    relays,
   };
 }

@@ -1,8 +1,8 @@
-import { AlertTriangle, RefreshCw, Wifi } from "lucide-react";
+import { AlertTriangle, RefreshCw, Settings, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RelaySelector } from "@/components/RelaySelector";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface RelayErrorFallbackProps {
   /** The error that occurred */
@@ -33,16 +33,16 @@ export function RelayErrorFallback({
   className,
   compact = false,
 }: RelayErrorFallbackProps) {
+  const navigate = useNavigate();
   const isError = !isEmpty && !!error;
   
-  // Default titles and descriptions
   const defaultTitle = isError 
     ? "Connection Failed"
     : "No Geocaches Found";
     
   const defaultDescription = isError
-    ? "Unable to connect to the current relay. Try switching to a different relay or check your connection."
-    : "No geocaches were found. This might be due to relay connectivity issues or the current relay may not have any data.";
+    ? "Unable to connect to your relays. Check your connection or manage your relays in Settings."
+    : "No geocaches were found on your relays.";
 
   const finalTitle = title || defaultTitle;
   const finalDescription = description || defaultDescription;
@@ -67,35 +67,29 @@ export function RelayErrorFallback({
           </p>
         )}
         
-        <div className="space-y-3">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Try a different relay:
-            </label>
-            <RelaySelector className="w-full" />
-          </div>
-          
+        <div className="flex gap-2 justify-center">
           {onRetry && (
             <Button 
               variant="outline" 
               size="sm"
               onClick={onRetry}
               disabled={isRetrying}
-              className="w-full"
             >
               {isRetrying ? (
-                <>
-                  <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
-                  Retrying...
-                </>
+                <><RefreshCw className="h-3 w-3 mr-2 animate-spin" />Retrying...</>
               ) : (
-                <>
-                  <RefreshCw className="h-3 w-3 mr-2" />
-                  Retry Current Relay
-                </>
+                <><RefreshCw className="h-3 w-3 mr-2" />Retry</>
               )}
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/settings')}
+          >
+            <Settings className="h-3 w-3 mr-2" />
+            Relay Settings
+          </Button>
         </div>
       </div>
     );
@@ -132,34 +126,29 @@ export function RelayErrorFallback({
             </div>
           )}
           
-          <div className="space-y-3">
-            <div className="text-center">
-              <label className="text-sm font-medium text-foreground mb-2">
-                Try a different relay:
-              </label>
-              <RelaySelector className="w-full" />
-            </div>
-            
+          <div className="flex gap-2">
             {onRetry && (
               <Button 
                 variant="outline" 
                 onClick={onRetry}
                 disabled={isRetrying}
-                className="w-full"
+                className="flex-1"
               >
                 {isRetrying ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Retrying...
-                  </>
+                  <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Retrying...</>
                 ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Retry Current Relay
-                  </>
+                  <><RefreshCw className="h-4 w-4 mr-2" />Retry</>
                 )}
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => navigate('/settings')}
+              className="flex-1"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Relay Settings
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -8,8 +8,19 @@ interface AppProviderProps {
   storageKey: string;
   /** Default app configuration */
   defaultConfig: AppConfig;
-  /** Optional list of preset relays to display in the RelaySelector */
-  presetRelays?: { name: string; url: string }[];
+}
+
+// One-time migration: clear old config shape that had `relayUrl` instead of `relayMetadata`.
+try {
+  const raw = localStorage.getItem('treasures:app-config');
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    if (parsed && (!parsed.relayMetadata || parsed.useAppRelays === undefined || !parsed.blossomServerMetadata)) {
+      localStorage.removeItem('treasures:app-config');
+    }
+  }
+} catch {
+  // ignore
 }
 
 export function AppProvider(props: AppProviderProps) {
@@ -17,7 +28,6 @@ export function AppProvider(props: AppProviderProps) {
     children,
     storageKey,
     defaultConfig,
-    presetRelays,
   } = props;
 
   // App configuration state with localStorage persistence
@@ -31,7 +41,6 @@ export function AppProvider(props: AppProviderProps) {
   const appContextValue: AppContextType = {
     config,
     updateConfig,
-    presetRelays,
   };
 
   return (

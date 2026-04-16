@@ -2,6 +2,7 @@
 // To add new routes, edit the AppRouter.tsx file.
 
 import NostrProvider from '@/components/NostrProvider'
+import { NostrSync } from '@/components/NostrSync';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,8 +15,9 @@ import { AppConfig } from '@/contexts/AppContext';
 import { StoreProvider } from '@/stores/StoreProvider';
 import { NWCProvider } from '@/components/NWCProvider';
 import { PlausibleProvider } from '@/components/PlausibleProvider';
+import { APP_RELAYS } from '@/lib/appRelays';
+import { APP_BLOSSOM_SERVERS } from '@/lib/appBlossom';
 
-import { DEFAULT_RELAY, PRESET_RELAYS } from '@/config/relays';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import './lib/i18n';
 import './styles/leaflet-overrides.css';
@@ -37,14 +39,18 @@ const queryClient = new QueryClient({
 });
 
 const defaultConfig: AppConfig = {
-  relayUrl: DEFAULT_RELAY,
+  relayMetadata: APP_RELAYS,
+  useAppRelays: true,
+  blossomServerMetadata: APP_BLOSSOM_SERVERS,
+  useAppBlossomServers: true,
+  imageQuality: 'compressed',
   plausibleDomain: import.meta.env.VITE_PLAUSIBLE_DOMAIN || '',
   plausibleEndpoint: import.meta.env.VITE_PLAUSIBLE_ENDPOINT || '',
 };
 
 export function App() {
   return (
-    <AppProvider storageKey="treasures:app-config" defaultConfig={defaultConfig} presetRelays={PRESET_RELAYS}>
+    <AppProvider storageKey="treasures:app-config" defaultConfig={defaultConfig}>
       <PlausibleProvider>
       <ThemeProvider
         attribute="class"
@@ -56,6 +62,7 @@ export function App() {
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
+              <NostrSync />
               <NWCProvider>
                 <StoreProvider>
                   <TooltipProvider>

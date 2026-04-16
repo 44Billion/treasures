@@ -1,23 +1,27 @@
 import { useState, useEffect } from "react";
-import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Globe } from "lucide-react";
+import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
 import { PageLayout } from "@/components/PageLayout";
 import { Label } from "../components/ui/label";
 
-import { RelaySelector } from "../components/RelaySelector";
+import { RelayListManager } from "../components/RelayListManager";
+import { BlossomSettings } from "../components/BlossomSettings";
+import { WalletSettings } from "../components/WalletSettings";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { WotSettings } from "../components/WotSettings";
 
-import { useRelayConfig } from "@/hooks/useRelayConfig";
 
 export default function Settings() {
   const { setTheme, theme } = useTheme();
-  const { relayUrl } = useRelayConfig();
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
+  const [relaysOpen, setRelaysOpen] = useState(false);
+  const [blossomOpen, setBlossomOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   // Prevent hydration mismatch for theme
   useEffect(() => {
@@ -141,33 +145,83 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Relay Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wifi className="h-5 w-5" />
-              {t('settings.relay.title')}
-            </CardTitle>
-            <CardDescription>
-              {t('settings.relay.description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <Label>{t('settings.relay.currentRelay')}</Label>
-              <RelaySelector className="w-full" />
-              <div className="text-sm text-muted-foreground">
-                {t('settings.relay.currentlyUsing')}: <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{relayUrl}</code>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Relay Configuration — Collapsible */}
+        <Collapsible open={relaysOpen} onOpenChange={setRelaysOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer select-none hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Wifi className="h-5 w-5" />
+                    {t('settings.relay.title')}
+                  </CardTitle>
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${relaysOpen ? 'rotate-180' : ''}`} />
+                </div>
+                <CardDescription>
+                  {t('settings.relay.description')}
+                </CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <RelayListManager />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
+        {/* Wallet Settings — Collapsible */}
+        <Collapsible open={walletOpen} onOpenChange={setWalletOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer select-none hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Wallet className="h-5 w-5" />
+                    {t('wallet.title')}
+                  </CardTitle>
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${walletOpen ? 'rotate-180' : ''}`} />
+                </div>
+                <CardDescription>
+                  {t('wallet.description')}
+                </CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <WalletSettings />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
+        {/* Blossom Servers — Collapsible */}
+        <Collapsible open={blossomOpen} onOpenChange={setBlossomOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer select-none hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Blossom Servers
+                  </CardTitle>
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${blossomOpen ? 'rotate-180' : ''}`} />
+                </div>
+                <CardDescription>
+                  File upload servers for media hosting. Files are mirrored across all servers for redundancy.
+                </CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <BlossomSettings />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Web of Trust Settings */}
         <WotSettings />
-
 
       </div>
     </PageLayout>

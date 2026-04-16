@@ -1289,7 +1289,10 @@ export function GeocacheMap({
   // Memoize marker elements so the cluster group does not reprocess markers
   // on every parent re-render (which would destroy open popups).
   const markerElements = useMemo(() =>
-    geocaches.filter(g => g.location).slice(0, 200).map((geocache) => {
+    (() => {
+      const seen = new Set<string>();
+      return geocaches.filter(g => g.location && g.dTag && !seen.has(g.dTag) && seen.add(g.dTag));
+    })().slice(0, 200).map((geocache) => {
       const normalizedLng = ((geocache.location.lng + 180) % 360 + 360) % 360 - 180;
       const normalizedPosition = [geocache.location.lat, normalizedLng];
 

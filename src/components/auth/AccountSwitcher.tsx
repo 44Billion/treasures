@@ -1,7 +1,7 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Wallet, Sun, Moon, Sword, Monitor } from 'lucide-react';
+import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Sun, Moon, Sword, Monitor } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
@@ -14,9 +14,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { useNavigate } from 'react-router-dom';
-import { WalletModal } from '@/components/WalletModal';
+
 import { useTheme } from '@/hooks/useTheme';
-import { RelayCombobox } from '@/components/RelayCombobox';
 import {
   Select,
   SelectContent,
@@ -123,15 +122,6 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           <Settings className='w-4 h-4' />
           <span>{t('navigation.appSettings')}</span>
         </DropdownMenuItem>
-        <WalletModal>
-          <DropdownMenuItem
-            className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
-            onSelect={(e) => e.preventDefault()}
-          >
-            <Wallet className='w-4 h-4' />
-            <span>{t('navigation.walletSettings')}</span>
-          </DropdownMenuItem>
-        </WalletModal>
         <DropdownMenuSeparator />
 
         {/* Theme Selector */}
@@ -183,14 +173,6 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Relay Selector */}
-        <div className='px-2 py-1.5'>
-          <DropdownMenuLabel className='px-0 py-1 text-xs text-muted-foreground font-normal'>
-            {t('settings.relay.title')}
-          </DropdownMenuLabel>
-          <RelayCombobox />
         </div>
 
         <DropdownMenuSeparator />

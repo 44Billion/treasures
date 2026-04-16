@@ -1,23 +1,20 @@
 /**
  * Relay configuration constants
+ *
+ * Relays are now managed through AppConfig.relayMetadata and src/lib/appRelays.ts.
+ * This file re-exports for backward compatibility with imports from '@/config'.
  */
 
-// Primary relay for the application
+export { APP_RELAYS, PRESET_RELAYS, getEffectiveRelays } from '@/lib/appRelays';
+
+/** @deprecated Use APP_RELAYS from @/lib/appRelays instead */
 export const DEFAULT_RELAY = 'wss://relay.damus.io';
 
-// Array of relays (for compatibility)
+/** @deprecated Use APP_RELAYS from @/lib/appRelays instead */
 export const DEFAULT_RELAYS = [DEFAULT_RELAY];
 
-// Preset relays for user selection
-export const PRESET_RELAYS = [
-  { name: 'Ditto', url: 'wss://relay.ditto.pub' },
-  { name: 'nos.lol', url: 'wss://nos.lol' },
-  { name: 'Damus', url: 'wss://relay.damus.io' },
-  { name: 'Dreamith', url: 'wss://relay.dreamith.to' },
-];
-
 /**
- * Get user's preferred relays from localStorage, fallback to defaults
+ * @deprecated Use config.relayMetadata from AppContext instead
  */
 export function getUserRelays(): string[] {
   try {
