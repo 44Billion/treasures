@@ -48,6 +48,7 @@ import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
 import { encodeGeohash } from "@/utils/nip-gc";
 import type { Geocache, GeocacheLog } from "@/types/geocache";
+import { NavigationCompass } from "@/components/NavigationCompass";
 
 export default function CacheDetail() {
   const { t } = useTranslation();
@@ -927,6 +928,13 @@ export default function CacheDetail() {
                 </div>
               </div>
             </div>
+
+            {/* Navigation Compass */}
+            {!isEditing && (
+              <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
+                <NavigationCompass target={geocache.location} />
+              </div>
+            )}
 
             {/* Location Information - Mobile: No card wrapper, Desktop: Card wrapper */}
             {locationVerification && (
