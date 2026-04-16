@@ -28,6 +28,74 @@ const SPIKE_THRESHOLD_DEG = 120;
 const SPIKE_ACCEPT_COUNT = 3;
 
 /**
+ * Trigger sensor permission on Android Chrome via the Generic Sensor API.
+ *
+ * Android Chrome has no `DeviceOrientationEvent.requestPermission()` like iOS.
+ * The only way to trigger the browser's permission prompt is to construct a
+ * Generic Sensor object (e.g. `AbsoluteOrientationSensor`). If the user hasn't
+ * granted permission yet, Chrome will show its permission dialog.
+ *
+ * Returns `true` if permission is granted, `false` otherwise.
+ */
+async function requestSensorPermissionAndroid(): Promise<boolean> {
+  // Try the Permissions API first to check current status
+  if (navigator.permissions) {
+    try {
+      // Chrome gates deviceorientation behind the 'accelerometer' permission
+      const result = await navigator.permissions.query(
+        { name: 'accelerometer' as PermissionName },
+      );
+      if (result.state === 'granted') return true;
+      if (result.state === 'denied') return false;
+      // 'prompt' — fall through to trigger the prompt via sensor construction
+    } catch {
+      // permissions.query may not support 'accelerometer' — fall through
+    }
+  }
+
+  // Construct a Generic Sensor to trigger Chrome's permission prompt.
+  // AbsoluteOrientationSensor is the most relevant for compass heading.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const win = window as any;
+  const SensorClass = win.AbsoluteOrientationSensor ?? win.Accelerometer;
+
+  if (typeof SensorClass === 'function') {
+    return new Promise<boolean>((resolve) => {
+      try {
+        const sensor = new (SensorClass as new (opts: Record<string, unknown>) => {
+          start(): void;
+          stop(): void;
+          addEventListener(type: string, cb: () => void): void;
+        })({ frequency: 1 });
+
+        sensor.addEventListener('error', () => {
+          sensor.stop();
+          resolve(false);
+        });
+        sensor.addEventListener('reading', () => {
+          sensor.stop();
+          resolve(true);
+        });
+        sensor.start();
+
+        // Safety timeout — if neither callback fires within 4s, assume denied
+        setTimeout(() => {
+          sensor.stop();
+          resolve(false);
+        }, 4000);
+      } catch {
+        // Sensor construction failed — permission may be blocked by policy
+        resolve(false);
+      }
+    });
+  }
+
+  // No Generic Sensor API available — optimistically assume events will fire.
+  // This covers older Android browsers and other platforms.
+  return true;
+}
+
+/**
  * Hook that provides compass heading from the device's magnetometer.
  *
  * - Smooths readings with a low-pass filter to avoid jitter
@@ -230,7 +298,17 @@ export function useDeviceOrientation() {
       }
     }
 
-    // Android / other: start listening, sensor data will arrive if available
+    // Android Chrome: trigger sensor permission prompt via the Generic Sensor API.
+    // Unlike iOS, Android has no DeviceOrientationEvent.requestPermission().
+    // The only way to trigger Chrome's permission dialog is to construct a
+    // sensor object — this prompts the user if permission hasn't been granted.
+    const sensorGranted = await requestSensorPermissionAndroid();
+    if (!sensorGranted) {
+      setState(prev => ({ ...prev, error: 'Sensor permission denied. Enable motion sensors in site settings.' }));
+      return false;
+    }
+
+    // Permission granted — start listening for deviceorientation events
     startListening();
 
     return new Promise<boolean>((resolve) => {
