@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface DeviceOrientationState {
   /** Compass heading in degrees (0-360, 0 = North, clockwise). null if unavailable. */
@@ -14,12 +14,13 @@ interface DeviceOrientationState {
 }
 
 // Minimum ms between state updates to React. Sensor fires at ~60Hz,
-// but we only need ~10Hz for a smooth compass animation.
-const THROTTLE_MS = 100;
+// but we only need ~15Hz for a smooth compass animation.
+const THROTTLE_MS = 66;
 
-// Low-pass filter alpha. Lower = smoother but laggier. 0.1 gives a nice
-// balance for a compass that feels weighty and magical rather than twitchy.
-const SMOOTHING_ALPHA = 0.1;
+// Low-pass filter alpha. Lower = smoother but laggier. 0.3 keeps the
+// compass responsive enough to follow the user's movement while still
+// filtering out magnetometer noise.
+const SMOOTHING_ALPHA = 0.3;
 
 /**
  * Hook that provides compass heading from the device's magnetometer.
@@ -101,10 +102,10 @@ export function useDeviceOrientation() {
     }));
   }, [smoothHeading]);
 
-  const startListening = useCallback(() => {
-    if (isListening.current) return;
-    isListening.current = true;
+  // Track whether the user has activated the compass (permission granted, should be listening)
+  const isActivated = useRef(false);
 
+  const addListeners = useCallback(() => {
     // Prefer absolute orientation (true north on Android Chrome)
     if ('ondeviceorientationabsolute' in window) {
       window.addEventListener('deviceorientationabsolute' as 'deviceorientation', handleOrientation, true);
@@ -112,12 +113,52 @@ export function useDeviceOrientation() {
     window.addEventListener('deviceorientation', handleOrientation, true);
   }, [handleOrientation]);
 
-  const stopListening = useCallback(() => {
-    if (!isListening.current) return;
-    isListening.current = false;
+  const removeListeners = useCallback(() => {
     window.removeEventListener('deviceorientation', handleOrientation, true);
     window.removeEventListener('deviceorientationabsolute' as 'deviceorientation', handleOrientation, true);
   }, [handleOrientation]);
+
+  const startListening = useCallback(() => {
+    if (isListening.current) return;
+    isListening.current = true;
+    isActivated.current = true;
+    addListeners();
+  }, [addListeners]);
+
+  const stopListening = useCallback(() => {
+    if (!isListening.current) return;
+    isListening.current = false;
+    isActivated.current = false;
+    removeListeners();
+  }, [removeListeners]);
+
+  // Re-register listeners when the page becomes visible again.
+  // Mobile browsers often stop delivering deviceorientation events after
+  // the page goes to the background (screen lock, app switch, etc.).
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!isActivated.current) return;
+
+      if (document.visibilityState === 'hidden') {
+        // Page is going to background — remove listeners to save battery
+        if (isListening.current) {
+          removeListeners();
+          isListening.current = false;
+        }
+      } else {
+        // Page is visible again — re-register listeners so heading updates resume
+        if (!isListening.current) {
+          addListeners();
+          isListening.current = true;
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [addListeners, removeListeners]);
 
   /**
    * Request permission and start listening. Must be called from a user gesture.

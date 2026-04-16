@@ -235,7 +235,7 @@ export function useCompass(target: CompassTarget | null) {
       {
         enableHighAccuracy: true,
         timeout: 20000,
-        maximumAge: 10000,
+        maximumAge: 2000, // Keep positions fresh (2s) so compass updates as the user walks
       }
     );
   }, [orientation, tryGetPosition, applyPosition]);
@@ -260,6 +260,39 @@ export function useCompass(target: CompassTarget | null) {
       }
     };
   }, []);
+
+  // Re-establish GPS watch when page becomes visible again.
+  // Mobile browsers often stop delivering watchPosition updates when the
+  // page is backgrounded (screen lock, app switch, notification shade).
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (watchId.current === null) return; // Not actively tracking
+      if (!hasPosition.current) return; // Still in initial fix phase
+
+      // Restart the watch to ensure fresh position updates resume
+      navigator.geolocation.clearWatch(watchId.current);
+      watchId.current = navigator.geolocation.watchPosition(
+        (position) => {
+          applyPosition(position.coords);
+        },
+        () => {
+          // Silently ignore — we already have a position, and the watch
+          // will fire success again when signal is reacquired.
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 2000,
+        }
+      );
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [applyPosition]);
 
   // Calculate compass state
   const state: CompassState = (() => {
