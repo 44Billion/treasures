@@ -240,16 +240,17 @@ export function useCompass(target: CompassTarget | null) {
     );
   }, [orientation, tryGetPosition, applyPosition]);
 
-  // Stop watching position
+  // Stop watching position and orientation sensors
   const stopTracking = useCallback(() => {
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
     }
+    orientation.stopListening();
     setIsLocating(false);
     hasPosition.current = false;
     continuousRotation.current = null;
-  }, []);
+  }, [orientation]);
 
   // Clean up on unmount
   useEffect(() => {

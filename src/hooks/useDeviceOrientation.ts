@@ -22,11 +22,16 @@ const THROTTLE_MS = 66;
 // filtering out magnetometer noise.
 const SMOOTHING_ALPHA = 0.3;
 
+// Spike detection: threshold for "large jump" and how many consecutive
+// large jumps we tolerate before accepting the new heading as a real turn.
+const SPIKE_THRESHOLD_DEG = 120;
+const SPIKE_ACCEPT_COUNT = 3;
+
 /**
  * Hook that provides compass heading from the device's magnetometer.
  *
  * - Smooths readings with a low-pass filter to avoid jitter
- * - Throttles React state updates to ~10Hz
+ * - Throttles React state updates to ~15Hz
  * - Handles iOS requestPermission + Android sensor start
  * - Call `requestPermission()` from a user gesture to activate
  */
@@ -42,6 +47,8 @@ export function useDeviceOrientation() {
   const smoothedHeading = useRef<number | null>(null);
   const lastUpdateTime = useRef<number>(0);
   const isListening = useRef(false);
+  // Spike detection: count consecutive large-delta readings
+  const spikeCount = useRef(0);
 
   // Low-pass filter with proper wraparound handling
   const smoothHeading = useCallback((raw: number): number => {
@@ -57,10 +64,21 @@ export function useDeviceOrientation() {
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
 
-    // Reject wild spikes (> 60 deg jump in a single frame is likely noise)
-    if (Math.abs(delta) > 60) {
+    // Spike detection: reject isolated large jumps (sensor glitches), but
+    // accept sustained ones (real fast turns). If we see SPIKE_ACCEPT_COUNT
+    // consecutive readings far from the smoothed value, it's a real turn —
+    // snap to the new heading instead of crawling via the low-pass filter.
+    if (Math.abs(delta) > SPIKE_THRESHOLD_DEG) {
+      spikeCount.current++;
+      if (spikeCount.current >= SPIKE_ACCEPT_COUNT) {
+        // Sustained large delta — accept as real turn
+        smoothedHeading.current = raw;
+        spikeCount.current = 0;
+        return raw;
+      }
       return prev;
     }
+    spikeCount.current = 0;
 
     const smoothed = (prev + SMOOTHING_ALPHA * delta + 360) % 360;
     smoothedHeading.current = smoothed;
@@ -105,17 +123,37 @@ export function useDeviceOrientation() {
   // Track whether the user has activated the compass (permission granted, should be listening)
   const isActivated = useRef(false);
 
+  // Which event name was actually registered — used for clean removal.
+  const activeEventName = useRef<string | null>(null);
+
   const addListeners = useCallback(() => {
-    // Prefer absolute orientation (true north on Android Chrome)
+    // Register exactly ONE listener. On Android Chrome both
+    // `deviceorientationabsolute` (true north) and `deviceorientation`
+    // (relative) fire simultaneously. Registering both feeds two different
+    // reference frames into the smoothing filter, which corrupts the heading
+    // and makes the compass appear frozen.
     if ('ondeviceorientationabsolute' in window) {
-      window.addEventListener('deviceorientationabsolute' as 'deviceorientation', handleOrientation, true);
+      activeEventName.current = 'deviceorientationabsolute';
+    } else {
+      activeEventName.current = 'deviceorientation';
     }
-    window.addEventListener('deviceorientation', handleOrientation, true);
+    window.addEventListener(
+      activeEventName.current as 'deviceorientation',
+      handleOrientation,
+      true,
+    );
   }, [handleOrientation]);
 
   const removeListeners = useCallback(() => {
-    window.removeEventListener('deviceorientation', handleOrientation, true);
-    window.removeEventListener('deviceorientationabsolute' as 'deviceorientation', handleOrientation, true);
+    // Remove whichever single listener was registered
+    if (activeEventName.current) {
+      window.removeEventListener(
+        activeEventName.current as 'deviceorientation',
+        handleOrientation,
+        true,
+      );
+      activeEventName.current = null;
+    }
   }, [handleOrientation]);
 
   const startListening = useCallback(() => {

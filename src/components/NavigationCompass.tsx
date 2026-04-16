@@ -185,6 +185,10 @@ const COMPASS_STYLES = `
   0%, 100% { opacity: 0.5; }
   50% { opacity: 0.7; }
 }
+@keyframes compass-dormant-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
 @keyframes compass-ring-draw {
   from { stroke-dashoffset: 724; }
   to { stroke-dashoffset: 0; }
