@@ -115,7 +115,7 @@ export default function Home() {
       <DesktopHeader variant="hero" />
 
       {/* Hero Section — full-bleed rotating photo gallery */}
-      <section className="relative min-h-[calc(100dvh-3rem)] md:min-h-0 md:h-[60vh] md:-mt-[81px] flex items-end overflow-hidden">
+      <section className="relative min-h-dvh lg:min-h-0 lg:h-[60vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
         {/* Rotating background images + grain */}
         <HeroGallery />
 
@@ -178,9 +178,14 @@ export default function Home() {
         </div>
 
         {/* Content overlay — pinned to bottom */}
-        <div className="relative z-10 w-full pb-10 md:pb-14 pt-24">
+        <div className="relative z-10 w-full pb-10 md:pb-14 pt-[4.5rem] md:pt-24">
           <div className="container mx-auto text-center px-3 xs:px-4">
-            <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-5 animate-slide-up drop-shadow-lg">
+            <img
+              src="/icon.svg"
+              alt="Treasures"
+              className="h-36 w-36 xs:h-40 xs:w-40 sm:h-64 sm:w-64 md:h-72 md:w-72 mx-auto mb-4 md:mb-6 drop-shadow-lg animate-slide-up"
+            />
+            <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-5 animate-slide-up [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]">
               {t("home.hero.title1")}
               <span className="relative inline-block mx-2">
                 <span className="text-green-300 adventure:text-amber-300">
@@ -190,11 +195,12 @@ export default function Home() {
               </span>
             </h2>
 
-            <p className="text-sm xs:text-base md:text-lg text-white/85 mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line drop-shadow">
-              {t("home.hero.description")}
+            <p className="text-base xs:text-lg md:text-xl text-white/90 font-medium mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line [text-shadow:0_2px_6px_rgba(0,0,0,0.4)]">
+              <span className="hidden md:inline">{t("home.hero.description").split("\n")[0]}{"\n"}</span>
+              {t("home.hero.description").split("\n")[1]}
             </p>
 
-            <div className="flex flex-col md:flex-row items-stretch md:items-center w-fit md:w-auto mx-auto gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center w-full max-w-sm md:max-w-none md:w-auto mx-auto gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
               <Link to="/map" className="group">
                 <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base px-4 xs:px-6">
                   <Search className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110" />

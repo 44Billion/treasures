@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List } from 'lucide-react';
@@ -230,14 +230,16 @@ export function MobileHeader() {
           </SheetContent>
         </Sheet>
 
-        {/* Center Logo */}
-        <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
-          <img
-            src="/icon.svg"
-            alt="Treasures"
-            className={cn("h-7 w-7 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)}
-          />
-        </Link>
+        {/* Center Logo - hidden on home page where it's displayed large in the hero */}
+        {!isHero && (
+          <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
+            <img
+              src="/icon.svg"
+              alt="Treasures"
+              className={cn("h-7 w-7 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)}
+            />
+          </Link>
+        )}
 
         {/* Right Side - Login */}
         <div className="flex items-center gap-2 -mr-2">
@@ -297,6 +299,23 @@ export function MobileBottomNav() {
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
   const themeClasses = getThemeClasses(isAdventureTheme);
+  const isHome = location.pathname === '/';
+  const [pastHero, setPastHero] = useState(!isHome);
+
+  useEffect(() => {
+    if (!isHome) {
+      setPastHero(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      setPastHero(window.scrollY > 50);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHome]);
 
   const navigation = [
     { name: t('navigation.list'), href: '/map?tab=list', icon: List },
@@ -307,8 +326,9 @@ export function MobileBottomNav() {
 
   return (
     <nav className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 border-t md:hidden pb-safe-bottom",
-      themeClasses.header
+      "fixed bottom-0 left-0 right-0 z-40 border-t md:hidden pb-safe-bottom transition-transform duration-300",
+      themeClasses.header,
+      pastHero ? "translate-y-0" : "translate-y-full"
     )}>
       <div className="grid grid-cols-4 h-16 items-center">
         {navigation.map((item) => {
