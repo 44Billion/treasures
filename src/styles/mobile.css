@@ -95,8 +95,7 @@
 
 /* ===== TOUCH TARGETS ===== */
 @media (max-width: 768px) {
-  button, 
-  a,
+  button,
   .touch-target {
     min-block-size: 2.5rem; /* 40px */
     min-inline-size: 2.5rem; /* 40px */
