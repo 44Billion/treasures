@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { VerificationQRDialog } from '@/components/VerificationQRDialog';
 import { generateVerificationQR } from '@/utils/verification';
 

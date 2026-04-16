@@ -201,7 +201,7 @@ interface CacheSelectFieldProps {
 
 export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 'label' | 'options'>) {
   const { theme } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const typeOptions = useMemo(() => [
     {
@@ -222,7 +222,7 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
       description: t('createCache.form.type.mystery.description'),
       example: t('createCache.form.type.mystery.example')
     }
-  ], [t, i18n.language]);
+  ], [t]);
 
   return (
     <div className="space-y-3 text-foreground">

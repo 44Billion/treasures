@@ -150,7 +150,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
   const fetchRecentLogs = useCallback(async (limit: number = 20): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      const allEvents = [];
+      const allEvents: any[] = [];
       
       // Fetch recent found logs
       try {
@@ -187,7 +187,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
   const fetchUserLogs = useCallback(async (pubkey: string): Promise<StoreActionResult<GeocacheLog[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      const allEvents = [];
+      const allEvents: any[] = [];
       
       // Fetch user's found logs
       try {

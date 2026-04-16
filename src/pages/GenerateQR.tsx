@@ -55,7 +55,6 @@ export default function GenerateQR() {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrType, setQrType] = useState<QrStyle>('full');
   const [sheetData, setSheetData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
-  const [, setStampData] = useState<{name: string, naddr: string, keyPair: VerificationKeyPair}[]>([]);
 
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -91,7 +90,7 @@ export default function GenerateQR() {
     setIsGenerating(true);
     try {
       if (qrType === 'sheet') {
-        const dataPromises = [];
+        const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
         for (let i = 0; i < 9; i++) {
           const name = uniqueNamesGenerator(customConfig);
           const dTag = generateDeterministicDTag(name, user.pubkey);
@@ -100,14 +99,13 @@ export default function GenerateQR() {
         }
         const data = await Promise.all(dataPromises);
         setSheetData(data);
-        setStampData([]);
         const gridUrl = await generateQRGridImage(data, {
           line1: t('qrCode.foundTreasure'),
           line2: t('qrCode.scanToLog')
         });
         setQrDataUrl(gridUrl);
       } else if (qrType === 'stamp') {
-        const dataPromises = [];
+        const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
         for (let i = 0; i < 42; i++) {
           const name = uniqueNamesGenerator(customConfig);
           const dTag = generateDeterministicDTag(name, user.pubkey);
@@ -115,7 +113,6 @@ export default function GenerateQR() {
           dataPromises.push(generateVerificationKeyPair().then(keyPair => ({name, naddr, keyPair})));
         }
         const data = await Promise.all(dataPromises);
-        setStampData(data);
         setSheetData([]);
         const stampUrl = await generateQRStampImage(data, {
           line1: t('qrCode.foundTreasure'),
@@ -124,7 +121,6 @@ export default function GenerateQR() {
         setQrDataUrl(stampUrl);
       } else {
         setSheetData([]);
-        setStampData([]);
         const verificationUrl = buildStandardVerificationUrl(naddr, verificationKeyPair!.nsec);
         const dataUrl = await generateVerificationQR(verificationUrl, qrType, {
           line1: t('qrCode.foundTreasure'),

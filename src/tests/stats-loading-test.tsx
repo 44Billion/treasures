@@ -49,11 +49,11 @@ vi.mock('@/utils/batchQuery', () => ({
     console.log('Mock batchedQuery called with:', {
       filterCount: filters.length,
       batchSize,
-      filters: filters.map((f: { kinds: any; limit: any; }) => ({ kinds: f.kinds, limit: f.limit }))
+      filters: filters.map((f: { kinds: number[]; limit: number; }) => ({ kinds: f.kinds, limit: f.limit }))
     });
     
     // Mock some log events for first 12 geocaches (to test the limit issue)
-    const mockEvents = [];
+    const mockEvents: { id: string; kind: number; pubkey: string; tags: string[][]; created_at: number }[] = [];
     
     // Only add events for first 12 geocaches to simulate the limit issue
     for (let i = 0; i < 12; i++) {

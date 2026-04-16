@@ -104,7 +104,6 @@ export default function CreateCache() {
   };
 
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
   const [importedKind, setImportedKind] = useState<number | null>(null);
   const [showDraftNotice, setShowDraftNotice] = useState(!!draft);

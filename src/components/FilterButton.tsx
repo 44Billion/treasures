@@ -109,7 +109,7 @@ export function FilterButton({
   className,
   compact = false,
 }: FilterButtonProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const operatorSymbols: Record<ComparisonOperator, string> = {
@@ -128,7 +128,7 @@ export function FilterButton({
     { value: "3", label: `3 - ${t('geocache.difficulty.hard')}`, name: t('geocache.difficulty.hard'), icon: Lightbulb, color: "text-primary" },
     { value: "4", label: `4 - ${t('geocache.difficulty.veryHard')}`, name: t('geocache.difficulty.veryHard'), icon: Brain, color: "text-primary" },
     { value: "5", label: `5 - ${t('geocache.difficulty.expert')}`, name: t('geocache.difficulty.expert'), icon: Cpu, color: "text-primary" },
-  ], [t, i18n.language]);
+  ], [t]);
 
   // Terrain options with icons
   const terrainOptions = useMemo(() => [
@@ -137,14 +137,14 @@ export function FilterButton({
     { value: "3", label: `3 - ${t('geocache.terrain.hard')}`, name: t('geocache.terrain.hard'), icon: TreesForestIcon, color: "text-blue-600" },
     { value: "4", label: `4 - ${t('geocache.terrain.veryHard')}`, name: t('geocache.terrain.veryHard'), icon: Mountain, color: "text-blue-600" },
     { value: "5", label: `5 - ${t('geocache.terrain.expert')}`, name: t('geocache.terrain.expert'), icon: Pickaxe, color: "text-blue-600" },
-  ], [t, i18n.language]);
+  ], [t]);
 
   // Cache type options with icons
   const cacheTypeOptions = useMemo(() => [
     { value: "traditional", label: t('geocache.type.traditional'), icon: ChestIcon, color: "text-primary" },
     { value: "multi", label: t('geocache.type.multi'), icon: Compass, color: "text-amber-600" },
     { value: "mystery", label: t('geocache.type.mystery'), icon: HelpCircle, color: "text-purple-600" },
-  ], [t, i18n.language]);
+  ], [t]);
 
   // Helper functions for consistent value handling
   const createValueChangeHandler = (

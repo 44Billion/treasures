@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useSearchParams, Link } from "react-router-dom";
-import { X, RefreshCw, Sparkles, Compass, Plus, Search, ScanQrCode, QrCode, Settings, Info, BookOpen, ChevronDown } from "lucide-react";
+import { X, RefreshCw, Sparkles, Compass, Plus, ScanQrCode, QrCode, Settings, Info, BookOpen, ChevronDown } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

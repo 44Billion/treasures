@@ -815,10 +815,12 @@ function MapStyleControl({
 
     (isInitializedRef as React.MutableRefObject<boolean>).current = true;
 
+    const currentContainer = containerRef.current;
+
     // Cleanup
     return () => {
-      if (containerRef.current && containerRef.current.parentNode) {
-        containerRef.current.parentNode.removeChild(containerRef.current);
+      if (currentContainer && currentContainer.parentNode) {
+        currentContainer.parentNode.removeChild(currentContainer);
       }
 
       if (rootRef.current) {
@@ -962,10 +964,12 @@ function CustomZoomControl() {
     (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = container;
     (isInitializedRef as React.MutableRefObject<boolean>).current = true;
 
+    const currentContainer = containerRef.current;
+
     // Cleanup
     return () => {
-      if (containerRef.current && containerRef.current.parentNode) {
-        containerRef.current.parentNode.removeChild(containerRef.current);
+      if (currentContainer && currentContainer.parentNode) {
+        currentContainer.parentNode.removeChild(currentContainer);
       }
       (isInitializedRef as React.MutableRefObject<boolean>).current = false;
     };
@@ -1039,10 +1043,12 @@ function NearMeButtonControl({
 
     (isInitializedRef as React.MutableRefObject<boolean>).current = true;
 
+    const currentContainer = containerRef.current;
+
     // Cleanup
     return () => {
-      if (containerRef.current && containerRef.current.parentNode) {
-        containerRef.current.parentNode.removeChild(containerRef.current);
+      if (currentContainer && currentContainer.parentNode) {
+        currentContainer.parentNode.removeChild(currentContainer);
       }
 
       if (rootRef.current) {

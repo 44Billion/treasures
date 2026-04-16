@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nip19 } from 'nostr-tools';
+import { type NostrEvent } from '@nostrify/nostrify';
 import { type NostrContextType } from '@nostrify/react';
 
 const MAX_WOT_PUBKEYS = 100000;
@@ -106,7 +107,7 @@ export const useWotStore = create<WotStore>()(
             }
 
             const pubkeyBatch = Array.from(currentPubkeys);
-            const promises = [];
+            const promises: Promise<NostrEvent[]>[] = [];
             
             if (trustLevel > 0) {
               set({ progress: (i / trustLevel) * 100 });

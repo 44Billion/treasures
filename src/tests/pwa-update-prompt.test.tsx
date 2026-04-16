@@ -118,19 +118,19 @@ describe('PWAUpdatePrompt', () => {
 
     const { useRegisterSW } = await import('virtual:pwa-register/react');
     
-    const mockUseRegisterSW = vi.fn((options) => {
+    const mockUseRegisterSW = vi.fn((options: any) => {
       // Call onRegisteredSW immediately to simulate registration
       if (options?.onRegisteredSW) {
         options.onRegisteredSW('test-sw-url', mockRegistration);
       }
       return {
-        offlineReady: [false, vi.fn()],
-        needRefresh: [false, vi.fn()],
+        offlineReady: [false, vi.fn()] as [boolean, ReturnType<typeof vi.fn>],
+        needRefresh: [false, vi.fn()] as [boolean, ReturnType<typeof vi.fn>],
         updateServiceWorker: vi.fn(),
       };
     });
 
-    vi.mocked(useRegisterSW).mockImplementation(mockUseRegisterSW);
+    vi.mocked(useRegisterSW).mockImplementation(mockUseRegisterSW as any);
 
     render(<PWAUpdatePrompt />);
 

@@ -250,7 +250,7 @@ export function useGeocaches() {
         // Process zap totals and update stats map
         zapEventsByTarget.forEach((events, targetKey) => {
           // Try to find the corresponding geocache using multiple strategies
-          let geocache = null;
+          let geocache: typeof geocaches[number] | undefined = undefined;
           let zapStoreKey = targetKey;
           
           // Strategy 1: Try exact match with naddr/event key

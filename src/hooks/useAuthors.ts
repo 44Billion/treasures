@@ -1,4 +1,4 @@
-import { NSchema as n, type NostrEvent } from '@nostrify/nostrify';
+import { NSchema as n } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 import { useQueries } from '@tanstack/react-query';
 

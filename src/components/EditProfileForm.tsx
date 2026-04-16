@@ -40,7 +40,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
 
   // Initialize the form with default values
   const form = useForm<NostrMetadata>({
-    resolver: zodResolver(n.metadata()),
+    resolver: zodResolver(n.metadata() as unknown as Parameters<typeof zodResolver>[0]),
     defaultValues: {
       name: '',
       about: '',
