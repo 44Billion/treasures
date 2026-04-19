@@ -343,6 +343,7 @@
   "map.nearMe.locating": "位置を取得中...",
   "map.searchRadius.label": "検索半径:",
   "map.searchRadius.km": "{{value}}km",
+  "map.searchRadius.options.all": "すべて",
   "map.searchRadius.options.1": "1km",
   "map.searchRadius.options.5": "5km",
   "map.searchRadius.options.10": "10km",

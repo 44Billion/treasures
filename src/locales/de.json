@@ -343,6 +343,7 @@
   "map.nearMe.locating": "Position wird ermittelt...",
   "map.searchRadius.label": "Suchradius:",
   "map.searchRadius.km": "{{value}} km",
+  "map.searchRadius.options.all": "Alle",
   "map.searchRadius.options.1": "1 km",
   "map.searchRadius.options.5": "5 km",
   "map.searchRadius.options.10": "10 km",

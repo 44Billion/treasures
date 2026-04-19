@@ -191,6 +191,26 @@ export default function Map() {
     }
   }, [initialLocation, isLoadingInitialLocation, mapCenter]);
 
+  // Auto-trigger Near Me radius search on initial load
+  // Replicates the behavior of the GPS corner button automatically
+  const hasAutoTriggeredNearMe = useRef(false);
+  useEffect(() => {
+    // Only auto-trigger once, and only if no URL params are providing a specific location
+    if (hasAutoTriggeredNearMe.current) return;
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    if (lat && lng) return; // URL params take priority — don't auto-trigger
+
+    hasAutoTriggeredNearMe.current = true;
+
+    // Replicate handleNearMe behavior without the toggle-off logic
+    setShowNearMe(true);
+    getLocation().catch(() => {
+      // If location fails silently on auto-trigger, turn off Near Me mode
+      setShowNearMe(false);
+    });
+  }, [searchParams, getLocation]);
+
   useEffect(() => {
     // Update user location when coords change
     if (coords) {
@@ -270,6 +290,17 @@ export default function Map() {
       default: return true;
     }
   }
+
+  const handleRadiusChange = (value: string) => {
+    if (value === 'all') {
+      setShowNearMe(false);
+      setSearchLocation(null);
+      setSearchInView(false);
+      setShowMobileSearchOptions(false);
+    } else {
+      setSearchRadius(Number(value) || 25);
+    }
+  };
 
   const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
     // This is an explicit user action - clear all interaction locks
@@ -505,11 +536,12 @@ export default function Map() {
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                      <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                      <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
                         <SelectTrigger className="w-20 h-7 text-xs">
                           <SelectValue placeholder={t('map.searchRadius.options.25')} />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
                           <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
                           <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
                           <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
@@ -745,11 +777,12 @@ export default function Map() {
                       <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                          <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
+                          <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
                             <SelectTrigger className="w-20 h-7 text-xs">
                               <SelectValue placeholder={t('map.searchRadius.options.25')} />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
                               <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
                               <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
                               <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
@@ -874,66 +907,44 @@ export default function Map() {
             <div className={cn("h-full w-full bg-background relative", activeTab !== 'map' && "hidden")}>
                 {/* Floating Search Bar - positioned over the map */}
                 <div className="absolute top-3 left-3 right-3 z-[999] pointer-events-none">
-                  <div className="space-y-2 pointer-events-auto">
-                    <div className="flex gap-2">
-                          <OmniSearch
-                            onLocationSelect={handleLocationSelect}
-                            onGeocacheSelect={(cache) => handleCardClick(cache)}
-                            onTextSearch={setSearchQuery}
-                            geocaches={filteredGeocaches}
-                            placeholder={t('map.omniSearch.placeholder')}
-                            mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
-                          />
-                          <FilterButton
-                            difficulty={difficulty}
-                            difficultyOperator={difficultyOperator}
-                            onDifficultyChange={setDifficulty}
-                            onDifficultyOperatorChange={setDifficultyOperator}
-                            terrain={terrain}
-                            terrainOperator={terrainOperator}
-                            onTerrainChange={setTerrain}
-                            onTerrainOperatorChange={setTerrainOperator}
-                            cacheType={cacheType}
-                            onCacheTypeChange={setCacheType}
-                            compact
-                          />
-                        </div>
-
+                  <div className="flex gap-1.5 pointer-events-auto">
+                    <OmniSearch
+                      onLocationSelect={handleLocationSelect}
+                      onGeocacheSelect={(cache) => handleCardClick(cache)}
+                      onTextSearch={setSearchQuery}
+                      geocaches={filteredGeocaches}
+                      placeholder={t('map.omniSearch.placeholder')}
+                      mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                    />
                     {(showNearMe || searchLocation || searchInView) && (
-                      <div className="flex items-center justify-between bg-background/95 backdrop-blur-sm shadow-lg border rounded-lg p-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                          <Select value={searchRadius.toString()} onValueChange={(v) => setSearchRadius(Number(v) || 25)}>
-                            <SelectTrigger className="w-20 h-7 text-xs">
-                              <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                              <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                              <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                              <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                              <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                              <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => {
-                            setShowNearMe(false);
-                            setSearchLocation(null);
-                            setSearchInView(false);
-                            setShowMobileSearchOptions(false);
-                          }}
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          {t('map.clear')}
-                        </Button>
-                      </div>
+                      <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
+                        <SelectTrigger className="w-auto h-9 text-xs bg-background/90 backdrop-blur-sm shadow-sm rounded-md px-2 gap-1 shrink-0">
+                          <SelectValue placeholder="25 km" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
+                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
+                    <FilterButton
+                      difficulty={difficulty}
+                      difficultyOperator={difficultyOperator}
+                      onDifficultyChange={setDifficulty}
+                      onDifficultyOperatorChange={setDifficultyOperator}
+                      terrain={terrain}
+                      terrainOperator={terrainOperator}
+                      onTerrainChange={setTerrain}
+                      onTerrainOperatorChange={setTerrainOperator}
+                      cacheType={cacheType}
+                      onCacheTypeChange={setCacheType}
+                      compact
+                    />
                   </div>
                 </div>
 

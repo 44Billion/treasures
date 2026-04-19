@@ -343,6 +343,7 @@
   "map.nearMe.locating": "กำลังระบุตำแหน่ง...",
   "map.searchRadius.label": "รัศมีการค้นหา:",
   "map.searchRadius.km": "{{value}}km",
+  "map.searchRadius.options.all": "ทั้งหมด",
   "map.searchRadius.options.1": "1km",
   "map.searchRadius.options.5": "5km",
   "map.searchRadius.options.10": "10km",

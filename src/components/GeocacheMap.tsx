@@ -1480,26 +1480,26 @@ export function GeocacheMap({
         />
       )}
 
-      {/* Search radius circle */}
+      {/* Search radius circle — subtle boundary indicator */}
       {searchLocation && searchRadius && (
         <Circle
           center={[searchLocation.lat, searchLocation.lng]}
           radius={searchRadius * 1000} // Convert km to meters
           pathOptions={currentMapStyle === 'adventure' ? {
-            color: '#a0825a', // Clean bronze for adventure theme
-            fillColor: '#b4966e', // Light bronze fill
-            fillOpacity: 0.1,
-            weight: 3,
-            dashArray: '10, 5', // Simple dash pattern
-            opacity: 0.7,
+            color: '#a0825a',
+            fillColor: 'transparent',
+            fillOpacity: 0,
+            weight: 1.5,
+            dashArray: '6, 6',
+            opacity: 0.45,
             className: 'search-radius-circle adventure-circle'
           } : {
-            color: '#228c4e', // Brand green dark
-            fillColor: '#299e5e', // Brand green (primary)
-            fillOpacity: 0.12,
-            weight: 4,
-            dashArray: '15, 8',
-            opacity: 0.8,
+            color: '#228c4e',
+            fillColor: 'transparent',
+            fillOpacity: 0,
+            weight: 1.5,
+            dashArray: '6, 6',
+            opacity: 0.4,
             className: 'search-radius-circle'
           }}
         />
