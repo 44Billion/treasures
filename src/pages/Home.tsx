@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { Plus, Search, Compass, ScanQrCode } from "lucide-react";
+import { Search, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginDialog } from "@/components/auth";
@@ -11,6 +11,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 import { HeroGallery } from "@/components/HeroGallery";
+import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";
 
@@ -18,6 +19,7 @@ export default function Home() {
   const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { config } = useAppContext();
+  const { open: openRadar } = useRadarOverlay();
 
   // Use geocaches with optimized loading
   const {
@@ -200,6 +202,7 @@ export default function Home() {
               {t("home.hero.description").split("\n")[1]}
             </p>
 
+            {/* Primary CTAs */}
             <div className="flex flex-col md:flex-row items-stretch md:items-center w-full max-w-sm md:max-w-none md:w-auto mx-auto gap-2 xs:gap-3 md:gap-4 justify-center animate-slide-up-delay-2">
               <Link to="/map" className="group">
                 <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transform transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm xs:text-base px-4 xs:px-6">
@@ -208,32 +211,35 @@ export default function Home() {
                   <span className="xs:hidden">{t("home.cta.exploreShort")}</span>
                 </Button>
               </Link>
-              <Link to="/claim" className="group">
-                <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
-                  <ScanQrCode className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:scale-110" />
-                  <span className="hidden xs:inline">{t("home.cta.claim")}</span>
-                  <span className="xs:hidden">{t("home.cta.claimShort")}</span>
-                </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
+                onClick={openRadar}
+              >
+                <Compass className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-45" />
+                <span className="hidden xs:inline">{t("home.cta.compass")}</span>
+                <span className="xs:hidden">{t("home.cta.compassShort")}</span>
+              </Button>
+            </div>
+
+            {/* Secondary links */}
+            <div className="flex items-center justify-center gap-1 text-sm text-white/70 animate-slide-up-delay-2 mt-3 [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]">
+              <Link to="/claim" className="hover:text-white transition-colors">
+                {t("home.cta.claimLink")}
               </Link>
+              <span className="text-white/40 mx-1">·</span>
               {user ? (
-                <Link to="/create" className="group">
-                  <Button size="lg" variant="outline" className="w-full bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 animate-fade-in text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm">
-                    <Plus className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-90" />
-                    <span className="hidden xs:inline">{t("home.cta.hide")}</span>
-                    <span className="xs:hidden">{t("home.cta.hideShort")}</span>
-                  </Button>
+                <Link to="/create" className="hover:text-white transition-colors">
+                  {t("home.cta.hideLink")}
                 </Link>
               ) : (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
+                <button
                   onClick={handleLoginClick}
+                  className="hover:text-white transition-colors"
                 >
-                  <Plus className="h-4 w-4 xs:h-5 xs:w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-12" />
-                  <span className="hidden xs:inline">{t("home.cta.login")}</span>
-                  <span className="xs:hidden">{t("home.cta.loginShort")}</span>
-                </Button>
+                  {t("home.cta.hideLink")}
+                </button>
               )}
             </div>
           </div>
@@ -467,6 +473,8 @@ export default function Home() {
         isOpen={signupDialogOpen}
         onClose={handleSignupClose}
       />
+
+
     </div>
   );
 }

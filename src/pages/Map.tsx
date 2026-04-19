@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useSearchParams, Link } from "react-router-dom";
-import { X, RefreshCw, Sparkles, Compass, Plus, ScanQrCode, QrCode, Settings, Info, BookOpen, ChevronDown } from "lucide-react";
+import { X, RefreshCw, Sparkles, Compass, ChevronDown } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,10 +12,9 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ExploreMenuItems } from "@/components/ExploreMenuItems";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/hooks/useReliableProximitySearch";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -31,6 +30,7 @@ import type { Geocache } from "@/types/geocache";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { cn } from "@/utils/utils";
+import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 
 
 
@@ -64,6 +64,7 @@ export default function Map() {
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
+  const { open: openRadar } = useRadarOverlay();
 
   // Initialize activeTab based on URL parameter to avoid flicker
   const initialTab = (() => {
@@ -662,6 +663,7 @@ export default function Map() {
             onMarkerClick={handleMarkerClick}
             onSearchInView={handleSearchInView}
             onNearMe={handleNearMe}
+            onOpenRadar={openRadar}
             highlightedGeocache={highlightedGeocache || undefined}
             showStyleSelector={true}
             isNearMeActive={showNearMe}
@@ -681,52 +683,7 @@ export default function Map() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to="/claim">
-                    <ScanQrCode className="h-4 w-4 mr-2" />
-                    {t('navigation.claimTreasure')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/generate-qr">
-                    <QrCode className="h-4 w-4 mr-2" />
-                    {t('navigation.generateQrCode')}
-                  </Link>
-                </DropdownMenuItem>
-                {user && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/create">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t('navigation.hideGeocache')}
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/texas-ren-fest">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {t('navigation.texasRenFest')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a href="/blog">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    {t('navigation.blog')}
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <Settings className="h-4 w-4 mr-2" />
-                    {t('navigation.appSettings')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/about">
-                    <Info className="h-4 w-4 mr-2" />
-                    {t('navigation.about')}
-                  </Link>
-                </DropdownMenuItem>
+                <ExploreMenuItems showMapLink={false} />
               </DropdownMenuContent>
             </DropdownMenu>
             <LoginArea compact />
@@ -735,7 +692,7 @@ export default function Map() {
       </div>
 
       {/* Mobile View */}
-      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '3rem', bottom: '4rem' }}>
+      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '3rem', bottom: '3rem' }}>
         {/* Mobile Content Area - Full height */}
         <div className="flex-1 overflow-hidden relative">
           <MapViewTabs
@@ -958,6 +915,7 @@ export default function Map() {
                   onMarkerClick={handleMarkerClick}
                   onSearchInView={handleSearchInView}
                   onNearMe={handleNearMe}
+                  onOpenRadar={openRadar}
                   highlightedGeocache={highlightedGeocache || undefined}
                   showStyleSelector={true}
                   isNearMeActive={showNearMe}
@@ -988,6 +946,7 @@ export default function Map() {
         />,
         popupContainer
       )}
+
     </div>
   );
 }

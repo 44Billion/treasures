@@ -49,6 +49,8 @@ import { naddrToGeocache } from "@/utils/naddr-utils";
 import { encodeGeohash } from "@/utils/nip-gc";
 import type { Geocache, GeocacheLog } from "@/types/geocache";
 import { NavigationCompass } from "@/components/NavigationCompass";
+import { useRadarOverlay } from "@/hooks/useRadarOverlay";
+import { Compass } from "lucide-react";
 
 export default function CacheDetail() {
   const { t } = useTranslation();
@@ -57,12 +59,15 @@ export default function CacheDetail() {
   const location = useLocation();
 
   const { user } = useCurrentUser();
+  const { open: openRadar } = useRadarOverlay();
   const isDirectNavigation = useDirectNavigation();
 
   // Check if we have geocache data passed from navigation state (just created)
   const navigationState = location.state as { geocacheData?: any; justCreated?: boolean } | null;
   const passedGeocacheData = navigationState?.geocacheData;
   const justCreated = navigationState?.justCreated;
+
+  const [showQuickCompass, setShowQuickCompass] = useState(false);
 
   // State for tracking multi-relay attempts
   const [relayAttempts, setRelayAttempts] = useState<string[]>([]);
@@ -608,7 +613,24 @@ export default function CacheDetail() {
                   zoom={14}
                   showStyleSelector={false}
                 />
+                {/* Compass button overlay */}
+                {!isEditing && (
+                  <button
+                    onClick={() => setShowQuickCompass(true)}
+                    className="absolute bottom-3 right-3 z-[500] flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl active:scale-95 transition-all"
+                  >
+                    <Compass className="h-6 w-6" />
+                  </button>
+                )}
               </div>
+
+              {showQuickCompass && (
+                <NavigationCompass
+                  target={geocache.location}
+                  autoActivate
+                  onDeactivate={() => setShowQuickCompass(false)}
+                />
+              )}
 
               <div className="pt-6 sm:pt-0 lg:p-6 p-4 lg:pt-6">
                 <div className="flex items-start gap-2 sm:gap-4">
@@ -933,6 +955,15 @@ export default function CacheDetail() {
             {!isEditing && (
               <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
                 <NavigationCompass target={geocache.location} />
+                <div className="flex justify-center mt-4 pt-3 border-t border-border/50">
+                  <button
+                    onClick={openRadar}
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+                  >
+                    <Compass className="h-4 w-4 group-hover:rotate-45 transition-transform" />
+                    {t('compass.openRadar', 'Find nearby treasures with Magic Compass')}
+                  </button>
+                </div>
               </div>
             )}
 

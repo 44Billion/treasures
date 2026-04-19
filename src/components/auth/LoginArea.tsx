@@ -121,7 +121,7 @@ export function LoginArea({ compact = false }: LoginAreaProps) {
           size={compact ? "sm" : "default"}
         >
           <User className='w-3 h-3 xs:w-4 xs:h-4' />
-          {!compact && <span className="text-xs xs:text-sm">{t('login.button')}</span>}
+          <span className="text-xs xs:text-sm">{t('login.button')}</span>
         </Button>
       )}
 

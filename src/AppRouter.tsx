@@ -1,6 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { RadarOverlayProvider } from "@/hooks/useRadarOverlay";
+import { GlobalRadarCompass } from "@/components/GlobalRadarCompass";
 
 // Import only the most critical page for instant navigation
 import Home from "./pages/Home";
@@ -28,6 +30,7 @@ import RemoteLoginSuccess from "./pages/RemoteLoginSuccess";
 export function AppRouter() {
   return (
     <BrowserRouter>
+      <RadarOverlayProvider>
       {/* Scroll to top on route changes */}
       <ScrollToTop />
 
@@ -35,7 +38,7 @@ export function AppRouter() {
       <MobileHeader />
 
       {/* Main Content Area - with bottom padding for mobile nav */}
-      <main className="flex-1 pb-16 md:pb-0 bg-background">
+      <main className="flex-1 pb-12 md:pb-0 bg-background">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/map" element={<Map />} />
@@ -64,6 +67,10 @@ export function AppRouter() {
 
       {/* Mobile Bottom Navigation - Fixed positioned */}
       <MobileBottomNav />
+
+      {/* Global Radar Compass overlay — accessible from anywhere */}
+      <GlobalRadarCompass />
+      </RadarOverlayProvider>
     </BrowserRouter>
   );
 }

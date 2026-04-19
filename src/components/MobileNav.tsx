@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List } from 'lucide-react';
+import { Map, Plus, Menu, Settings, Bookmark, LogOut, User, QrCode, ScanQrCode, Info, BookOpen, Sparkles, List, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -10,19 +10,20 @@ import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from '@/utils/utils';
+import { useRadarOverlay } from '@/hooks/useRadarOverlay';
 
 // Helper function for consistent theme-aware styling
 function getThemeClasses(isAdventureTheme: boolean) {
   return {
     header: isAdventureTheme
-      ? 'bg-adventure-nav border-adventure-nav'
-      : 'bg-white dark:bg-background/95 border-gray-300 dark:border-border',
+      ? 'bg-adventure-nav'
+      : 'bg-white dark:bg-background',
     text: isAdventureTheme ? 'text-stone-200' : 'text-gray-900 dark:text-foreground',
     textMuted: isAdventureTheme ? 'text-stone-400' : 'text-gray-500 dark:text-muted-foreground',
     textActive: isAdventureTheme ? 'text-stone-200' : 'text-primary',
     button: isAdventureTheme
       ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100'
-      : 'text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground border-gray-300 dark:border-border',
+      : 'text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground border-gray-200 dark:border-border',
     icon: isAdventureTheme ? 'sepia' : '',
   };
 }
@@ -80,9 +81,9 @@ export function MobileHeader() {
 
   return (
     <header className={cn(
-      "w-full border-b md:hidden pt-safe-top",
+      "w-full md:hidden pt-safe-top",
       isHero
-        ? "absolute top-0 inset-x-0 z-50 bg-transparent border-transparent"
+        ? "absolute top-0 inset-x-0 z-50 bg-transparent"
         : cn("sticky top-0 z-40", themeClasses.header)
     )}>
       <div className="container flex h-12 items-center justify-between px-3 xs:px-4">
@@ -268,17 +269,17 @@ function BottomNavItem({
     <Link
       to={to}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 xs:gap-1 px-1 xs:px-2 py-1 text-[10px] xs:text-xs transition-colors min-h-[44px]",
+        "flex flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] transition-colors min-h-[40px]",
         isActive
           ? themeClasses.textActive
           : cn(themeClasses.textMuted, "hover:text-gray-900 dark:hover:text-foreground")
       )}
     >
-      <div className="flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6">
-        <Icon className={cn("h-4 w-4 xs:h-5 xs:w-5", isActive && themeClasses.textActive)} />
+      <div className="flex items-center justify-center w-5 h-5">
+        <Icon className={cn("h-4 w-4", isActive && themeClasses.textActive)} />
       </div>
       <span className={cn(
-        "text-center leading-tight max-w-[60px] xs:max-w-none truncate",
+        "text-center leading-tight max-w-[60px] truncate",
         isActive && cn(themeClasses.textActive, "font-medium")
       )}>
         {children}
@@ -297,6 +298,7 @@ export function MobileBottomNav() {
   const { t } = useTranslation();
   const location = useLocation();
   const { theme } = useTheme();
+  const { open: openRadar } = useRadarOverlay();
   const isAdventureTheme = theme === 'adventure';
   const themeClasses = getThemeClasses(isAdventureTheme);
   const isHome = location.pathname === '/';
@@ -317,48 +319,79 @@ export function MobileBottomNav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isHome]);
 
-  const navigation = [
+  const leftNav = [
     { name: t('navigation.list'), href: '/map?tab=list', icon: List },
     { name: t('navigation.map'), href: '/map?tab=map', icon: Map },
-    { name: t('navigation.claimTreasure'), href: '/claim', icon: ScanQrCode },
+  ];
+
+  const rightNav = [
+    { name: t('navigation.claim'), href: '/claim', icon: ScanQrCode },
     { name: t('navigation.new'), href: '/create', icon: Plus },
   ];
 
+  const isItemActive = (href: string) => {
+    const searchParams = new URLSearchParams(location.search);
+    const currentTab = searchParams.get('tab');
+
+    if (href.includes('/map?tab=')) {
+      const itemTab = href.includes('tab=list') ? 'list' : 'map';
+      return location.pathname === '/map' && currentTab === itemTab;
+    }
+    return location.pathname === getPathnameFromHref(href);
+  };
+
   return (
     <nav className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 border-t md:hidden pb-safe-bottom transition-transform duration-300",
+      "fixed bottom-0 left-0 right-0 z-40 md:hidden pb-safe-bottom transition-transform duration-300",
       themeClasses.header,
-      pastHero ? "translate-y-0" : "translate-y-full"
+      pastHero ? "translate-y-0" : "translate-y-[calc(100%+1.5rem)]"
     )}>
-      <div className="grid grid-cols-4 h-16 items-center">
-        {navigation.map((item) => {
-          // For map tabs, check both pathname and search params
-          const searchParams = new URLSearchParams(location.search);
-          const currentTab = searchParams.get('tab');
+      <div className="relative grid grid-cols-5 h-12 items-center">
+        {/* Left two items */}
+        {leftNav.map((item) => (
+          <BottomNavItem
+            key={item.href}
+            to={item.href}
+            icon={item.icon}
+            isActive={isItemActive(item.href)}
+            themeClasses={themeClasses}
+          >
+            {item.name}
+          </BottomNavItem>
+        ))}
 
-          let isActive = false;
-          if (item.href.includes('/map?tab=')) {
-            // For List and Map buttons, check the tab parameter
-            const itemTab = item.href.includes('tab=list') ? 'list' : 'map';
-            isActive = location.pathname === '/map' && currentTab === itemTab;
-          } else {
-            // For other buttons, just check pathname
-            const itemPathname = getPathnameFromHref(item.href);
-            isActive = location.pathname === itemPathname;
-          }
-
-          return (
-            <BottomNavItem
-              key={item.href}
-              to={item.href}
-              icon={item.icon}
-              isActive={isActive}
-              themeClasses={themeClasses}
+        {/* Center compass button — notched into the bar, peeks slightly */}
+        <div className="flex flex-col items-center justify-end h-full pb-1.5">
+          <div className="absolute -top-4 flex items-center justify-center">
+            {/* Background ring that matches the nav surface — creates the notch */}
+            <div className={cn(
+              "absolute w-[52px] h-[52px] rounded-full",
+              isAdventureTheme ? "bg-adventure-nav" : "bg-white dark:bg-background"
+            )} />
+            <button
+              onClick={openRadar}
+              className="relative flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-md active:scale-95 transition-transform"
             >
-              {item.name}
-            </BottomNavItem>
-          );
-        })}
+              <Compass className="h-5 w-5" />
+            </button>
+          </div>
+          <span className={cn("text-[10px] leading-tight", themeClasses.textMuted)}>
+            {t('navigation.compass')}
+          </span>
+        </div>
+
+        {/* Right two items */}
+        {rightNav.map((item) => (
+          <BottomNavItem
+            key={item.href}
+            to={item.href}
+            icon={item.icon}
+            isActive={isItemActive(item.href)}
+            themeClasses={themeClasses}
+          >
+            {item.name}
+          </BottomNavItem>
+        ))}
       </div>
     </nav>
   );

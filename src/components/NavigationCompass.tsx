@@ -1,18 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Locate, ShieldAlert, RotateCcw, X } from 'lucide-react';
 import { useCompass, formatCompassDistance, getBearingLabel } from '@/hooks/useCompass';
-import { Button } from '@/components/ui/button';
+import { CompassOverlay } from '@/components/CompassOverlay';
 import { cn } from '@/lib/utils';
 
 interface NavigationCompassProps {
   target: { lat: number; lng: number } | null;
   className?: string;
+  /** When true, auto-activates the compass on mount */
+  autoActivate?: boolean;
+  /** Called when the compass deactivates (user taps stop) */
+  onDeactivate?: () => void;
 }
 
 // ── Arcane ring marks (shared between dormant + active) ─────────
 
-/** Cardinal tick data: x1,y1 -> x2,y2 */
 const CARDINAL_TICKS = [
   [120, 5, 120, 18],
   [120, 222, 120, 235],
@@ -20,7 +22,6 @@ const CARDINAL_TICKS = [
   [222, 120, 235, 120],
 ] as const;
 
-/** Minor 30° tick data */
 const MINOR_TICKS = [
   [177.5, 20.5, 173, 28.3],
   [219.5, 62.5, 211.7, 67],
@@ -32,12 +33,9 @@ const MINOR_TICKS = [
   [62.5, 20.5, 67, 28.3],
 ] as const;
 
-/** Cardinal dot positions */
 const CARDINAL_DOTS = [
   [120, 10], [120, 230], [10, 120], [230, 120],
 ] as const;
-
-
 
 // ── SVG sub-components ──────────────────────────────────────────
 
@@ -99,7 +97,6 @@ function GemDefs() {
       <filter id="gem-aura" x="-40%" y="-40%" width="180%" height="180%">
         <feGaussianBlur in="SourceGraphic" stdDeviation="6" />
       </filter>
-      {/* Single clean specular — sharp bright edge, fast falloff */}
       <linearGradient id="gem-spec" x1="0.35" y1="0" x2="0.65" y2="1">
         <stop offset="0%" stopColor="white" stopOpacity="0" />
         <stop offset="8%" stopColor="white" stopOpacity="0.3" />
@@ -122,34 +119,21 @@ function GemJewel({ rotation, animated = false }: { rotation: number; animated?:
         transition: 'transform 0.15s ease-out',
       }}
     >
-      {/* Ambient aura */}
       <polygon
         points="120,28 72,148 120,210 168,148"
         className="fill-primary/50"
         filter="url(#gem-aura)"
         style={animated ? { animation: 'compass-gem-pulse 4s ease-in-out infinite' } : undefined}
       />
-
-      {/* 4 facets — tight range for realism, not cartoon */}
-      {/* Upper-left: brightest */}
       <polygon points="120,28 72,148 120,120" className="fill-primary" stroke="none" />
-      {/* Upper-right: slightly darker */}
       <polygon points="120,28 168,148 120,120" className="fill-primary/85" stroke="none" />
-      {/* Lower-left */}
       <polygon points="72,148 120,210 120,120" className="fill-primary/75" stroke="none" />
-      {/* Lower-right: darkest */}
       <polygon points="168,148 120,210 120,120" className="fill-primary/65" stroke="none" />
-
-      {/* One specular highlight */}
       <rect x="60" y="28" width="120" height="182" fill="url(#gem-spec)" clipPath="url(#gem-clip)" />
-
-      {/* Facet lines — barely there */}
       <line x1="72" y1="148" x2="120" y2="120" stroke="white" strokeOpacity="0.08" strokeWidth="0.5" />
       <line x1="168" y1="148" x2="120" y2="120" stroke="white" strokeOpacity="0.05" strokeWidth="0.5" />
       <line x1="120" y1="28" x2="120" y2="210" stroke="white" strokeOpacity="0.03" strokeWidth="0.5" />
       <line x1="72" y1="148" x2="168" y2="148" stroke="white" strokeOpacity="0.03" strokeWidth="0.5" />
-
-      {/* Outline */}
       <polygon points="120,28 72,148 120,210 168,148" fill="none" className="stroke-primary" strokeWidth="2" strokeLinejoin="round" />
     </g>
   );
@@ -158,26 +142,19 @@ function GemJewel({ rotation, animated = false }: { rotation: number; animated?:
 function DormantGem() {
   return (
     <g style={{ animation: 'compass-dormant-pulse 3s ease-in-out infinite' }}>
-      {/* Upper-left */}
       <polygon points="120,28 72,148 120,120" className="fill-primary/25" stroke="none" />
-      {/* Upper-right */}
       <polygon points="120,28 168,148 120,120" className="fill-primary/20" stroke="none" />
-      {/* Lower-left */}
       <polygon points="72,148 120,210 120,120" className="fill-primary/15" stroke="none" />
-      {/* Lower-right */}
       <polygon points="168,148 120,210 120,120" className="fill-primary/10" stroke="none" />
-      {/* Specular hint */}
       <rect x="60" y="28" width="120" height="182" fill="url(#gem-spec)" clipPath="url(#gem-clip)" opacity="0.4" />
-      {/* Facet lines */}
       <line x1="72" y1="148" x2="120" y2="120" stroke="white" strokeOpacity="0.05" strokeWidth="0.5" />
       <line x1="168" y1="148" x2="120" y2="120" stroke="white" strokeOpacity="0.03" strokeWidth="0.5" />
-      {/* Outline */}
       <polygon points="120,28 72,148 120,210 168,148" fill="none" className="stroke-primary/30" strokeWidth="2" strokeLinejoin="round" />
     </g>
   );
 }
 
-// ── Inline keyframes (scoped to this component) ─────────────────
+// ── Inline keyframes ────────────────────────────────────────────
 
 const COMPASS_STYLES = `
 @keyframes compass-twinkle {
@@ -192,67 +169,36 @@ const COMPASS_STYLES = `
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
-@keyframes compass-ring-draw {
-  from { stroke-dashoffset: 724; }
-  to { stroke-dashoffset: 0; }
-}
-@keyframes compass-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes compass-scale-in {
-  from { opacity: 0; transform: scale(0.7); }
-  to { opacity: 1; transform: scale(1); }
-}
 `;
 
 // ── Main component ──────────────────────────────────────────────
 
-/**
- * A magic compass that points toward a geocache.
- *
- * Wind Waker inspired: arcane ring with an uneven jewel pointer.
- * On mobile, activating goes full-screen immersive with animations.
- * On desktop, stays inline.
- */
-export function NavigationCompass({ target, className }: NavigationCompassProps) {
+export function NavigationCompass({ target, className, autoActivate = false, onDeactivate }: NavigationCompassProps) {
   const { t } = useTranslation();
-  const [isActivated, setIsActivated] = useState(false);
-  const [overlayPhase, setOverlayPhase] = useState<'hidden' | 'entering' | 'active' | 'exiting'>('hidden');
+  const [isActivated, setIsActivated] = useState(autoActivate);
 
   const compass = useCompass(isActivated ? target : null);
 
   const handleActivate = useCallback(async () => {
     setIsActivated(true);
-    setOverlayPhase('entering');
-    // Double-rAF to ensure entering state renders before we transition
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setOverlayPhase('active');
-      });
-    });
     await compass.startTracking();
   }, [compass]);
 
   const handleDeactivate = useCallback(() => {
-    setOverlayPhase('exiting');
-    setTimeout(() => {
-      setIsActivated(false);
-      setOverlayPhase('hidden');
-      compass.stopTracking();
-    }, 400);
-  }, [compass]);
+    setIsActivated(false);
+    compass.stopTracking();
+    onDeactivate?.();
+  }, [compass, onDeactivate]);
 
-  // Lock body scroll on mobile when overlay is active
+  // Auto-activate: start tracking immediately
   useEffect(() => {
-    if (overlayPhase === 'active' || overlayPhase === 'entering') {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = prev; };
+    if (autoActivate) {
+      compass.startTracking();
     }
-  }, [overlayPhase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Not activated yet — dormant
+  // Dormant state — not yet activated
   if (!isActivated) {
     return (
       <div className={cn('flex flex-col items-center', className)}>
@@ -284,64 +230,15 @@ export function NavigationCompass({ target, className }: NavigationCompassProps)
     );
   }
 
-  // Error state
-  if (compass.error) {
-    return (
-      <div className={cn('flex flex-col items-center gap-3', className)}>
-        <div className="flex items-center gap-2 text-sm text-destructive">
-          <ShieldAlert className="h-4 w-4 flex-shrink-0" />
-          <span>{compass.error}</span>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleActivate} variant="outline" size="sm" className="gap-1.5">
-            <RotateCcw className="h-3.5 w-3.5" />
-            {t('compass.retry', 'Retry')}
-          </Button>
-          <Button onClick={handleDeactivate} variant="ghost" size="sm">
-            {t('compass.dismiss', 'Dismiss')}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (compass.isLocating || (!compass.isActive && !compass.error)) {
-    return (
-      <div className={cn('flex flex-col items-center gap-3 py-4', className)}>
-        <div className="relative h-28 w-28">
-          <Locate className="h-6 w-6 absolute inset-0 m-auto text-primary animate-pulse" />
-          <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
-        </div>
-        <p className="text-sm text-muted-foreground">{t('compass.locating', 'Finding you...')}</p>
-      </div>
-    );
-  }
-
-  // Active compass
+  // Active state
   const rotation = compass.arrowRotation ?? 0;
   const distance = compass.distance;
   const bearing = compass.bearing;
-
-  const isEntering = overlayPhase === 'entering';
-  const isActive = overlayPhase === 'active';
-  const isExiting = overlayPhase === 'exiting';
+  const isLocating = compass.isLocating || (!compass.isActive && !compass.error);
 
   const compassSvg = (size: string, animated: boolean) => (
-    <div
-      className="relative select-none"
-      role="img"
-      aria-label={
-        distance !== null && bearing !== null
-          ? `Pointing ${getBearingLabel(bearing)}, ${formatCompassDistance(distance)} away`
-          : 'Compass'
-      }
-    >
-      <svg
-        viewBox="0 0 240 240"
-        className={size}
-        aria-hidden="true"
-      >
+    <div className="relative select-none">
+      <svg viewBox="0 0 240 240" className={size} aria-hidden="true">
         <GemDefs />
         <ArcaneRings active />
         <ArcaneCrosshairs active />
@@ -354,14 +251,11 @@ export function NavigationCompass({ target, className }: NavigationCompassProps)
 
   const distanceInfo = distance !== null && (
     <div className="flex flex-col items-center">
-      <span className={cn(
-        'font-bold tabular-nums text-foreground',
-        'text-2xl lg:text-2xl',
-      )}>
+      <span className={cn('font-bold tabular-nums text-foreground', 'text-2xl lg:text-2xl')}>
         {formatCompassDistance(distance)}
       </span>
       {bearing !== null && (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-sm text-muted-foreground mt-1">
           {getBearingLabel(bearing)}
         </span>
       )}
@@ -384,48 +278,21 @@ export function NavigationCompass({ target, className }: NavigationCompassProps)
         </button>
       </div>
 
-      {/* Mobile: full-screen immersive overlay */}
-      <div
-        className={cn(
-          'lg:hidden fixed inset-0 z-50 flex flex-col items-center justify-center',
-          'bg-background/95 backdrop-blur-sm',
-          'transition-opacity duration-400',
-          (isEntering) && 'opacity-0',
-          (isActive) && 'opacity-100',
-          (isExiting) && 'opacity-0',
-        )}
-      >
-        {/* Close button */}
-        <button
-          onClick={handleDeactivate}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full text-muted-foreground/60 hover:text-foreground transition-colors"
-          style={{
-            paddingTop: 'calc(0.5rem + env(safe-area-inset-top, 0px))',
-            paddingRight: 'calc(0.5rem + env(safe-area-inset-right, 0px))',
-          }}
+      {/* Mobile: full-screen overlay via shared shell */}
+      <div className="lg:hidden">
+        <CompassOverlay
+          isLocating={isLocating}
+          error={compass.error}
+          onRetry={() => compass.startTracking()}
+          onClose={handleDeactivate}
+          zClass="z-[9999]"
         >
-          <X className="h-6 w-6" />
-        </button>
+          {/* Compass SVG */}
+          {compassSvg('h-[85vw] w-[85vw] max-h-[70vh] max-w-[70vh]', true)}
 
-        {/* Compass — centered, huge */}
-        <div
-          className={cn(
-            'transition-all duration-700 ease-out',
-            (isActive) ? 'opacity-100 scale-100' : 'opacity-0 scale-75',
-          )}
-        >
-          {compassSvg('h-[70vw] w-[70vw] max-h-[70vh] max-w-[70vh]', true)}
-        </div>
-
-        {/* Distance — big and bold below the compass */}
-        <div
-          className={cn(
-            'mt-6 transition-all duration-500 delay-200',
-            (isActive) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
-          )}
-        >
+          {/* Distance info below */}
           {distance !== null && (
-            <div className="flex flex-col items-center">
+            <div className="mt-6 flex flex-col items-center">
               <span className="text-4xl font-bold tabular-nums text-foreground">
                 {formatCompassDistance(distance)}
               </span>
@@ -436,21 +303,7 @@ export function NavigationCompass({ target, className }: NavigationCompassProps)
               )}
             </div>
           )}
-        </div>
-
-        {/* Stop text at bottom */}
-        <button
-          onClick={handleDeactivate}
-          className={cn(
-            'absolute bottom-8 text-sm text-muted-foreground/50 hover:text-muted-foreground transition-all duration-500 delay-300',
-            (isActive) ? 'opacity-100' : 'opacity-0',
-          )}
-          style={{
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          }}
-        >
-          {t('compass.deactivate', 'Stop Navigating')}
-        </button>
+        </CompassOverlay>
       </div>
     </>
   );

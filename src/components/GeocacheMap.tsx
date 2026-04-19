@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { MapStyleSelector } from "./MapStyleSelector";
 import { NearMeButton } from "./NearMeButton";
+import { CompassMapButton } from "./CompassMapButton";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useMapController } from "@/hooks/useMapController";
@@ -208,6 +209,7 @@ interface GeocacheMapProps {
   mapRef?: React.RefObject<L.Map>; // Reference to the map instance
   isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
   isVisible?: boolean; // Whether the map is currently visible (for handling tab switches on mobile)
+  onOpenRadar?: () => void; // Callback to open the radar compass overlay
 }
 
 
@@ -1087,7 +1089,85 @@ function NearMeButtonControl({
   return null;
 }
 
+// Custom component for compass/radar button — positioned above Near Me button at lower right
+function CompassMapButtonControl({
+  onOpenRadar,
+  isAdventureTheme
+}: {
+  onOpenRadar: () => void;
+  isAdventureTheme: boolean;
+}) {
+  const map = useMap();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
+  const isInitializedRef = useRef(false);
 
+  const onOpenRadarRef = useRef(onOpenRadar);
+  const isAdventureThemeRef = useRef(isAdventureTheme);
+
+  useEffect(() => {
+    onOpenRadarRef.current = onOpenRadar;
+    isAdventureThemeRef.current = isAdventureTheme;
+  });
+
+  useEffect(() => {
+    if (isInitializedRef.current) return;
+
+    const mapContainer = map.getContainer();
+
+    const container = document.createElement('div');
+    container.className = 'compass-button-container hidden lg:block';
+    container.style.cssText = `
+      position: absolute;
+      bottom: 64px;
+      right: 16px;
+      z-index: 1000;
+      pointer-events: auto;
+    `;
+
+    mapContainer.appendChild(container);
+    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = container;
+
+    rootRef.current = createRoot(container);
+    rootRef.current.render(
+      <CompassMapButton
+        onClick={onOpenRadarRef.current}
+        isAdventureTheme={isAdventureThemeRef.current}
+      />
+    );
+
+    (isInitializedRef as React.MutableRefObject<boolean>).current = true;
+
+    const currentContainer = containerRef.current;
+
+    return () => {
+      if (currentContainer && currentContainer.parentNode) {
+        currentContainer.parentNode.removeChild(currentContainer);
+      }
+      if (rootRef.current) {
+        const root = rootRef.current;
+        rootRef.current = null;
+        setTimeout(() => {
+          try { root?.unmount(); } catch { /* ignore */ }
+        }, 0);
+      }
+      (isInitializedRef as React.MutableRefObject<boolean>).current = false;
+    };
+  }, [map]);
+
+  useEffect(() => {
+    if (rootRef.current && isInitializedRef.current) {
+      rootRef.current.render(
+        <CompassMapButton
+          onClick={onOpenRadarRef.current}
+          isAdventureTheme={isAdventureThemeRef.current}
+        />
+      );
+    }
+  }, [onOpenRadar, isAdventureTheme]);
+
+  return null;
+}
 
 // Custom tile layer with optimizations
 function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: MapStyle; crossOriginTiles?: boolean }) {
@@ -1134,7 +1214,8 @@ export function GeocacheMap({
   isGettingLocation = false,
   mapRef,
   isMapCenterLocked = false,
-  isVisible = true
+  isVisible = true,
+  onOpenRadar,
 }: GeocacheMapProps) {
   const { navigateToGeocache } = useGeocacheNavigation();
   const { theme, systemTheme } = useTheme();
@@ -1476,6 +1557,14 @@ export function GeocacheMap({
           onNearMe={onNearMe}
           isNearMeActive={isNearMeActive}
           isGettingLocation={isGettingLocation}
+          isAdventureTheme={currentMapStyle === 'adventure'}
+        />
+      )}
+
+      {/* Radar Compass Button — above Near Me button */}
+      {onOpenRadar && (
+        <CompassMapButtonControl
+          onOpenRadar={onOpenRadar}
           isAdventureTheme={currentMapStyle === 'adventure'}
         />
       )}

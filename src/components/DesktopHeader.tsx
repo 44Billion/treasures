@@ -1,18 +1,15 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Info, ChevronDown, Compass, QrCode, ScanQrCode, Scroll, Settings, BookOpen, Sparkles } from 'lucide-react';
+import { ChevronDown, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { ExploreMenuItems } from '@/components/ExploreMenuItems';
 import { useTheme } from "@/hooks/useTheme";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface DesktopHeaderProps {
   variant?: 'default' | 'map' | 'hero';
@@ -20,7 +17,6 @@ interface DesktopHeaderProps {
 
 export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
   const { t } = useTranslation();
-  const { user } = useCurrentUser();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
   const isHero = variant === 'hero';
@@ -68,58 +64,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to="/map">
-                    <Search className="h-4 w-4 mr-2" />
-                    {isAdventureTheme ? t('navigation.revealMap') : t('navigation.exploreMap')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/texas-ren-fest">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {t('navigation.texasRenFest')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/claim">
-                    {isAdventureTheme ? <Scroll className="h-4 w-4 mr-2" /> : <ScanQrCode className="h-4 w-4 mr-2" />}
-                    {isAdventureTheme ? t('navigation.claimArtifact') : t('navigation.claimTreasure')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/generate-qr">
-                    <QrCode className="h-4 w-4 mr-2" />
-                    {t('navigation.generateQrCode')}
-                  </Link>
-                </DropdownMenuItem>
-                {user && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/create">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {isAdventureTheme ? t('navigation.concealGeocache') : t('navigation.hideGeocache')}
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="/blog">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    {t('navigation.blog')}
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <Settings className="h-4 w-4 mr-2" />
-                    {t('navigation.appSettings')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/about">
-                    <Info className="h-4 w-4 mr-2" />
-                    {t('navigation.about')}
-                  </Link>
-                </DropdownMenuItem>
+                <ExploreMenuItems showMapLink />
               </DropdownMenuContent>
             </DropdownMenu>
 
