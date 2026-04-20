@@ -247,7 +247,7 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
 
   const rotation = compass.arrowRotation ?? 0;
   const heading = compass.heading;
-  const isLocating = compass.isLocating || (!compass.isActive && !compass.error);
+  const isLocating = compass.isLocating || (!compass.isActive && !compass.error && !compass.sensorError);
   const isLockedOn = lockedOnDTag !== null;
 
   const blipAngles = useMemo(() => {
@@ -260,6 +260,7 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
     <CompassOverlay
       isLocating={isLocating}
       error={compass.error}
+      sensorError={compass.sensorError}
       onRetry={() => compass.startTracking()}
       onClose={handleClose}
       className={className}

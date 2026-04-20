@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Locate, ShieldAlert, RotateCcw, X } from 'lucide-react';
+import { Locate, MapPinOff, Compass, RotateCcw, X, ChevronDown, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
 type OverlayPhase = 'entering' | 'active' | 'exiting';
@@ -9,8 +10,10 @@ type OverlayPhase = 'entering' | 'active' | 'exiting';
 interface CompassOverlayProps {
   /** Whether the compass is still acquiring a GPS fix */
   isLocating: boolean;
-  /** Error message, if any */
+  /** Error message (GPS/location errors) */
   error: string | null;
+  /** Sensor-specific error (orientation/motion sensor issues) */
+  sensorError?: string | null;
   /** Called to retry after an error */
   onRetry: () => void;
   /** Called to close the overlay */
@@ -27,12 +30,13 @@ interface CompassOverlayProps {
  * Shared full-screen overlay shell for compass modes.
  *
  * Handles enter/exit transitions, scroll lock, close button,
- * loading ("Finding you..."), and error states.
+ * loading ("Finding you..."), and error states (GPS + sensor).
  * The caller provides compass-specific content as children.
  */
 export function CompassOverlay({
   isLocating,
   error,
+  sensorError,
   onRetry,
   onClose,
   zClass = 'z-[9999]',
@@ -41,6 +45,7 @@ export function CompassOverlay({
 }: CompassOverlayProps) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<OverlayPhase>('entering');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Entry animation
   useEffect(() => {
@@ -65,6 +70,10 @@ export function CompassOverlay({
 
   const isActive = phase === 'active';
 
+  // Determine which error to show (GPS takes priority since it blocks the compass entirely)
+  const activeError = error || sensorError || null;
+  const isSensorError = !error && !!sensorError;
+
   const closeButton = (
     <button
       onClick={handleClose}
@@ -82,6 +91,7 @@ export function CompassOverlay({
     'fixed inset-0 flex flex-col items-center justify-center',
     'bg-background/95 backdrop-blur-sm',
     'transition-opacity duration-400',
+    'overflow-hidden',
     zClass,
     phase === 'entering' && 'opacity-0',
     isActive && 'opacity-100',
@@ -96,26 +106,81 @@ export function CompassOverlay({
 
       {isLocating ? (
         // Loading state
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 px-6">
           <div className="relative h-28 w-28">
             <Locate className="h-6 w-6 absolute inset-0 m-auto text-primary animate-pulse" />
             <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
           </div>
           <p className="text-sm text-muted-foreground">{t('compass.locating', 'Finding you...')}</p>
         </div>
-      ) : error ? (
-        // Error state
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-destructive">
-            <ShieldAlert className="h-4 w-4 flex-shrink-0" />
-            <span>{error}</span>
+      ) : activeError ? (
+        // Error state — contained card-like presentation
+        <div className="flex flex-col items-center gap-6 px-6 max-w-sm w-full max-h-full overflow-y-auto py-12">
+          {/* Error icon */}
+          <div className="relative h-20 w-20">
+            <div className="absolute inset-0 rounded-full bg-destructive/10" />
+            {isSensorError ? (
+              <Compass className="h-8 w-8 absolute inset-0 m-auto text-destructive/70" />
+            ) : (
+              <MapPinOff className="h-8 w-8 absolute inset-0 m-auto text-destructive/70" />
+            )}
           </div>
-          <div className="flex gap-2">
-            <Button onClick={onRetry} variant="outline" size="sm" className="gap-1.5">
-              <RotateCcw className="h-3.5 w-3.5" />
-              {t('compass.retry', 'Retry')}
+
+          {/* Error title + message */}
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h3 className="text-base font-medium text-foreground">
+              {isSensorError
+                ? t('compass.sensorErrorTitle', 'Compass Sensor Unavailable')
+                : t('compass.locationErrorTitle', 'Location Unavailable')}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {activeError}
+            </p>
+          </div>
+
+          {/* Sensor help — expandable browser instructions */}
+          {isSensorError && (
+            <Collapsible open={helpOpen} onOpenChange={setHelpOpen} className="w-full">
+              <CollapsibleTrigger className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors w-full py-1">
+                <Smartphone className="h-3 w-3" />
+                <span>{t('compass.howToEnable', 'How to enable motion sensors')}</span>
+                <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', helpOpen && 'rotate-180')} />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-3 rounded-lg border border-border/50 bg-muted/30 p-4 text-left space-y-4">
+                  <SensorHelpItem
+                    browser="Chrome / Chromium / Vanadium"
+                    steps={t('compass.helpChrome', 'Tap the lock or settings icon in the address bar > Site settings > Motion sensors > Allow')}
+                  />
+                  <SensorHelpItem
+                    browser="Brave"
+                    steps={t('compass.helpBrave', 'Menu (three dots) > Settings > Site settings > Motion sensors > Allow')}
+                  />
+                  <SensorHelpItem
+                    browser="Firefox / Ironfox"
+                    steps={t('compass.helpFirefox', 'Tap the padlock or shield icon in the address bar > Turn off Enhanced Tracking Protection for this site, then reload')}
+                  />
+                  <SensorHelpItem
+                    browser="Safari (iOS)"
+                    steps={t('compass.helpSafari', 'Should work automatically. If not, go to Settings > Safari > Motion & Orientation Access > enable')}
+                  />
+                  <div className="pt-2 border-t border-border/30">
+                    <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                      {t('compass.helpAndroidNote', 'On Android, you may also need to grant sensor permissions to your browser app itself: Android Settings > Apps > [Your Browser] > Permissions')}
+                    </p>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <Button onClick={onRetry} variant="outline" size="default" className="gap-2">
+              <RotateCcw className="h-4 w-4" />
+              {t('compass.tryAgain', 'Try Again')}
             </Button>
-            <Button onClick={handleClose} variant="ghost" size="sm">
+            <Button onClick={handleClose} variant="ghost" size="default">
               {t('compass.dismiss', 'Dismiss')}
             </Button>
           </div>
@@ -147,6 +212,16 @@ export function CompassOverlay({
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+/** Individual browser help row */
+function SensorHelpItem({ browser, steps }: { browser: string; steps: string }) {
+  return (
+    <div className="text-xs">
+      <span className="font-medium text-foreground/80">{browser}</span>
+      <p className="text-muted-foreground/70 mt-0.5 leading-relaxed">{steps}</p>
     </div>
   );
 }

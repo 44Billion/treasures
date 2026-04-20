@@ -27,8 +27,10 @@ interface CompassState {
   gpsAccuracy: number | null;
   /** Compass accuracy in degrees (lower = better) */
   compassAccuracy: number | null;
-  /** Error message */
+  /** Error message (GPS/location errors) */
   error: string | null;
+  /** Sensor-specific error (orientation/motion sensor issues) */
+  sensorError: string | null;
 }
 
 /**
@@ -312,7 +314,8 @@ export function useCompass(target: CompassTarget | null) {
         needsPermission: !orientation.permissionGranted,
         gpsAccuracy,
         compassAccuracy: orientation.accuracy,
-        error: gpsError || orientation.error || null,
+        error: gpsError || null,
+        sensorError: orientation.error || null,
       };
     }
 
@@ -329,6 +332,7 @@ export function useCompass(target: CompassTarget | null) {
         gpsAccuracy,
         compassAccuracy: orientation.accuracy,
         error: gpsError || null,
+        sensorError: orientation.error || null,
       };
     }
 
@@ -373,6 +377,7 @@ export function useCompass(target: CompassTarget | null) {
       gpsAccuracy,
       compassAccuracy: orientation.accuracy,
       error: null,
+      sensorError: orientation.error || null,
     };
   })();
 

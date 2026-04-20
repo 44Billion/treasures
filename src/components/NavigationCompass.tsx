@@ -234,7 +234,7 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
   const rotation = compass.arrowRotation ?? 0;
   const distance = compass.distance;
   const bearing = compass.bearing;
-  const isLocating = compass.isLocating || (!compass.isActive && !compass.error);
+  const isLocating = compass.isLocating || (!compass.isActive && !compass.error && !compass.sensorError);
 
   const compassSvg = (size: string, animated: boolean) => (
     <div className="relative select-none">
@@ -283,6 +283,7 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
         <CompassOverlay
           isLocating={isLocating}
           error={compass.error}
+          sensorError={compass.sensorError}
           onRetry={() => compass.startTracking()}
           onClose={handleDeactivate}
           zClass="z-[9999]"
