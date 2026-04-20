@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ShieldCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCreateVerifiedLog } from "@/hooks/useCreateVerifiedLog";
 import { useShareLogAsEvent } from "@/hooks/useShareLogAsEvent";
 
@@ -19,32 +18,43 @@ interface VerifiedLogFormProps {
   verificationKey: string;
   compact?: boolean;
   className?: string;
+  autoFocus?: boolean;
 }
 
-export function VerifiedLogForm({ 
-  geocache, 
-  verificationKey, 
+export function VerifiedLogForm({
+  geocache,
+  verificationKey,
   compact = false,
-  className 
+  className,
+  autoFocus = false,
 }: VerifiedLogFormProps) {
   const { mutate: createVerifiedLog, isPending: isCreatingLog } = useCreateVerifiedLog();
   const { shareLogAsEvent, isPublishing: isSharing } = useShareLogAsEvent();
-  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const [logText, setLogText] = useState("");
   const [shareToFeed, setShareToFeed] = useState(false);
   const [postingStatus, setPostingStatus] = useState<string>("");
-  
-  // Verified logs are always "found" - if they have the verification key, they found it!
+
+  // Auto-focus the textarea after the reveal overlay finishes and scroll completes
+  useEffect(() => {
+    if (autoFocus && textareaRef.current) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
+
   const logType = "found";
 
   const handleCreateLog = async () => {
     if (!logText.trim() || !geocache) return;
-    
-    setPostingStatus("Creating verified log (this may take a moment)...");
-    
-    // Get the primary relay from the geocache's relay list
+
+    setPostingStatus("Creating verified log...");
+
     const primaryRelay = geocache.relays?.[0] || '';
-    
+
     createVerifiedLog({
       geocacheId: geocache.id,
       geocacheDTag: geocache.dTag,
@@ -57,69 +67,73 @@ export function VerifiedLogForm({
       verificationKey,
     }, {
       onSuccess: async () => {
-        setPostingStatus("Verified log posted successfully!");
-        
-        // If user wants to share to feed, publish as kind 1 event
+        setPostingStatus("Verified log posted!");
+
         if (shareToFeed) {
           try {
             setPostingStatus("Sharing to your feed...");
             await shareLogAsEvent({
               geocache: {
                 ...geocache,
-                name: geocache.name || 'Geocache' // Fallback name if not available
+                name: geocache.name || 'Geocache',
               },
               logText,
               logType,
-              isVerified: true
+              isVerified: true,
             });
-            setPostingStatus("Verified log posted and shared to feed!");
+            setPostingStatus("Posted and shared!");
           } catch (error) {
             console.error('Failed to share to feed:', error);
-            setPostingStatus("Verified log posted! (Failed to share to feed)");
+            setPostingStatus("Posted! (Failed to share to feed)");
           }
-        } else {
-          setPostingStatus("Verified log posted successfully!");
         }
-        
+
         setLogText("");
         setShareToFeed(false);
-        setTimeout(() => {
-          setPostingStatus("");
-        }, 2000);
+        setTimeout(() => setPostingStatus(""), 2000);
       },
       onError: () => {
         setPostingStatus("");
-      }
+      },
     });
   };
 
   return (
-    <div className={`lg:rounded-lg lg:border lg:border-primary lg:bg-primary-50 dark:lg:bg-primary-50 lg:shadow-sm ${className}`}>
+    <div
+      data-verified-log-form
+      className={`verified-form-enter rounded-lg border border-primary/30 bg-card shadow-sm overflow-hidden ${className ?? ''}`}
+    >
+      {/* Header */}
       {!compact && (
-        <div className="lg:p-6 lg:pb-0 p-4 lg:pt-6 pt-2">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-primary">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            Post a Verified Log
-          </h3>
+        <div className="border-b border-primary/10 bg-primary/[0.03] px-4 py-4 md:px-5 md:py-5">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <ShieldCheck className="h-[18px] w-[18px] text-primary" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-foreground leading-snug">
+                Verified find{geocache.name ? <>: <span className="text-primary">{geocache.name}</span></> : null}
+              </h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Write about your discovery. This log will be permanently marked as verified.
+              </p>
+            </div>
+          </div>
         </div>
       )}
-      <div className={compact ? "p-4 space-y-3" : "lg:p-6 lg:pt-0 p-4 space-y-4 lg:pb-6 pb-2"}>
-        <Alert>
-          <ShieldCheck className="h-4 w-4" />
-          <AlertDescription>
-            You have a valid verification key for this cache. Your "Found it" log will be marked as verified.
-          </AlertDescription>
-        </Alert>
-        
+
+      {/* Form */}
+      <div className={compact ? "p-4 space-y-3" : "p-4 md:p-5 space-y-4"}>
         <Textarea
-          placeholder="Share your find experience! What was it like discovering this treasure?"
+          ref={textareaRef}
+          placeholder="How did you find it? What was the experience like?"
           value={logText}
           onChange={(e) => setLogText(e.target.value)}
           rows={compact ? 3 : 4}
-          className={`text-primary ${compact && "text-sm"}`}
+          className={compact ? "text-sm" : ""}
         />
-        
-        <div className="flex items-center space-x-2 text-primary">
+
+        <div className="flex items-center space-x-2">
           <Checkbox
             id="share-to-feed-verified"
             checked={shareToFeed}
@@ -128,25 +142,25 @@ export function VerifiedLogForm({
           />
           <label
             htmlFor="share-to-feed-verified"
-            className={`flex items-center gap-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${compact ? "text-xs" : ""}`}
+            className={`flex items-center gap-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground ${compact ? "text-xs" : ""}`}
           >
             <Share2 className="h-3 w-3" />
             Share to my feed
           </label>
         </div>
-        
-        <Button 
-          onClick={handleCreateLog} 
+
+        <Button
+          onClick={handleCreateLog}
           disabled={!logText.trim() || isCreatingLog || isSharing}
           size={compact ? "sm" : "default"}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="w-full"
         >
           <ShieldCheck className="h-4 w-4 mr-2" />
-          {isCreatingLog || isSharing ? "Posting Verified Log (please wait)..." : "Post Verified Log"}
+          {isCreatingLog || isSharing ? "Posting..." : "Post Verified Log"}
         </Button>
-        
+
         {postingStatus && (
-          <p className={`text-gray-600 text-center ${compact ? "text-xs" : "text-sm"}`}>
+          <p className={`text-muted-foreground text-center ${compact ? "text-xs" : "text-sm"}`}>
             {postingStatus}
           </p>
         )}

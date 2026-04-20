@@ -10,7 +10,7 @@ import { LogList } from "@/components/LogList";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
-import { VerifiedLoginPromptDialog } from "@/components/auth/VerifiedLoginPromptDialog";
+
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCreateLog } from "@/hooks/useCreateLog";
 import { useShareLogAsEvent } from "@/hooks/useShareLogAsEvent";
@@ -34,6 +34,7 @@ interface LogsSectionProps {
   verificationKey?: string;
   isVerificationValid?: boolean;
   hideForm?: boolean;
+  autoFocusVerifiedForm?: boolean;
 }
 
 export function LogsSection({
@@ -44,7 +45,8 @@ export function LogsSection({
   className,
   verificationKey,
   isVerificationValid = false,
-  hideForm = false
+  hideForm = false,
+  autoFocusVerifiedForm = false,
 }: LogsSectionProps) {
   // Logs received from parent component
   const { t } = useTranslation();
@@ -58,7 +60,7 @@ export function LogsSection({
   const [postingStatus, setPostingStatus] = useState<string>("");
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showSignupDialog, setShowSignupDialog] = useState(false);
-  const [showVerifiedLoginPrompt, setShowVerifiedLoginPrompt] = useState(false);
+
 
   const handleCreateLog = async () => {
     if (!logText.trim() || !geocache) return;
@@ -121,7 +123,7 @@ export function LogsSection({
   };
 
   const handleSignupClick = () => {
-    setShowVerifiedLoginPrompt(true);
+    setShowSignupDialog(true);
   };
 
   const handleNormalSignupClick = () => {
@@ -132,20 +134,13 @@ export function LogsSection({
     setShowLoginDialog(false);
   };
 
-  const handleVerifiedPromptClose = () => {
-    setShowVerifiedLoginPrompt(false);
-  };
+
 
   const handleSignupDialogClose = () => {
     setShowSignupDialog(false);
   };
 
-  // Auto-show verified login prompt when user has verification key but is not logged in
-  useEffect(() => {
-    if (verificationKey && isVerificationValid && !user) {
-      setShowVerifiedLoginPrompt(true);
-    }
-  }, [verificationKey, isVerificationValid, user]);
+  // The verified login prompt is now handled by the VerifiedReveal overlay in CacheDetail
 
   return (
     <div className={`space-y-4 ${className || ''}`}>
@@ -155,6 +150,7 @@ export function LogsSection({
           geocache={geocache}
           verificationKey={verificationKey}
           compact={compact}
+          autoFocus={autoFocusVerifiedForm}
         />
       )}
 
@@ -297,7 +293,7 @@ export function LogsSection({
         onLogin={handleLoginDialogClose}
         onSignup={() => {
           setShowLoginDialog(false);
-          setShowVerifiedLoginPrompt(true);
+          setShowSignupDialog(true);
         }}
       />
 
@@ -307,14 +303,7 @@ export function LogsSection({
         onClose={handleSignupDialogClose}
       />
 
-      {/* Verified Login Prompt Dialog */}
-      <VerifiedLoginPromptDialog
-        isOpen={showVerifiedLoginPrompt}
-        onClose={handleVerifiedPromptClose}
-        onLogin={handleLoginClick}
-        onSignup={handleSignupClick}
-        geocacheName={geocache.name}
-      />
+
     </div>
   );
 }

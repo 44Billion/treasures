@@ -345,3 +345,63 @@
     animation-delay: 700ms;
   }
 }
+
+/* Signup -- mote twinkle (gentle pulse in place) */
+@keyframes signup-mote-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  20%      { opacity: 1; transform: scale(1.1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+  70%      { opacity: 0.9; transform: scale(1); }
+}
+
+/* Signup key showcase spin -- slow rotation for backdrop */
+@keyframes signup-key-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Signup key sheen -- sweeping highlight */
+.signup-key-sheen {
+  mask-image: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(0,0,0,0.6) 45%,
+    rgba(0,0,0,0.6) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(0,0,0,0.6) 45%,
+    rgba(0,0,0,0.6) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  mask-size: 300% 100%;
+  -webkit-mask-size: 300% 100%;
+  animation: signup-key-sheen-sweep 3s ease-in-out infinite;
+}
+
+@keyframes signup-key-sheen-sweep {
+  0%   { mask-position: 100% 0; -webkit-mask-position: 100% 0; }
+  100% { mask-position: 0% 0;   -webkit-mask-position: 0% 0; }
+}
+
+/* Signup forge glow -- breathes during key generation */
+@keyframes signup-forge-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.1); }
+}
+
+/* Verified log form – fade/slide entrance */
+.verified-form-enter {
+  animation: verifiedFormEnter 0.35s ease-out both;
+}
+
+@keyframes verifiedFormEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -47,6 +47,9 @@ import { CacheMenu } from "@/components/CacheMenu";
 import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
 import { encodeGeohash } from "@/utils/nip-gc";
+import { VerifiedReveal } from "@/components/VerifiedReveal";
+import { LoginDialog } from "@/components/auth";
+import SignupDialog from "@/components/auth/SignupDialog";
 import type { Geocache, GeocacheLog } from "@/types/geocache";
 import { NavigationCompass } from "@/components/NavigationCompass";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
@@ -160,6 +163,9 @@ export default function CacheDetail() {
   // Verification state
   const [verificationKey, setVerificationKey] = useState<string | null>(null);
   const [isVerificationValid, setIsVerificationValid] = useState(false);
+  const [showRevealOverlay, setShowRevealOverlay] = useState(false);
+  const [showRevealLogin, setShowRevealLogin] = useState(false);
+  const [showRevealSignup, setShowRevealSignup] = useState(false);
 
   // Copy to clipboard state
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
@@ -228,18 +234,7 @@ export default function CacheDetail() {
         setIsVerificationValid(isValid);
 
         if (isValid) {
-          toast({
-            title: t('cacheDetail.toast.verificationDetected.title'),
-            description: t('cacheDetail.toast.verificationDetected.description'),
-          });
-
-          // Scroll to logs section after a short delay
-          setTimeout(() => {
-            const logsSection = document.querySelector('[data-logs-section]');
-            if (logsSection) {
-              logsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 1000);
+          setShowRevealOverlay(true);
         } else {
           // Check if this is an outdated verification key
           toast({
@@ -569,6 +564,43 @@ export default function CacheDetail() {
 
   return (
     <div className="min-h-screen lg:bg-muted bg-card pb-8 lg:pb-0">
+      {/* Full-screen verified discovery reveal */}
+      {showRevealOverlay && (
+        <VerifiedReveal
+          geocacheName={geocache?.name}
+          isLoggedIn={!!user}
+          onComplete={() => {
+            setShowRevealOverlay(false);
+            // Scroll so the logs section header sits just below the top nav
+            setTimeout(() => {
+              const logsSection = document.querySelector('[data-logs-section]');
+              if (logsSection) {
+                const rect = logsSection.getBoundingClientRect();
+                const navHeight = 56;
+                window.scrollBy({ top: rect.top - navHeight, behavior: 'smooth' });
+              }
+            }, 100);
+          }}
+          onLogin={() => setShowRevealLogin(true)}
+          onSignup={() => setShowRevealSignup(true)}
+        />
+      )}
+
+      {/* Auth dialogs triggered from the reveal overlay */}
+      <LoginDialog
+        isOpen={showRevealLogin}
+        onClose={() => setShowRevealLogin(false)}
+        onLogin={() => setShowRevealLogin(false)}
+        onSignup={() => {
+          setShowRevealLogin(false);
+          setShowRevealSignup(true);
+        }}
+      />
+      <SignupDialog
+        isOpen={showRevealSignup}
+        onClose={() => setShowRevealSignup(false)}
+      />
+
       <DesktopHeader />
 
       {/* Sticky footer for edit mode on mobile */}
@@ -846,13 +878,13 @@ export default function CacheDetail() {
 
             {/* Logs Section */}
             <div className="space-y-4 lg:mt-0 mt-2" data-logs-section>
-              {/* Render logs section */}
               <LogsSection
                 logs={logs as GeocacheLog[]}
                 geocache={geocache as Geocache}
                 isOwner={isOwner}
                 verificationKey={verificationKey || undefined}
                 isVerificationValid={isVerificationValid}
+                autoFocusVerifiedForm={isVerificationValid && !showRevealOverlay}
               />
             </div>
           </div>
