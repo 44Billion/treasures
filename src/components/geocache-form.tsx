@@ -872,8 +872,8 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
         </div>
       )}
 
-      {/* Upload area */}
-      <Input
+      {/* Upload area — native <input> required for reliable camera prompt on mobile */}
+      <input
         type="file"
         accept="image/*"
         onChange={handleImageUpload}
