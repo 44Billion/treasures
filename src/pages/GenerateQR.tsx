@@ -24,7 +24,7 @@ import {
   buildStandardVerificationUrl
 } from "@/utils/verification";
 import { geocacheToNaddr } from "@/utils/naddr-utils";
-import { generateDeterministicDTag } from "@/utils/dTag";
+import { generateCompactDTag } from "@/utils/dTag";
 import { ComponentLoading } from "@/components/ui/loading";
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 
@@ -66,7 +66,7 @@ export default function GenerateQR() {
     const generateInitialQR = async () => {
       const customName = searchParams.get('name');
       const finalCacheName = customName?.trim() || uniqueNamesGenerator(customConfig);
-      const dTag = generateDeterministicDTag(finalCacheName, user.pubkey);
+      const dTag = generateCompactDTag();
       const naddr = geocacheToNaddr(user.pubkey, dTag);
       const keyPair = await generateVerificationKeyPair();
       setCacheName(finalCacheName);
@@ -93,7 +93,7 @@ export default function GenerateQR() {
         const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
         for (let i = 0; i < 9; i++) {
           const name = uniqueNamesGenerator(customConfig);
-          const dTag = generateDeterministicDTag(name, user.pubkey);
+          const dTag = generateCompactDTag();
           const naddr = geocacheToNaddr(user.pubkey, dTag);
           dataPromises.push(generateVerificationKeyPair().then(keyPair => ({name, naddr, keyPair})));
         }
@@ -108,7 +108,7 @@ export default function GenerateQR() {
         const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
         for (let i = 0; i < 42; i++) {
           const name = uniqueNamesGenerator(customConfig);
-          const dTag = generateDeterministicDTag(name, user.pubkey);
+          const dTag = generateCompactDTag();
           const naddr = geocacheToNaddr(user.pubkey, dTag);
           dataPromises.push(generateVerificationKeyPair().then(keyPair => ({name, naddr, keyPair})));
         }

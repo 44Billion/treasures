@@ -231,7 +231,7 @@
   "createCache.confirmLocation.useDespiteWarnings": "警告にもかかわらず使用",
   "createCache.confirmLocation.useLocation": "この場所を使用",
   "qrCode.foundTreasure": "宝物を見つけました！",
-  "qrCode.scanToLog": "このQRコードをスキャンして冒険を記録してください。",
+  "qrCode.scanToLog": "スキャンして treasures.to で冒険を記録しよう",
   "home.install.badge": "クエストに参加",
   "home.install.badgeAdventure": "旅を始める",
   "home.install.subtitle": "PWAをインストール",

@@ -231,7 +231,7 @@
   "createCache.confirmLocation.useDespiteWarnings": "Use Despite Warnings",
   "createCache.confirmLocation.useLocation": "Use This Location",
   "qrCode.foundTreasure": "You found a treasure!",
-  "qrCode.scanToLog": "Scan this QR code to log your adventure.",
+  "qrCode.scanToLog": "Scan to log your adventure at treasures.to",
   "home.install.badge": "Join the Quest",
   "home.install.badgeAdventure": "Begin Your Journey",
   "home.install.subtitle": "Install the PWA",

@@ -25,7 +25,7 @@ import {
   type VerificationKeyPair,
 } from "@/utils/verification";
 import { geocacheToNaddr } from "@/utils/naddr-utils";
-import { generateDeterministicDTag } from "@/utils/dTag";
+import { generateCompactDTag } from "@/utils/dTag";
 import { nip19 } from 'nostr-tools';
 import { ComponentLoading } from "@/components/ui/loading";
 import {
@@ -100,7 +100,7 @@ export default function CreateCacheLanding() {
         const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
         for (let i = 0; i < 9; i++) {
           const name = uniqueNamesGenerator(customConfig);
-          const dTag = generateDeterministicDTag(name, targetPubkey);
+          const dTag = generateCompactDTag();
           const naddr = geocacheToNaddr(targetPubkey, dTag);
           dataPromises.push(generateVerificationKeyPair().then(keyPair => ({name, naddr, keyPair})));
         }
@@ -114,7 +114,7 @@ export default function CreateCacheLanding() {
         const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
         for (let i = 0; i < 42; i++) {
           const name = uniqueNamesGenerator(customConfig);
-          const dTag = generateDeterministicDTag(name, targetPubkey);
+          const dTag = generateCompactDTag();
           const naddr = geocacheToNaddr(targetPubkey, dTag);
           dataPromises.push(generateVerificationKeyPair().then(keyPair => ({name, naddr, keyPair})));
         }
@@ -148,7 +148,7 @@ export default function CreateCacheLanding() {
     const generateInitialQR = async () => {
       const finalCacheName = uniqueNamesGenerator(customConfig);
       const targetPubkey = getPubkeyForNaddr();
-      const dTag = generateDeterministicDTag(finalCacheName, targetPubkey);
+      const dTag = generateCompactDTag();
       const naddr = geocacheToNaddr(targetPubkey, dTag);
       const keyPair = await generateVerificationKeyPair();
       setCacheName(finalCacheName);

@@ -231,7 +231,7 @@
   "createCache.confirmLocation.useDespiteWarnings": "ใช้แม้มีคำเตือน",
   "createCache.confirmLocation.useLocation": "ใช้ตำแหน่งนี้",
   "qrCode.foundTreasure": "คุณพบสมบัติแล้ว!",
-  "qrCode.scanToLog": "สแกน QR code นี้เพื่อบันทึกการผจญภัยของคุณ",
+  "qrCode.scanToLog": "สแกนเพื่อบันทึกการผจญภัยที่ treasures.to",
   "home.install.badge": "เข้าร่วมการผจญภัย",
   "home.install.badgeAdventure": "เริ่มต้นการเดินทางของคุณ",
   "home.install.subtitle": "ติดตั้ง PWA",

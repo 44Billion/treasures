@@ -35,7 +35,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import type { Event } from 'nostr-tools';
-import QRCode from 'qrcode';
+import { styledQRToDataURL } from '@/utils/qr-renderer';
 import type { ZapTarget } from '@/types/zaps';
 import React from 'react';
 
@@ -340,14 +340,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
       }
 
       try {
-        const url = await QRCode.toDataURL(invoice.toUpperCase(), {
-          width: 512,
-          margin: 2,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF',
-          },
-        });
+        const url = styledQRToDataURL(invoice.toUpperCase(), 512, 'M');
 
         if (!isCancelled) {
           setQrCodeUrl(url);

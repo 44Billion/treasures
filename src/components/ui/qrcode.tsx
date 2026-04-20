@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import QRCode from 'qrcode';
 import { cn } from '@/utils/utils';
+import { drawStyledQR } from '@/utils/qr-renderer';
 
 interface QRCodeProps {
   value: string;
@@ -14,20 +14,22 @@ export function QRCodeCanvas({ value, size = 256, level = 'M', className }: QRCo
 
   useEffect(() => {
     if (canvasRef.current && value) {
-      QRCode.toCanvas(
-        canvasRef.current,
-        value,
-        {
-          width: size,
-          margin: 0,
+      const ctx = canvasRef.current.getContext('2d');
+      if (!ctx) return;
+
+      // Clear before redraw
+      ctx.clearRect(0, 0, size, size);
+
+      try {
+        drawStyledQR(ctx, 0, 0, {
+          text: value,
+          size,
+          margin: 1,
           errorCorrectionLevel: level,
-        },
-        (error) => {
-          if (error) {
-            console.error('QR Code generation error:', error);
-          }
-        }
-      );
+        });
+      } catch (error) {
+        console.error('QR Code generation error:', error);
+      }
     }
   }, [value, size, level]);
 

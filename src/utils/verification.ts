@@ -8,10 +8,10 @@
 
 import { nip19 } from 'nostr-tools'; // Keep for NIP-19 encoding/decoding only
 import { NSecSigner } from '@nostrify/nostrify';
-import QRCode from 'qrcode';
 import { geocacheToNaddr, parseNaddr } from '@/utils/naddr';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { NIP_GC_KINDS, buildVerificationEventTags, buildVerificationEventContent } from './nip-gc';
+import { drawStyledQR, roundRect } from './qr-renderer';
 
 // Verification constants
 const VERIFICATION_HASH_PREFIX = '#verify=';
@@ -86,7 +86,7 @@ async function loadAndResizeImage(src: string, size: number): Promise<HTMLCanvas
       // Enable high-quality image smoothing (with fallback)
       ctx.imageSmoothingEnabled = true;
       if ('imageSmoothingQuality' in ctx) {
-        (ctx as any).imageSmoothingQuality = 'high';
+        (ctx as unknown as Record<string, unknown>).imageSmoothingQuality = 'high';
       }
 
       // Draw the image scaled to fit, preserving original colors
@@ -103,7 +103,7 @@ async function loadAndResizeImage(src: string, size: number): Promise<HTMLCanvas
 
 /**
  * Build a standard verification URL from naddr and nsec
- * Standard format: {origin}/{naddr}#verify={nsec}
+ * Standard format: treasures.to/{naddr}#verify={nsec}
  * Note: naddr encodes pubkey + kind + d-tag, so this format requires the naddr
  */
 export function buildStandardVerificationUrl(naddr: string, nsec: string): string {
@@ -280,66 +280,47 @@ async function drawCardContent(
     ctx.setLineDash([15, 15]);
     ctx.strokeRect(2, 2, cardWidth - 4, cardHeight - 4);
     ctx.setLineDash([]);
-  } else if (!isMicro) {
-    ctx.strokeStyle = '#e5e5e5';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(2, 2, cardWidth - 4, cardHeight - 4);
   }
+  // No border for full or micro styles
 
-  const qrWidth = isMicro ? cardWidth - 60 : Math.min(cardWidth, cardHeight) * 0.8;
-  const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
-    width: qrWidth,
-    margin: 1,
-    color: {
-      dark: '#000000',
-      light: '#FFFFFF'
-    },
-    errorCorrectionLevel: 'H'
-  });
-
-  const qrImg = new Image();
-  await new Promise<void>((resolve, reject) => {
-    qrImg.onload = () => resolve();
-    qrImg.onerror = () => reject(new Error('Failed to load QR code'));
-    qrImg.src = qrDataUrl;
-  });
+  const qrWidth = isMicro ? cardWidth - 60 : Math.min(cardWidth, cardHeight) * 0.86;
 
   const qrX = (cardWidth - qrWidth) / 2;
-  const topPadding = 60;
-  ctx.drawImage(qrImg, qrX, topPadding, qrWidth, qrWidth);
+  const topPadding = isMicro ? 60 : 20;
+
+  // Draw styled QR code with rounded dots and branded finder patterns
+  drawStyledQR(ctx, qrX, topPadding, {
+    text: verificationUrl,
+    size: qrWidth,
+    margin: 1,
+    errorCorrectionLevel: 'H',
+  });
 
   try {
-    const iconSize = Math.floor(qrWidth * 0.22);
+    const iconSize = Math.floor(qrWidth * 0.32);
     const iconCanvas = await loadAndResizeImage('/icon-192x192.png', iconSize);
     const centerX = qrX + (qrWidth - iconSize) / 2;
     const centerY = topPadding + (qrWidth - iconSize) / 2;
-    const padding = Math.floor(iconSize * 0.15);
-    const bgRadius = (iconSize + padding * 2) / 2;
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.beginPath();
-    ctx.arc(qrX + qrWidth / 2 + 3, topPadding + qrWidth / 2 + 3, bgRadius, 0, 2 * Math.PI);
-    ctx.fill();
+    const padding = Math.floor(iconSize * 0.06);
+    const bgSize = iconSize + padding * 2;
+    const bgX = centerX - padding;
+    const bgY = centerY - padding;
+    const bgCornerRadius = bgSize * 0.2;
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(qrX + qrWidth / 2, topPadding + qrWidth / 2, bgRadius, 0, 2 * Math.PI);
+    roundRect(ctx, bgX, bgY, bgSize, bgSize, bgCornerRadius);
     ctx.fill();
-
-    ctx.strokeStyle = '#e0e0e0';
-    ctx.lineWidth = 2;
-    ctx.stroke();
 
     ctx.imageSmoothingEnabled = true;
     if ('imageSmoothingQuality' in ctx) {
-      (ctx as any).imageSmoothingQuality = 'high';
+      (ctx as unknown as Record<string, unknown>).imageSmoothingQuality = 'high';
     }
     ctx.drawImage(iconCanvas, centerX, centerY, iconSize, iconSize);
   } catch (iconError) {
     console.warn('Failed to load icon for QR code:', iconError);
   }
 
-  const textStartY = topPadding + qrWidth + 40;
+  const textStartY = topPadding + qrWidth + 20;
   const line1 = textStrings.line1;
   const line2 = textStrings.line2;
 
@@ -347,12 +328,12 @@ async function drawCardContent(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  const fontSize1 = Math.floor(qrWidth * 0.05);
+  const fontSize1 = Math.floor(qrWidth * 0.045);
   ctx.font = `bold ${fontSize1}px "Segoe UI", Arial, sans-serif`;
   ctx.fillText(line1, cardWidth / 2, textStartY);
 
-  const fontSize2 = Math.floor(qrWidth * 0.04);
-  const lineSpacing = fontSize1 * 1.2; // Reduced line spacing
+  const fontSize2 = Math.floor(qrWidth * 0.035);
+  const lineSpacing = fontSize1 * 1.15;
   ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
   ctx.fillText(line2, cardWidth / 2, textStartY + lineSpacing);
 
@@ -666,34 +647,16 @@ export async function generateQRStampImage(
   const textHeight = dpi * 0.08; // Space for text
   const qrSize = Math.min(cellWidth * 0.85, (cellHeight - textHeight) * 0.9);
 
-  // Generate all QR codes first (plain, no text)
-  const qrCodePromises = stampData.map(d => {
-    const verificationUrl = buildStandardVerificationUrl(d.naddr, d.keyPair.nsec);
-    return QRCode.toDataURL(verificationUrl, {
-      width: qrSize,
-      margin: 0,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      errorCorrectionLevel: 'H'
-    });
-  });
+  // Build verification URLs for each stamp
+  const verificationUrls = stampData.map(d =>
+    buildStandardVerificationUrl(d.naddr, d.keyPair.nsec)
+  );
 
-  const qrCodes = await Promise.all(qrCodePromises);
-
-  // Draw each QR code in the grid
+  // Draw each QR code in the grid using styled renderer
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const index = row * cols + col;
-      if (index >= qrCodes.length) break;
-
-      const qrImage = new Image();
-      await new Promise((resolve, reject) => {
-        qrImage.onload = resolve;
-        qrImage.onerror = reject;
-        qrImage.src = qrCodes[index] ?? '';
-      });
+      if (index >= verificationUrls.length) break;
 
       const x = margin + col * cellWidth;
       const y = margin + row * cellHeight;
@@ -702,34 +665,33 @@ export async function generateQRStampImage(
       const qrX = x + (cellWidth - qrSize) / 2;
       const qrY = y + (cellHeight - qrSize - textHeight) / 2;
 
-      ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+      // Draw styled QR directly onto the grid canvas
+      drawStyledQR(ctx, qrX, qrY, {
+        text: verificationUrls[index]!,
+        size: qrSize,
+        margin: 0,
+        errorCorrectionLevel: 'H',
+      });
 
       // Add icon overlay to each QR code
       try {
-        const iconSize = Math.floor(qrSize * 0.22);
+        const iconSize = Math.floor(qrSize * 0.32);
         const iconCanvas = await loadAndResizeImage('/icon-192x192.png', iconSize);
         const centerX = qrX + (qrSize - iconSize) / 2;
         const centerY = qrY + (qrSize - iconSize) / 2;
-        const padding = Math.floor(iconSize * 0.15);
-        const bgRadius = (iconSize + padding * 2) / 2;
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.beginPath();
-        ctx.arc(qrX + qrSize / 2 + 2, qrY + qrSize / 2 + 2, bgRadius, 0, 2 * Math.PI);
-        ctx.fill();
+        const padding = Math.floor(iconSize * 0.06);
+        const bgSize = iconSize + padding * 2;
+        const bgX = centerX - padding;
+        const bgY = centerY - padding;
+        const bgCornerRadius = bgSize * 0.2;
 
         ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(qrX + qrSize / 2, qrY + qrSize / 2, bgRadius, 0, 2 * Math.PI);
+        roundRect(ctx, bgX, bgY, bgSize, bgSize, bgCornerRadius);
         ctx.fill();
-
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 1;
-        ctx.stroke();
 
         ctx.imageSmoothingEnabled = true;
         if ('imageSmoothingQuality' in ctx) {
-          (ctx as any).imageSmoothingQuality = 'high';
+          (ctx as unknown as Record<string, unknown>).imageSmoothingQuality = 'high';
         }
         ctx.drawImage(iconCanvas, centerX, centerY, iconSize, iconSize);
       } catch (iconError) {
