@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2 } from 'lucide-react';
+import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera } from 'lucide-react';
 import { sneaker, treesForest } from '@lucide/lab';
 
 // Create React components from Lucide Lab icons
@@ -54,7 +54,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BlurredImage } from '@/components/BlurredImage';
+
 import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rating';
 import { useUploadFile } from '@/hooks/useUploadFile';
 import { useToast } from '@/hooks/useToast';
@@ -763,79 +763,147 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
     onImagesChange(images.filter((_, i) => i !== index));
   };
 
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) return;
+    const newImages = [...images];
+    const [moved] = newImages.splice(dragIndex, 1);
+    newImages.splice(index, 0, moved);
+    onImagesChange(newImages);
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Touch-based reorder for mobile
+  const [touchIndex, setTouchIndex] = useState<number | null>(null);
+
+  const handleTouchHold = (index: number) => {
+    if (touchIndex === null) {
+      setTouchIndex(index);
+    } else if (touchIndex !== index) {
+      // Swap
+      const newImages = [...images];
+      const [moved] = newImages.splice(touchIndex, 1);
+      newImages.splice(index, 0, moved);
+      onImagesChange(newImages);
+      setTouchIndex(null);
+    } else {
+      setTouchIndex(null);
+    }
+  };
+
   return (
-    <div className={cn("space-y-2 text-foreground", className)}>
+    <div className={cn("space-y-3 text-foreground", className)}>
       <Label>Images</Label>
+      {images.length > 1 && (
+        <p className="text-xs text-muted-foreground -mt-1">
+          {touchIndex !== null
+            ? 'Tap another image to swap positions'
+            : 'Drag to reorder · tap and hold on mobile'}
+        </p>
+      )}
 
-      {/* Image List */}
-      {images.map((url, index) => (
-        <div key={index} className="flex items-center gap-2 p-2 border rounded relative">
-          <div className="h-16 w-16 rounded overflow-hidden relative">
-            {url ? (
-              <BlurredImage
-                src={url}
-                alt={`Cache image ${index + 1}`}
-                className="h-full w-full"
-                blurIntensity="light"
-                defaultBlurred={true}
-                showToggle={true}
-              />
-            ) : (
-              <div className="h-full w-full bg-muted flex items-center justify-center">
-                <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+      {/* Image grid */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {images.map((url, index) => (
+            <div
+              key={url || index}
+              draggable={!disabled && uploadingIndex === null && images.length > 1 && !!url}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={() => handleDrop(index)}
+              onDragEnd={handleDragEnd}
+              onClick={() => images.length > 1 && url && handleTouchHold(index)}
+              className={cn(
+                "group relative aspect-square rounded-lg overflow-hidden bg-muted border transition-all cursor-grab active:cursor-grabbing",
+                dragIndex === index && "opacity-40 scale-95",
+                dragOverIndex === index && dragIndex !== index && "ring-2 ring-primary scale-[1.02]",
+                touchIndex === index && "ring-2 ring-primary",
+              )}
+            >
+              {url ? (
+                <img
+                  src={url}
+                  alt={`Cache image ${index + 1}`}
+                  className="w-full h-full object-cover pointer-events-none select-none"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                </div>
+              )}
+              {uploadingIndex === index && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                </div>
+              )}
+              {/* Overlay controls */}
+              <div className="absolute inset-0">
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); removeImage(index); }}
+                  disabled={disabled || uploadingIndex === index}
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </div>
-            )}
-            {uploadingIndex === index && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 text-white animate-spin" />
-              </div>
-            )}
-          </div>
-          <span className="flex-1 text-sm truncate">
-            {url || "Uploading..."}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => removeImage(index)}
-            disabled={disabled || uploadingIndex === index}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
 
-      {/* Upload Button */}
-      <div className="flex items-center gap-2 text-foreground">
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          disabled={disabled || isUploading}
-          className="hidden"
-          id="cache-image-upload"
-        />
-        <Label
-          htmlFor="cache-image-upload"
-          className={cn(
-            "cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2",
-            (disabled || isUploading) && "pointer-events-none opacity-50"
-          )}
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Image
-            </>
-          )}
-        </Label>
-      </div>
+      {/* Upload area */}
+      <Input
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        disabled={disabled || isUploading}
+        className="hidden"
+        id="cache-image-upload"
+      />
+      <Label
+        htmlFor="cache-image-upload"
+        className={cn(
+          "cursor-pointer flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 bg-muted/30 hover:bg-muted/50 transition-colors py-6 px-4",
+          (disabled || isUploading) && "pointer-events-none opacity-50"
+        )}
+      >
+        {isUploading ? (
+          <>
+            <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+            <span className="text-sm text-muted-foreground">Uploading...</span>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <Camera className="h-5 w-5" />
+              <span className="text-muted-foreground/30">|</span>
+              <ImagePlus className="h-5 w-5" />
+            </div>
+            <span className="text-sm text-muted-foreground">Take a photo or choose from library</span>
+          </>
+        )}
+      </Label>
     </div>
   );
 }

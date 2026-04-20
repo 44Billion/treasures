@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { BlurredImage } from '@/components/BlurredImage';
+
 import {
   FormControl,
   FormDescription,
@@ -215,13 +215,10 @@ export function ImageUploadField<TFieldValues extends FieldValues, TName extends
               </Button>
               {field.value && (
                 <div className={`h-10 ${previewType === 'square' ? 'w-10' : 'w-24'} rounded overflow-hidden`}>
-                  <BlurredImage
+                  <img
                     src={field.value} 
                     alt={`${label} preview`} 
-                    className="h-full w-full"
-                    blurIntensity="light"
-                    defaultBlurred={true}
-                    showToggle={true}
+                    className="h-full w-full object-cover"
                   />
                 </div>
               )}
