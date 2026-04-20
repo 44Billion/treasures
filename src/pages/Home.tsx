@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { Search, Compass } from "lucide-react";
+import { Search, Compass, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginDialog } from "@/components/auth";
@@ -12,14 +12,84 @@ import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 import { HeroGallery } from "@/components/HeroGallery";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
+import { useCuratedTreasures } from "@/hooks/useCuratedTreasures";
+import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
+import { useAuthor } from "@/hooks/useAuthor";
+import { offlineGeocode } from "@/utils/offlineGeocode";
 
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";
+import type { Geocache } from "@/types/geocache";
+
+/** Resolve city names for an array of treasures. */
+function useTreasureCities(treasures: Geocache[]) {
+  const [cities, setCities] = useState<Record<string, string>>({});
+  useEffect(() => {
+    treasures.forEach((t) => {
+      const key = t.id;
+      if (cities[key]) return;
+      if (t.city) {
+        setCities((prev) => ({ ...prev, [key]: t.city! }));
+      } else if (t.location) {
+        offlineGeocode(t.location.lat, t.location.lng).then((name) =>
+          setCities((prev) => ({ ...prev, [key]: name }))
+        );
+      }
+    });
+  }, [treasures]); // eslint-disable-line react-hooks/exhaustive-deps
+  return cities;
+}
+
+/** Treasure info shown in the hero — name, location, author. */
+function HeroTreasureInfo({ treasure, city, onClick }: { treasure: Geocache; city: string; onClick: () => void }) {
+  const author = useAuthor(treasure.pubkey);
+  const authorName = author.data?.metadata?.name || treasure.pubkey.slice(0, 8);
+  const authorPicture = author.data?.metadata?.picture;
+
+  return (
+    <button
+      onClick={onClick}
+      className="group/info text-left cursor-pointer space-y-1"
+    >
+      <h4 className="font-medium text-white/80 text-xs md:text-sm leading-tight group-hover/info:text-green-300 adventure:group-hover/info:text-amber-300 transition-colors [text-shadow:0_1px_6px_rgba(0,0,0,0.5)]">
+        {treasure.name}
+      </h4>
+      <div className="flex items-center gap-1.5 text-white/60 text-[10px] md:text-xs [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
+        {city && (
+          <>
+            <MapPin className="h-3 w-3 shrink-0" />
+            <span>{city}</span>
+            <span className="text-white/30">·</span>
+          </>
+        )}
+        {authorPicture && (
+          <img src={authorPicture} alt="" className="w-3.5 h-3.5 rounded-full object-cover" loading="lazy" />
+        )}
+        <span>by {authorName}</span>
+      </div>
+    </button>
+  );
+}
 
 export default function Home() {
   const { t } = useTranslation();
   const { user } = useCurrentUser();
   const { config } = useAppContext();
   const { open: openRadar } = useRadarOverlay();
+  const { navigateToGeocache } = useGeocacheNavigation();
+
+  // Curated treasures — fused into the hero
+  const { data: curatedTreasures } = useCuratedTreasures();
+  const treasureCities = useTreasureCities(curatedTreasures || []);
+  const [heroTreasureIndex, setHeroTreasureIndex] = useState(0);
+
+  // Auto-advance hero treasure every 8 seconds
+  useEffect(() => {
+    if (!curatedTreasures || curatedTreasures.length <= 1) return;
+    const id = setInterval(() => {
+      setHeroTreasureIndex((i) => (i + 1) % curatedTreasures.length);
+    }, 8000);
+    return () => clearInterval(id);
+  }, [curatedTreasures]);
 
   // Use geocaches with optimized loading
   const {
@@ -116,10 +186,44 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">
       <DesktopHeader variant="hero" />
 
-      {/* Hero Section — full-bleed rotating photo gallery */}
-      <section className="relative min-h-dvh lg:min-h-0 lg:h-[60vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
-        {/* Rotating background images + grain */}
-        <HeroGallery />
+      {/* Hero Section — full-bleed with real curated treasures */}
+      <section className="relative min-h-dvh lg:min-h-0 lg:h-[65vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
+        {/* Background — curated treasure images or fallback to stock gallery */}
+        {curatedTreasures && curatedTreasures.length > 0 ? (
+          <div className="absolute inset-0 overflow-hidden">
+            {curatedTreasures.map((treasure, i) => {
+              const img = treasure.images?.[0];
+              if (!img) return null;
+              return (
+                <div
+                  key={treasure.id}
+                  className="absolute inset-0"
+                  style={{
+                    opacity: i === heroTreasureIndex ? 1 : 0,
+                    transition: 'opacity 3000ms ease-in-out',
+                  }}
+                >
+                  <img
+                    src={img}
+                    alt={treasure.name}
+                    className={`absolute inset-0 w-full h-full object-cover object-top hero-pan-${i % 2 === 0 ? 'right' : 'left'}`}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                  />
+                </div>
+              );
+            })}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/40" />
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.3 }}>
+              <filter id="hero-grain-curated">
+                <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+                <feColorMatrix type="saturate" values="0" />
+              </filter>
+              <rect width="100%" height="100%" filter="url(#hero-grain-curated)" />
+            </svg>
+          </div>
+        ) : (
+          <HeroGallery />
+        )}
 
         {/* Decorative overlay — simplified on mobile, full on desktop */}
         {/* Mobile: same desktop paths without the drift animation */}
@@ -244,6 +348,17 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Current treasure info — bottom left */}
+        {curatedTreasures && curatedTreasures.length > 0 && curatedTreasures[heroTreasureIndex] && (
+          <div className="absolute bottom-0 left-0 z-10 px-2 pb-0.5 xs:px-3 xs:pb-1 md:p-8">
+            <HeroTreasureInfo
+              treasure={curatedTreasures[heroTreasureIndex]}
+              city={treasureCities[curatedTreasures[heroTreasureIndex].id] || ''}
+              onClick={() => navigateToGeocache(curatedTreasures[heroTreasureIndex])}
+            />
+          </div>
+        )}
       </section>
 
       {/* How It Works — zig-zag layout with feature images */}
