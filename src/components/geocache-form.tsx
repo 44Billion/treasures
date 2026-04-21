@@ -1020,19 +1020,21 @@ export function GeocacheForm({
         />
       </div>
 
-      {/* Visibility Settings */}
-      <div className="space-y-4">
-        <div className="border-b pb-2">
-          <h3 className="text-lg font-medium text-foreground">Visibility</h3>
-          <p className="text-sm text-muted-foreground">Control who can find your cache</p>
-        </div>
+      {/* Visibility Settings — only shown for caches already marked hidden */}
+      {formData.hidden && (
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h3 className="text-lg font-medium text-foreground">Visibility</h3>
+            <p className="text-sm text-muted-foreground">Control who can find your cache</p>
+          </div>
 
-        <CacheHiddenField
-          checked={formData.hidden || false}
-          onChange={(checked) => updateField('hidden', checked)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-hidden` : 'hidden'}
-        />
-      </div>
+          <CacheHiddenField
+            checked={formData.hidden || false}
+            onChange={(checked) => updateField('hidden', checked)}
+            fieldId={fieldPrefix ? `${fieldPrefix}-hidden` : 'hidden'}
+          />
+        </div>
+      )}
     </div>
   );
 }
