@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle, QrCode, Link as LinkIcon } from 'lucide-react';
+import { AlertCircle, CheckCircle, QrCode, Link as LinkIcon, ClipboardPaste } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -135,19 +135,43 @@ export default function Claim() {
           </div>
 
           <form onSubmit={handleManualSubmit} className="space-y-3">
-            <Input
-              id="treasure-url"
-              type="url"
-              placeholder="https://treasures.to/naddr1..."
-              value={manualUrl}
-              onChange={handleUrlChange}
-              disabled={isProcessing}
-              className="font-mono text-sm"
-              autoComplete="off"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck="false"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="treasure-url"
+                type="url"
+                placeholder="https://treasures.to/naddr1..."
+                value={manualUrl}
+                onChange={handleUrlChange}
+                disabled={isProcessing}
+                className="font-mono text-sm"
+                autoComplete="off"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck="false"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={isProcessing}
+                className="flex-shrink-0"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    setManualUrl(text);
+                    if (error) setError(null);
+                    if (text.includes('treasures.to') && text.includes('#verify=')) {
+                      setTimeout(() => handleUrlSubmit(text), 100);
+                    }
+                  } catch {
+                    toast({ title: t('claim.toast.pasteError', 'Paste failed'), description: t('claim.toast.pasteErrorDescription', 'Could not read clipboard. Try pasting manually.'), variant: 'destructive' });
+                  }
+                }}
+                aria-label={t('claim.manual.paste', 'Paste from clipboard')}
+              >
+                <ClipboardPaste className="h-4 w-4" />
+              </Button>
+            </div>
             <Button
               type="submit"
               disabled={isProcessing || !manualUrl.trim()}
