@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { FullPageLoading } from '@/components/ui/loading';
+import { PageLoading } from '@/components/ui/loading';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useBlogPosts, useIsAuthorizedAuthor } from '../hooks/useBlogPosts';
 import { useDeleteBlogPost } from '../hooks/useBlogPublish';
@@ -12,7 +11,6 @@ import { BlogPostCard } from './BlogPostCard';
 import { BlogPostEditor } from './BlogPostEditor';
 import { BlogPost } from '@/types/blog';
 import {
-  BLOG_CONFIG,
   TAG_SUGGESTION_LIMIT,
 } from '@/config/blog';
 import { Plus, Search, Filter } from 'lucide-react';
@@ -139,109 +137,105 @@ export function BlogList() {
 
   if (isLoading) {
     return (
-      <FullPageLoading 
+      <PageLoading 
         title={t('blog.loading.title')}
         description={t('blog.loading.description')}
+        className="[&_p]:text-white/80 adventure:[&_p]:text-stone-600"
       />
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <h3 className="text-lg font-semibold mb-2">{t('blog.error.title')}</h3>
-          <p className="text-muted-foreground">
-            {t('blog.error.description')}
-          </p>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border bg-card p-8 text-center">
+        <h3 className="text-lg font-semibold mb-2">{t('blog.error.title')}</h3>
+        <p className="text-muted-foreground">
+          {t('blog.error.description')}
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">{BLOG_CONFIG.blogTitle}</h1>
-          <p className="text-muted-foreground">{BLOG_CONFIG.blogDescription}</p>
-        </div>
-        
-        {isAuthorized && (
+    <div className="space-y-4">
+      {/* New Post button (authorized users) */}
+      {isAuthorized && (
+        <div className="flex justify-center">
           <Button onClick={() => setShowEditor(true)} className="gap-2">
             <Plus className="w-4 h-4" />
             {t('blog.newPost')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Search and Filters */}
-      <div className="flex flex-col gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={t('blog.search.placeholder')}
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="pl-10"
-          />
-          {tagSuggestions.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg">
-              <ul className="py-1">
-                {tagSuggestions.map(tag => (
-                  <li
+      {/* Search and Filters card (admin only) */}
+      {isAuthorized && (
+        <div className="rounded-xl border bg-card p-4 md:p-5 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder={t('blog.search.placeholder')}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="pl-10"
+            />
+            {tagSuggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg">
+                <ul className="py-1">
+                  {tagSuggestions.map(tag => (
+                    <li
+                      key={tag}
+                      className="px-3 py-2 cursor-pointer hover:bg-muted"
+                      onClick={() => handleTagSuggestionClick(tag)}
+                    >
+                      #{tag}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          
+          {allTags.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <div className="flex flex-nowrap gap-1.5">
+                <Badge
+                  variant={selectedTag === null ? "default" : "outline"}
+                  className="cursor-pointer flex-shrink-0"
+                  onClick={() => setSelectedTag(null)}
+                >
+                  {t('blog.filters.all')}
+                </Badge>
+                {allTags.slice(0, 10).map(tag => (
+                  <Badge
                     key={tag}
-                    className="px-3 py-2 cursor-pointer hover:bg-muted"
-                    onClick={() => handleTagSuggestionClick(tag)}
+                    variant={selectedTag === tag ? "default" : "outline"}
+                    className="cursor-pointer flex-shrink-0"
+                    onClick={() => setSelectedTag(tag)}
                   >
                     #{tag}
-                  </li>
+                  </Badge>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>
-        
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <div className="flex flex-nowrap gap-2">
-            <Badge
-              variant={selectedTag === null ? "default" : "outline"}
-              className="cursor-pointer flex-shrink-0"
-              onClick={() => setSelectedTag(null)}
-            >
-              {t('blog.filters.all')}
-            </Badge>
-            {allTags.slice(0, 10).map(tag => (
-              <Badge
-                key={tag}
-                variant={selectedTag === tag ? "default" : "outline"}
-                className="cursor-pointer flex-shrink-0"
-                onClick={() => setSelectedTag(tag)}
-              >
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Posts Grid */}
+      {/* Posts */}
       {filteredPosts.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h3 className="text-lg font-semibold mb-2">{t('blog.empty.title')}</h3>
-            <p className="text-muted-foreground">
-              {searchTerm || selectedTag 
-                ? t('blog.empty.descriptionFiltered')
-                : t('blog.empty.descriptionNoPosts')
-              }
-            </p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border bg-card p-8 text-center">
+          <h3 className="text-lg font-semibold mb-2">{t('blog.empty.title')}</h3>
+          <p className="text-muted-foreground">
+            {searchTerm || selectedTag 
+              ? t('blog.empty.descriptionFiltered')
+              : t('blog.empty.descriptionNoPosts')
+            }
+          </p>
+        </div>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {filteredPosts.map((post) => (
             <BlogPostCard
               key={post.id}

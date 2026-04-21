@@ -1,12 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthor } from '@/hooks/useAuthor';
 import { BlogPost } from '@/types/blog';
 import { extractExcerpt } from '../utils/blogUtils';
 import { formatDistanceToNow } from '@/utils/date';
-import { Calendar, User, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface BlogPostCardProps {
@@ -31,9 +30,9 @@ export function BlogPostCard({
   const publishedDate = new Date(post.publishedAt * 1000);
 
   return (
-    <Card className="h-full flex flex-col">
+    <div className="rounded-xl border bg-card overflow-hidden">
       {post.image && (
-        <div className="aspect-[16/8] w-full overflow-hidden rounded-t-lg">
+        <div className="aspect-[16/8] w-full overflow-hidden">
           <img 
             src={post.image} 
             alt={post.title}
@@ -42,33 +41,36 @@ export function BlogPostCard({
         </div>
       )}
       
-      <CardHeader className="flex-none">
+      <div className="p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <Link 
               to={`/blog/${post.pubkey}/${post.dTag}`}
               className="block group"
             >
-              <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+              <h3 className="text-base md:text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors text-foreground">
                 {post.title}
               </h3>
             </Link>
             
-            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <User className="w-4 h-4" />
+            <div className="flex items-center gap-3 mt-2 text-xs md:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Avatar className="w-5 h-5">
+                  <AvatarImage src={metadata?.picture} alt={displayName} />
+                  <AvatarFallback className="text-[10px]">{displayName.slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 <span>{displayName}</span>
               </div>
               
               <div className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-3.5 h-3.5" />
                 <span>{formatDistanceToNow(publishedDate, { addSuffix: true })}</span>
               </div>
             </div>
           </div>
 
           {showAuthorActions && (
-            <div className="flex gap-2 flex-shrink-0">
+            <div className="flex gap-1.5 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -86,34 +88,19 @@ export function BlogPostCard({
             </div>
           )}
         </div>
-      </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col">
-        <p className="text-muted-foreground mb-4 line-clamp-3 flex-1">
+        <p className="text-sm text-muted-foreground mt-3 line-clamp-3">
           {excerpt}
         </p>
 
-        <div className="flex flex-wrap gap-1">
-          {post.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
-              #{tag}
-            </Badge>
-          ))}
-          {post.tags.length > 3 && (
-            <Badge variant="outline" className="text-xs">
-              +{post.tags.length - 3}
-            </Badge>
-          )}
-        </div>
-
-        <div className="mt-4 text-center">
+        <div className="mt-4">
           <Link to={`/blog/${post.pubkey}/${post.dTag}`}>
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="w-full">
               {t('blog.card.readMore')}
             </Button>
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

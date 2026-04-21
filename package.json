@@ -66,6 +66,7 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.30.3",
     "react-zoom-pan-pinch": "^3.7.0",
+    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",

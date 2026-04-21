@@ -1,8 +1,9 @@
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { PageLayout } from '@/components/PageLayout';
-import { FullPageLoading } from '@/components/ui/loading';
-import { Card, CardContent } from '@/components/ui/card';
+import { BookOpen } from 'lucide-react';
+import { DesktopHeader } from '@/components/DesktopHeader';
+import { PageHero } from '@/components/PageHero';
+import { PageLoading } from '@/components/ui/loading';
 import { BlogPostDetail } from '@/components/BlogPostDetail';
 import { BlogPostEditor } from '@/components/BlogPostEditor';
 import { useBlogPost, useIsAuthorizedAuthor } from '@/hooks/useBlogPosts';
@@ -10,7 +11,6 @@ import { useDeleteBlogPost } from '@/hooks/useBlogPublish';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useState } from 'react';
 import { useToast } from '@/hooks/useToast';
-import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,75 +86,69 @@ export default function BlogPost() {
     setIsEditing(false);
   };
 
-  if (isLoading) {
-    return (
-      <PageLayout>
-        <div className="container mx-auto px-4 py-8">
-          <FullPageLoading 
-            title={t('blog.post.loading.title')}
-            description={t('blog.post.loading.description')}
-          />
-        </div>
-      </PageLayout>
-    );
-  }
+  const heroTitle = post?.title || t('blog.post.loading.title');
+  const heroDescription = isLoading ? t('blog.post.loading.description') : undefined;
 
-  if (error || !post) {
-    return (
-      <PageLayout>
-        <div className="container mx-auto px-4 py-8">
-          <Card>
-            <CardContent className="p-8 text-center">
+  return (
+    <>
+      <DesktopHeader />
+
+      <PageHero
+        icon={BookOpen}
+        title={heroTitle}
+        description={heroDescription}
+      >
+        <div className="container mx-auto px-4 max-w-2xl pb-12">
+          {isLoading ? (
+            <PageLoading 
+              title={t('blog.post.loading.title')}
+              description={t('blog.post.loading.description')}
+              className="[&_p]:text-white/80 adventure:[&_p]:text-stone-600"
+            />
+          ) : error || !post ? (
+            <div className="rounded-xl border bg-card p-8 text-center">
               <h3 className="text-lg font-semibold mb-2">{t('blog.post.notFound.title')}</h3>
               <p className="text-muted-foreground">
                 {t('blog.post.notFound.description')}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          ) : isEditing ? (
+            <BlogPostEditor
+              post={post}
+              onSave={handleEditorSave}
+              onCancel={handleEditorCancel}
+            />
+          ) : (
+            <BlogPostDetail
+              post={post}
+              showAuthorActions={Boolean(isAuthorized && isAuthor)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('blog.delete.confirm.title')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('blog.delete.confirm.description', { title: post?.title })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {t('common.delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-      </PageLayout>
-    );
-  }
-
-  return (
-    <PageLayout maxWidth='2xl'>
-      <div className="container mx-auto px-4 py-8">
-        {isEditing ? (
-          <BlogPostEditor
-            post={post}
-            onSave={handleEditorSave}
-            onCancel={handleEditorCancel}
-          />
-        ) : (
-          <BlogPostDetail
-            post={post}
-            showAuthorActions={Boolean(isAuthorized && isAuthor)}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('blog.delete.confirm.title')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('blog.delete.confirm.description', { title: post.title })}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {t('common.delete')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </PageLayout>
+      </PageHero>
+    </>
   );
 }

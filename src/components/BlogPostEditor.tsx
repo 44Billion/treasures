@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +11,7 @@ import { validateBlogPostData, generateDTag } from '../utils/blogUtils';
 import { X, Plus, Save, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 interface BlogPostEditorProps {
   post?: BlogPost; // If provided, we're editing; otherwise creating
@@ -117,197 +117,198 @@ export function BlogPostEditor({ post, onSave, onCancel }: BlogPostEditorProps) 
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {isEditing ? 'Edit Blog Post' : 'Create New Blog Post'}
-            </CardTitle>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowPreview(!showPreview)}
-                className="gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                {showPreview ? 'Edit' : 'Preview'}
+    <div className="rounded-xl border bg-card overflow-hidden">
+      {/* Header */}
+      <div className="p-5 md:p-6 border-b">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base md:text-lg font-semibold text-foreground">
+            {isEditing ? 'Edit Blog Post' : 'Create New Blog Post'}
+          </h2>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+              className="gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              {showPreview ? 'Edit' : 'Preview'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+                Cancel
               </Button>
-              {onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel}>
-                  Cancel
-                </Button>
-              )}
-            </div>
+            )}
           </div>
-        </CardHeader>
+        </div>
+      </div>
 
-        <CardContent>
-          {errors.length > 0 && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <h4 className="font-medium text-destructive mb-2">Please fix the following errors:</h4>
-              <ul className="list-disc list-inside text-sm text-destructive">
-                {errors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {/* Content */}
+      <div className="p-5 md:p-6">
+        {errors.length > 0 && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <h4 className="font-medium text-destructive mb-2">Please fix the following errors:</h4>
+            <ul className="list-disc list-inside text-sm text-destructive">
+              {errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-          {showPreview ? (
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">{formData.title || 'Untitled'}</h1>
-                {formData.summary && (
-                  <p className="text-lg text-muted-foreground italic">{formData.summary}</p>
-                )}
-              </div>
-
-              {formData.image && (
-                <div className="aspect-video w-full overflow-hidden rounded-lg">
-                  <img 
-                    src={formData.image} 
-                    alt={formData.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+        {showPreview ? (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">{formData.title || 'Untitled'}</h1>
+              {formData.summary && (
+                <p className="text-sm md:text-base text-muted-foreground italic">{formData.summary}</p>
               )}
+            </div>
 
-              <div className="prose prose-gray dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {formData.content || '*No content yet...*'}
-                </ReactMarkdown>
+            {formData.image && (
+              <div className="aspect-video w-full overflow-hidden rounded-lg">
+                <img 
+                  src={formData.image} 
+                  alt={formData.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
+            )}
 
-              {formData.tags && formData.tags.length > 0 && (
+            <div className="prose prose-gray dark:prose-invert max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                {formData.content || '*No content yet...*'}
+              </ReactMarkdown>
+            </div>
+
+            {formData.tags && formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">#treasures</Badge>
+                {formData.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">#{tag}</Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Title */}
+            <div>
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder="Enter blog post title..."
+                className="mt-1"
+              />
+            </div>
+
+            {/* Summary */}
+            <div>
+              <Label htmlFor="summary">Summary</Label>
+              <Textarea
+                id="summary"
+                value={formData.summary}
+                onChange={(e) => handleInputChange('summary', e.target.value)}
+                placeholder="Brief summary of the post (optional)..."
+                rows={2}
+                className="mt-1"
+              />
+            </div>
+
+            {/* Image URL */}
+            <div>
+              <Label htmlFor="image">Header Image URL</Label>
+              <Input
+                id="image"
+                type="url"
+                value={formData.image}
+                onChange={(e) => handleInputChange('image', e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="mt-1"
+              />
+            </div>
+
+            {/* Tags */}
+            <div>
+              <Label>Tags</Label>
+              <div className="mt-1 space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Add a tag..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTag();
+                      }
+                    }}
+                  />
+                  <Button type="button" onClick={handleAddTag} size="sm">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">#treasures</Badge>
-                  {formData.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">#{tag}</Badge>
+                  <Badge variant="outline">#treasures (auto-added)</Badge>
+                  {formData.tags?.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="gap-1">
+                      #{tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Title */}
+
+            {/* Content */}
+            <div>
+              <Label htmlFor="content">Content * (Markdown supported)</Label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => handleInputChange('content', e.target.value)}
+                placeholder="Write your blog post content in Markdown..."
+                rows={15}
+                className="mt-1 font-mono"
+              />
+            </div>
+
+            {/* URL Identifier (for editing) */}
+            {isEditing && (
               <div>
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="dTag">URL Identifier</Label>
                 <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Enter blog post title..."
-                  className="mt-1"
+                  id="dTag"
+                  value={formData.dTag}
+                  disabled
+                  className="mt-1 bg-muted"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  URL identifier cannot be changed when editing
+                </p>
               </div>
+            )}
 
-              {/* Summary */}
-              <div>
-                <Label htmlFor="summary">Summary</Label>
-                <Textarea
-                  id="summary"
-                  value={formData.summary}
-                  onChange={(e) => handleInputChange('summary', e.target.value)}
-                  placeholder="Brief summary of the post (optional)..."
-                  rows={2}
-                  className="mt-1"
-                />
-              </div>
-
-              {/* Image URL */}
-              <div>
-                <Label htmlFor="image">Header Image URL</Label>
-                <Input
-                  id="image"
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => handleInputChange('image', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="mt-1"
-                />
-              </div>
-
-              {/* Tags */}
-              <div>
-                <Label>Tags</Label>
-                <div className="mt-1 space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      placeholder="Add a tag..."
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                    />
-                    <Button type="button" onClick={handleAddTag} size="sm">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">#treasures (auto-added)</Badge>
-                    {formData.tags?.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="gap-1">
-                        #{tag}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="ml-1 hover:text-destructive"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div>
-                <Label htmlFor="content">Content * (Markdown supported)</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => handleInputChange('content', e.target.value)}
-                  placeholder="Write your blog post content in Markdown..."
-                  rows={15}
-                  className="mt-1 font-mono"
-                />
-              </div>
-
-              {/* URL Identifier (for editing) */}
-              {isEditing && (
-                <div>
-                  <Label htmlFor="dTag">URL Identifier</Label>
-                  <Input
-                    id="dTag"
-                    value={formData.dTag}
-                    disabled
-                    className="mt-1 bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    URL identifier cannot be changed when editing
-                  </p>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading} className="gap-2">
-                  <Save className="w-4 h-4" />
-                  {isLoading ? 'Saving...' : isEditing ? 'Update Post' : 'Publish Post'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading} className="gap-2">
+                <Save className="w-4 h-4" />
+                {isLoading ? 'Saving...' : isEditing ? 'Update Post' : 'Publish Post'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

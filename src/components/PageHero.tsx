@@ -15,20 +15,21 @@ interface PageHeroProps {
  */
 export function PageHero({ icon: Icon, title, description, children }: PageHeroProps) {
   return (
-    <div className="min-h-screen relative">
-      {/* Rotating photo gallery + grain (reuses home hero component) */}
-      <HeroGallery />
+    <div className="relative">
+      {/* Fixed background layers — pinned to viewport, content scrolls over them */}
+      <div className="fixed inset-0 z-0">
+        <HeroGallery />
 
-      {/* Theme-aware color overlay — sits on top of gallery's own dark gradient */}
-      <div className="absolute inset-0 bg-primary/60 dark:bg-[#0a1510]/70 adventure:bg-amber-100/70 adventure:dark:bg-stone-900/80 z-[1]" />
+        {/* Theme-aware color overlay */}
+        <div className="absolute inset-0 bg-primary/60 dark:bg-[#0a1510]/70 adventure:bg-amber-100/70 adventure:dark:bg-stone-900/80" />
 
-      {/* Dotted trail SVG */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.1] adventure:opacity-[0.15] z-[2]"
-        viewBox="0 0 200 100"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden="true"
-      >
+        {/* Dotted trail SVG */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.1] adventure:opacity-[0.15]"
+          viewBox="0 0 200 100"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
         <path
           d="M -5,20 C 15,10 30,12 50,22 C 70,32 85,8 110,16 C 135,24 155,12 180,20 C 195,24 200,18 210,20"
           stroke="currentColor" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round"
@@ -52,9 +53,10 @@ export function PageHero({ icon: Icon, title, description, children }: PageHeroP
         </g>
         <circle cx="50" cy="22" r="1.8" fill="none" stroke="currentColor" strokeWidth="0.8" className="text-white adventure:text-amber-800" />
         <circle cx="120" cy="74" r="1.8" fill="none" stroke="currentColor" strokeWidth="0.8" className="text-white adventure:text-amber-800" />
-      </svg>
+        </svg>
+      </div>
 
-      {/* All page content */}
+      {/* All page content — scrolls over the fixed background */}
       <div className="relative z-10">
         {/* Title area */}
         <div className="container mx-auto px-4 pt-10 pb-8 md:pt-12 md:pb-10 max-w-md text-center">
