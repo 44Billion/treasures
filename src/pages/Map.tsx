@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useSearchParams, Link } from "react-router-dom";
-import { X, RefreshCw, Sparkles, Compass, ChevronDown } from "lucide-react";
+import { X, RefreshCw, Sparkles, Compass, ChevronDown, Earth } from "lucide-react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,8 +46,8 @@ export default function Map() {
   const [terrainOperator, setTerrainOperator] = useState<ComparisonOperator>("all");
   const [cacheType, setCacheType] = useState<string | undefined>(undefined);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
-  const [mapZoom, setMapZoom] = useState(10);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>({ lat: 25, lng: -40 });
+  const [mapZoom, setMapZoom] = useState(3);
   const [isMapCenterLocked, setIsMapCenterLocked] = useState(false);
 
   // Function to clear interaction state for explicit user actions
@@ -195,6 +195,7 @@ export default function Map() {
   // Auto-trigger Near Me radius search on initial load
   // Replicates the behavior of the GPS corner button automatically
   const hasAutoTriggeredNearMe = useRef(false);
+  const isAutoTriggeredNearMe = useRef(false);
   useEffect(() => {
     // Only auto-trigger once, and only if no URL params are providing a specific location
     if (hasAutoTriggeredNearMe.current) return;
@@ -203,12 +204,14 @@ export default function Map() {
     if (lat && lng) return; // URL params take priority — don't auto-trigger
 
     hasAutoTriggeredNearMe.current = true;
+    isAutoTriggeredNearMe.current = true;
 
     // Replicate handleNearMe behavior without the toggle-off logic
     setShowNearMe(true);
     getLocation().catch(() => {
-      // If location fails silently on auto-trigger, turn off Near Me mode
+      // If location fails on auto-trigger, stay on the globe view
       setShowNearMe(false);
+      isAutoTriggeredNearMe.current = false;
     });
   }, [searchParams, getLocation]);
 
@@ -221,15 +224,40 @@ export default function Map() {
       };
       setUserLocation(location);
 
-      // If Near Me is active, update the map center when location is obtained
-      // Force map update even if we already have a location (in case it's more accurate)
-      if (showNearMe) {
-        clearMapInteractionLock(); // Clear any interaction locks for explicit location update
+      // If Near Me is active from a manual user action (not auto-trigger),
+      // zoom in immediately. For auto-trigger, we wait for results first.
+      if (showNearMe && !isAutoTriggeredNearMe.current) {
+        clearMapInteractionLock();
         setMapCenter(location);
         setMapZoom(13);
       }
     }
   }, [coords, showNearMe]);
+
+  // After auto-triggered Near Me completes, zoom in only if results were found.
+  // Otherwise stay on the globe view so users can see all caches globally.
+  const hasHandledAutoNearMe = useRef(false);
+  useEffect(() => {
+    if (!isAutoTriggeredNearMe.current) return;
+    if (hasHandledAutoNearMe.current) return;
+    // Wait until we have location AND the proximity search has completed (not loading)
+    if (!userLocation || !showNearMe) return;
+    if (isLoading) return;
+
+    hasHandledAutoNearMe.current = true;
+    isAutoTriggeredNearMe.current = false;
+
+    const proximityResults = geocaches || [];
+    if (proximityResults.length > 0) {
+      // Found nearby results — zoom in to the user's location
+      clearMapInteractionLock();
+      setMapCenter(userLocation);
+      setMapZoom(13);
+    } else {
+      // No nearby results — turn off Near Me and stay on the globe
+      setShowNearMe(false);
+    }
+  }, [userLocation, showNearMe, isLoading, geocaches]);
 
   // Check if proximity search is active
   const isProximitySearchActive = !!(searchLocation || (showNearMe && userLocation) || searchInView);
@@ -437,6 +465,16 @@ export default function Map() {
     }
   };
 
+  const handleShowEarth = () => {
+    clearMapInteractionLock();
+    setShowNearMe(false);
+    setSearchLocation(null);
+    setSearchInView(false);
+    setSearchQuery("");
+    setMapCenter({ lat: 25, lng: -40 });
+    setMapZoom(3);
+  };
+
   const handleRetry = async () => {
     setIsRetrying(true);
     try {
@@ -510,64 +548,42 @@ export default function Map() {
           </div>
           {/* Filters */}
           <div className="px-4 pb-3 pt-2 bg-background/95 backdrop-blur-sm flex-shrink-0">
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <OmniSearch
-                  onLocationSelect={handleLocationSelect}
-                  onGeocacheSelect={(cache) => handleCardClick(cache)}
-                  onTextSearch={setSearchQuery}
-                  geocaches={filteredGeocaches}
-                  placeholder={t('map.omniSearch.placeholder')}
-                />
-                <FilterButton
-                  difficulty={difficulty}
-                  difficultyOperator={difficultyOperator}
-                  onDifficultyChange={setDifficulty}
-                  onDifficultyOperatorChange={setDifficultyOperator}
-                  terrain={terrain}
-                  terrainOperator={terrainOperator}
-                  onTerrainChange={setTerrain}
-                  onTerrainOperatorChange={setTerrainOperator}
-                  cacheType={cacheType}
-                  onCacheTypeChange={setCacheType}
-                />
-              </div>
-
+            <div className="flex gap-2">
+              <OmniSearch
+                onLocationSelect={handleLocationSelect}
+                onGeocacheSelect={(cache) => handleCardClick(cache)}
+                onTextSearch={setSearchQuery}
+                geocaches={filteredGeocaches}
+                placeholder={t('map.omniSearch.placeholder')}
+              />
               {(showNearMe || searchLocation || searchInView) && (
-                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                      <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
-                        <SelectTrigger className="w-20 h-7 text-xs">
-                          <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
-                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                      onClick={() => {
-                        setShowNearMe(false);
-                        setSearchLocation(null);
-                        setSearchInView(false);
-                      }}
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      {t('map.clear')}
-                    </Button>
-                  </div>
-                )}
+                <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
+                  <SelectTrigger className="w-auto h-9 text-xs shrink-0 px-2 gap-1">
+                    <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
+                    <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                    <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                    <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                    <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                    <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                    <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              <FilterButton
+                difficulty={difficulty}
+                difficultyOperator={difficultyOperator}
+                onDifficultyChange={setDifficulty}
+                onDifficultyOperatorChange={setDifficultyOperator}
+                terrain={terrain}
+                terrainOperator={terrainOperator}
+                onTerrainChange={setTerrain}
+                onTerrainOperatorChange={setTerrainOperator}
+                cacheType={cacheType}
+                onCacheTypeChange={setCacheType}
+              />
             </div>
           </div>
 
@@ -614,6 +630,17 @@ export default function Map() {
                 compact={true}
                 showRelayFallback={true}
                 className="h-full"
+                emptyState={
+                  <div className="text-center py-8 px-4">
+                    <Earth className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                    <h4 className="font-semibold text-foreground mb-2">{t('map.empty.title', 'No Geocaches Found')}</h4>
+                    <p className="text-sm text-muted-foreground mb-4">{t('map.empty.description', 'No geocaches matched your current search or filters.')}</p>
+                    <Button variant="outline" size="sm" onClick={handleShowEarth}>
+                      <Earth className="h-3 w-3 mr-2" />
+                      {t('map.empty.showAll', 'Show All Caches')}
+                    </Button>
+                  </div>
+                }
               >
                 <div className="p-4">
                 {/* Only show count when filters are active */}
@@ -705,67 +732,44 @@ export default function Map() {
               {/* Search Bar for List View */}
               <div className="bg-background/95 backdrop-blur-sm flex-shrink-0">
                 <div className="p-3">
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <OmniSearch
-                        onLocationSelect={handleLocationSelect}
-                        onGeocacheSelect={(cache) => handleCardClick(cache)}
-                        onTextSearch={setSearchQuery}
-                        geocaches={filteredGeocaches}
-                        placeholder={t('map.omniSearch.placeholder')}
-                        mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
-                      />
-                      <FilterButton
-                        difficulty={difficulty}
-                        difficultyOperator={difficultyOperator}
-                        onDifficultyChange={setDifficulty}
-                        onDifficultyOperatorChange={setDifficultyOperator}
-                        terrain={terrain}
-                        terrainOperator={terrainOperator}
-                        onTerrainChange={setTerrain}
-                        onTerrainOperatorChange={setTerrainOperator}
-                        cacheType={cacheType}
-                        onCacheTypeChange={setCacheType}
-                        compact
-                      />
-                    </div>
-
+                  <div className="flex gap-1.5">
+                    <OmniSearch
+                      onLocationSelect={handleLocationSelect}
+                      onGeocacheSelect={(cache) => handleCardClick(cache)}
+                      onTextSearch={setSearchQuery}
+                      geocaches={filteredGeocaches}
+                      placeholder={t('map.omniSearch.placeholder')}
+                      mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                    />
                     {(showNearMe || searchLocation || searchInView) && (
-                      <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{t('map.searchRadius.label')}</span>
-                          <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
-                            <SelectTrigger className="w-20 h-7 text-xs">
-                              <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
-                              <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                              <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                              <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                              <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                              <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                              <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => {
-                            setShowNearMe(false);
-                            setSearchLocation(null);
-                            setSearchInView(false);
-                            setShowMobileSearchOptions(false);
-                          }}
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          {t('map.clear')}
-                        </Button>
-                      </div>
+                      <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
+                        <SelectTrigger className="w-auto h-9 text-xs shrink-0 px-2 gap-1">
+                          <SelectValue placeholder="25 km" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
+                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
+                    <FilterButton
+                      difficulty={difficulty}
+                      difficultyOperator={difficultyOperator}
+                      onDifficultyChange={setDifficulty}
+                      onDifficultyOperatorChange={setDifficultyOperator}
+                      terrain={terrain}
+                      terrainOperator={terrainOperator}
+                      onTerrainChange={setTerrain}
+                      onTerrainOperatorChange={setTerrainOperator}
+                      cacheType={cacheType}
+                      onCacheTypeChange={setCacheType}
+                      compact
+                    />
                   </div>
                 </div>
               </div>
@@ -813,6 +817,17 @@ export default function Map() {
                   compact={true}
                   showRelayFallback={true}
                   className="h-full"
+                  emptyState={
+                    <div className="text-center py-8 px-4">
+                      <Earth className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                      <h4 className="font-semibold text-foreground mb-2">{t('map.empty.title', 'No Geocaches Found')}</h4>
+                      <p className="text-sm text-muted-foreground mb-4">{t('map.empty.description', 'No geocaches matched your current search or filters.')}</p>
+                      <Button variant="outline" size="sm" onClick={handleShowEarth}>
+                        <Earth className="h-3 w-3 mr-2" />
+                        {t('map.empty.showAll', 'Show All Caches')}
+                      </Button>
+                    </div>
+                  }
                 >
                 <div className="space-y-3">
                   {/* Only show count when filters are active */}

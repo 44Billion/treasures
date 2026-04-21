@@ -584,82 +584,79 @@
   justify-content: center;
   border-radius: 50%;
   color: white;
-  font-weight: bold;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.25),
-    0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
 }
 
 .cluster-marker:hover {
   transform: scale(1.1);
-  box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.3),
-    0 3px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .cluster-small {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  background: #4ade80;
   border: 3px solid white;
-  width: 30px;
-  height: 30px;
-  font-size: 12px;
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
 }
 
 .cluster-medium {
-  background: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+  background: #16a34a;
   border: 3px solid white;
-  width: 35px;
-  height: 35px;
-  font-size: 13px;
+  width: 42px;
+  height: 42px;
+  font-size: 15px;
 }
 
 .cluster-large {
-  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
-  border: 4px solid white;
-  width: 40px;
-  height: 40px;
-  font-size: 14px;
+  background: #166534;
+  border: 3.5px solid white;
+  width: 50px;
+  height: 50px;
+  font-size: 17px;
 }
 
 /* Adventure theme cluster styling */
 .leaflet-container.adventure-theme .cluster-marker {
   border-color: #f5f1e8;
-  text-shadow: 0 1px 2px rgba(45, 24, 16, 0.5);
+  text-shadow: 0 1px 2px rgba(45, 24, 16, 0.4);
 }
 
 .leaflet-container.adventure-theme .cluster-small {
-  background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+  background: #8fbc3b;
 }
 
 .leaflet-container.adventure-theme .cluster-medium {
-  background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
+  background: #6b8e23;
 }
 
 .leaflet-container.adventure-theme .cluster-large {
-  background: linear-gradient(135deg, #4a2c17 0%, #704214 100%);
+  background: #4a7c1a;
 }
 
 /* Dark theme cluster styling */
 .leaflet-container.dark-theme .cluster-marker,
 .leaflet-container.system-dark-theme .cluster-marker {
-  border-color: #1f2937;
+  border-color: #374151;
 }
 
 .leaflet-container.dark-theme .cluster-small,
 .leaflet-container.system-dark-theme .cluster-small {
-  background: linear-gradient(135deg, #065f46 0%, #059669 100%);
+  background: #4ade80;
 }
 
 .leaflet-container.dark-theme .cluster-medium,
 .leaflet-container.system-dark-theme .cluster-medium {
-  background: linear-gradient(135deg, #ca8a04 0%, #eab308 100%);
+  background: #22c55e;
 }
 
 .leaflet-container.dark-theme .cluster-large,
 .leaflet-container.system-dark-theme .cluster-large {
-  background: linear-gradient(135deg, #6b21a8 0%, #7c3aed 100%);
+  background: #16a34a;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

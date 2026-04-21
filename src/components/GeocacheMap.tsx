@@ -131,63 +131,20 @@ const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
 
 const userLocationIcon = L.divIcon({
   html: `
-    <div style="position: relative; width: 32px; height: 32px;">
-      <!-- Outer pulse ring -->
-      <div style="
-        position: absolute;
-        width: 32px;
-        height: 32px;
-        background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.1) 70%, transparent 100%);
-        border-radius: 50%;
-        animation: locationPulse 2.5s ease-out infinite;
-      "></div>
-      <!-- Middle ring -->
-      <div style="
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        width: 24px;
-        height: 24px;
-        background: rgba(59, 130, 246, 0.6);
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        animation: locationPulse 2.5s ease-out infinite 0.3s;
-      "></div>
-      <!-- Core beacon -->
-      <div style="
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        width: 16px;
-        height: 16px;
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow:
-          0 3px 8px rgba(0,0,0,0.3),
-          inset 0 1px 0 rgba(255,255,255,0.4);
-      "></div>
+    <div style="position: relative; width: 32px; height: 44px;">
+      <svg width="32" height="44" viewBox="0 0 32 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <filter id="pin-shadow">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+        </filter>
+        <path d="M16 0C9.373 0 4 5.373 4 12c0 9 12 28 12 28s12-19 12-28c0-6.627-5.373-12-12-12z"
+              fill="#3b82f6" filter="url(#pin-shadow)"/>
+        <circle cx="16" cy="12" r="5" fill="white"/>
+      </svg>
     </div>
-    <style>
-      @keyframes locationPulse {
-        0% {
-          transform: scale(1);
-          opacity: 0.8;
-        }
-        50% {
-          transform: scale(1.4);
-          opacity: 0.4;
-        }
-        100% {
-          transform: scale(2);
-          opacity: 0;
-        }
-      }
-    </style>
   `,
   className: "user-location-icon",
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
+  iconSize: [32, 44],
+  iconAnchor: [16, 44],
 });
 
 
@@ -1359,10 +1316,11 @@ export function GeocacheMap({
   const clusterIconFn = useCallback((cluster: { getChildCount: () => number }) => {
     const count = cluster.getChildCount();
     const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
+    const px = size === 'large' ? 50 : size === 'medium' ? 42 : 36;
     return L.divIcon({
       html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
       className: 'custom-cluster-icon',
-      iconSize: L.point(36, 36, true),
+      iconSize: L.point(px, px, true),
     });
   }, []);
 

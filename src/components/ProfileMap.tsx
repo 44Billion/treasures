@@ -504,11 +504,12 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
           iconCreateFunction={(cluster: { getChildCount: () => any; }) => {
             const count = cluster.getChildCount();
             const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
+            const px = size === 'large' ? 50 : size === 'medium' ? 42 : 36;
 
             return L.divIcon({
               html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
               className: 'custom-cluster-icon',
-              iconSize: L.point(36, 36, true),
+              iconSize: L.point(px, px, true),
             });
           }}
         >
