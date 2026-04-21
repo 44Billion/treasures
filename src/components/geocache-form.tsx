@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Upload, X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera } from 'lucide-react';
+import { X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera } from 'lucide-react';
 import { sneaker, treesForest } from '@lucide/lab';
 
 // Create React components from Lucide Lab icons
@@ -52,7 +52,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rating';

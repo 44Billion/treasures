@@ -26,7 +26,6 @@ import {
   CacheImageManager,
 } from "@/components/ui/geocache-form.fields";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";

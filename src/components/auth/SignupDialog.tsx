@@ -3,10 +3,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Key, Compass, Sparkles, MapPin, Gem, Star, Crown, Map, Lock, Eye, EyeOff, Upload, Loader2, User, ScrollText, Camera } from 'lucide-react';
+import { Key, Compass, Sparkles, MapPin, Gem, Star, Crown, Map, Lock, Eye, EyeOff, Upload, Loader2, User, ScrollText, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+
 import { BaseDialog } from '@/components/ui/base-dialog';
 import { toast } from '@/hooks/useToast';
 import { useLoginActions } from '@/hooks/useLoginActions';

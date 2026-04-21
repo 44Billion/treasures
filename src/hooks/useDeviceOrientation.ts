@@ -55,7 +55,6 @@ async function requestSensorPermissionAndroid(): Promise<boolean> {
 
   // Construct a Generic Sensor to trigger Chrome's permission prompt.
   // AbsoluteOrientationSensor is the most relevant for compass heading.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const win = window as any;
   const SensorClass = win.AbsoluteOrientationSensor ?? win.Accelerometer;
 

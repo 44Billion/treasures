@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MessageSquare, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";

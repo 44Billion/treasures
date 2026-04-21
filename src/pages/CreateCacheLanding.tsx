@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { QrCode, Download, Printer, Settings, Gift, Edit, MoreVertical, ShieldCheck, FileText, ChevronRight, BookOpen } from "lucide-react";
+import { QrCode, Download, Printer, Settings, Gift, Edit, MoreVertical, FileText, ChevronRight, BookOpen } from "lucide-react";
 import { Chest } from "@/config/cacheIconConstants";
 import { Button } from "@/components/ui/button";
 import {

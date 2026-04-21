@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { nip19 } from 'nostr-tools';
 import { TIMEOUTS } from '@/config';
-import { NIP_GC_KINDS, parseGeocacheEvent } from '@/utils/nip-gc';
+import { parseGeocacheEvent } from '@/utils/nip-gc';
 import type { Geocache } from '@/types/geocache';
 
 /**
