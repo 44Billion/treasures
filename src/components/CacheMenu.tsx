@@ -69,21 +69,21 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
 
       toast({
         title: isSaved
-          ? 'Cache removed from saved list'
-          : 'Cache saved for later',
+          ? 'Treasure removed from saved list'
+          : 'Treasure saved for later',
         description: isOffline
           ? `"${geocache.name}" has been saved to your device and will be synced when you're back online.`
           : isSaved
-          ? `"${geocache.name}" has been removed from your saved caches.`
+          ? `"${geocache.name}" has been removed from your saved treasures.`
           : `"${geocache.name}" has been saved to your Nostr profile.`,
       });
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Failed to save cache. Please try again.';
+          : 'Failed to save treasure. Please try again.';
       toast({
-        title: 'Error saving cache',
+        title: 'Error saving treasure',
         description: errorMessage,
         variant: 'destructive',
       });

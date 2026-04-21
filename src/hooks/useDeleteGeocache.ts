@@ -49,8 +49,8 @@ export function useDeleteGeocache() {
     },
     onSuccess: (_data, { geocacheId }) => {
       toast({
-        title: "Geocache deleted",
-        description: "Your geocache has been removed and the deletion request sent to relays.",
+        title: "Treasure deleted",
+        description: "Your treasure has been removed and the deletion request sent to relays.",
       });
       
       // Invalidate related queries to ensure fresh data
@@ -77,7 +77,7 @@ export function useDeleteGeocache() {
         
         toast({
           title: "Deletion cancelled",
-          description: "The geocache deletion was cancelled.",
+          description: "The treasure deletion was cancelled.",
           variant: "destructive",
         });
       } else {

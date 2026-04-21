@@ -86,8 +86,23 @@ export default function CreateCache() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [locationConfirmed, setLocationConfirmed] = useState(false);
 
-  // Save draft to localStorage whenever form data changes
+  // Save draft to localStorage whenever form data changes — but only if
+  // the user has actually provided custom information (not just defaults).
   useEffect(() => {
+    const defaults = createDefaultGeocacheFormData();
+    const hasCustomFormData =
+      formData.name !== defaults.name ||
+      formData.description !== defaults.description ||
+      formData.hint !== defaults.hint ||
+      formData.contentWarning !== defaults.contentWarning;
+    const hasCustomInfo = hasCustomFormData || location !== null || images.length > 0;
+
+    if (!hasCustomInfo) {
+      // Nothing worth saving — clear any stale draft
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
     const draftData = {
       formData,
       location,
@@ -584,8 +599,8 @@ export default function CreateCache() {
                             />
                             <Label htmlFor="location-confirm" className="text-sm cursor-pointer text-foreground leading-snug">
                               {hasWarnings
-                                ? "I acknowledge the warnings and confirm this location is appropriate, publicly accessible, and safe for seekers."
-                                : "I confirm this location has permission, is publicly accessible, and is safe for seekers."
+                                ? "I acknowledge the warnings and confirm this location is appropriate, publicly accessible, and safe for finders."
+                                : "I confirm this location has permission, is publicly accessible, and is safe for finders."
                               }
                             </Label>
                           </div>

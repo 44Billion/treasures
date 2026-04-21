@@ -12,7 +12,7 @@ export const droppedPinIcon = L.divIcon({
   `,
   className: "location-picker-icon",
   iconSize: [32, 40],
-  iconAnchor: [16, 12], // Anchor at the center of the pin's head (where the white circle is)
+  iconAnchor: [16, 12],
 });
 
 // Blue beacon icon for current/searched location

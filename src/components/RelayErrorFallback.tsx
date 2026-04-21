@@ -38,11 +38,11 @@ export function RelayErrorFallback({
   
   const defaultTitle = isError 
     ? "Connection Failed"
-    : "No Geocaches Found";
+    : "No Treasures Found";
     
   const defaultDescription = isError
     ? "Unable to connect to your relays. Check your connection or manage your relays in Settings."
-    : "No geocaches were found on your relays.";
+    : "No treasures were found on your relays.";
 
   const finalTitle = title || defaultTitle;
   const finalDescription = description || defaultDescription;

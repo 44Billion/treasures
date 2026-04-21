@@ -147,7 +147,7 @@ export function useCreateVerifiedLog() {
       // Show success toast
       toast({
         title: "Verified log posted!",
-        description: "Your verified log has been added to the geocache.",
+        description: "Your verified log has been added to the treasure.",
       });
     },
     onError: (error: unknown) => {

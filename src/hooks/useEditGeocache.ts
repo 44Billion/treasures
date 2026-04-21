@@ -203,8 +203,8 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
 
     onSuccess: (event, _data, _context) => {
       toast({
-        title: "Geocache updated!",
-        description: "Your geocache has been successfully updated.",
+        title: "Treasure updated!",
+        description: "Your treasure has been successfully updated.",
       });
       
       // Parse the actual event data
@@ -308,7 +308,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       }
       
       toast({
-        title: "Failed to update geocache",
+        title: "Failed to update treasure",
         description: errorMessage,
         variant: "destructive",
       });

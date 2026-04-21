@@ -322,8 +322,8 @@ export function SmartLoadingState({
           isRetrying={isRetrying}
           compact={compact}
           className={className}
-          title="No Geocaches Found"
-          description="No geocaches were found. This might be due to relay connectivity issues or the current relay may not have any data."
+          title="No Treasures Found"
+          description="No treasures were found. This might be due to relay connectivity issues or the current relay may not have any data."
         />
       );
     }
@@ -331,7 +331,7 @@ export function SmartLoadingState({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center text-muted-foreground">
-          <p>No geocaches found</p>
+          <p>No treasures found</p>
         </div>
       </div>
     );

@@ -125,9 +125,9 @@ export function useDeleteWithConfirmation() {
     
     if (type === 'single') {
       const geocache = geocaches[0];
-      return `Are you sure you want to delete "${geocache?.name || 'this geocache'}"? The deletion request will be sent to relays immediately.`;
+      return `Are you sure you want to delete "${geocache?.name || 'this treasure'}"? The deletion request will be sent to relays immediately.`;
     } else {
-      return `Are you sure you want to delete ${geocaches.length} geocaches? Deletion requests will be sent to relays for all selected geocaches.`;
+      return `Are you sure you want to delete ${geocaches.length} treasures? Deletion requests will be sent to relays for all selected treasures.`;
     }
   };
 

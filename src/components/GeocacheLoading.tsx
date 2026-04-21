@@ -13,12 +13,12 @@ interface GeocacheLoadingProps {
 }
 
 export function GeocacheLoading({
-  title = "Loading Geocache...",
-  description = "Fetching cache details from the network",
+  title = "Loading Treasure...",
+  description = "Fetching treasure details from the network",
   relayAttempts = [],
   isMultiRelayLoading = false,
   onSkipToCreate,
-  skipToCreateLabel = "Skip to Create Geocache",
+  skipToCreateLabel = "Skip to Hide Treasure",
 }: GeocacheLoadingProps) {
   // If we're doing multi-relay loading, show relay attempts
   if (isMultiRelayLoading && relayAttempts.length > 0) {

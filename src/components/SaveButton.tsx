@@ -44,15 +44,15 @@ export function SaveButton({
       await toggleSaveCache(geocache);
       
       toast({
-        title: isSaved ? 'Cache removed from saved list' : 'Cache saved for later',
+        title: isSaved ? 'Treasure removed from saved list' : 'Treasure saved for later',
         description: isSaved 
-          ? `"${geocache.name}" has been removed from your saved caches. It may take a moment for all relays to process the removal.`
+          ? `"${geocache.name}" has been removed from your saved treasures. It may take a moment for all relays to process the removal.`
           : `"${geocache.name}" has been saved to your Nostr profile.`,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save cache. Please try again.';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save treasure. Please try again.';
       toast({
-        title: 'Error saving cache',
+        title: 'Error saving treasure',
         description: errorMessage,
         variant: 'destructive',
       });

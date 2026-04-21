@@ -1,4 +1,5 @@
-import { MapPin, User, CheckCircle, ShieldCheck, Copy, Check, AlertCircle, Clock, Bookmark, Zap } from "lucide-react";
+import { User, CheckCircle, ShieldCheck, Copy, Check, AlertCircle, Clock, Bookmark } from "lucide-react";
+import { Chest } from "@/config/cacheIconConstants";
 import { useTranslation } from "react-i18next";
 import { CompassSpinner } from "@/components/ui/loading";
 
@@ -119,21 +120,7 @@ export function ProfileHeader({
                 )}
               </button>
               )}
-              {(metadata?.lud16 || metadata?.lud06) && (
-                <button
-                  onClick={() => handleCopy(metadata.lud16 || metadata.lud06 || '', 'lud')}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group"
-                  title={t('profile.header.copyLightningAddress')}
-                >
-                  <Zap className="h-3 w-3 text-yellow-500" />
-                  <span className="font-mono">{metadata.lud16 || metadata.lud06}</span>
-                  {copiedField === 'lud' ? (
-                    <Check className="h-3 w-3 text-primary" />
-                  ) : (
-                    <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  )}
-                </button>
-              )}
+
             </div>
           </div>
           {children && (
@@ -146,7 +133,7 @@ export function ProfileHeader({
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
 
           <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Chest className="h-3 w-3 sm:h-4 sm:w-4" />
             {hiddenCount} {t('profile.header.hidden')}
           </span>
           <span className="flex items-center gap-1">

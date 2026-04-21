@@ -61,8 +61,8 @@ export function useCreateGeocache() {
     },
     onSuccess: (data: CreateGeocacheResult) => {
       toast({
-        title: "Geocache created!",
-        description: "Your geocache has been successfully hidden.",
+        title: "Treasure hidden!",
+        description: "Your treasure has been successfully hidden.",
       });
       
       // Invalidate related queries to ensure fresh data
@@ -85,7 +85,7 @@ export function useCreateGeocache() {
       }
       
       toast({
-        title: "Failed to create geocache",
+        title: "Failed to hide treasure",
         description: errorMessage,
         variant: "destructive",
       });

@@ -242,12 +242,11 @@ export default function CreateCacheLanding() {
                 <h2 className="text-sm font-semibold text-foreground">{t('createCache.verificationQR.title')}</h2>
               </div>
               <p className="text-xs text-muted-foreground mb-4">
-                {t('createCache.verificationQR.description').split('\n').map((line, i) => (
-                  <span key={i}>
-                    {line}
-                    {i < t('createCache.verificationQR.description').split('\n').length - 1 && <br />}
-                  </span>
-                ))}
+                <span className="font-medium text-foreground">{t('createCache.verificationQR.step1')}</span>{' '}{t('createCache.verificationQR.step1Detail')}
+                <br />
+                <span className="font-medium text-foreground">{t('createCache.verificationQR.step2')}</span>{' '}{t('createCache.verificationQR.step2Detail')}
+                <br />
+                <span className="font-medium text-foreground">{t('createCache.verificationQR.step3')}</span>{' '}{t('createCache.verificationQR.step3Detail')}
               </p>
 
               <div className="flex justify-center mb-4">
@@ -332,7 +331,7 @@ export default function CreateCacheLanding() {
             {/* 4. Divider */}
             <div className="border-t my-5" />
 
-            {/* 5. Create listing CTA - always visible, messaging adapts */}
+            {/* 5. Create listing CTA */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Chest className="h-4 w-4 text-primary" />
@@ -346,14 +345,17 @@ export default function CreateCacheLanding() {
                 }
               </p>
 
-              <div className="flex gap-2 justify-center flex-wrap">
+              <div className="flex flex-col gap-2">
                 {!isBulkType && (
-                  <Button variant="outline" onClick={handleFillOutNow} disabled={!qrDataUrl} size="sm">
-                    <Edit className="h-3.5 w-3.5 mr-1.5" />
+                  <Button onClick={handleFillOutNow} disabled={!qrDataUrl} className="w-full">
+                    <Edit className="h-4 w-4 mr-1.5" />
                     {t('createCache.listing.createNow')}
                   </Button>
                 )}
-                <Button variant="ghost" onClick={() => navigate("/")} size="sm">
+                <Button variant="outline" onClick={() => navigate('/create-cache')} className="w-full">
+                  {t('createCache.listing.skipQr')}
+                </Button>
+                <Button variant="ghost" onClick={() => navigate("/")} size="sm" className="mt-1">
                   {t('createCache.listing.later')}
                   <ArrowRight className="h-3.5 w-3.5 ml-1" />
                 </Button>

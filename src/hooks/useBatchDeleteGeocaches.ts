@@ -159,18 +159,18 @@ export function useBatchDeleteGeocaches() {
       
       if (successful.length === geocaches.length) {
         toast({
-          title: "Geocaches deleted",
-          description: `Successfully sent deletion requests for ${successful.length} geocache${successful.length === 1 ? '' : 's'}.`,
+          title: "Treasures deleted",
+          description: `Successfully sent deletion requests for ${successful.length} treasure${successful.length === 1 ? '' : 's'}.`,
         });
       } else if (successful.length > 0) {
         toast({
           title: "Mostly successful",
-          description: `Sent deletion requests for ${successful.length} of ${geocaches.length} geocaches. ${failed.length} were cancelled or failed to sign.`,
+          description: `Sent deletion requests for ${successful.length} of ${geocaches.length} treasures. ${failed.length} were cancelled or failed to sign.`,
         });
       } else {
         toast({
           title: "Deletion cancelled",
-          description: `No geocaches were deleted. All deletion requests were cancelled or failed to sign.`,
+          description: `No treasures were deleted. All deletion requests were cancelled or failed to sign.`,
           variant: "destructive",
         });
       }

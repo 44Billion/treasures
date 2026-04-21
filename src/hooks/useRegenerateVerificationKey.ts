@@ -93,7 +93,7 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
     onSuccess: ({ event, verificationKeyPair }) => {
       toast({
         title: "New verification key generated!",
-        description: "A new geocache event has been created. All previous QR codes are now invalid.",
+        description: "A new verification key has been created. All previous QR codes are now invalid.",
       });
       
       // Update the specific geocache in cache

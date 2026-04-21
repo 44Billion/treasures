@@ -66,11 +66,11 @@ export function useCreateLog() {
         // Handle success
         toast({
           title: "Log posted!",
-          description: "Your log has been added to the geocache.",
-        });
+        description: "Your log has been added to the treasure.",
+      });
 
-        // Optimistically update the cache
-        queryClient.setQueryData(['geocache-logs', data.geocacheDTag, data.geocachePubkey], (oldData: unknown) => {
+      // Optimistically update the cache
+      queryClient.setQueryData(['geocache-logs', data.geocacheDTag, data.geocachePubkey], (oldData: unknown) => {
           const clientTag = result.tags.find(t => t[0] === 'client')?.[1];
           const relayTags = result.tags.filter(t => t[0] === 'relay').map(t => t[1]);
           
@@ -122,7 +122,7 @@ export function useCreateLog() {
     onSuccess: (event, variables) => {
       toast({
         title: "Log posted!",
-        description: "Your log has been added to the geocache.",
+        description: "Your log has been added to the treasure.",
       });
       
       // Optimistically update the cache immediately

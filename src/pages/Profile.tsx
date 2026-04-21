@@ -9,6 +9,7 @@ import {
   Edit,
   Bookmark
 } from 'lucide-react';
+import { Chest } from '@/config/cacheIconConstants';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyStateCard } from '@/components/ui/card-patterns';
 import { DesktopHeader } from '@/components/DesktopHeader';
@@ -231,7 +232,7 @@ export default function Profile() {
         <Tabs defaultValue="created" className="w-full">
           <TabsList className={`grid w-full h-auto ${isOwnProfile ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="created" className="flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 py-3 sm:px-3 sm:py-2 min-h-[3rem] sm:min-h-[2.5rem]">
-              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <Chest className="h-4 w-4 flex-shrink-0" />
               <span className="text-xs sm:text-sm">{t('profile.tabs.created')}</span>
               <span className="text-xs sm:text-sm">({userGeocachesWithStats?.length || 0})</span>
             </TabsTrigger>
@@ -272,14 +273,14 @@ export default function Profile() {
               </div>
             ) : !userGeocachesWithStats || userGeocachesWithStats.length === 0 ? (
               <EmptyStateCard
-                icon={MapPin}
+                icon={Chest}
                 title={isOwnProfile ? t('profile.created.emptyTitleOwn') : t('profile.created.emptyTitleOther')}
                 description={isOwnProfile ? t('profile.created.emptyDescriptionOwn') : t('profile.created.emptyDescriptionOther', { name: displayName })}
                 action={
                   isOwnProfile ? (
                     <Link to="/create">
                       <Button>
-                        <MapPin className="h-4 w-4 mr-2" />
+                        <Chest className="h-4 w-4 mr-2" />
                         {t('profile.created.actionButton')}
                       </Button>
                     </Link>
