@@ -30,7 +30,7 @@ export default function Install() {
             </h2>
             
             <p className="text-md text-muted-foreground mb-6">
-              Get the full geocaching experience with our Progressive Web App. 
+              Get the full geocaches experience with our Progressive Web App. 
               Loads faster and feels like a native app.
             </p>
           </div>

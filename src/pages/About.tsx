@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { ExternalLink, Globe, Users, Shield, Zap, Compass, MapPin, Trophy, ShieldCheck, MessageSquare } from "lucide-react";
+import { ExternalLink, Globe, Users, Shield, Zap, Compass, MapPin, Trophy, ShieldCheck, MessageSquare, HelpCircle } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CacheIcon } from "@/utils/cacheIcons";
 import { useTheme } from "@/hooks/useTheme";
 import { NIP_GC_KINDS } from "@/utils/nip-gc";
@@ -198,6 +199,79 @@ export default function About() {
               {t('about.tech.description2.middle')}{' '}
               {t('about.tech.description2.suffix')}
             </p>
+          </div>
+
+          <div className="border-t" />
+
+          {/* FAQ */}
+          <div className="p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <HelpCircle className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">
+                {t('about.faq.title')}
+              </h2>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full">
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <AccordionItem key={n} value={`faq-${n}`}>
+                  <AccordionTrigger className="text-sm text-left">
+                    {t(`about.faq.q${n}`)}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {t(`about.faq.a${n}`)}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+
+              {/* Differences from Geocaching.com — compact table */}
+              <AccordionItem value="faq-7">
+                <AccordionTrigger className="text-sm text-left">
+                  {t('about.faq.q7')}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="mb-3">{t('about.faq.a7.intro')}</p>
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b text-left">
+                        <th className="pb-1.5 font-medium text-foreground/50 w-[28%]"></th>
+                        <th className="pb-1.5 font-medium text-foreground/60 w-[36%]">{t('about.faq.a7.col.gc')}</th>
+                        <th className="pb-1.5 font-medium text-primary w-[36%]">{t('about.faq.a7.col.tr')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {([
+                        { row: 1, sources: [{ n: 1, url: 'https://payments.geocaching.com/?renew=true' }] },
+                        { row: 2, sources: [{ n: 2, url: 'https://payments.geocaching.com/?renew=true' }] },
+                        { row: 3, sources: [{ n: 3, url: 'https://www.geocaching.com/about/termsofuse.aspx' }] },
+                        { row: 4, sources: [{ n: 4, url: 'https://geocaching.com/help/index.php?pg=kb.page&id=482' }] },
+                        { row: 5, sources: [{ n: 5, url: 'https://geocaching.com/help/index.php?pg=kb.page&id=102' }] },
+                        { row: 6, sources: [
+                          { n: 6, url: 'https://www.geocaching.com/help/index.php?pg=kb.chapter&id=97&pgid=863' },
+                          { n: 7, url: 'https://geocaching.com/help/index.php?pg=kb.page&id=434' },
+                        ]},
+                        { row: 7, sources: [
+                          { n: 8, url: 'https://www.cgeo.org/faq.html#why-no-api' },
+                          { n: 9, url: 'https://apidevelopers.geocaching.com/geocachingapi' },
+                          { n: 10, url: 'https://partnerships.geocaching.com/api-license-agreement' },
+                        ]},
+                      ] as const).map(({ row, sources }) => (
+                        <tr key={row} className="border-b border-border/30">
+                          <td className="py-1.5 font-medium text-foreground/70">{t(`about.faq.a7.row${row}.topic`)}</td>
+                          <td className="py-1.5 pr-1">
+                            {t(`about.faq.a7.row${row}.gc`)}{' '}
+                            {sources.map(({ n, url }) => (
+                              <a key={n} href={url} target="_blank" rel="noopener noreferrer" className="text-primary/50 hover:text-primary text-[9px]">[{n}]</a>
+                            ))}
+                          </td>
+                          <td className="py-1.5 text-primary/80 font-medium">{t(`about.faq.a7.row${row}.tr`)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
 

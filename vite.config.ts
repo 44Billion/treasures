@@ -81,9 +81,9 @@ export default defineConfig(({ mode }) => ({
       },
       includeAssets: ['favicon.ico', 'icon.svg', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png', 'icon-192x192.png', 'icon-192x192-maskable.png', 'icon-512x512.png', 'icon-512x512-maskable.png'],
       manifest: {
-        name: 'Treasures - Decentralized Geocaching',
+        name: 'Treasures - Decentralized Geocaches',
         short_name: 'Treasures',
-        description: 'Discover and hide geocaches on the decentralized Nostr network. Share locations, find geocaches, and explore the world!',
+        description: 'Hide and discover geocaches on the decentralized Nostr network. Treasures is a free, open-source geocaches app. Share locations, log finds, and explore the world!',
         theme_color: '#10b981',
         background_color: '#ffffff',
         display: 'standalone',
