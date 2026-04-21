@@ -462,7 +462,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
           })}
         </div>
 
-        {/* Second row: 2 options centered */}
+        {/* Second row: 2 options centered, matching top row cell width */}
         <div className="flex gap-2 justify-center">
           {difficultyLevels.slice(3).map((level) => {
             const IconComponent = level.icon;
@@ -471,7 +471,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 key={level.level}
                 type="button"
                 onClick={() => onChange(level.level.toString())}
-                className={`p-2 rounded-lg border text-center transition-all w-24 ${
+                className={`p-2 rounded-lg border text-center transition-all w-[calc((100%-1rem)/3)] ${
                   numericValue === level.level
                     ? 'border-primary bg-primary-50 dark:bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
@@ -620,7 +620,7 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
           })}
         </div>
 
-        {/* Second row: 2 options centered */}
+        {/* Second row: 2 options centered, matching top row cell width */}
         <div className="flex gap-2 justify-center">
           {terrainLevels.slice(3).map((level) => {
             const IconComponent = level.icon;
@@ -629,7 +629,7 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
                 key={level.level}
                 type="button"
                 onClick={() => onChange(level.level.toString())}
-                className={`p-2 rounded-lg border text-center transition-all w-24 ${
+                className={`p-2 rounded-lg border text-center transition-all w-[calc((100%-1rem)/3)] ${
                   numericValue === level.level
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'

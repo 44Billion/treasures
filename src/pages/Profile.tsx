@@ -16,6 +16,7 @@ import { DesktopHeader } from '@/components/DesktopHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { FullPageLoading, ComponentLoading } from '@/components/ui/loading';
 
 import { LoginRequiredCard } from '@/components/LoginRequiredCard';
@@ -34,6 +35,8 @@ import { useGeocaches } from '@/hooks/useGeocaches';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { ProfileMap } from '@/components/ProfileMap';
 import { useToast } from '@/hooks/useToast';
+import { useTreasureDrafts, draftToGeocache } from '@/hooks/useTreasureDrafts';
+import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import type { Geocache } from '@/types/geocache';
 
 export default function Profile() {
@@ -46,6 +49,8 @@ export default function Profile() {
   const [_copiedField, setCopiedField] = useState<string | null>(null);
   const [selectedPopupGeocache, setSelectedPopupGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
+  const [deletingDraft, setDeletingDraft] = useState<{ dTag: string; name: string; eventId: string } | null>(null);
+  const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<Set<string>>(new Set());
 
   // Handler for marker clicks from the profile map (React popup portal)
   const handleMarkerClick = (geocache: Geocache, container?: HTMLDivElement) => {
@@ -67,6 +72,12 @@ export default function Profile() {
   const { data: userCaches, isLoading: isLoadingUserCaches } = useUserGeocaches(targetPubkey);
   const { savedCaches, isLoading: isLoadingSavedCaches } = useSavedCaches();
 
+  // NIP-37 encrypted drafts — only queried on own profile
+  const { relayDrafts, deleteDraft } = useTreasureDrafts();
+  const draftGeocaches: Geocache[] = isOwnProfile && currentUser
+    ? (relayDrafts.data || []).map(d => draftToGeocache(d, currentUser.pubkey))
+    : [];
+
   // Use the same stats query/store system as index/map page for created caches
   const { data: allGeocaches, isStatsLoading } = useGeocaches();
 
@@ -76,8 +87,12 @@ export default function Profile() {
 
   const metadata = authorData?.metadata;
 
-  // Use userCaches directly for created tab - it already handles hidden/unlisted cache filtering
-  const userGeocachesWithStats = userCaches || [];
+  // Merge published caches with drafts (drafts first, then published, all sorted by date)
+  // Filter out optimistically deleted drafts
+  const userGeocachesWithStats = [
+    ...draftGeocaches.filter(d => !optimisticallyDeleted.has(d.dTag)),
+    ...(userCaches || []),
+  ].sort((a, b) => b.created_at - a.created_at);
 
   // Calculate distances if location is available
   const userCachesWithDistance = (userGeocachesWithStats || []).map(cache => {
@@ -298,6 +313,9 @@ export default function Profile() {
                       distance={cache.distance}
                       variant="featured"
                       statsLoading={isStatsLoading}
+                      onDelete={cache.kind === NIP_GC_KINDS.DRAFT ? () => {
+                        setDeletingDraft({ dTag: cache.dTag, name: cache.name, eventId: cache.id });
+                      } : undefined}
                     />
                   ))}
               </div>
@@ -414,6 +432,55 @@ export default function Profile() {
         />,
         popupContainer
       )}
+
+      {/* Delete draft confirmation */}
+      <AlertDialog open={!!deletingDraft} onOpenChange={(open) => { if (!open) setDeletingDraft(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete draft?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{deletingDraft?.name}" will be permanently deleted. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!deletingDraft) return;
+                const { dTag, name, eventId } = deletingDraft;
+                // Optimistic removal
+                setOptimisticallyDeleted(prev => new Set(prev).add(dTag));
+                setDeletingDraft(null);
+                // Fire relay deletion
+                deleteDraft.mutate({ slug: dTag, eventId }, {
+                  onError: () => {
+                    // Rollback on failure
+                    setOptimisticallyDeleted(prev => {
+                      const next = new Set(prev);
+                      next.delete(dTag);
+                      return next;
+                    });
+                    toast({
+                      title: "Failed to delete draft",
+                      description: "Please try again.",
+                      variant: "destructive",
+                    });
+                  },
+                  onSuccess: () => {
+                    toast({
+                      title: "Draft deleted",
+                      description: `"${name}" has been removed.`,
+                    });
+                  },
+                });
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

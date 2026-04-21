@@ -4,7 +4,7 @@ import { HeroGallery } from "./HeroGallery";
 
 interface PageHeroProps {
   icon?: LucideIcon;
-  title: string;
+  title: ReactNode;
   description?: string;
   children?: ReactNode;
 }

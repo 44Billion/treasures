@@ -17,6 +17,7 @@ export const NIP_GC_KINDS = {
   COMMENT_LOG: 1111,
   VERIFICATION: 7517,
   BOOKMARK_LIST: 30001,
+  DRAFT: 31234,
 } as const;
 
 const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;

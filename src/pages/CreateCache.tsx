@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight, Cloud, EyeOff } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,14 +24,16 @@ import {
   CacheTypeField,
   CacheSizeField,
   CacheImageManager,
-  CacheHiddenField
 } from "@/components/ui/geocache-form.fields";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
+import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Step configuration for progress indicator
 const STEPS = [
@@ -51,39 +53,49 @@ export default function CreateCache() {
 
   const { mutateAsync: createGeocache, isPending } = useCreateGeocache();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Persistent form state - survives browser backgrounding
-  const STORAGE_KEY = 'treasures-create-cache-draft';
+  // NIP-37 draft management
+  const { saveDraft, deleteDraft, relayDrafts } = useTreasureDrafts();
+  const isSavingDraft = saveDraft.isPending;
 
-  // Load saved draft on mount
-  const loadDraft = () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const draft = JSON.parse(saved);
-        return {
-          formData: draft.formData || createDefaultGeocacheFormData(),
-          location: draft.location || null,
-          images: draft.images || [],
-          currentStep: draft.currentStep || 1,
-        };
-      }
-    } catch (error) {
-      console.error('Failed to load draft:', error);
-    }
-    return null;
-  };
+  // Check if we're loading a specific relay draft via ?draft=<slug>
+  const draftSlugParam = searchParams.get('draft');
+  const loadedRelayDraft = draftSlugParam && relayDrafts.data
+    ? relayDrafts.data.find(d => d.slug === draftSlugParam)
+    : null;
 
-  const draft = loadDraft();
-  const [formData, setFormData] = useState<GeocacheFormData>(draft?.formData || createDefaultGeocacheFormData());
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(draft?.location || null);
-  const [images, setImages] = useState<string[]>(draft?.images || []);
-  const [currentStep, setCurrentStep] = useState(draft?.currentStep || 1);
+  // Load saved draft on mount (localStorage, or relay draft if specified)
+  const localDraft = loadLocalDraft();
+  const initialDraft = loadedRelayDraft || localDraft;
+  const [editingDraftSlug, setEditingDraftSlug] = useState<string | null>(draftSlugParam);
+  const [editingDraftEventId, setEditingDraftEventId] = useState<string | null>(loadedRelayDraft?.eventId ?? null);
+
+  const [formData, setFormData] = useState<GeocacheFormData>(
+    initialDraft?.formData || createDefaultGeocacheFormData(),
+  );
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    initialDraft?.location || null,
+  );
+  const [images, setImages] = useState<string[]>(initialDraft?.images || []);
+  const [currentStep, setCurrentStep] = useState(initialDraft?.currentStep || 1);
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // Save draft to localStorage whenever form data changes — but only if
-  // the user has actually provided custom information (not just defaults).
+  // Hydrate from relay draft once it loads (async)
+  useEffect(() => {
+    if (loadedRelayDraft && draftSlugParam) {
+      setFormData(loadedRelayDraft.formData);
+      setLocation(loadedRelayDraft.location);
+      setImages(loadedRelayDraft.images);
+      setCurrentStep(loadedRelayDraft.currentStep);
+      setEditingDraftSlug(loadedRelayDraft.slug);
+      setEditingDraftEventId(loadedRelayDraft.eventId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadedRelayDraft?.slug]);
+
+  // Auto-save to localStorage whenever form data changes
   useEffect(() => {
     const defaults = createDefaultGeocacheFormData();
     const hasCustomFormData =
@@ -94,34 +106,66 @@ export default function CreateCache() {
     const hasCustomInfo = hasCustomFormData || location !== null || images.length > 0;
 
     if (!hasCustomInfo) {
-      // Nothing worth saving — clear any stale draft
-      localStorage.removeItem(STORAGE_KEY);
+      clearLocalDraft();
       return;
     }
 
-    const draftData = {
-      formData,
-      location,
-      images,
-      currentStep,
-      savedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
+    saveLocalDraft({ formData, location, images, currentStep });
   }, [formData, location, images, currentStep]);
 
-  // Clear draft when successfully creating geocache
-  const clearDraft = () => {
-    localStorage.removeItem(STORAGE_KEY);
-  };
+  // Build the current draft payload (reused by save + publish cleanup)
+  const currentPayload = useCallback((): TreasureDraftPayload => ({
+    formData,
+    location,
+    images,
+    currentStep,
+  }), [formData, location, images, currentStep]);
+
+  // Explicit "Save as Draft" — writes to both localStorage and relay, then navigates to profile
+  const handleSaveDraft = useCallback(async () => {
+    // Basic validation — need at least name + description + location
+    if (!formData.name.trim() || !formData.description.trim() || !location) {
+      toast({
+        title: "Incomplete draft",
+        description: "Please add a name, description, and location before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const result = await saveDraft.mutateAsync({ payload: currentPayload(), slug: editingDraftSlug || undefined });
+      // Remember the slug so subsequent saves overwrite the same draft
+      setEditingDraftSlug(result.slug);
+      clearLocalDraft();
+      toast({
+        title: "Draft saved",
+        description: "Your treasure draft is encrypted and only visible to you.",
+      });
+      navigate('/profile');
+    } catch (err) {
+      console.error('[CreateCache] Failed to save relay draft:', err);
+      toast({
+        title: "Draft saved locally",
+        description: "Saved to this device. Relay sync failed — it will retry next time.",
+      });
+    }
+  }, [saveDraft, currentPayload, toast, navigate, formData, location, editingDraftSlug]);
+
+  // Clear the local form draft (relay drafts are managed from the profile)
+  const clearFormDraft = useCallback(() => {
+    clearLocalDraft();
+  }, []);
 
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
   const [importedKind, setImportedKind] = useState<number | null>(null);
-  const [showDraftNotice, setShowDraftNotice] = useState(!!draft);
+  const hasDraft = !!localDraft;
+  const [showDraftNotice, setShowDraftNotice] = useState(hasDraft);
 
   // Function to start fresh by clearing the draft
   const startFresh = () => {
-    clearDraft();
+    clearFormDraft();
     setFormData(createDefaultGeocacheFormData());
     setLocation(null);
     setImages([]);
@@ -281,8 +325,8 @@ export default function CreateCache() {
 
   // Re-verify location from draft when component mounts
   useEffect(() => {
-    if (draft?.location && currentStep === 1) {
-      handleLocationChange(draft.location);
+    if (localDraft?.location && currentStep === 1) {
+      handleLocationChange(localDraft.location);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
@@ -331,7 +375,17 @@ export default function CreateCache() {
           description: t('createCache.publish.success.redirecting'),
         });
 
-        clearDraft();
+        clearFormDraft();
+
+        // Delete the relay draft if we were editing one
+        // Delete the relay draft if we were editing one
+        if (editingDraftSlug && editingDraftEventId) {
+          try {
+            await deleteDraft.mutateAsync({ slug: editingDraftSlug, eventId: editingDraftEventId });
+          } catch {
+            // Best-effort — continue with navigation
+          }
+        }
 
         navigate(`/${naddr}`, {
           state: {
@@ -430,7 +484,7 @@ export default function CreateCache() {
   return (
     <>
       <DesktopHeader />
-      <PageHero title={t('createCache.title')} description={stepDescriptions[currentStep - 1]}>
+      <PageHero title={editingDraftSlug ? <>Editing<br />{formData.name || 'Draft'}</> : t('createCache.title')} description={stepDescriptions[currentStep - 1]}>
         <div className="container mx-auto px-4 max-w-2xl pb-12">
           {/* Form - single responsive layout */}
           <div className="rounded-xl border bg-card p-5 md:p-6">
@@ -441,7 +495,9 @@ export default function CreateCache() {
                   <AlertDescription className="flex items-center justify-between">
                     <span className="text-sm flex items-center gap-2">
                       <FileEdit className="h-4 w-4" />
-                      Continuing your draft from where you left off.
+                      {editingDraftSlug
+                        ? 'Editing your saved draft. Publish when ready.'
+                        : 'Continuing your draft from where you left off.'}
                     </span>
                     <Button
                       type="button"
@@ -499,7 +555,7 @@ export default function CreateCache() {
                 <div className="space-y-4">
 
                   {/* What you'll need hint - only shown on first visit */}
-                  {!draft && !location && (
+                  {!hasDraft && !location && (
                     <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
                       <AlertDescription className="text-sm">
                         <span className="font-medium">What you&apos;ll need:</span> A GPS location where you&apos;ve placed (or plan to place) your cache, a name and description, and optionally some photos of the area.
@@ -647,11 +703,6 @@ export default function CreateCache() {
                     onChange={(value) => setFormData({...formData, contentWarning: value})}
                   />
 
-                  <CacheHiddenField
-                    checked={formData.hidden || false}
-                    onChange={(checked) => setFormData({...formData, hidden: checked})}
-                  />
-
                   {/* Full Preview Card */}
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
                     <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.preview.title')}</h4>
@@ -692,20 +743,19 @@ export default function CreateCache() {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex gap-3 pt-4 pb-4 md:pb-0">
-                {currentStep > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(currentStep - 1)}
-                    className="flex-1"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    {t('common.previous')}
-                  </Button>
-                )}
-
-                {currentStep < TOTAL_STEPS ? (
+              {currentStep < TOTAL_STEPS ? (
+                <div className="flex gap-3 pt-4 pb-4 md:pb-0">
+                  {currentStep > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep(currentStep - 1)}
+                      className="flex-1"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      {t('common.previous')}
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     onClick={validateAndAdvance}
@@ -721,12 +771,47 @@ export default function CreateCache() {
                       <>{t('common.next')} <ChevronRight className="h-4 w-4 ml-1" /></>
                     )}
                   </Button>
-                ) : (
+                </div>
+              ) : (
+                <div className="space-y-3 pt-4 pb-4 md:pb-0">
+                  {/* Row 1: Previous + Draft */}
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep(currentStep - 1)}
+                      className="flex-1"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      {t('common.previous')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSaveDraft}
+                      disabled={isSavingDraft || isPending || isVerifying}
+                      className="flex-1"
+                    >
+                      {isSavingDraft ? (
+                        <>
+                          <Cloud className="h-4 w-4 mr-1 animate-pulse" />
+                          Saving…
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-4 w-4 mr-1" />
+                          Save Draft
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Row 2: Publish (full width, primary) */}
                   <Button
                     type="button"
                     onClick={handleCreateGeocache}
                     disabled={isPending || isVerifying}
-                    className="flex-1"
+                    className="w-full"
                   >
                     {isVerifying ? (
                       <>
@@ -739,9 +824,8 @@ export default function CreateCache() {
                       <><Check className="h-4 w-4 mr-1" /> {t('createCache.createButton')}</>
                     )}
                   </Button>
-                )}
-
-              </div>
+                </div>
+              )}
             </form>
           </div>
         </div>

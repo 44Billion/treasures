@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
 import { useZapStore } from '@/stores/useZapStore';
-import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, Zap, MapPin } from 'lucide-react';
+import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, Zap, MapPin, Trash2 } from 'lucide-react';
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CacheMenu } from '@/components/CacheMenu';
 import { BlurredImage } from '@/components/BlurredImage';
@@ -18,6 +20,7 @@ import { getSizeLabel } from '@/utils/geocache-utils';
 import { offlineGeocode } from '@/utils/offlineGeocode';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Geocache } from '@/types/geocache';
+import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Base interface for all geocache cards
@@ -36,6 +39,7 @@ interface BaseGeocacheCardProps {
     terrain: number;
     size: string;
     type: string;
+    kind?: number;
     relays?: string[];
     hidden?: boolean;
     images?: string[];
@@ -45,6 +49,7 @@ interface BaseGeocacheCardProps {
   distance?: number;
   variant?: 'compact' | 'default' | 'detailed' | 'featured';
   onClick?: () => void;
+  onDelete?: () => void;
   actions?: React.ReactNode;
   metadata?: React.ReactNode;
   showAuthor?: boolean;
@@ -109,6 +114,7 @@ export function GeocacheCard({
   distance,
   variant = 'default',
   onClick,
+  onDelete,
   actions,
   metadata,
   showAuthor = true,
@@ -116,6 +122,7 @@ export function GeocacheCard({
   statsLoading = false
 }: GeocacheCardProps) {
   const { t } = useTranslation();
+  const nav = useNavigate();
   const { user } = useCurrentUser();
   const { theme } = useTheme();
   const isMobile = useIsMobile();
@@ -162,10 +169,18 @@ export function GeocacheCard({
   // Check if adventure theme is active
   const isAdventureTheme = theme === 'adventure';
 
+  const isDraft = cache.kind === NIP_GC_KINDS.DRAFT;
+
   // Optimized navigation handler
   // On mobile, always navigate directly to the details page
   // On desktop, use the onClick handler if provided (for modal behavior)
   const handleNavigate = (fromMap?: boolean) => {
+    // Drafts navigate to the creation wizard to continue editing
+    if (isDraft) {
+      nav(`/create-cache?draft=${encodeURIComponent(cache.dTag)}`);
+      return;
+    }
+
     if (isMobile) {
       // Mobile: always navigate to the details page
       navigateToGeocache(cache as Geocache, { fromMap });
@@ -305,13 +320,26 @@ export function GeocacheCard({
 
   const renderActionButtons = (buttonSize: string, showOnHover = true, absoluteOnMobile = false) => (
     <div className={`flex items-center gap-0.5 sm:gap-1 shrink-0 ${absoluteOnMobile ? 'absolute top-2 right-2 md:relative md:top-auto md:right-auto' : ''} ${showOnHover ? 'md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150' : ''}`}>
-      {actions || (
+      {actions || (isDraft && onDelete ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={buttonSize}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+          <span className="sr-only">Delete draft</span>
+        </Button>
+      ) : (
         <CacheMenu
           geocache={cache as any}
           variant="compact"
           className={buttonSize}
         />
-      )}
+      ))}
     </div>
   );
 
@@ -357,8 +385,8 @@ export function GeocacheCard({
                       <CacheIcon type={cache.type} size="sm" className="w-4.5 h-4.5 sm:w-5 sm:h-5" theme={theme} />
                     </div>
                     {isHiddenByCreator && (
-                      <div className="absolute -top-1 -right-1 w-4.5 h-4.5 sm:w-5 sm:h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
-                        <EyeOff className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+                      <div className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] sm:w-6 sm:h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-md ring-2 ring-white dark:ring-slate-800">
+                        <EyeOff className="h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 text-white" />
                       </div>
                     )}
                   </div>
@@ -454,8 +482,8 @@ export function GeocacheCard({
                       <CacheIcon type={cache.type} size="sm" className="w-3 h-3 sm:w-3.5 sm:h-3.5" theme={theme} />
                     </div>
                     {isHiddenByCreator && (
-                      <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
-                        <EyeOff className="h-1.5 w-1.5 text-white" />
+                      <div className="absolute -top-1 -right-1 w-[15px] h-[15px] bg-orange-500 rounded-full flex items-center justify-center shadow-md ring-1 ring-white dark:ring-slate-800">
+                        <EyeOff className="h-2 w-2 text-white" />
                       </div>
                     )}
                   </div>
