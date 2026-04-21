@@ -10,6 +10,7 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import AppRouter from './AppRouter';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { DittoThemeInjector } from '@/components/DittoThemeInjector';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
 import { StoreProvider } from '@/stores/StoreProvider';
@@ -57,12 +58,13 @@ export function App() {
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
-        themes={['light', 'dark', 'system', 'adventure']}
+        themes={['light', 'dark', 'system', 'adventure', 'ditto']}
       >
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
               <NostrSync />
+              <DittoThemeInjector />
               <NWCProvider>
                 <StoreProvider>
                   <TooltipProvider>

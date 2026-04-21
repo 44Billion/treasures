@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type Theme = 'light' | 'dark' | 'adventure' | 'system';
+type Theme = 'light' | 'dark' | 'adventure' | 'ditto' | 'system';
+type ResolvedTheme = 'light' | 'dark' | 'adventure' | 'ditto';
 type ThemeContextType = {
   theme: Theme | undefined;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: 'light' | 'dark' | 'adventure';
+  resolvedTheme: ResolvedTheme;
   systemTheme: 'light' | 'dark';
 };
 
@@ -48,7 +49,7 @@ export function ThemeProvider({
     return defaultTheme;
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark' | 'adventure'>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light');
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -78,14 +79,14 @@ export function ThemeProvider({
     });
 
     // Determine the actual theme to apply
-    let themeToApply: 'light' | 'dark' | 'adventure';
+    let themeToApply: ResolvedTheme;
 
     if (theme === 'system') {
       // Check system preference
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       themeToApply = systemPrefersDark ? 'dark' : 'light';
     } else {
-      themeToApply = theme as 'light' | 'dark' | 'adventure';
+      themeToApply = theme as ResolvedTheme;
     }
 
     setResolvedTheme(themeToApply);

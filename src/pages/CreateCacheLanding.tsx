@@ -13,6 +13,7 @@ import {
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { PageHero } from "@/components/PageHero";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useTheme } from "@/hooks/useTheme";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -56,6 +57,8 @@ export default function CreateCacheLanding() {
   ];
 
   const { user } = useCurrentUser();
+  const { resolvedTheme } = useTheme();
+  const isDitto = resolvedTheme === 'ditto';
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -432,10 +435,10 @@ export default function CreateCacheLanding() {
             </div>
           </div>
 
-          <p className="flex items-center justify-center gap-1.5 text-sm md:text-base text-white/80 adventure:text-stone-600 pt-4">
+          <p className={`flex items-center justify-center gap-1.5 text-sm md:text-base pt-4 ${isDitto ? 'text-muted-foreground' : 'text-white/80 adventure:text-stone-600'}`}>
             <BookOpen className="h-4 w-4 flex-shrink-0" />
             {t('createCache.firstTimeHint')}{' '}
-            <a href="/blog/86184109eae937d8d6f980b4a0b46da4ef0d983eade403ee1b4c0b6bde238b47/h" className="font-semibold hover:text-white adventure:hover:text-stone-800">
+            <a href="/blog/86184109eae937d8d6f980b4a0b46da4ef0d983eade403ee1b4c0b6bde238b47/h" className={`font-semibold ${isDitto ? 'hover:text-foreground' : 'hover:text-white adventure:hover:text-stone-800'}`}>
               {t('createCache.firstTimeLink')}
             </a>
           </p>

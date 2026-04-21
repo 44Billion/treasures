@@ -13,18 +13,34 @@ import { cn } from '@/utils/utils';
 import { useRadarOverlay } from '@/hooks/useRadarOverlay';
 
 // Helper function for consistent theme-aware styling
-function getThemeClasses(isAdventureTheme: boolean) {
+function getThemeClasses(theme: string | undefined) {
+  if (theme === 'adventure') {
+    return {
+      header: 'bg-adventure-nav',
+      text: 'text-stone-200',
+      textMuted: 'text-stone-400',
+      textActive: 'text-stone-200',
+      button: 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100',
+      icon: 'sepia',
+    };
+  }
+  if (theme === 'ditto') {
+    return {
+      header: 'bg-card',
+      text: 'text-foreground',
+      textMuted: 'text-muted-foreground',
+      textActive: 'text-primary',
+      button: 'text-foreground hover:bg-accent hover:text-accent-foreground',
+      icon: 'ditto-logo',
+    };
+  }
   return {
-    header: isAdventureTheme
-      ? 'bg-adventure-nav'
-      : 'bg-white dark:bg-background',
-    text: isAdventureTheme ? 'text-stone-200' : 'text-gray-900 dark:text-foreground',
-    textMuted: isAdventureTheme ? 'text-stone-400' : 'text-gray-500 dark:text-muted-foreground',
-    textActive: isAdventureTheme ? 'text-stone-200' : 'text-primary',
-    button: isAdventureTheme
-      ? 'text-stone-200 hover:bg-stone-700/50 hover:text-stone-100'
-      : 'text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground border-gray-200 dark:border-border',
-    icon: isAdventureTheme ? 'sepia' : '',
+    header: 'bg-white dark:bg-background',
+    text: 'text-gray-900 dark:text-foreground',
+    textMuted: 'text-gray-500 dark:text-muted-foreground',
+    textActive: 'text-primary',
+    button: 'text-gray-800 dark:text-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-accent-foreground border-gray-200 dark:border-border',
+    icon: '',
   };
 }
 
@@ -66,8 +82,7 @@ export function MobileHeader() {
   const { user } = useCurrentUser();
   const { currentUser, removeLogin } = useLoggedInAccounts();
   const { theme } = useTheme();
-  const isAdventureTheme = theme === 'adventure';
-  const themeClasses = getThemeClasses(isAdventureTheme);
+  const themeClasses = getThemeClasses(theme);
   const isHero = location.pathname === '/';
 
   const closeSheet = () => setIsOpen(false);
@@ -300,7 +315,8 @@ export function MobileBottomNav() {
   const { theme } = useTheme();
   const { open: openRadar } = useRadarOverlay();
   const isAdventureTheme = theme === 'adventure';
-  const themeClasses = getThemeClasses(isAdventureTheme);
+  const isDittoTheme = theme === 'ditto';
+  const themeClasses = getThemeClasses(theme);
   const isHome = location.pathname === '/';
   const [pastHero, setPastHero] = useState(!isHome);
 
@@ -366,7 +382,7 @@ export function MobileBottomNav() {
             {/* Background ring that matches the nav surface — creates the notch */}
             <div className={cn(
               "absolute w-[52px] h-[52px] rounded-full",
-              isAdventureTheme ? "bg-adventure-nav" : "bg-white dark:bg-background"
+              isAdventureTheme ? "bg-adventure-nav" : isDittoTheme ? "bg-card" : "bg-white dark:bg-background"
             )} />
             <button
               onClick={openRadar}

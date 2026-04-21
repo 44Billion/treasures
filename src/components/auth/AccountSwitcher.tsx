@@ -2,6 +2,8 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Sun, Moon, Sword, Monitor } from 'lucide-react';
+import { DittoIcon } from '@/components/icons/DittoIcon';
+import { useActiveProfileTheme } from '@/hooks/useActiveProfileTheme';
 import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
@@ -33,6 +35,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
   const { currentUser, otherUsers, setLogin, removeLogin, isLoadingCurrentUser } = useLoggedInAccounts();
   const navigate = useNavigate();
   const { setTheme, theme } = useTheme();
+  const { hasDittoTheme } = useActiveProfileTheme();
 
   if (!currentUser) return null;
 
@@ -136,11 +139,13 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
                   {theme === 'light' && <Sun className="h-4 w-4" />}
                   {theme === 'dark' && <Moon className="h-4 w-4" />}
                   {theme === 'adventure' && <Sword className="h-4 w-4" />}
+                  {theme === 'ditto' && <DittoIcon className="h-4 w-4" />}
                   {theme === 'system' && <Monitor className="h-4 w-4" />}
                   <span>
                     {theme === 'light' && t('theme.light')}
                     {theme === 'dark' && t('theme.dark')}
                     {theme === 'adventure' && t('theme.adventure')}
+                    {theme === 'ditto' && t('theme.ditto')}
                     {theme === 'system' && t('theme.system')}
                   </span>
                 </div>
@@ -165,6 +170,14 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
                   {t('theme.adventure')}
                 </div>
               </SelectItem>
+              {hasDittoTheme && (
+                <SelectItem value="ditto">
+                  <div className="flex items-center gap-2">
+                    <DittoIcon className="h-4 w-4" />
+                    {t('theme.ditto')}
+                  </div>
+                </SelectItem>
+              )}
               <SelectItem value="system">
                 <div className="flex items-center gap-2">
                   <Monitor className="h-4 w-4" />

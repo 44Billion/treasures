@@ -24,7 +24,10 @@ import { GeocacheCard } from '@/components/ui/geocache-card';
 import { GeocachePopupCard } from '@/components/GeocachePopupCard';
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { ProfileHeader } from '@/components/ProfileHeader';
+import { HeroBackground } from '@/components/HeroBackground';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useTheme } from '@/hooks/useTheme';
+
 import { useAuthor } from '@/hooks/useAuthor';
 import { useUserGeocaches } from '@/hooks/useUserGeocaches';
 import { useUserFoundCaches } from '@/hooks/useUserFoundCaches';
@@ -43,6 +46,8 @@ export default function Profile() {
   const { t } = useTranslation();
   const { pubkey } = useParams<{ pubkey: string }>();
   const { user: currentUser } = useCurrentUser();
+  const { resolvedTheme } = useTheme();
+  const isDitto = resolvedTheme === 'ditto';
   const { coords } = useGeolocation();
   const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -163,7 +168,8 @@ export default function Profile() {
 
   if (!targetPubkey) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 max-md:h-mobile-fit max-md:overflow-hidden relative">
+      <div className={`min-h-screen max-md:h-mobile-fit max-md:overflow-hidden relative ${isDitto ? '' : 'bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70'}`}>
+        {isDitto && <HeroBackground />}
         {/* Parchment background for adventure mode only - behind everything */}
         <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
           backgroundImage: 'url(/parchment-300.jpg)',
@@ -172,12 +178,14 @@ export default function Profile() {
           opacity: 0.25
         }}></div>
 
-        <DesktopHeader />
-        <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
-          <LoginRequiredCard
-            icon={User}
-            description={t('profile.loginRequired')}
-          />
+        <div className={isDitto ? 'relative z-10' : ''}>
+          <DesktopHeader />
+          <div className="container mx-auto px-4 py-8 max-md:h-mobile-content max-md:flex max-md:items-center max-md:justify-center">
+            <LoginRequiredCard
+              icon={User}
+              description={t('profile.loginRequired')}
+            />
+          </div>
         </div>
       </div>
     );
@@ -196,7 +204,8 @@ export default function Profile() {
   const displayName = metadata?.name || metadata?.display_name || targetPubkey.slice(0, 8) + '...';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 relative">
+    <div className={`min-h-screen relative ${isDitto ? '' : 'bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70'}`}>
+      {isDitto && <HeroBackground />}
       {/* Parchment background for adventure mode only - behind everything */}
       <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
         backgroundImage: 'url(/parchment-300.jpg)',
@@ -205,6 +214,7 @@ export default function Profile() {
         opacity: 0.25
       }}></div>
 
+      <div className={isDitto ? 'relative z-10' : ''}>
       <DesktopHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -418,6 +428,7 @@ export default function Profile() {
             </Button>
           </Link>
         </div>
+      </div>
       </div>
 
       {/* React portal into Leaflet popup - same system as main map */}

@@ -19,6 +19,7 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
+  const isDittoTheme = theme === 'ditto';
   const isHero = variant === 'hero';
 
   // Map page has different styling needs due to layout constraints
@@ -32,13 +33,15 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
     ? "bg-transparent border-transparent text-white relative z-50"
     : "";
 
-  const adventureClasses = isHero
+  const themeClasses = isHero
     ? ""
     : isAdventureTheme
       ? "bg-adventure-nav border-adventure-nav text-stone-200"
-      : "bg-background/80 backdrop-blur-sm md:bg-background md:backdrop-blur-none border-border";
+      : isDittoTheme
+        ? "bg-card border-border text-foreground"
+        : "bg-background/80 backdrop-blur-sm md:bg-background md:backdrop-blur-none border-border";
 
-  const headerClasses = `${baseClasses} ${adventureClasses} ${heroClasses}`;
+  const headerClasses = `${baseClasses} ${themeClasses} ${heroClasses}`;
 
   return (
     <header className={headerClasses}>
@@ -49,16 +52,17 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
               <img
                 src="/icon.svg"
                 alt={t('navigation.appName')}
-                className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme ? 'sepia' : ''}`}
+                className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme ? 'sepia' : isDittoTheme ? 'ditto-logo' : ''}`}
               />
             )}
             <h1 className={`text-2xl font-bold m-0 leading-none ${isHero ? 'text-white' : isAdventureTheme ? 'text-stone-200' : 'text-foreground'}`}>{t('navigation.appName')}</h1>
+
           </Link>
 
           <nav className="flex items-center gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isHero ? "text-white hover:bg-white/15 hover:text-white" : isAdventureTheme ? "text-md text-stone-200" : ""}>
+                <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isHero ? "text-white hover:bg-white/15 hover:text-white" : isAdventureTheme ? "text-md text-stone-200" : isDittoTheme ? "text-foreground" : ""}>
                   <Compass className="h-4 w-4 mr-2" />
                   {t('navigation.explore')} <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>

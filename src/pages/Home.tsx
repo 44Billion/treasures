@@ -8,6 +8,8 @@ import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useTheme } from "@/hooks/useTheme";
+import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 import { HeroGallery } from "@/components/HeroGallery";
@@ -73,6 +75,10 @@ function HeroTreasureInfo({ treasure, city, onClick }: { treasure: Geocache; cit
 export default function Home() {
   const { t } = useTranslation();
   const { user } = useCurrentUser();
+  const { resolvedTheme } = useTheme();
+  const { profileTheme } = useActiveProfileTheme();
+  const isDitto = resolvedTheme === 'ditto';
+  const dittoBg = isDitto ? profileTheme?.background : undefined;
   const { config } = useAppContext();
   const { open: openRadar } = useRadarOverlay();
   const { navigateToGeocache } = useGeocacheNavigation();
@@ -183,13 +189,18 @@ export default function Home() {
   }, [config.relayMetadata, refresh]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70">
+    <div className={`min-h-screen ${isDitto ? 'bg-background' : 'bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70'}`}>
       <DesktopHeader variant="hero" />
 
       {/* Hero Section — full-bleed with real curated treasures */}
       <section className="relative min-h-dvh lg:min-h-0 lg:h-[65vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
-        {/* Background — curated treasure images or fallback to stock gallery */}
-        {curatedTreasures && curatedTreasures.length > 0 ? (
+        {/* Background — ditto bg, curated treasure images, or fallback to stock gallery */}
+        {dittoBg ? (
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={dittoBg.url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-background/50" />
+          </div>
+        ) : curatedTreasures && curatedTreasures.length > 0 ? (
           <div className="absolute inset-0 overflow-hidden">
             {curatedTreasures.map((treasure, i) => {
               const img = treasure.images?.[0];
@@ -289,19 +300,19 @@ export default function Home() {
             <img
               src="/icon.svg"
               alt="Treasures"
-              className="h-36 w-36 xs:h-40 xs:w-40 sm:h-64 sm:w-64 md:h-72 md:w-72 mx-auto mb-4 md:mb-6 drop-shadow-lg animate-slide-up"
+              className={`h-36 w-36 xs:h-40 xs:w-40 sm:h-64 sm:w-64 md:h-72 md:w-72 mx-auto mb-4 md:mb-6 drop-shadow-lg animate-slide-up ${isDitto ? 'ditto-logo' : ''}`}
             />
-            <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-5 animate-slide-up [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]">
+            <h2 className={`text-2xl xs:text-3xl md:text-5xl font-bold mb-3 md:mb-5 animate-slide-up ${isDitto ? 'text-foreground' : 'text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]'}`}>
               {t("home.hero.title1")}
               <span className="relative inline-block mx-2">
-                <span className="text-green-300 adventure:text-amber-300">
+                <span className={isDitto ? 'text-primary' : 'text-green-300 adventure:text-amber-300'}>
                   {t("home.hero.title2")}
                 </span>
-                <span className="absolute -bottom-2 left-0 w-full h-1 bg-green-400 adventure:bg-amber-400 transform scale-x-0 animate-expand-line"></span>
+                <span className={`absolute -bottom-2 left-0 w-full h-1 transform scale-x-0 animate-expand-line ${isDitto ? 'bg-primary' : 'bg-green-400 adventure:bg-amber-400'}`}></span>
               </span>
             </h2>
 
-            <p className="text-base xs:text-lg md:text-xl text-white/90 font-medium mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line [text-shadow:0_2px_6px_rgba(0,0,0,0.4)]">
+            <p className={`text-base xs:text-lg md:text-xl font-medium mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line ${isDitto ? 'text-muted-foreground' : 'text-white/90 [text-shadow:0_2px_6px_rgba(0,0,0,0.4)]'}`}>
               <span className="hidden md:inline">{t("home.hero.description").split("\n")[0]}{"\n"}</span>
               {t("home.hero.description").split("\n")[1]}
             </p>
@@ -318,7 +329,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full md:w-auto bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 backdrop-blur-sm"
+                className={`w-full md:w-auto transform transition-all duration-200 hover:scale-105 group text-sm xs:text-base px-4 xs:px-6 ${isDitto ? 'border-border text-foreground hover:border-primary hover:text-primary' : 'bg-black/30 border-white/60 text-white hover:bg-black/30 hover:border-green-400 hover:text-green-300 adventure:hover:border-amber-400 adventure:hover:text-amber-300 backdrop-blur-sm'}`}
                 onClick={openRadar}
               >
                 <Compass className="h-5 w-5 mr-1 xs:mr-2 transition-transform group-hover:rotate-45" />
@@ -328,19 +339,19 @@ export default function Home() {
             </div>
 
             {/* Secondary links */}
-            <div className="flex items-center justify-center gap-1 text-sm text-white/70 animate-slide-up-delay-2 mt-3 [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]">
-              <Link to="/claim" className="hover:text-white transition-colors">
+            <div className={`flex items-center justify-center gap-1 text-sm animate-slide-up-delay-2 mt-3 ${isDitto ? 'text-muted-foreground' : 'text-white/70 [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]'}`}>
+              <Link to="/claim" className={`transition-colors ${isDitto ? 'hover:text-foreground' : 'hover:text-white'}`}>
                 {t("home.cta.claimLink")}
               </Link>
-              <span className="text-white/40 mx-1">·</span>
+              <span className={isDitto ? 'text-muted-foreground/40 mx-1' : 'text-white/40 mx-1'}>·</span>
               {user ? (
-                <Link to="/create" className="hover:text-white transition-colors">
+                <Link to="/create" className={`transition-colors ${isDitto ? 'hover:text-foreground' : 'hover:text-white'}`}>
                   {t("home.cta.hideLink")}
                 </Link>
               ) : (
                 <button
                   onClick={handleLoginClick}
-                  className="hover:text-white transition-colors"
+                  className={`transition-colors ${isDitto ? 'hover:text-foreground' : 'hover:text-white'}`}
                 >
                   {t("home.cta.hideLink")}
                 </button>
@@ -377,7 +388,7 @@ export default function Home() {
                 fill="none"
                 strokeDasharray="2,1.5"
                 strokeLinecap="round"
-                className="text-green-500/30 dark:text-green-400/20 adventure:text-amber-600/30"
+                className={isDitto ? 'text-primary/30' : 'text-green-500/30 dark:text-green-400/20 adventure:text-amber-600/30'}
               />
             </svg>
           </div>
@@ -402,8 +413,8 @@ export default function Home() {
             {/* Step 1: Hide — Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-green-100 to-emerald-200 dark:from-primary-200 dark:to-primary-100 adventure:from-amber-100 adventure:to-orange-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border border-green-200/60 dark:border-primary/20 adventure:border-amber-300/60">
-                  <img src="/step_1.png" alt="Hide a Treasure" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia" />
+                <div className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border ${isDitto ? 'bg-card border-border' : 'bg-gradient-to-br from-green-100 to-emerald-200 dark:from-primary-200 dark:to-primary-100 adventure:from-amber-100 adventure:to-orange-200 border-green-200/60 dark:border-primary/20 adventure:border-amber-300/60'}`}>
+                  <img src="/step_1.png" alt="Hide a Treasure" className={`w-full h-full object-contain ${isDitto ? 'ditto-invert' : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'}`} />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -419,8 +430,8 @@ export default function Home() {
             {/* Step 2: Find — Image Right */}
             <div className="flex flex-row-reverse items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-emerald-100 to-teal-200 dark:from-primary-100 dark:to-primary-200 adventure:from-yellow-100 adventure:to-amber-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border border-emerald-200/60 dark:border-primary/20 adventure:border-amber-300/60">
-                  <img src="/step_2.png" alt="Find & Claim" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia" />
+                <div className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border ${isDitto ? 'bg-card border-border' : 'bg-gradient-to-br from-emerald-100 to-teal-200 dark:from-primary-100 dark:to-primary-200 adventure:from-yellow-100 adventure:to-amber-200 border-emerald-200/60 dark:border-primary/20 adventure:border-amber-300/60'}`}>
+                  <img src="/step_2.png" alt="Find & Claim" className={`w-full h-full object-contain ${isDitto ? 'ditto-invert' : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'}`} />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -436,8 +447,8 @@ export default function Home() {
             {/* Step 3: Share — Image Left */}
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-gradient-to-br from-teal-100 to-emerald-200 dark:from-primary-100 dark:to-primary-200 adventure:from-orange-100 adventure:to-stone-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border border-teal-200/60 dark:border-primary/20 adventure:border-amber-300/60">
-                  <img src="/step_3.png" alt="Share the Adventure" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia" />
+                <div className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border ${isDitto ? 'bg-card border-border' : 'bg-gradient-to-br from-teal-100 to-emerald-200 dark:from-primary-100 dark:to-primary-200 adventure:from-orange-100 adventure:to-stone-200 border-teal-200/60 dark:border-primary/20 adventure:border-amber-300/60'}`}>
+                  <img src="/step_3.png" alt="Share the Adventure" className={`w-full h-full object-contain ${isDitto ? 'ditto-invert' : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'}`} />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -469,21 +480,23 @@ export default function Home() {
       {/* Recent Caches */}
       <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden bg-transparent">
         {/* Forest skyline background - positioned at bottom, fades naturally into page */}
-        <div
-          className="absolute inset-x-0 bottom-0 pointer-events-none opacity-30"
-          style={{
-            height: 'clamp(400px, 50vh, 600px)',
-            background: `url(/forest-skyline.webp) center bottom / cover no-repeat`,
-            maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)'
-          }}
-        >
-          {/* Subtle overlay for tone adjustment */}
-          <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" />
-          <div className="absolute inset-0 adventure:sepia" style={{
-            background: `url(/forest-skyline.webp) center bottom / cover no-repeat`
-          }} />
-        </div>
+        {!isDitto && (
+          <div
+            className="absolute inset-x-0 bottom-0 pointer-events-none opacity-30"
+            style={{
+              height: 'clamp(400px, 50vh, 600px)',
+              background: `url(/forest-skyline.webp) center bottom / cover no-repeat`,
+              maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)'
+            }}
+          >
+            {/* Subtle overlay for tone adjustment */}
+            <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" />
+            <div className="absolute inset-0 adventure:sepia" style={{
+              background: `url(/forest-skyline.webp) center bottom / cover no-repeat`
+            }} />
+          </div>
+        )}
 
         <div className="container mx-auto relative z-10">
           {/* Section Header */}

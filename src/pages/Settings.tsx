@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
+import { DittoIcon } from "@/components/icons/DittoIcon";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -17,6 +19,7 @@ import { WotSettings } from "../components/WotSettings";
 
 export default function Settings() {
   const { setTheme, theme } = useTheme();
+  const { hasDittoTheme } = useActiveProfileTheme();
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [relaysOpen, setRelaysOpen] = useState(false);
@@ -63,7 +66,7 @@ export default function Settings() {
                   {t('settings.appearance.themeDescription')}
                 </p>
                 {mounted ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className={`grid grid-cols-2 ${hasDittoTheme ? 'sm:grid-cols-5' : 'sm:grid-cols-4'} gap-3`}>
                     <Button
                       variant={theme === "light" ? "default" : "outline"}
                       onClick={() => setTheme("light")}
@@ -88,6 +91,16 @@ export default function Settings() {
                       <Compass className="h-4 w-4" />
                       <span className="text-sm">{t('settings.appearance.adventure')}</span>
                     </Button>
+                    {hasDittoTheme && (
+                      <Button
+                        variant={theme === "ditto" ? "default" : "outline"}
+                        onClick={() => setTheme("ditto")}
+                        className="flex items-center gap-2 h-10 px-4"
+                      >
+                        <DittoIcon className="h-4 w-4" />
+                        <span className="text-sm">{t('settings.appearance.ditto')}</span>
+                      </Button>
+                    )}
                     <Button
                       variant={theme === "system" ? "default" : "outline"}
                       onClick={() => setTheme("system")}
