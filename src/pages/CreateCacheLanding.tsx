@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { QrCode, Download, Printer, Settings, Gift, Edit, ArrowRight, MoreVertical } from "lucide-react";
+import { QrCode, Download, Printer, Settings, Gift, Edit, MoreVertical, ShieldCheck, FileText, ChevronRight, BookOpen } from "lucide-react";
 import { Chest } from "@/config/cacheIconConstants";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,15 +45,16 @@ const customConfig: Config = {
 
 type QrStyle = "full" | "cutout" | "micro" | "sheet" | "stamp";
 
-const QR_STYLES: { value: QrStyle; label: string; description: string }[] = [
-  { value: "full", label: "Full", description: "Standard size with branding" },
-  { value: "cutout", label: "Cutout", description: "Center cutout for custom labels" },
-  { value: "micro", label: "Micro", description: "Compact — fits in small containers" },
-  { value: "sheet", label: "Sheet (9)", description: "Print 9 at once for multiple hides" },
-];
-
 export default function CreateCacheLanding() {
   const { t } = useTranslation();
+
+  const QR_STYLES: { value: QrStyle; label: string; description: string }[] = [
+    { value: "full", label: t('createCache.verificationQR.styleFull'), description: t('createCache.verificationQR.styleFullDesc') },
+    { value: "cutout", label: t('createCache.verificationQR.styleCutout'), description: t('createCache.verificationQR.styleCutoutDesc') },
+    { value: "micro", label: t('createCache.verificationQR.styleMicro'), description: t('createCache.verificationQR.styleMicroDesc') },
+    { value: "sheet", label: t('createCache.verificationQR.styleSheet'), description: t('createCache.verificationQR.styleSheetDesc') },
+  ];
+
   const { user } = useCurrentUser();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -67,6 +68,7 @@ export default function CreateCacheLanding() {
 
   const [showCompactDialog, setShowCompactDialog] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const [selectedPath, setSelectedPath] = useState<'qr' | null>(null);
   const [customNpub, setCustomNpub] = useState<string>("");
   const [submittedNpub, setSubmittedNpub] = useState<string>("");
   const [npubError, setNpubError] = useState<string>("");
@@ -202,9 +204,6 @@ export default function CreateCacheLanding() {
       const claimUrl = `https://treasures.to/${naddr}#verify=${verificationKeyPair.nsec}`;
       const params = new URLSearchParams();
       params.set('claimUrl', claimUrl);
-      if (customNpub && validateNpub(customNpub)) {
-        params.set('giftNpub', customNpub);
-      }
       navigate(`/create-cache?${params.toString()}`);
     }
   };
@@ -231,189 +230,215 @@ export default function CreateCacheLanding() {
       <DesktopHeader />
 
       <PageHero icon={Chest} title={t('createCache.title')} description={t('createCache.subtitle')}>
-        <div className="container mx-auto px-4 max-w-md pb-12">
-          {/* Single unified card */}
-          <div className="rounded-xl border bg-card p-5 md:p-6 mb-6">
+        <div className="container mx-auto px-4 max-w-md md:max-w-lg pb-12 space-y-3">
 
-            {/* 1. QR Preview */}
-            <div className="text-center mb-5">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <QrCode className="h-4 w-4 text-primary" />
-                <h2 className="text-sm font-semibold text-foreground">{t('createCache.verificationQR.title')}</h2>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                <span className="font-medium text-foreground">{t('createCache.verificationQR.step1')}</span>{' '}{t('createCache.verificationQR.step1Detail')}
-                <br />
-                <span className="font-medium text-foreground">{t('createCache.verificationQR.step2')}</span>{' '}{t('createCache.verificationQR.step2Detail')}
-                <br />
-                <span className="font-medium text-foreground">{t('createCache.verificationQR.step3')}</span>{' '}{t('createCache.verificationQR.step3Detail')}
-              </p>
-
-              <div className="flex justify-center mb-4">
-                {qrDataUrl ? (
-                  <div className="bg-white p-3 rounded-lg inline-block">
-                    <img
-                      src={qrDataUrl}
-                      alt="Verification QR Code"
-                      className="w-52 h-auto rounded object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
-                    <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
-                  </div>
+          {/* Path 1: With Verification QR */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => { if (selectedPath !== 'qr') setSelectedPath('qr'); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && selectedPath !== 'qr') setSelectedPath('qr'); }}
+            className={`rounded-xl border bg-card transition-all ${
+              selectedPath !== 'qr' ? 'hover:border-primary/50 hover:shadow-md cursor-pointer' : ''
+            }`}
+          >
+            {/* Clickable header area */}
+            <div className="p-5 md:p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <QrCode className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-sm md:text-base font-semibold text-foreground">{t('createCache.verificationQR.title')}</h2>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{t('createCache.verificationQR.description')}</p>
+                  <p className="text-xs md:text-sm font-medium text-primary mt-1.5">{t('createCache.verificationQR.finderNote')}</p>
+                </div>
+                {selectedPath !== 'qr' && (
+                  <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground flex-shrink-0" />
                 )}
               </div>
             </div>
 
-            {/* 2. Style pills with overflow menu */}
-            <div className="mb-5">
-              <p className="text-xs text-muted-foreground mb-2 text-center">Style</p>
-              <div className="flex flex-wrap gap-1.5 justify-center items-center">
-                {QR_STYLES.map((style) => (
-                  <button
-                    key={style.value}
-                    type="button"
-                    onClick={() => setQrType(style.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      qrType === style.value
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`}
-                  >
-                    {style.label}
-                  </button>
-                ))}
-                {/* Overflow menu for less common options */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className={`px-2 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        qrType === 'stamp'
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
-                    >
-                      <MoreVertical className="h-3.5 w-3.5" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setQrType("stamp")}>
-                      Stamp (42) — bulk print grid
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowCompactDialog(true)}>
-                      <span className="text-primary font-medium">Compact URLs</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              {/* Description of selected style */}
-              <p className="text-[11px] text-muted-foreground text-center mt-1.5">
-                {qrType === 'stamp'
-                  ? '6×7 grid for bulk hiding'
-                  : QR_STYLES.find(s => s.value === qrType)?.description}
-              </p>
-            </div>
+            {/* Expanded QR flow */}
+            {selectedPath === 'qr' && (
+              <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-5" onClick={(e) => e.stopPropagation()}>
+                {/* QR Preview */}
+                <div className="flex justify-center">
+                  {qrDataUrl ? (
+                    <div className="bg-white p-3 rounded-lg inline-block shadow-sm">
+                      <img
+                        src={qrDataUrl}
+                        alt="Verification QR Code"
+                        className="w-52 h-auto rounded object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-48 h-48 flex items-center justify-center bg-muted/30 rounded-lg">
+                      <ComponentLoading size="sm" title={t('createCache.verificationQR.generating')} />
+                    </div>
+                  )}
+                </div>
 
-            {/* 3. Primary actions: Save + Print */}
-            <div className="flex gap-2 justify-center mb-5">
-              <Button onClick={handleDownloadQR} disabled={!qrDataUrl} className="flex-1 max-w-[160px]">
-                <Download className="h-4 w-4 mr-1.5" />
-                {t('createCache.verificationQR.save')}
-              </Button>
-              <Button variant="outline" onClick={handlePrint} disabled={!qrDataUrl} className="flex-1 max-w-[160px]">
-                <Printer className="h-4 w-4 mr-1.5" />
-                Print
-              </Button>
-            </div>
+                {/* Style pills */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2 text-center">{t('createCache.verificationQR.style')}</p>
+                  <div className="flex gap-1.5 justify-center items-center">
+                    {QR_STYLES.map((style) => (
+                      <button
+                        key={style.value}
+                        type="button"
+                        onClick={() => setQrType(style.value)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          qrType === style.value
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                        }`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className={`px-2 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            qrType === 'stamp'
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setQrType("stamp")}>
+                          {t('createCache.verificationQR.styleStamp')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowCompactDialog(true)}>
+                          <span className="text-primary font-medium">{t('createCache.verificationQR.compactUrls')}</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground text-center mt-1.5">
+                    {qrType === 'stamp'
+                      ? t('createCache.verificationQR.styleStampDesc')
+                      : QR_STYLES.find(s => s.value === qrType)?.description}
+                  </p>
+                </div>
 
-            {/* 4. Divider */}
-            <div className="border-t my-5" />
-
-            {/* 5. Create listing CTA */}
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Chest className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-semibold text-foreground">{t('createCache.listing.title')}</h3>
-              </div>
-
-              <p className="text-xs text-muted-foreground mb-3">
-                {isBulkType
-                  ? (qrType === 'sheet' ? t('createCache.listing.sheetDescription') : t('createCache.listing.stampDescription'))
-                  : t('createCache.listing.description')
-                }
-              </p>
-
-              <div className="flex flex-col gap-2">
-                {!isBulkType && (
-                  <Button onClick={handleFillOutNow} disabled={!qrDataUrl} className="w-full">
-                    <Edit className="h-4 w-4 mr-1.5" />
-                    {t('createCache.listing.createNow')}
+                {/* Save + Print */}
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={handleDownloadQR} disabled={!qrDataUrl} className="flex-1 max-w-[160px]">
+                    <Download className="h-4 w-4 mr-1.5" />
+                    {t('createCache.verificationQR.save')}
                   </Button>
+                  <Button variant="outline" onClick={handlePrint} disabled={!qrDataUrl} className="flex-1 max-w-[160px]">
+                    <Printer className="h-4 w-4 mr-1.5" />
+                    {t('createCache.verificationQR.print')}
+                  </Button>
+                </div>
+
+                {/* Next steps */}
+                {!isBulkType && (
+                  <div className="flex flex-col gap-2">
+                    <Button variant="outline" onClick={handleFillOutNow} disabled={!qrDataUrl} className="w-full">
+                      <Edit className="h-4 w-4 mr-1.5" />
+                      {t('createCache.listing.createNow')}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-full">
+                      <QrCode className="h-3.5 w-3.5 mr-1.5" />
+                      {t('createCache.listing.scanLater')}
+                    </Button>
+                  </div>
                 )}
-                <Button variant="outline" onClick={() => navigate('/create-cache')} className="w-full">
-                  {t('createCache.listing.skipQr')}
-                </Button>
-                <Button variant="ghost" onClick={() => navigate("/")} size="sm" className="mt-1">
-                  {t('createCache.listing.later')}
-                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                </Button>
-              </div>
-            </div>
+                {isBulkType && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {qrType === 'sheet' ? t('createCache.listing.sheetDescription') : t('createCache.listing.stampDescription')}
+                  </p>
+                )}
 
+                {/* Advanced (inside QR path only) */}
+                <div className="border-t pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
+                  >
+                    <Settings className="h-3 w-3" />
+                    {showAdvanced ? t('common.hide') : t('common.show')} {t('createCache.advanced')}
+                  </button>
+
+                  {showAdvanced && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Gift className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs font-medium text-foreground">{t('createCache.gift.title')}</span>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder={t('createCache.gift.placeholder')}
+                        value={customNpub}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setCustomNpub(value);
+                          if (value && !validateNpub(value)) {
+                            setNpubError(t('createCache.gift.invalidNpub'));
+                          } else {
+                            setNpubError("");
+                          }
+                        }}
+                        className="w-full px-3 py-2 text-sm border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      {npubError && <p className="text-xs text-destructive mt-1">{npubError}</p>}
+                      {customNpub && !npubError && (
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            setSubmittedNpub(customNpub);
+                            toast({ title: t('createCache.gift.updated'), description: t('createCache.gift.updatedDescription') });
+                          }}
+                          className="w-full"
+                        >
+                          <Gift className="h-4 w-4 mr-1" />
+                          {t('createCache.gift.createQR')}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Advanced Options */}
-          {showAdvanced && (
-            <div className="rounded-xl border bg-card p-5 md:p-6 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Gift className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">{t('createCache.gift.title')}</span>
+          {/* Path 2: Listing Only */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate('/create-cache')}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate('/create-cache'); }}
+            className="rounded-xl border bg-card p-5 md:p-6 hover:border-primary/50 hover:shadow-md cursor-pointer transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex items-center justify-center">
+                <FileText className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
               </div>
-              <input
-                type="text"
-                placeholder={t('createCache.gift.placeholder')}
-                value={customNpub}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setCustomNpub(value);
-                  if (value && !validateNpub(value)) {
-                    setNpubError(t('createCache.gift.invalidNpub'));
-                  } else {
-                    setNpubError("");
-                  }
-                }}
-                className="w-full px-3 py-2 text-sm border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              {npubError && <p className="text-xs text-destructive mt-1">{npubError}</p>}
-              {customNpub && !npubError && (
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    setSubmittedNpub(customNpub);
-                    toast({ title: t('createCache.gift.updated'), description: t('createCache.gift.updatedDescription') });
-                  }}
-                  className="w-full mt-2"
-                >
-                  <Gift className="h-4 w-4 mr-1" />
-                  {t('createCache.gift.createQR')}
-                </Button>
-              )}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-sm md:text-base font-semibold text-foreground">{t('createCache.listing.title')}</h2>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{t('createCache.listing.description')}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground/70 mt-1.5">{t('createCache.listing.finderNote')}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground flex-shrink-0" />
             </div>
-          )}
-
-          <div className="flex justify-center pb-8">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs text-white/60 hover:text-white hover:bg-white/10 adventure:text-stone-500 adventure:hover:text-stone-800 adventure:hover:bg-stone-700/10 adventure:dark:text-white/60 adventure:dark:hover:text-white"
-            >
-              <Settings className="h-3 w-3 mr-1" />
-              {showAdvanced ? t('common.hide') : t('common.show')} {t('createCache.advanced')}
-            </Button>
           </div>
+
+          <p className="flex items-center justify-center gap-1.5 text-sm md:text-base text-white/80 adventure:text-stone-600 pt-4">
+            <BookOpen className="h-4 w-4 flex-shrink-0" />
+            {t('createCache.firstTimeHint')}{' '}
+            <a href="/blog/86184109eae937d8d6f980b4a0b46da4ef0d983eade403ee1b4c0b6bde238b47/h" className="font-semibold hover:text-white adventure:hover:text-stone-800">
+              {t('createCache.firstTimeLink')}
+            </a>
+          </p>
 
           {user && (
             <CompactUrlGeneratorDialog

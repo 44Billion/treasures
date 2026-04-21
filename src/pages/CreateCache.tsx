@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,9 +27,6 @@ import {
   CacheHiddenField
 } from "@/components/ui/geocache-form.fields";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-
 import "leaflet/dist/leaflet.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
@@ -84,7 +81,6 @@ export default function CreateCache() {
   const [currentStep, setCurrentStep] = useState(draft?.currentStep || 1);
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [locationConfirmed, setLocationConfirmed] = useState(false);
 
   // Save draft to localStorage whenever form data changes — but only if
   // the user has actually provided custom information (not just defaults).
@@ -130,7 +126,6 @@ export default function CreateCache() {
     setLocation(null);
     setImages([]);
     setCurrentStep(1);
-    setLocationConfirmed(false);
     setLocationVerification(null);
     setShowDraftNotice(false);
   };
@@ -237,7 +232,6 @@ export default function CreateCache() {
   // Handle location verification when location changes
   const handleLocationChange = async (newLocation: { lat: number; lng: number } | null) => {
     setLocation(newLocation);
-    setLocationConfirmed(false); // Reset confirmation when location changes
 
     if (newLocation && currentStep === 1) {
       setIsVerifying(true);
@@ -298,28 +292,11 @@ export default function CreateCache() {
   };
 
   const handleCreateGeocache = async () => {
-    if (!formData.name.trim()) {
-      toast({
-        title: t('createCache.validation.nameRequired.title'),
-        description: t('createCache.validation.nameRequired.description'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.description.trim()) {
-      toast({
-        title: t('createCache.validation.descriptionRequired.title'),
-        description: t('createCache.validation.descriptionRequired.description'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!location) {
+    // Basic guard — the wizard steps already enforce these, but check just in case
+    if (!formData.name.trim() || !formData.description.trim() || !location) {
       toast({
         title: t('createCache.validation.locationRequired.title'),
-        description: t('createCache.validation.locationRequired.description'),
+        description: "Please complete all required fields.",
         variant: "destructive",
       });
       return;
@@ -395,24 +372,6 @@ export default function CreateCache() {
           title: t('createCache.locationVerification.title'),
           description: t('createCache.locationVerification.description'),
           variant: "default",
-        });
-        return;
-      }
-      if (!locationConfirmed) {
-        toast({
-          title: "Please confirm the location",
-          description: "Check the box to confirm the location is appropriate before continuing.",
-          variant: "destructive",
-        });
-        return;
-      }
-      // Check for restricted location warning
-      const summary = getVerificationSummary(locationVerification);
-      if (summary.status === 'restricted' && !locationConfirmed) {
-        toast({
-          title: "Location has restrictions",
-          description: "Please review and confirm the location despite warnings.",
-          variant: "destructive",
         });
         return;
       }
@@ -560,7 +519,7 @@ export default function CreateCache() {
                     </div>
                   )}
 
-                  {/* Inline location confirmation */}
+                  {/* Inline location status */}
                   {location && locationVerification && !isVerifying && (
                     <div className={`rounded-lg border p-4 ${
                       hasWarnings
@@ -573,10 +532,13 @@ export default function CreateCache() {
                         ) : (
                           <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
                         )}
-                        <div className="flex-1 space-y-3">
+                        <div className="flex-1 space-y-2">
                           <span className="text-sm font-medium text-foreground">
-                            {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                            {hasWarnings ? 'Location has potential issues' : 'Location looks good'}
                           </span>
+                          <p className="text-xs text-muted-foreground">
+                            {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                          </p>
 
                           {/* Warning reasons */}
                           {hasWarnings && locationVerification.warnings.length > 0 && (
@@ -590,20 +552,9 @@ export default function CreateCache() {
                             </ul>
                           )}
 
-                          <div className="flex items-start space-x-2">
-                            <Checkbox
-                              id="location-confirm"
-                              checked={locationConfirmed}
-                              onCheckedChange={(checked) => setLocationConfirmed(checked === true)}
-                              className="mt-0.5"
-                            />
-                            <Label htmlFor="location-confirm" className="text-sm cursor-pointer text-foreground leading-snug">
-                              {hasWarnings
-                                ? "I acknowledge the warnings and confirm this location is appropriate, publicly accessible, and safe for finders."
-                                : "I confirm this location has permission, is publicly accessible, and is safe for finders."
-                              }
-                            </Label>
-                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-snug pt-1">
+                            By continuing, you confirm this location is publicly accessible, safe for finders, and that you have permission to place a cache here.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -749,7 +700,8 @@ export default function CreateCache() {
                     onClick={() => setCurrentStep(currentStep - 1)}
                     className="flex-1"
                   >
-                    &larr; {t('common.previous')}
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    {t('common.previous')}
                   </Button>
                 )}
 
@@ -757,9 +709,17 @@ export default function CreateCache() {
                   <Button
                     type="button"
                     onClick={validateAndAdvance}
+                    disabled={currentStep === 1 && (isVerifying || (!!location && !locationVerification))}
                     className="flex-1"
                   >
-                    {t('common.next')} &rarr;
+                    {currentStep === 1 && isVerifying ? (
+                      <>
+                        <CompassSpinner size={16} variant="component" className="mr-2" />
+                        Checking location…
+                      </>
+                    ) : (
+                      <>{t('common.next')} <ChevronRight className="h-4 w-4 ml-1" /></>
+                    )}
                   </Button>
                 ) : (
                   <Button
@@ -776,11 +736,10 @@ export default function CreateCache() {
                     ) : isPending ? (
                       t('createCache.creating')
                     ) : (
-                      t('createCache.createButton')
+                      <><Check className="h-4 w-4 mr-1" /> {t('createCache.createButton')}</>
                     )}
                   </Button>
                 )}
-
 
               </div>
             </form>

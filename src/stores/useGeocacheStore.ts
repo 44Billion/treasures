@@ -378,12 +378,6 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       // Generate verification key pair or use provided one
       const verificationKeyPair = (geocacheData as any).verificationKeyPair || await generateVerificationKeyPair();
 
-      console.log('🔑 Verification key pair:', {
-        hasProvidedKeyPair: !!(geocacheData as any).verificationKeyPair,
-        publicKey: verificationKeyPair.publicKey,
-        keyPairStructure: verificationKeyPair
-      });
-
       // Build tags using consolidated utility
       const tags = buildGeocacheTags({
         dTag,
