@@ -61,6 +61,7 @@ export function AppRouter() {
           <Route path="/adventures" element={<Adventures />} />
           <Route path="/adventure/:naddr" element={<AdventureDetail />} />
           <Route path="/create-adventure" element={<CreateAdventure />} />
+          <Route path="/edit-adventure/:naddr" element={<CreateAdventure />} />
           <Route path="/c/:payload" element={<CompactRedirect />} />
           <Route path="/remoteloginsuccess" element={<RemoteLoginSuccess />} />
 

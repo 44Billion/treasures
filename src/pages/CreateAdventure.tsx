@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { MapPinned, FileText, ListChecks, Eye, Check, ChevronLeft, ChevronRight, X, MapPin, Compass, Image as ImageIcon } from "lucide-react";
+import { MapPinned, FileText, ListChecks, Eye, Check, ChevronLeft, ChevronRight, X, MapPin, Compass, Image as ImageIcon, Sword, Map, Moon, Satellite } from "lucide-react";
 import { nip19 } from "nostr-tools";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,21 @@ import { Slider } from "@/components/ui/slider";
 import { PageHero } from "@/components/PageHero";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
+import { PageLoading } from "@/components/ui/loading";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { GeocachePopupCard } from "@/components/GeocachePopupCard";
 import { OmniSearch } from "@/components/OmniSearch";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGeocaches } from "@/hooks/useGeocaches";
+import { useAdventure } from "@/hooks/useAdventure";
 import { useCreateAdventure } from "@/hooks/useCreateAdventure";
 import { useUploadFile } from "@/hooks/useUploadFile";
 import { useToast } from "@/hooks/useToast";
 import { NIP_GC_KINDS } from "@/utils/nip-gc";
 import { calculateDistance } from "@/utils/geo";
 import type { Geocache } from "@/types/geocache";
+import type { AdventureTheme, AdventureMapStyle } from "@/types/adventure";
 
 // Step configuration — mirrors CreateCache pattern
 const STEPS = [
@@ -40,8 +43,12 @@ const MAX_RADIUS_KM = 100;
 
 export default function CreateAdventure() {
   const navigate = useNavigate();
+  const { naddr } = useParams<{ naddr: string }>();
+  const isEditMode = !!naddr;
+
   const { user } = useCurrentUser();
   const { data: allGeocaches } = useGeocaches();
+  const { data: existingAdventure, isLoading: isLoadingAdventure } = useAdventure(naddr || '');
   const { mutateAsync: createAdventure, isPending } = useCreateAdventure();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const { toast } = useToast();
@@ -54,10 +61,35 @@ export default function CreateAdventure() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
+  const [adventureTheme, setAdventureTheme] = useState<AdventureTheme | undefined>(undefined);
+  const [adventureMapStyle, setAdventureMapStyle] = useState<AdventureMapStyle | undefined>(undefined);
+  // In edit mode, manually included geocache IDs (from the existing adventure)
+  const [manuallyIncludedIds, setManuallyIncludedIds] = useState<Set<string>>(new Set());
   const [selectedPopupGeocache, setSelectedPopupGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
+  const [hasPrePopulated, setHasPrePopulated] = useState(false);
 
   const mapRef = useRef<L.Map | null>(null);
+
+  // Pre-populate form when editing an existing adventure
+  useEffect(() => {
+    if (!isEditMode || !existingAdventure || hasPrePopulated) return;
+
+    setTitle(existingAdventure.title);
+    setDescription(existingAdventure.description);
+    setSummary(existingAdventure.summary || '');
+    setImage(existingAdventure.image || '');
+    setLocation(existingAdventure.location || null);
+    setAdventureTheme(existingAdventure.theme);
+    setAdventureMapStyle(existingAdventure.mapStyle);
+
+    // Mark existing geocaches as manually included
+    if (existingAdventure.geocaches) {
+      setManuallyIncludedIds(new Set(existingAdventure.geocaches.map(g => g.id)));
+    }
+
+    setHasPrePopulated(true);
+  }, [isEditMode, existingAdventure, hasPrePopulated]);
 
   const handleMarkerClick = (geocache: Geocache, container?: HTMLDivElement) => {
     if (!geocache && !container) {
@@ -85,10 +117,39 @@ export default function CreateAdventure() {
       .sort((a, b) => a.distance - b.distance);
   }, [location, allGeocaches, radiusKm]);
 
-  // Derive the selected treasures from radius results minus exclusions
+  // In edit mode, resolve manually included geocaches from existing adventure data
+  const manuallyIncludedCaches = useMemo(() => {
+    if (!isEditMode || manuallyIncludedIds.size === 0) return [];
+    // Pull from existing adventure geocaches (already resolved) or from allGeocaches
+    const caches: Geocache[] = [];
+    const radiusIds = new Set(treasuresInRadius.map(c => c.id));
+    for (const id of manuallyIncludedIds) {
+      // Skip if already in radius results (avoid duplicates)
+      if (radiusIds.has(id)) continue;
+      const fromAdventure = existingAdventure?.geocaches?.find(g => g.id === id);
+      const fromAll = allGeocaches?.find(g => g.id === id);
+      const cache = fromAdventure || fromAll;
+      if (cache) caches.push(cache);
+    }
+    return caches;
+  }, [isEditMode, manuallyIncludedIds, treasuresInRadius, existingAdventure, allGeocaches]);
+
+  // Combine radius-based and manually included caches, minus exclusions
+  const allAvailableCaches = useMemo(() => {
+    const combined = [...treasuresInRadius, ...manuallyIncludedCaches];
+    // Deduplicate by id
+    const seen = new Set<string>();
+    return combined.filter(c => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  }, [treasuresInRadius, manuallyIncludedCaches]);
+
+  // Derive the selected treasures from all available minus exclusions
   const selectedCaches = useMemo(
-    () => treasuresInRadius.filter(c => !excludedIds.has(c.id)),
-    [treasuresInRadius, excludedIds]
+    () => allAvailableCaches.filter(c => !excludedIds.has(c.id)),
+    [allAvailableCaches, excludedIds]
   );
 
   const handleToggleCache = (cacheId: string) => {
@@ -147,7 +208,7 @@ export default function CreateAdventure() {
         });
         return;
       }
-      if (treasuresInRadius.length === 0) {
+      if (allAvailableCaches.length === 0) {
         toast({
           title: "No treasures found",
           description: "Try increasing the radius or choosing a different location.",
@@ -182,27 +243,33 @@ export default function CreateAdventure() {
         return `${kind}:${cache.pubkey}:${cache.dTag}`;
       });
 
-      const event = await createAdventure({
+      const adventureData = {
         title: title.trim(),
         description: description.trim(),
         summary: summary.trim() || undefined,
         image: image || undefined,
         location,
+        theme: adventureTheme,
+        mapStyle: adventureMapStyle,
         geocacheRefs,
-      });
+        // In edit mode, include the existing dTag so the event replaces the original
+        ...(isEditMode && existingAdventure ? { dTag: existingAdventure.dTag } : {}),
+      };
 
-      const naddr = nip19.naddrEncode({
+      const event = await createAdventure(adventureData);
+
+      const resultNaddr = nip19.naddrEncode({
         kind: NIP_GC_KINDS.ADVENTURE,
         pubkey: event.pubkey,
         identifier: event.tags.find(t => t[0] === 'd')?.[1] || '',
       });
 
       toast({
-        title: "Adventure published!",
-        description: "Redirecting to your adventure...",
+        title: isEditMode ? "Adventure updated!" : "Adventure published!",
+        description: isEditMode ? "Redirecting to your adventure..." : "Redirecting to your adventure...",
       });
 
-      navigate(`/adventure/${naddr}`);
+      navigate(`/adventure/${resultNaddr}`);
     } catch (error) {
       const errorObj = error as { message?: string };
       toast({
@@ -218,13 +285,62 @@ export default function CreateAdventure() {
     return (
       <>
         <DesktopHeader />
-        <PageHero icon={Compass} title="Create Adventure" description="Curate a treasure hunt for the community.">
+        <PageHero icon={Compass} title={isEditMode ? "Edit Adventure" : "Create Adventure"} description={isEditMode ? "Update your adventure." : "Curate a treasure hunt for the community."}>
           <div className="container mx-auto px-4 py-10 max-w-md">
             <LoginRequiredCard
               icon={Compass}
-              description="Please log in with Nostr to create an adventure."
+              description={isEditMode ? "Please log in with Nostr to edit this adventure." : "Please log in with Nostr to create an adventure."}
               className="max-w-md mx-auto"
             />
+          </div>
+        </PageHero>
+      </>
+    );
+  }
+
+  // Loading state for edit mode
+  if (isEditMode && isLoadingAdventure) {
+    return (
+      <>
+        <DesktopHeader />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <PageLoading title="Loading adventure..." size="lg" />
+        </div>
+      </>
+    );
+  }
+
+  // Not found / not owner in edit mode
+  if (isEditMode && existingAdventure && existingAdventure.pubkey !== user.pubkey) {
+    return (
+      <>
+        <DesktopHeader />
+        <PageHero icon={Compass} title="Edit Adventure" description="You can only edit your own adventures.">
+          <div className="container mx-auto px-4 py-10 max-w-md">
+            <div className="text-center space-y-4">
+              <p className="text-muted-foreground">This adventure belongs to another user.</p>
+              <Button asChild variant="outline">
+                <a href={`/adventure/${naddr}`}>View Adventure</a>
+              </Button>
+            </div>
+          </div>
+        </PageHero>
+      </>
+    );
+  }
+
+  if (isEditMode && !isLoadingAdventure && !existingAdventure) {
+    return (
+      <>
+        <DesktopHeader />
+        <PageHero icon={Compass} title="Edit Adventure" description="Adventure not found.">
+          <div className="container mx-auto px-4 py-10 max-w-md">
+            <div className="text-center space-y-4">
+              <p className="text-muted-foreground">This adventure may have been removed or the link is invalid.</p>
+              <Button asChild variant="outline">
+                <a href="/adventures">Browse Adventures</a>
+              </Button>
+            </div>
           </div>
         </PageHero>
       </>
@@ -235,13 +351,13 @@ export default function CreateAdventure() {
     "Name your adventure and add a description.",
     "Set the center and radius to find nearby treasures.",
     "Review the treasures included in your adventure.",
-    "Review everything and publish.",
+    isEditMode ? "Review everything and save." : "Review everything and publish.",
   ];
 
   return (
     <>
       <DesktopHeader />
-      <PageHero icon={Compass} title="Create Adventure" description={stepDescriptions[currentStep - 1]}>
+      <PageHero icon={Compass} title={isEditMode ? "Edit Adventure" : "Create Adventure"} description={stepDescriptions[currentStep - 1]}>
         <div className="container mx-auto px-4 max-w-2xl pb-12">
           <div className="rounded-xl border bg-card p-5 md:p-6">
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
@@ -357,6 +473,60 @@ export default function CreateAdventure() {
                       </label>
                     )}
                   </div>
+
+                  {/* Theme selector */}
+                  <div>
+                    <Label>Page Theme</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Default theme shown to visitors (won't override their preference).</p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAdventureTheme(undefined)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                          !adventureTheme ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-muted/50'
+                        }`}
+                      >
+                        None
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAdventureTheme('adventure')}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                          adventureTheme === 'adventure' ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-muted/50'
+                        }`}
+                      >
+                        <Sword className="h-4 w-4" />
+                        Adventure
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Map style selector */}
+                  <div>
+                    <Label>Map Style</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Default map style for the adventure page.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {([
+                        { key: undefined, label: 'Default', icon: null },
+                        { key: 'original' as const, label: 'Original', icon: Map },
+                        { key: 'dark' as const, label: 'Dark', icon: Moon },
+                        { key: 'satellite' as const, label: 'Satellite', icon: Satellite },
+                        { key: 'adventure' as const, label: 'Quest', icon: Sword },
+                      ] as const).map(({ key, label, icon: Icon }) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => setAdventureMapStyle(key)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                            adventureMapStyle === key ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-muted/50'
+                          }`}
+                        >
+                          {Icon && <Icon className="h-4 w-4" />}
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -432,13 +602,13 @@ export default function CreateAdventure() {
                       Tap a treasure to deselect it.
                     </p>
                     <p className="text-sm font-medium text-primary">
-                      {selectedCaches.length}/{treasuresInRadius.length} selected
+                      {selectedCaches.length}/{allAvailableCaches.length} selected
                     </p>
                   </div>
 
-                  {treasuresInRadius.length > 0 ? (
+                  {allAvailableCaches.length > 0 ? (
                     <div className="max-h-[50dvh] overflow-y-auto pr-1 grid grid-cols-1 md:grid-cols-2 gap-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full">
-                      {treasuresInRadius.map((cache) => {
+                      {allAvailableCaches.map((cache) => {
                         const isSelected = !excludedIds.has(cache.id);
                         return (
                           <div
@@ -487,6 +657,20 @@ export default function CreateAdventure() {
                           <MapPin className="h-3 w-3" />
                           {location.lat.toFixed(4)}, {location.lng.toFixed(4)} · {radiusKm} km radius
                         </p>
+                      )}
+                      {(adventureTheme || adventureMapStyle) && (
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                          {adventureTheme && (
+                            <span className="flex items-center gap-1">
+                              <Sword className="h-3 w-3" /> Theme: {adventureTheme}
+                            </span>
+                          )}
+                          {adventureMapStyle && (
+                            <span className="flex items-center gap-1">
+                              <Map className="h-3 w-3" /> Map: {adventureMapStyle}
+                            </span>
+                          )}
+                        </div>
                       )}
                       <div className="border-t pt-3">
                         <p className="text-sm font-medium mb-2">{selectedCaches.length} Treasures:</p>
@@ -545,9 +729,9 @@ export default function CreateAdventure() {
                     className="w-full"
                   >
                     {isPending ? (
-                      'Publishing...'
+                      isEditMode ? 'Saving...' : 'Publishing...'
                     ) : (
-                      <><Check className="h-4 w-4 mr-1" /> Publish Adventure</>
+                      <><Check className="h-4 w-4 mr-1" /> {isEditMode ? 'Save Changes' : 'Publish Adventure'}</>
                     )}
                   </Button>
                 </div>

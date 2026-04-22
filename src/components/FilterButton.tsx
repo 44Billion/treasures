@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle } from "lucide-react";
+import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle, Sparkles } from "lucide-react";
 import { sneaker, treesForest, chest } from '@lucide/lab';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -144,6 +144,7 @@ export function FilterButton({
     { value: "traditional", label: t('geocache.type.traditional'), icon: ChestIcon, color: "text-primary" },
     { value: "multi", label: t('geocache.type.multi'), icon: Compass, color: "text-amber-600" },
     { value: "mystery", label: t('geocache.type.mystery'), icon: HelpCircle, color: "text-purple-600" },
+    { value: "adventure", label: "Adventure", icon: Sparkles, color: "text-amber-500" },
   ], [t]);
 
   // Helper functions for consistent value handling

@@ -176,6 +176,8 @@ Curation list events are addressable events of kind `37517` that group geocaches
     ["description", "<short summary>"],
     ["image", "<banner-image-url>"],
     ["g", "<geohash>"],
+    ["theme", "<page-theme>"],
+    ["map", "<map-style>"],
     ["a", "37516:<pubkey>:<d-tag>"],
     ["a", "37516:<pubkey>:<d-tag>"]
   ]
@@ -194,6 +196,8 @@ The content field contains the full description of the curation list — rules, 
 - `description` (optional) - short summary shown in browse/card views
 - `image` (optional) - banner image URL
 - `g` (optional) - geohash of list center location. Include multiple precision levels (3-6 characters) for discovery
+- `theme` (optional) - default page theme for the list. Clients should apply this theme when displaying the list, unless the user has explicitly chosen a different theme. Currently supported value: `adventure`
+- `map` (optional) - default map style for the list. Clients should use this as the initial map style when displaying the list, but allow the user to change it. Supported values: `original`, `dark`, `satellite`, `adventure`
 
 ### Cross-Author References
 
@@ -347,6 +351,8 @@ For the best Geocaching experience, clients implementing geocaching support shou
     ["g", "9vk5"],
     ["g", "9vk5b"],
     ["g", "9vk5b7"],
+    ["theme", "adventure"],
+    ["map", "adventure"],
     ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
     ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669"]
   ]

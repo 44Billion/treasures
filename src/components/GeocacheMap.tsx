@@ -13,6 +13,7 @@ import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useMapController } from "@/hooks/useMapController";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import type { Geocache } from "@/types/geocache";
+import type { Adventure } from "@/types/adventure";
 import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
 
@@ -147,7 +148,49 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [16, 44],
 });
 
-
+// Adventure marker icon — amber/gold sparkles
+const adventureMarkerIcon = L.divIcon({
+  html: `
+    <div style="
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border: 3px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      position: relative;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        <path d="M20 3v4"/>
+        <path d="M22 5h-4"/>
+        <path d="M4 17v2"/>
+        <path d="M5 18H3"/>
+      </svg>
+    </div>
+    <div style="
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #d97706;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    "></div>
+  `,
+  className: "adventure-marker-icon",
+  iconSize: [40, 48],
+  iconAnchor: [20, 48],
+  popupAnchor: [0, -48],
+});
 
 interface GeocacheMapProps {
   geocaches: Geocache[];
@@ -168,6 +211,9 @@ interface GeocacheMapProps {
   isVisible?: boolean; // Whether the map is currently visible (for handling tab switches on mobile)
   onOpenRadar?: () => void; // Callback to open the radar compass overlay
   onMapClick?: (location: { lat: number; lng: number }) => void; // Callback for map click (e.g. adventure center selection)
+  initialMapStyle?: string; // Override the default map style (e.g. from adventure event)
+  adventures?: Adventure[]; // Adventure markers to display alongside geocaches
+  onAdventureMarkerClick?: (adventure: Adventure, popupContainer?: HTMLDivElement) => void;
 }
 
 
@@ -1190,6 +1236,9 @@ export function GeocacheMap({
   isVisible = true,
   onOpenRadar,
   onMapClick,
+  initialMapStyle,
+  adventures,
+  onAdventureMarkerClick,
 }: GeocacheMapProps) {
   const { navigateToGeocache } = useGeocacheNavigation();
   const { theme, systemTheme } = useTheme();
@@ -1198,6 +1247,11 @@ export function GeocacheMap({
 
   // Determine if we should use dark mode for the map
   const getDefaultMapStyle = () => {
+    // Use initialMapStyle if provided (e.g. from adventure event)
+    if (initialMapStyle && MAP_STYLES[initialMapStyle]) {
+      return initialMapStyle;
+    }
+
     // First check app theme setting
     if (theme === "dark") {
       return "dark";
@@ -1227,12 +1281,21 @@ export function GeocacheMap({
     setHasManuallySelectedStyle(true);
   };
 
+  // Apply initialMapStyle when it becomes available (e.g. after async adventure data loads)
+  useEffect(() => {
+    if (initialMapStyle && MAP_STYLES[initialMapStyle] && !hasManuallySelectedStyle) {
+      setCurrentMapStyle(initialMapStyle);
+    }
+  }, [initialMapStyle, hasManuallySelectedStyle]);
+
   // Listen for app theme changes and system theme changes
   useEffect(() => {
-    // Only auto-update if user hasn't manually selected a style
-    if (hasManuallySelectedStyle) {
-      return;
-    }
+    // Don't auto-update if user manually selected a style
+    if (hasManuallySelectedStyle) return;
+
+    // Don't auto-update from theme changes when an explicit initialMapStyle is provided
+    // (the initialMapStyle effect above handles that case)
+    if (initialMapStyle && MAP_STYLES[initialMapStyle]) return;
 
     const newDefaultStyle = () => {
       if (theme === "dark") {
@@ -1256,7 +1319,7 @@ export function GeocacheMap({
     if (currentMapStyle !== newStyle) {
       setCurrentMapStyle(newStyle);
     }
-  }, [theme, systemTheme, currentMapStyle, hasManuallySelectedStyle]);
+  }, [theme, systemTheme, currentMapStyle, hasManuallySelectedStyle, initialMapStyle]);
 
   // Also listen for system theme changes as backup
   useEffect(() => {
@@ -1328,6 +1391,10 @@ export function GeocacheMap({
   // Stable ref for handleMarkerClick so marker event handlers don't change identity
   const handleMarkerClickRef = useRef(handleMarkerClick);
   handleMarkerClickRef.current = handleMarkerClick;
+
+  // Stable ref for adventure marker click handler
+  const handleAdventureMarkerClickRef = useRef(onAdventureMarkerClick);
+  handleAdventureMarkerClickRef.current = onAdventureMarkerClick;
 
   // Memoize cluster icon function — only depends on nothing (pure function of cluster)
   const clusterIconFn = useCallback((cluster: { getChildCount: () => number }) => {
@@ -1594,6 +1661,59 @@ export function GeocacheMap({
       )}
 
       {/* Geocache markers with clustering */}
+      {/* Adventure markers — rendered outside the cluster group with distinct icons */}
+      {adventures && adventures.length > 0 && adventures
+        .filter(a => a.location?.lat && a.location?.lng)
+        .map((adventure) => (
+          <Marker
+            key={`adventure-${adventure.dTag}`}
+            position={[adventure.location!.lat, adventure.location!.lng]}
+            icon={adventureMarkerIcon}
+            eventHandlers={{
+              click: (e) => {
+                const marker = e.target as L.Marker;
+                const markerMap = (marker as unknown as Record<string, unknown>)._map as L.Map;
+
+                L.DomEvent.stopPropagation(e as unknown as Event);
+                L.DomEvent.preventDefault(e as unknown as Event);
+
+                if (markerMap) markerMap.closePopup();
+
+                if (handleAdventureMarkerClickRef.current) {
+                  const container = document.createElement('div');
+                  container.className = 'react-popup-root';
+
+                  if (marker.getPopup()) marker.unbindPopup();
+
+                  const padding = markerMap ? getPopupAutoPanPadding(markerMap) : { top: 20, left: 20, bottom: 20, right: 20 };
+                  marker.bindPopup(container, {
+                    maxWidth: 340,
+                    minWidth: 200,
+                    className: 'geocache-popup react-popup',
+                    closeButton: true,
+                    autoPan: true,
+                    autoPanPaddingTopLeft: L.point(padding.left, padding.top),
+                    autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
+                    keepInView: false,
+                    closeOnClick: false,
+                    closeOnEscapeKey: true,
+                  });
+
+                  handleAdventureMarkerClickRef.current(adventure, container);
+
+                  if (markerMap) {
+                    openPopupWhenReady(marker, container, markerMap, { aborted: false });
+                  }
+                }
+              },
+              popupclose: () => {
+                handleAdventureMarkerClickRef.current?.(null as unknown as Adventure, undefined);
+              },
+            }}
+          />
+        ))
+      }
+
       <MarkerClusterGroup
         chunkedLoading={true}
         chunkInterval={20} // Faster chunk processing for quicker initial load

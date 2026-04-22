@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { Compass, Share2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import L from "leaflet";
@@ -21,14 +21,17 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAdventureProgress } from "@/hooks/useAdventureProgress";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useToast } from "@/hooks/useToast";
+import { useTheme } from "@/hooks/useTheme";
 
 import type { Geocache } from "@/types/geocache";
 
 export default function AdventureDetail() {
   const { naddr } = useParams<{ naddr: string }>();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user } = useCurrentUser();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
@@ -44,6 +47,35 @@ export default function AdventureDetail() {
   // Progress tracking
   const geocacheRefs = adventure?.geocacheRefs || [];
   const { foundSet, totalFound, totalCaches } = useAdventureProgress(geocacheRefs);
+
+  // Temporarily apply the adventure's page theme, revert on unmount.
+  // Saves and restores the user's real localStorage preference so it isn't corrupted.
+  useEffect(() => {
+    if (!adventure?.theme) return;
+
+    const storageKey = 'ui-theme';
+    const savedTheme = localStorage.getItem(storageKey);
+    const savedResolvedTheme = theme;
+
+    setTheme(adventure.theme);
+
+    // Immediately restore localStorage so the user's preference isn't lost on crash/nav
+    if (savedTheme) {
+      localStorage.setItem(storageKey, savedTheme);
+    } else {
+      localStorage.removeItem(storageKey);
+    }
+
+    return () => {
+      setTheme(savedResolvedTheme ?? 'system');
+      // Restore localStorage again on cleanup (setTheme overwrites it)
+      if (savedTheme) {
+        localStorage.setItem(storageKey, savedTheme);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    };
+  }, [adventure?.theme]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const geocaches = adventure?.geocaches || [];
 
@@ -152,7 +184,7 @@ export default function AdventureDetail() {
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => toast({ title: "Edit coming soon" })}
+          onClick={() => navigate(`/edit-adventure/${naddr}`)}
         >
           <Pencil className={iconSize} />
         </Button>
@@ -223,6 +255,7 @@ export default function AdventureDetail() {
     showStyleSelector: true,
     isNearMeActive: false,
     isMapCenterLocked: true,
+    initialMapStyle: adventure?.mapStyle,
   } as const;
 
   return (
@@ -255,7 +288,7 @@ export default function AdventureDetail() {
                 <div className="flex items-center gap-1">
                   {isOwner && (
                     <button
-                      onClick={() => toast({ title: "Edit coming soon" })}
+                      onClick={() => navigate(`/edit-adventure/${naddr}`)}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -376,7 +409,7 @@ export default function AdventureDetail() {
                 <div className="flex items-center gap-1">
                   {isOwner && (
                     <button
-                      onClick={() => toast({ title: "Edit coming soon" })}
+                      onClick={() => navigate(`/edit-adventure/${naddr}`)}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm"
                     >
                       <Pencil className="h-3.5 w-3.5" />

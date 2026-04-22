@@ -22,6 +22,8 @@ export function useCreateAdventure() {
         summary: data.summary,
         image: data.image,
         location: data.location,
+        theme: data.theme,
+        mapStyle: data.mapStyle,
         geocacheRefs: data.geocacheRefs,
       });
 

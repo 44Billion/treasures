@@ -1,5 +1,8 @@
 import type { Geocache } from './geocache';
 
+export type AdventureTheme = 'adventure';
+export type AdventureMapStyle = 'original' | 'dark' | 'satellite' | 'adventure';
+
 export interface Adventure {
   id: string;
   pubkey: string;
@@ -14,6 +17,8 @@ export interface Adventure {
     lat: number;
     lng: number;
   };
+  theme?: AdventureTheme;
+  mapStyle?: AdventureMapStyle;
   geocacheRefs: string[]; // Array of "a" tag values: "37516:<pubkey>:<d-tag>"
   geocaches?: Geocache[]; // Resolved geocache objects (populated after fetching)
 }
@@ -27,6 +32,8 @@ export interface CreateAdventureData {
     lat: number;
     lng: number;
   };
+  theme?: AdventureTheme;
+  mapStyle?: AdventureMapStyle;
   geocacheRefs: string[]; // Array of "a" tag values: "37516:<pubkey>:<d-tag>"
 }
 

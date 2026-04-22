@@ -6,7 +6,7 @@
 import { nip19 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
 import type { Geocache, GeocacheLog } from '@/types/geocache';
-import type { Adventure } from '@/types/adventure';
+import type { Adventure, AdventureTheme, AdventureMapStyle } from '@/types/adventure';
 import { getGeohashPrecisionLevels } from '@/utils/coordinates';
 
 // ===== CONSTANTS =====
@@ -591,6 +591,20 @@ export function parseAdventureEvent(event: NostrEvent): Adventure | null {
     const summary = event.tags.find(t => t[0] === 'description')?.[1];
     const image = event.tags.find(t => t[0] === 'image')?.[1];
 
+    // Parse optional theme and map style
+    const VALID_THEMES: AdventureTheme[] = ['adventure'];
+    const VALID_MAP_STYLES: AdventureMapStyle[] = ['original', 'dark', 'satellite', 'adventure'];
+
+    const rawTheme = event.tags.find(t => t[0] === 'theme')?.[1];
+    const theme = rawTheme && VALID_THEMES.includes(rawTheme as AdventureTheme)
+      ? rawTheme as AdventureTheme
+      : undefined;
+
+    const rawMapStyle = event.tags.find(t => t[0] === 'map')?.[1];
+    const mapStyle = rawMapStyle && VALID_MAP_STYLES.includes(rawMapStyle as AdventureMapStyle)
+      ? rawMapStyle as AdventureMapStyle
+      : undefined;
+
     // Parse location from geohash
     const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]).filter(Boolean);
     const geohash = geohashes.length > 0
@@ -642,6 +656,8 @@ export function parseAdventureEvent(event: NostrEvent): Adventure | null {
       summary,
       image,
       location,
+      theme,
+      mapStyle,
       geocacheRefs,
     };
   } catch {
@@ -655,6 +671,8 @@ export function buildAdventureTags(data: {
   summary?: string;
   image?: string;
   location: { lat: number; lng: number };
+  theme?: AdventureTheme;
+  mapStyle?: AdventureMapStyle;
   geocacheRefs: string[];
 }): string[][] {
   const tags: string[][] = [
@@ -677,6 +695,15 @@ export function buildAdventureTags(data: {
     for (const precision of [3, 4, 5, 6]) {
       tags.push(['g', encodeGeohash(lat, lng, precision)]);
     }
+  }
+
+  // Add optional theme and map style
+  if (data.theme) {
+    tags.push(['theme', data.theme]);
+  }
+
+  if (data.mapStyle) {
+    tags.push(['map', data.mapStyle]);
   }
 
   // Add geocache references in order

@@ -22,11 +22,15 @@ import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocachePopupCard } from "@/components/GeocachePopupCard";
+import { AdventurePopupCard } from "@/components/AdventurePopupCard";
+import { useAdventures } from "@/hooks/useAdventures";
+import type { Adventure } from "@/types/adventure";
 import { OmniSearch } from "@/components/OmniSearch";
 import { MapViewTabs } from "@/components/ui/mobile-button-patterns";
 import { type ComparisonOperator } from "@/components/FilterButton";
 import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
+import { calculateDistance as calculateDistanceFn } from "@/utils/geo";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { cn } from "@/utils/utils";
@@ -67,6 +71,11 @@ export default function Map() {
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const { open: openRadar } = useRadarOverlay();
   const myFoundCaches = useMyFoundCaches();
+
+  // Adventures on the map
+  const { data: adventures } = useAdventures();
+  const [selectedAdventure, setSelectedAdventure] = useState<Adventure | null>(null);
+  const [adventurePopupContainer, setAdventurePopupContainer] = useState<HTMLDivElement | null>(null);
 
   // Initialize activeTab based on URL parameter to avoid flicker
   const initialTab = (() => {
@@ -269,6 +278,9 @@ export default function Map() {
   // Apply client-side filtering when using base geocaches
   // Memoized to prevent unnecessary re-renders of child components (especially PopupController)
   const filteredGeocaches: GeocacheWithDistance[] = useMemo(() => {
+    // 'adventure' type filter hides all geocaches regardless of search mode
+    if (cacheType === 'adventure') return [];
+
     if (isProximitySearchActive) {
       return geocaches || [];
     }
@@ -309,6 +321,39 @@ export default function Map() {
 
     return filtered;
   }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType]);
+
+  // Filter adventures by type and radius, matching geocache filter behavior
+  const filteredAdventures = useMemo(() => {
+    if (!adventures) return [];
+
+    // If a geocache type is selected (not 'adventure' or 'all'), hide adventures
+    if (cacheType && cacheType !== 'all' && cacheType !== 'adventure') {
+      return [];
+    }
+
+    let filtered = adventures.filter(a => a.location?.lat && a.location?.lng);
+
+    // Text search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(a =>
+        a.title.toLowerCase().includes(searchLower) ||
+        a.description.toLowerCase().includes(searchLower) ||
+        (a.summary && a.summary.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Radius filter — use same center as geocache proximity search
+    const radiusCenter = searchLocation || (showNearMe && userLocation ? userLocation : null);
+    if (radiusCenter && searchRadius) {
+      filtered = filtered.filter(a => {
+        const dist = calculateDistanceFn(radiusCenter.lat, radiusCenter.lng, a.location!.lat, a.location!.lng);
+        return dist <= searchRadius;
+      });
+    }
+
+    return filtered;
+  }, [adventures, cacheType, searchQuery, searchLocation, showNearMe, userLocation, searchRadius]);
 
   function applyComparison(value: number, operator: string, target: number): boolean {
     switch (operator) {
@@ -700,6 +745,16 @@ export default function Map() {
             isGettingLocation={isGettingLocation}
             mapRef={mapRef}
             isMapCenterLocked={isMapCenterLocked}
+            adventures={filteredAdventures}
+            onAdventureMarkerClick={(adventure, container) => {
+              if (!adventure && !container) {
+                setSelectedAdventure(null);
+                setAdventurePopupContainer(null);
+                return;
+              }
+              setSelectedAdventure(adventure);
+              setAdventurePopupContainer(container || null);
+            }}
           />
 
           {/* Floating nav controls — upper-right over the map */}
@@ -942,6 +997,16 @@ export default function Map() {
                   mapRef={mapRef}
                   isMapCenterLocked={isMapCenterLocked}
                   isVisible={activeTab === 'map'}
+                  adventures={filteredAdventures}
+                  onAdventureMarkerClick={(adventure, container) => {
+                    if (!adventure && !container) {
+                      setSelectedAdventure(null);
+                      setAdventurePopupContainer(null);
+                      return;
+                    }
+                    setSelectedAdventure(adventure);
+                    setAdventurePopupContainer(container || null);
+                  }}
                 />
 
 
@@ -957,13 +1022,27 @@ export default function Map() {
           onClose={() => {
             setSelectedGeocache(null);
             setPopupContainer(null);
-            // Close the Leaflet popup
             if (mapRef.current) {
               mapRef.current.closePopup();
             }
           }}
         />,
         popupContainer
+      )}
+
+      {/* Adventure popup portal */}
+      {selectedAdventure && adventurePopupContainer && createPortal(
+        <AdventurePopupCard
+          adventure={selectedAdventure}
+          onClose={() => {
+            setSelectedAdventure(null);
+            setAdventurePopupContainer(null);
+            if (mapRef.current) {
+              mapRef.current.closePopup();
+            }
+          }}
+        />,
+        adventurePopupContainer
       )}
 
     </div>
