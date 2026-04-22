@@ -5,7 +5,6 @@ import { offlineGeocode } from "@/utils/offlineGeocode";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdventures } from "@/hooks/useAdventures";
 import { useAuthor } from "@/hooks/useAuthor";
@@ -72,14 +71,14 @@ function HeroFeaturedCard({ adventure, isActive }: { adventure: Adventure; isAct
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-amber-400 text-[11px] font-semibold uppercase tracking-widest mb-1 [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]">
+          <p className="text-amber-400 text-[clamp(0.6rem,2vw,0.69rem)] font-semibold uppercase tracking-widest mb-0.5 md:mb-1 [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]">
             Now Accepting Challengers
           </p>
-          <h3 className="text-lg md:text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors [text-shadow:0_2px_8px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)] line-clamp-1">
+          <h3 className="text-[clamp(0.95rem,3.5vw,1.25rem)] md:text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors [text-shadow:0_2px_8px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)] line-clamp-1">
             {adventure.title}
           </h3>
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-white/90 [text-shadow:0_2px_6px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)]">
-            {authorPicture && <img src={authorPicture} alt="" className="w-4 h-4 rounded-full ring-1 ring-white/30" />}
+          <div className="flex items-center gap-[clamp(0.25rem,1vw,0.5rem)] mt-1 md:mt-1.5 text-[clamp(0.6rem,2.2vw,0.75rem)] text-white/90 [text-shadow:0_2px_6px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)]">
+            {authorPicture && <img src={authorPicture} alt="" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full ring-1 ring-white/30" />}
             <span>{authorName}</span>
             <span className="text-white/50">&middot;</span>
             <span>{adventure.geocacheRefs.length} treasures</span>
@@ -92,7 +91,7 @@ function HeroFeaturedCard({ adventure, isActive }: { adventure: Adventure; isAct
             )}
           </div>
           {(adventure.summary || adventure.description) && (
-            <p className="text-xs text-white/80 mt-1.5 line-clamp-1 max-w-md [text-shadow:0_2px_6px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)]">
+            <p className="text-[clamp(0.6rem,2.2vw,0.75rem)] text-white/80 mt-1 md:mt-1.5 line-clamp-1 max-w-md [text-shadow:0_2px_6px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)]">
               {adventure.summary || adventure.description}
             </p>
           )}
@@ -138,34 +137,53 @@ function QuestCard({ adventure }: { adventure: Adventure }) {
             </div>
           )}
 
-          <div className="absolute top-3 right-3">
-            <Badge className="bg-black/40 backdrop-blur-sm text-white border-0 text-[10px] font-medium">
-              {adventure.geocacheRefs.length} {adventure.geocacheRefs.length === 1 ? 'treasure' : 'treasures'}
-            </Badge>
-          </div>
-
           <div className="absolute bottom-0 left-0 right-0 p-4 [text-shadow:0_2px_8px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)]">
             <h3 className="font-bold text-base md:text-lg text-white leading-snug line-clamp-2 group-hover:text-amber-200 transition-colors">
               {adventure.title}
             </h3>
+            {/* Below xs: two lines | xs+: single line */}
+            <div className="mt-1.5 text-[11px] text-white/90">
+              {/* Narrow layout (below xs/375px) */}
+              <div className="xs:hidden space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  {authorPicture && (
+                    <img src={authorPicture} alt="" className="w-4 h-4 rounded-full ring-1 ring-white/30 flex-shrink-0" loading="lazy" />
+                  )}
+                  <span className="truncate">{authorName}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="flex-shrink-0">{adventure.geocacheRefs.length} {adventure.geocacheRefs.length === 1 ? 'treasure' : 'treasures'}</span>
+                  {cityName && (
+                    <>
+                      <span className="text-white/50">&middot;</span>
+                      <MapPin className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{cityName}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              {/* xs+ layout */}
+              <div className="hidden xs:flex items-center gap-2">
+                {authorPicture && (
+                  <img src={authorPicture} alt="" className="w-4 h-4 rounded-full ring-1 ring-white/30 flex-shrink-0" loading="lazy" />
+                )}
+                <span className="truncate">{authorName}</span>
+                <span className="text-white/50">&middot;</span>
+                <span className="flex-shrink-0">{adventure.geocacheRefs.length} {adventure.geocacheRefs.length === 1 ? 'treasure' : 'treasures'}</span>
+                {cityName && (
+                  <>
+                    <span className="text-white/50">&middot;</span>
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{cityName}</span>
+                  </>
+                )}
+              </div>
+            </div>
             {(adventure.summary || adventure.description) && (
-              <p className="text-xs text-white/90 mt-1 line-clamp-2 leading-relaxed">
+              <p className="text-xs text-white/80 mt-1 line-clamp-2 leading-relaxed">
                 {adventure.summary || adventure.description}
               </p>
             )}
-            <div className="flex items-center gap-2 mt-2 text-[11px] text-white/90">
-              {authorPicture && (
-                <img src={authorPicture} alt="" className="w-4 h-4 rounded-full ring-1 ring-white/30 flex-shrink-0" loading="lazy" />
-              )}
-              <span className="truncate">{authorName}</span>
-              {cityName && (
-                <>
-                  <span className="text-white/50">&middot;</span>
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">{cityName}</span>
-                </>
-              )}
-            </div>
           </div>
         </div>
       </Card>
@@ -249,11 +267,11 @@ export default function Adventures() {
   }, [heroAdventures.length]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <DesktopHeader variant="hero" />
 
       {/* ── Hero ── */}
-      <section className="relative h-[81vh] min-h-[490px] max-h-[730px] lg:-mt-[81px] flex flex-col justify-end overflow-hidden">
+      <section className="relative h-[60vh] min-h-[380px] max-h-[520px] md:h-[81vh] md:min-h-[490px] md:max-h-[730px] -mt-12 lg:-mt-[81px] flex flex-col justify-end overflow-hidden">
 
         {heroAdventures.length > 0 ? (
           heroAdventures.map((adventure, i) => (
@@ -292,30 +310,30 @@ export default function Adventures() {
         <GothicBorder side="right" className="text-white/[0.14] z-[2]" />
 
         {/* Content */}
-        <div className="relative z-10 w-full pb-8 md:pb-14 pt-32 md:pt-40">
-          <div className="container mx-auto px-4 max-w-6xl">
+        <div className="relative z-10 w-full pb-[clamp(1.5rem,4vw,3.5rem)] md:pb-14 pt-[clamp(4rem,12vw,10rem)] md:pt-40">
+          <div className="mx-auto px-12 md:px-4 max-w-6xl">
 
-            <div className="mb-10 md:mb-14 animate-slide-up">
-              <div className="flex items-center gap-3 md:gap-4">
-                <span className="inline-flex items-center justify-center w-12 h-12 xs:w-14 xs:h-14 md:w-20 md:h-20 rounded-full bg-amber-500/20 border border-amber-400/40 backdrop-blur-sm flex-shrink-0">
-                  <Sparkles className="h-6 w-6 xs:h-7 xs:w-7 md:h-10 md:w-10 text-amber-400" />
+            <div className="mb-[clamp(1.5rem,4vw,3.5rem)] md:mb-14 animate-slide-up">
+              <div className="flex items-center gap-[clamp(0.5rem,2vw,1rem)] md:gap-4">
+                <span className="inline-flex items-center justify-center w-[clamp(2.5rem,10vw,3.5rem)] h-[clamp(2.5rem,10vw,3.5rem)] md:w-20 md:h-20 rounded-full bg-amber-500/20 border border-amber-400/40 backdrop-blur-sm flex-shrink-0">
+                  <Sparkles className="h-[clamp(1.25rem,5vw,1.75rem)] w-[clamp(1.25rem,5vw,1.75rem)] md:h-10 md:w-10 text-amber-400" />
                 </span>
                 <div>
-                  <h1 className="text-4xl xs:text-5xl md:text-7xl font-bold text-white leading-[1.1] [text-shadow:0_4px_16px_rgba(0,0,0,0.7),0_1px_3px_rgba(0,0,0,0.9)]">
+                  <h1 className="text-[clamp(1.75rem,8vw,3rem)] md:text-7xl font-bold text-white leading-[1.1] [text-shadow:0_4px_16px_rgba(0,0,0,0.7),0_1px_3px_rgba(0,0,0,0.9)]">
                     Adventures
                   </h1>
-                  <p className="mt-1 text-amber-400 text-xs md:text-sm font-semibold uppercase tracking-[0.2em] [text-shadow:0_2px_6px_rgba(0,0,0,0.7)]">
+                  <p className="mt-0.5 md:mt-1 text-amber-400 text-[clamp(0.625rem,2vw,0.75rem)] md:text-sm font-semibold uppercase tracking-[0.2em] [text-shadow:0_2px_6px_rgba(0,0,0,0.7)]">
                     Choose Your Journey. Find Your Treasures.
                   </p>
                 </div>
               </div>
-              <p className="mt-4 text-base md:text-lg text-white/90 max-w-xl leading-relaxed [text-shadow:0_2px_8px_rgba(0,0,0,0.6),0_1px_2px_rgba(0,0,0,0.8)]">
+              <p className="mt-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.8rem,3vw,1rem)] md:text-lg text-white/90 max-w-xl leading-relaxed [text-shadow:0_2px_8px_rgba(0,0,0,0.6),0_1px_2px_rgba(0,0,0,0.8)]">
                 Multi-treasure quests across real-world locations. Every adventure is a story waiting to be lived.
               </p>
             </div>
 
             {heroAdventures.length > 0 && (
-              <div className="relative mb-6 animate-slide-up-delay">
+              <div className="relative mb-[clamp(0.75rem,2vw,1.5rem)] animate-slide-up-delay">
                 {heroAdventures.map((adventure, i) => (
                   <HeroFeaturedCard key={adventure.id} adventure={adventure} isActive={i === heroIndex} />
                 ))}
@@ -340,7 +358,7 @@ export default function Adventures() {
       </section>
 
       {/* ── Pick Your Path ── */}
-      <div id="quests" className="relative min-h-[50vh]">
+      <div id="quests" className="relative flex-1">
         <QuestBoardBackground />
 
         {/* Torn/shadowed top edge — softens the hard hero-to-parchment cut */}
@@ -348,7 +366,7 @@ export default function Adventures() {
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.08) 40%, transparent 100%)',
         }} />
 
-        <div className="relative z-10 container mx-auto px-4 py-12 md:py-16 max-w-6xl">
+        <div className="relative z-10 mx-auto px-12 md:px-4 py-12 md:py-16 max-w-6xl">
           {/* Loading */}
           {isLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -358,25 +376,25 @@ export default function Adventures() {
 
           {/* Error */}
           {isError && (
-            <div className="text-center py-16">
-              <Sparkles className="h-12 w-12 text-amber-800/40 dark:text-amber-400/40 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold mb-2 text-stone-800 dark:text-amber-100/90">Failed to load adventures</h2>
-              <p className="text-stone-600 dark:text-amber-200/50">Please check your connection and try again.</p>
+            <div className="text-center py-[clamp(2rem,8vw,4rem)]">
+              <Sparkles className="h-[clamp(2rem,8vw,3rem)] w-[clamp(2rem,8vw,3rem)] text-amber-800/40 dark:text-amber-400/40 mx-auto mb-3 md:mb-4" />
+              <h2 className="text-[clamp(0.95rem,3.5vw,1.125rem)] font-semibold mb-2 text-stone-800 dark:text-amber-100/90">Failed to load adventures</h2>
+              <p className="text-[clamp(0.8rem,2.8vw,1rem)] text-stone-600 dark:text-amber-200/50">Please check your connection and try again.</p>
             </div>
           )}
 
           {/* Empty */}
           {!isLoading && !isError && adventures?.length === 0 && (
-            <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/15 mb-6">
-                <Sparkles className="h-8 w-8 text-amber-400" />
+            <div className="text-center py-[clamp(3rem,10vw,5rem)]">
+              <div className="inline-flex items-center justify-center w-[clamp(3rem,10vw,4rem)] h-[clamp(3rem,10vw,4rem)] rounded-full bg-amber-500/15 mb-4 md:mb-6">
+                <Sparkles className="h-[clamp(1.5rem,5vw,2rem)] w-[clamp(1.5rem,5vw,2rem)] text-amber-400" />
               </div>
-              <h2 className="text-2xl font-bold mb-3 text-stone-800 dark:text-amber-100/90">No Paths Yet</h2>
-              <p className="text-stone-600 dark:text-amber-200/50 mb-8 max-w-md mx-auto">
+              <h2 className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold mb-2 md:mb-3 text-stone-800 dark:text-amber-100/90">No Paths Yet</h2>
+              <p className="text-[clamp(0.8rem,2.8vw,1rem)] text-stone-600 dark:text-amber-200/50 mb-6 md:mb-8 max-w-md mx-auto">
                 No adventures have been posted yet. Be the first to chart a course for the community.
               </p>
               {user && (
-                <Button asChild size="lg" className="bg-amber-700 hover:bg-amber-600 text-white border-0">
+                <Button asChild className="bg-amber-700 hover:bg-amber-600 text-white border-0 text-[clamp(0.8rem,2.8vw,1rem)] px-[clamp(1rem,4vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] h-auto">
                   <Link to="/create-adventure">
                     <Plus className="h-4 w-4 mr-2" />
                     Start the First Adventure
@@ -388,19 +406,19 @@ export default function Adventures() {
 
           {/* Section header */}
           {!isLoading && adventures && adventures.length > 0 && (
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-stone-800 dark:text-amber-100/90 tracking-tight">
+            <div className="flex items-center justify-between gap-3 mb-[clamp(1.5rem,4vw,2.5rem)] md:mb-10">
+              <div className="min-w-0">
+                <h2 className="text-[clamp(1.4rem,6vw,1.875rem)] md:text-4xl font-bold text-stone-800 dark:text-amber-100/90 tracking-tight">
                   Pick Your Path
                 </h2>
-                <p className="text-sm text-stone-500 dark:text-amber-200/40 mt-2">
+                <p className="text-[clamp(0.7rem,2.5vw,0.875rem)] text-stone-500 dark:text-amber-200/40 mt-1 md:mt-2">
                   {adventures.length} {adventures.length === 1 ? 'adventure awaits' : 'adventures await'}
                 </p>
               </div>
               {user && (
-                <Link to="/create-adventure" className="group flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 dark:from-amber-600 dark:to-amber-500 text-white text-sm font-medium shadow-lg shadow-amber-900/20 dark:shadow-amber-900/40 hover:shadow-xl hover:from-amber-600 hover:to-amber-500 dark:hover:from-amber-500 dark:hover:to-amber-400 transition-all duration-200 hover:-translate-y-0.5">
-                  <Plus className="h-4 w-4 transition-transform group-hover:rotate-90 duration-200" />
-                  New Adventure
+                <Link to="/create-adventure" className="group flex items-center justify-center gap-2 p-2.5 sm:px-5 sm:py-2.5 rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 dark:from-amber-600 dark:to-amber-500 text-white text-sm font-medium shadow-lg shadow-amber-900/20 dark:shadow-amber-900/40 hover:shadow-xl hover:from-amber-600 hover:to-amber-500 dark:hover:from-amber-500 dark:hover:to-amber-400 transition-all duration-200 hover:-translate-y-0.5 flex-shrink-0">
+                  <Plus className="h-5 w-5 sm:h-4 sm:w-4 transition-transform group-hover:rotate-90 duration-200" />
+                  <span className="hidden sm:inline">New Adventure</span>
                 </Link>
               )}
             </div>

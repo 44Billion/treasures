@@ -83,7 +83,8 @@ export function MobileHeader() {
   const { currentUser, removeLogin } = useLoggedInAccounts();
   const { theme } = useTheme();
   const themeClasses = getThemeClasses(theme);
-  const isHero = location.pathname === '/';
+  const isHero = location.pathname === '/' || location.pathname === '/adventures';
+  const hideHeaderLogo = location.pathname === '/'; // Home has its own large logo in the hero
 
   const closeSheet = () => setIsOpen(false);
 
@@ -256,12 +257,15 @@ export function MobileHeader() {
         </Sheet>
 
         {/* Center Logo - hidden on home page where it's displayed large in the hero */}
-        {!isHero && (
+        {!hideHeaderLogo && (
           <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
             <img
               src="/icon.svg"
               alt="Treasures"
-              className={cn("h-7 w-7 xs:h-8 xs:w-8 transition-all duration-200", themeClasses.icon)}
+              className={cn(
+                "h-7 w-7 xs:h-8 xs:w-8 transition-all duration-200",
+                isHero ? "drop-shadow-lg brightness-110" : themeClasses.icon
+              )}
             />
           </Link>
         )}
@@ -326,11 +330,11 @@ export function MobileBottomNav() {
   const isAdventureTheme = theme === 'adventure';
   const isDittoTheme = theme === 'ditto';
   const themeClasses = getThemeClasses(theme);
-  const isHome = location.pathname === '/';
-  const [pastHero, setPastHero] = useState(!isHome);
+  const isHomePage = location.pathname === '/';
+  const [pastHero, setPastHero] = useState(!isHomePage);
 
   useEffect(() => {
-    if (!isHome) {
+    if (!isHomePage) {
       setPastHero(true);
       return;
     }
@@ -342,7 +346,7 @@ export function MobileBottomNav() {
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHome]);
+  }, [isHomePage]);
 
   const leftNav = [
     { name: t('navigation.list'), href: '/map?tab=list', icon: List },
