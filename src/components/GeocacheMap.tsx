@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
@@ -167,6 +167,7 @@ interface GeocacheMapProps {
   isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
   isVisible?: boolean; // Whether the map is currently visible (for handling tab switches on mobile)
   onOpenRadar?: () => void; // Callback to open the radar compass overlay
+  onMapClick?: (location: { lat: number; lng: number }) => void; // Callback for map click (e.g. adventure center selection)
 }
 
 
@@ -1155,6 +1156,21 @@ function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: M
 
 // Map styles are now imported from MapStyleSelector component
 
+// Optional click-to-place handler for adventure center selection etc.
+function MapClickHandler({ onClick }: { onClick: (location: { lat: number; lng: number }) => void }) {
+  useMapEvents({
+    click: (e) => {
+      const target = e.originalEvent.target as HTMLElement;
+      // Don't fire on controls, buttons, popups, or search UI
+      if (target.closest('button') || target.closest('.leaflet-control') || target.closest('.leaflet-popup') || target.closest('[class*="omnisearch"]')) {
+        return;
+      }
+      onClick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+  return null;
+}
+
 export function GeocacheMap({
   geocaches,
   center,
@@ -1173,6 +1189,7 @@ export function GeocacheMap({
   isMapCenterLocked = false,
   isVisible = true,
   onOpenRadar,
+  onMapClick,
 }: GeocacheMapProps) {
   const { navigateToGeocache } = useGeocacheNavigation();
   const { theme, systemTheme } = useTheme();
@@ -1474,6 +1491,8 @@ export function GeocacheMap({
 
       <MapRefController mapRef={mapRef} onMapReady={() => setIsMapReady(true)} />
 
+      {onMapClick && <MapClickHandler onClick={onMapClick} />}
+
       <PopupController
         highlightedGeocache={highlightedGeocache}
         geocaches={geocaches}
@@ -1549,6 +1568,20 @@ export function GeocacheMap({
             opacity: 0.4,
             className: 'search-radius-circle'
           }}
+        />
+      )}
+
+      {/* Center pin for map click selection (adventure creation etc.) */}
+      {onMapClick && searchLocation && (
+        <Marker
+          position={[searchLocation.lat, searchLocation.lng]}
+          icon={L.divIcon({
+            className: 'adventure-center-pin',
+            html: '<div style="width:12px;height:12px;background:#228c4e;border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>',
+            iconSize: [12, 12],
+            iconAnchor: [6, 6],
+          })}
+          interactive={false}
         />
       )}
 

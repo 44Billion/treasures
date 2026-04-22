@@ -162,6 +162,43 @@ To validate a verified find:
 3. Confirm the geocache naddr in the `a` tag correctly references the target cache
 4. Validate the event signature using standard Nostr verification
 
+## Geocache Curation List Event (Kind 37517)
+
+Curation list events are addressable events of kind `37517` that group geocaches into curated collections. Clients may present these as adventures, trails, treasure hunts, or any other themed experience.
+
+```json
+{
+  "kind": 37517,
+  "content": "<full description>",
+  "tags": [
+    ["d", "<list-identifier>"],
+    ["title", "<list-title>"],
+    ["description", "<short summary>"],
+    ["image", "<banner-image-url>"],
+    ["g", "<geohash>"],
+    ["a", "37516:<pubkey>:<d-tag>"],
+    ["a", "37516:<pubkey>:<d-tag>"]
+  ]
+}
+```
+
+### Content
+
+The content field contains the full description of the curation list — rules, tips, narrative, or any other context the creator wants to provide.
+
+### Tags
+
+- `d` (required) - unique identifier for the list
+- `title` (required) - human-readable name for the list
+- `a` (required, 1+) - references to geocache listing events (kind 37516 or 37515). Order is preserved and meaningful
+- `description` (optional) - short summary shown in browse/card views
+- `image` (optional) - banner image URL
+- `g` (optional) - geohash of list center location. Include multiple precision levels (3-6 characters) for discovery
+
+### Cross-Author References
+
+Curation lists can reference any public geocache regardless of author. The `a` tags use standard Nostr addressable event coordinates (`<kind>:<pubkey>:<d-tag>`), allowing a single list to span geocaches from multiple creators.
+
 ## Clients
 
 For the best Geocaching experience, clients implementing geocaching support should:
@@ -291,6 +328,27 @@ For the best Geocaching experience, clients implementing geocaching support shou
   "tags": [
     ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669"],
     ["verification", "{\"kind\":7517,\"content\":\"Geocache verification for npub1qc0lc5lxnhxnfxlw2lxkv4x4vp6xsf4d5qwvlhfx6qmz6x4nfhqd8h2z3\",\"tags\":[[\"a\",\"0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:naddr1qqxnzd3e8q6n2dfk8qcnjve48qmnsw3jsqgswaehxw309aex2mrp0yhx6tpdsek6w309aex2mrp0yh56tnwdus8vatjvs6kzdrz956k7tjzw6qzypzgd2dmgxhxf34hnlw2y03nckr8f4g6mw9flxqq65v94zkp77rqfgrf8\"]],\"pubkey\":\"6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07\",\"created_at\":1672531200,\"sig\":\"a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456789012345678901234567890abcdef1234567890abcdef1234567890abcdef12\"}"]
+  ]
+}
+```
+
+### Geocache Curation List
+
+```json
+{
+  "kind": 37517,
+  "content": "Explore the festival grounds and find all hidden treasures before the jousting tournament!",
+  "tags": [
+    ["d", "ren-fest-hunt-1748619568670"],
+    ["title", "Texas Ren Fest Treasure Hunt"],
+    ["description", "Find all the hidden treasures at the festival!"],
+    ["image", "https://blossom.primal.net/banner-example.jpg"],
+    ["g", "9vk"],
+    ["g", "9vk5"],
+    ["g", "9vk5b"],
+    ["g", "9vk5b7"],
+    ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668"],
+    ["a", "37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669"]
   ]
 }
 ```

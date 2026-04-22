@@ -6,6 +6,7 @@
 import { nip19 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
 import type { Geocache, GeocacheLog } from '@/types/geocache';
+import type { Adventure } from '@/types/adventure';
 import { getGeohashPrecisionLevels } from '@/utils/coordinates';
 
 // ===== CONSTANTS =====
@@ -17,8 +18,11 @@ export const NIP_GC_KINDS = {
   COMMENT_LOG: 1111,
   VERIFICATION: 7517,
   BOOKMARK_LIST: 30001,
+  ADVENTURE: 37517,
   DRAFT: 31234,
 } as const;
+
+
 
 const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;
 const VALID_CACHE_SIZES = ['micro', 'small', 'regular', 'large', 'other'] as const;
@@ -564,5 +568,122 @@ export function buildVerificationEventTags(data: {
 
 export function buildVerificationEventContent(finderNpub: string): string {
   return `Geocache verification for ${finderNpub}`;
+}
+
+// ===== ADVENTURE PARSING & BUILDING =====
+
+export function parseAdventureEvent(event: NostrEvent): Adventure | null {
+  try {
+    if (event.kind !== NIP_GC_KINDS.ADVENTURE) {
+      return null;
+    }
+
+    const dTag = event.tags.find(t => t[0] === 'd')?.[1];
+    if (!dTag) {
+      return null;
+    }
+
+    const title = event.tags.find(t => t[0] === 'title')?.[1];
+    if (!title) {
+      return null;
+    }
+
+    const summary = event.tags.find(t => t[0] === 'description')?.[1];
+    const image = event.tags.find(t => t[0] === 'image')?.[1];
+
+    // Parse location from geohash
+    const geohashes = event.tags.filter(t => t[0] === 'g').map(t => t[1]).filter(Boolean);
+    const geohash = geohashes.length > 0
+      ? geohashes.reduce((longest, current) =>
+          (current && current.length > (longest?.length || 0)) ? current : longest
+        )
+      : undefined;
+
+    let location: { lat: number; lng: number } | undefined;
+    if (geohash) {
+      try {
+        location = decodeGeohash(geohash);
+        if (!validateCoordinates(location.lat, location.lng)) {
+          location = undefined;
+        }
+      } catch {
+        location = undefined;
+      }
+    }
+
+    // Extract geocache references (a tags pointing to kind 37516 or 37515)
+    const geocacheRefs = event.tags
+      .filter(t => t[0] === 'a' && t[1])
+      .map(t => t[1] as string)
+      .filter(ref => {
+        const kind = ref.split(':')[0];
+        return kind === NIP_GC_KINDS.GEOCACHE.toString() ||
+               kind === NIP_GC_KINDS.GEOCACHE_LEGACY.toString();
+      });
+
+    if (geocacheRefs.length === 0) {
+      return null;
+    }
+
+    const naddr = nip19.naddrEncode({
+      identifier: dTag,
+      pubkey: event.pubkey,
+      kind: event.kind,
+    });
+
+    return {
+      id: event.id,
+      pubkey: event.pubkey,
+      created_at: event.created_at,
+      dTag,
+      naddr,
+      title,
+      description: event.content,
+      summary,
+      image,
+      location,
+      geocacheRefs,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function buildAdventureTags(data: {
+  dTag: string;
+  title: string;
+  summary?: string;
+  image?: string;
+  location: { lat: number; lng: number };
+  geocacheRefs: string[];
+}): string[][] {
+  const tags: string[][] = [
+    ['d', data.dTag],
+    ['title', data.title],
+  ];
+
+  if (data.summary?.trim()) {
+    tags.push(['description', data.summary.trim()]);
+  }
+
+  if (data.image?.trim()) {
+    tags.push(['image', data.image.trim()]);
+  }
+
+  // Add geohash tags for location-based discovery
+  if (data.location && validateCoordinates(data.location.lat, data.location.lng)) {
+    const { lat, lng } = data.location;
+    // Add geohashes at precision levels 3-6 for discovery
+    for (const precision of [3, 4, 5, 6]) {
+      tags.push(['g', encodeGeohash(lat, lng, precision)]);
+    }
+  }
+
+  // Add geocache references in order
+  for (const ref of data.geocacheRefs) {
+    tags.push(['a', ref]);
+  }
+
+  return tags;
 }
 

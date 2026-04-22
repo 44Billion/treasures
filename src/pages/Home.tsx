@@ -14,6 +14,7 @@ import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
 import { HeroGallery } from "@/components/HeroGallery";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
+import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
 import { useCuratedTreasures } from "@/hooks/useCuratedTreasures";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useAuthor } from "@/hooks/useAuthor";
@@ -81,6 +82,7 @@ export default function Home() {
   const dittoBg = isDitto ? profileTheme?.background : undefined;
   const { config } = useAppContext();
   const { open: openRadar } = useRadarOverlay();
+  const myFoundCaches = useMyFoundCaches();
   const { navigateToGeocache } = useGeocacheNavigation();
 
   // Curated treasures — fused into the hero
@@ -573,6 +575,7 @@ export default function Home() {
                     cache={geocache}
                     variant="featured"
                     statsLoading={isStatsLoading}
+                    isFound={myFoundCaches.has(`${geocache.kind || 37516}:${geocache.pubkey}:${geocache.dTag}`)}
                   />
                 ))}
               </div>

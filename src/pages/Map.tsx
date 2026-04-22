@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { cn } from "@/utils/utils";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
+import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
 
 
 
@@ -65,6 +66,7 @@ export default function Map() {
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const { open: openRadar } = useRadarOverlay();
+  const myFoundCaches = useMyFoundCaches();
 
   // Initialize activeTab based on URL parameter to avoid flicker
   const initialTab = (() => {
@@ -669,6 +671,7 @@ export default function Map() {
                       distance={cache.distance}
                       onClick={() => handleCardClick(cache)}
                       statsLoading={baseGeocaches.isStatsLoading}
+                      isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
                     />
                   ))}
                 </div>
@@ -866,6 +869,7 @@ export default function Map() {
                         distance={cache.distance}
                         onClick={() => handleCardClick(cache)}
                         statsLoading={baseGeocaches.isStatsLoading}
+                        isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
                       />
                     ))}
                   </div>

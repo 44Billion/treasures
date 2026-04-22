@@ -36,6 +36,7 @@ import { useGeocaches } from '@/hooks/useGeocaches';
 
 
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useMyFoundCaches } from '@/hooks/useMyFoundCaches';
 import { ProfileMap } from '@/components/ProfileMap';
 import { useToast } from '@/hooks/useToast';
 import { useTreasureDrafts, draftToGeocache } from '@/hooks/useTreasureDrafts';
@@ -50,6 +51,7 @@ export default function Profile() {
   const isDitto = resolvedTheme === 'ditto';
   const { coords } = useGeolocation();
   const { toast } = useToast();
+  const myFoundCaches = useMyFoundCaches();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [_copiedField, setCopiedField] = useState<string | null>(null);
   const [selectedPopupGeocache, setSelectedPopupGeocache] = useState<Geocache | null>(null);
@@ -323,6 +325,7 @@ export default function Profile() {
                       distance={cache.distance}
                       variant="featured"
                       statsLoading={isStatsLoading}
+                      isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
                       onDelete={cache.kind === NIP_GC_KINDS.DRAFT ? () => {
                         setDeletingDraft({ dTag: cache.dTag, name: cache.name, eventId: cache.id });
                       } : undefined}
@@ -370,6 +373,7 @@ export default function Profile() {
                     distance={cache.distance}
                     variant="featured"
                     statsLoading={isStatsLoading}
+                    isFound={true}
                   />
                 ))}
               </div>
@@ -412,6 +416,7 @@ export default function Profile() {
                       cache={cache}
                       distance={cache.distance}
                       variant="featured"
+                      isFound={myFoundCaches.has(`${(cache as Record<string, unknown>).kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
                     />
                   ))}
                 </div>

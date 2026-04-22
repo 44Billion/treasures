@@ -55,6 +55,7 @@ interface BaseGeocacheCardProps {
   showAuthor?: boolean;
   showStats?: boolean;
   statsLoading?: boolean;
+  isFound?: boolean;
 }
 
 // Compact Card - Used in map sidebar and mobile views
@@ -119,7 +120,8 @@ export function GeocacheCard({
   metadata,
   showAuthor = true,
   showStats = true,
-  statsLoading = false
+  statsLoading = false,
+  isFound = false
 }: GeocacheCardProps) {
   const { t } = useTranslation();
   const nav = useNavigate();
@@ -391,6 +393,12 @@ export function GeocacheCard({
                     )}
                   </div>
                 </div>
+                {/* Found overlay */}
+                {isFound && (
+                  <div className="absolute inset-0 z-20 bg-green-500/40 flex items-center justify-center">
+                    <CheckCircle className="h-8 w-8 text-white drop-shadow-md" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -488,6 +496,12 @@ export function GeocacheCard({
                     )}
                   </div>
                 </div>
+                {/* Found overlay */}
+                {isFound && (
+                  <div className="absolute inset-0 z-20 bg-green-500/40 flex items-center justify-center">
+                    <CheckCircle className="h-7 w-7 text-white drop-shadow-md" />
+                  </div>
+                )}
               </div>
             </div>
 

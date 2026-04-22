@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Info, QrCode, ScanQrCode, Scroll, Search, Settings, BookOpen, Sparkles } from 'lucide-react';
+import { Plus, Info, QrCode, ScanQrCode, Scroll, Search, Settings, BookOpen, Sparkles, Compass } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -54,6 +54,12 @@ export function ExploreMenuItems({ showMapLink = true }: ExploreMenuItemsProps) 
         </DropdownMenuItem>
       )}
       <DropdownMenuSeparator />
+      <DropdownMenuItem asChild>
+        <Link to="/adventures">
+          <Compass className="h-4 w-4 mr-2" />
+          Adventures
+        </Link>
+      </DropdownMenuItem>
       <DropdownMenuItem asChild>
         <Link to="/texas-ren-fest">
           <Sparkles className="h-4 w-4 mr-2" />

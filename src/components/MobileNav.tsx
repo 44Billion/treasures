@@ -153,6 +153,15 @@ export function MobileHeader() {
                   </NavLink>
 
                   <NavLink
+                    to="/adventures"
+                    icon={Compass}
+                    isActive={location.pathname === '/adventures' || location.pathname.startsWith('/adventure/')}
+                    onClick={closeSheet}
+                  >
+                    Adventures
+                  </NavLink>
+
+                  <NavLink
                     to="/texas-ren-fest"
                     icon={Sparkles}
                     isActive={location.pathname === '/texas-ren-fest'}

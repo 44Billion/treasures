@@ -24,6 +24,9 @@ import Claim from "./pages/Claim";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import TexasRenFest from "./pages/TexasRenFest";
+import Adventures from "./pages/Adventures";
+import AdventureDetail from "./pages/AdventureDetail";
+import CreateAdventure from "./pages/CreateAdventure";
 import CompactRedirect from "./pages/CompactRedirect";
 import RemoteLoginSuccess from "./pages/RemoteLoginSuccess";
 
@@ -55,6 +58,9 @@ export function AppRouter() {
           <Route path="/claim" element={<Claim />} />
           <Route path="/about" element={<About />} />
           <Route path="/texas-ren-fest" element={<TexasRenFest />} />
+          <Route path="/adventures" element={<Adventures />} />
+          <Route path="/adventure/:naddr" element={<AdventureDetail />} />
+          <Route path="/create-adventure" element={<CreateAdventure />} />
           <Route path="/c/:payload" element={<CompactRedirect />} />
           <Route path="/remoteloginsuccess" element={<RemoteLoginSuccess />} />
 
