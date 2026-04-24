@@ -12,10 +12,9 @@ import { useTheme } from "@/hooks/useTheme";
 import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
 import { useGeocaches } from "@/hooks/useGeocaches";
 import { GeocacheCard } from "@/components/ui/geocache-card";
-import { HeroGallery } from "@/components/HeroGallery";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
-import { useCuratedTreasures, getCuratedHeroImage } from "@/hooks/useCuratedTreasures";
+import { useCuratedTreasures, CURATED_HERO_IMAGES } from "@/hooks/useCuratedTreasures";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useAuthor } from "@/hooks/useAuthor";
 import { offlineGeocode } from "@/utils/offlineGeocode";
@@ -86,19 +85,19 @@ export default function Home() {
   const myFoundCaches = useMyFoundCaches();
   const { navigateToGeocache } = useGeocacheNavigation();
 
-  // Curated treasures — fused into the hero
+  // Curated treasures — images are static, metadata arrives async
   const { data: curatedTreasures } = useCuratedTreasures();
   const treasureCities = useTreasureCities(curatedTreasures || []);
   const [heroTreasureIndex, setHeroTreasureIndex] = useState(0);
 
-  // Auto-advance hero treasure every 8 seconds
+  // Auto-advance hero image every 8 seconds
   useEffect(() => {
-    if (!curatedTreasures || curatedTreasures.length <= 1) return;
+    if (CURATED_HERO_IMAGES.length <= 1) return;
     const id = setInterval(() => {
-      setHeroTreasureIndex((i) => (i + 1) % curatedTreasures.length);
+      setHeroTreasureIndex((i) => (i + 1) % CURATED_HERO_IMAGES.length);
     }, 8000);
     return () => clearInterval(id);
-  }, [curatedTreasures]);
+  }, []);
 
   // Use geocaches with optimized loading
   const {
@@ -197,36 +196,31 @@ export default function Home() {
 
       {/* Hero Section — full-bleed with real curated treasures */}
       <section className="relative min-h-dvh lg:min-h-0 lg:h-[65vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
-        {/* Background — ditto bg, curated treasure images, or fallback to stock gallery */}
+        {/* Background — ditto bg or curated hero images (static, no network wait) */}
         {dittoBg ? (
           <div className="absolute inset-0 overflow-hidden">
             <img src={dittoBg.url} alt="" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-background/50" />
           </div>
-        ) : curatedTreasures && curatedTreasures.length > 0 ? (
+        ) : (
           <div className="absolute inset-0 overflow-hidden">
-            {curatedTreasures.map((treasure, i) => {
-              const heroImg = getCuratedHeroImage(treasure.pubkey, treasure.dTag);
-              const img = heroImg || treasure.images?.[0];
-              if (!img) return null;
-              return (
-                <div
-                  key={treasure.id}
-                  className="absolute inset-0"
-                  style={{
-                    opacity: i === heroTreasureIndex ? 1 : 0,
-                    transition: 'opacity 3000ms ease-in-out',
-                  }}
-                >
-                  <img
-                    src={img}
-                    alt={treasure.name}
-                    className={`absolute inset-0 w-full h-full object-cover object-top hero-pan-${i % 2 === 0 ? 'right' : 'left'}`}
-                    loading={i < 2 ? 'eager' : 'lazy'}
-                  />
-                </div>
-              );
-            })}
+            {CURATED_HERO_IMAGES.map((src, i) => (
+              <div
+                key={src}
+                className="absolute inset-0"
+                style={{
+                  opacity: i === heroTreasureIndex ? 1 : 0,
+                  transition: 'opacity 3000ms ease-in-out',
+                }}
+              >
+                <img
+                  src={src}
+                  alt={curatedTreasures?.[i]?.name || ''}
+                  className={`absolute inset-0 w-full h-full object-cover object-top hero-pan-${i % 2 === 0 ? 'right' : 'left'}`}
+                  loading={i < 2 ? 'eager' : 'lazy'}
+                />
+              </div>
+            ))}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/40" />
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.3 }}>
               <filter id="hero-grain-curated">
@@ -236,8 +230,6 @@ export default function Home() {
               <rect width="100%" height="100%" filter="url(#hero-grain-curated)" />
             </svg>
           </div>
-        ) : (
-          <HeroGallery />
         )}
 
         {/* Decorative overlay — simplified on mobile, full on desktop */}

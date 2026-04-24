@@ -64,6 +64,9 @@ export function getCuratedHeroImage(pubkey: string, dTag: string): string | unde
   return HERO_IMAGE_MAP.get(`${pubkey}:${dTag}`);
 }
 
+/** Static list of pre-built curated hero image paths, in curated order. */
+export const CURATED_HERO_IMAGES = DECODED_CURATED.map((_, i) => `/hero/curated-${i}.webp`);
+
 /**
  * Fetches a hand-curated set of treasures for the homepage showcase.
  * Groups queries by pubkey for efficiency.
