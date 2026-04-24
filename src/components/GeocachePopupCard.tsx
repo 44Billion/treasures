@@ -98,10 +98,10 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
   };
 
   return (
-    <div className="w-[min(340px,calc(100vw-4rem))] overflow-hidden">
+    <div className="w-[min(280px,calc(100vw-4rem))] sm:w-[min(340px,calc(100vw-4rem))] overflow-hidden">
       {/* Hero image */}
       {hasImages ? (
-        <div className="relative w-full h-36 bg-muted overflow-hidden">
+        <div className="relative w-full h-28 sm:h-36 bg-muted overflow-hidden">
           <img
             src={geocache.images![0]}
             alt={geocache.name}
@@ -114,22 +114,22 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
           )}
         </div>
       ) : (
-        <div className="h-16 w-full bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
-          <MapPin className="h-6 w-6 text-muted-foreground/20" />
+        <div className="h-12 sm:h-16 w-full bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
+          <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground/20" />
         </div>
       )}
 
       {/* Content */}
-      <div className="p-3 space-y-2.5">
+      <div className="p-2 sm:p-3 space-y-2 sm:space-y-2.5">
         {/* Title + badges */}
         <div>
           <h3
-            className="font-semibold text-sm leading-snug cursor-pointer hover:text-primary transition-colors"
+            className="font-semibold text-xs sm:text-sm leading-snug cursor-pointer hover:text-primary transition-colors"
             onClick={handleViewFullDetails}
           >
             {geocache.name}
           </h3>
-          <div className="flex items-center gap-1 mt-1 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1 mt-1 text-[10px] sm:text-[11px] text-muted-foreground">
             <span className="font-medium bg-muted rounded px-1 py-px">D{geocache.difficulty}</span>
             <span className="font-medium bg-muted rounded px-1 py-px">T{geocache.terrain}</span>
             <span className="mx-0.5">·</span>
@@ -222,20 +222,20 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
 
         {/* Actions — hidden in compact mode */}
         {!compact && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <Button
               size="icon"
-              className="flex-1 h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex-1 h-7 sm:h-8 text-[10px] sm:text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={handleViewFullDetails}
             >
               {t('geocacheDialog.actions.viewFullDetails')}
-              <ChevronRight className="h-3.5 w-3.5 ml-0.5 -mr-1" />
+              <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 ml-0.5 -mr-1" />
             </Button>
 
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
+              className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
               onClick={() => {
                 window.open(
                   `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
@@ -244,26 +244,26 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
               }}
               title={t('cacheDetail.details.getDirections')}
             >
-              <Navigation className="h-3.5 w-3.5" />
+              <Navigation className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </Button>
 
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
+              className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
               onClick={handleSaveToggle}
               title={saved ? t('geocacheDialog.actions.removeFromSaved') : t('geocacheDialog.actions.saveForLater')}
             >
               {saved ? (
-                <BookmarkCheck className="h-3.5 w-3.5" />
+                <BookmarkCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               ) : (
-                <Bookmark className="h-3.5 w-3.5" />
+                <Bookmark className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               )}
             </Button>
 
             <ZapButton
               target={geocache}
-              className="h-8 w-8 p-0 flex-shrink-0 border-amber-200 text-amber-500 hover:bg-amber-50 hover:text-amber-600 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950 dark:hover:text-amber-300"
+              className="h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0 border-amber-200 text-amber-500 hover:bg-amber-50 hover:text-amber-600 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950 dark:hover:text-amber-300"
             />
           </div>
         )}
