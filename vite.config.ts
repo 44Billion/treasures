@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
     // https: false, // Set to true for production testing
   },
   build: {
+    target: 'esnext',
     // Enable source maps for better debugging
     sourcemap: false, // Disable in production for smaller builds
     // Optimize dependencies
@@ -163,5 +164,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },
 }));

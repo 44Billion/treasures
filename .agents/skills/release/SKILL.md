@@ -1,0 +1,288 @@
+---
+name: release
+description: Publish a new app release with versioning, changelog, native build files, and git tagging. Triggered by "publish a new release" or similar requests.
+---
+
+# Release Skill
+
+This skill guides you through publishing a new release of the app. It handles version bumping, changelog generation, native build file updates, and git tagging/pushing.
+
+## Overview
+
+- **Version format**: Marketing version (X.Y.Z), starting from 2.0.0. **This is NOT semver.** Version numbers are chosen based on how the release looks to end users, not based on API compatibility or breaking changes. Think of it like an app store version -- the number reflects the perceived significance of the update to a regular user.
+- **Version source of truth**: `package.json` `version` field
+- **Changelog**: `CHANGELOG.md` in repo root, using [Keep a Changelog](https://keepachangelog.com/) format
+- **Version bumping**:
+  - **Patch (Z)**: Most releases. Bug fixes, tweaks, internal improvements, anything a user wouldn't specifically notice or seek out.
+  - **Minor (Y)**: Releases with headline features -- things worth announcing. A user should be able to look at the minor bump and think "oh, something new happened."
+  - **Major (X)**: Only when the user explicitly requests it (milestones, rebrands, major redesigns)
+- **CI trigger**: Pushing a version tag (`v2.1.0`) triggers the CI pipeline to build APKs, create a GitLab release, and publish to Zapstore
+
+## Release Procedure
+
+Follow these steps in order. Do NOT skip any step.
+
+### Step 1: Required Reading
+
+Before writing any release notes, you MUST read these pages to understand the product context, voice, and values:
+
+1. **https://treasures.to/** -- Treasures landing page and product overview
+
+These pages define what Treasures is, how it's positioned, and the tone of voice to use. Changelog entries should reflect this identity: adventurous, outdoorsy, user-focused, emphasizing freedom and exploration. Avoid dry technical jargon -- write for people who use the app, not developers.
+
+### Step 2: Pre-flight Checks
+
+```bash
+# Ensure working directory is clean
+git status
+
+# Ensure we're on main branch
+git branch --show-current
+
+# Run the full test suite
+npm run test
+```
+
+- If the working directory has uncommitted changes, ask the user whether to commit them first or abort.
+- If not on `main`, warn the user and ask whether to proceed.
+- If tests fail, stop and fix the issues before continuing.
+
+### Step 3: Determine What Changed
+
+```bash
+# Get the current version from package.json
+node -p "require('./package.json').version"
+
+# Get commits since the last version tag
+git log v$(node -p "require('./package.json').version")..HEAD --oneline
+```
+
+- If there are no commits since the last tag, inform the user there is nothing to release and stop.
+- Review the commit list to understand the scope of changes.
+
+### Step 4: Decide the Version Bump
+
+Analyze the commits from Step 3 and determine the appropriate bump level:
+
+| Bump | When to use | Example |
+|------|-------------|---------|
+| **Patch** | Bug fixes, minor tweaks, dependency updates, small UI polish, internal tooling, developer-facing pages, CI/build changes, settings/admin screens | 2.0.0 -> 2.0.1 |
+| **Minor** | Significant new product features that change how users interact with the app -- the kind of thing you'd highlight in an app store update or announce on social media (e.g., new content type support, compass redesign, new social features, theme system overhaul) | 2.0.1 -> 2.1.0 |
+| **Major** | ONLY when the user explicitly requests it (milestones, rebrands, major redesigns) | 2.1.0 -> 3.0.0 |
+
+**Default to patch** when in doubt. The bar for a minor bump is high -- ask yourself: "Would a regular user notice and care about this change?" If the answer is no, it's a patch. Internal pages (changelog, settings, about screens), infrastructure improvements, CI fixes, and developer tooling are always patch-level regardless of whether they technically add a new page or screen.
+
+When bumping minor, reset patch to 0 (e.g., 2.0.3 -> 2.1.0).
+When bumping major, reset minor and patch to 0 (e.g., 2.3.1 -> 3.0.0).
+
+### Step 5: Write the Changelog Entry
+
+Prepend a new section to `CHANGELOG.md` directly below the `# Changelog` heading.
+
+**Format:**
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- Description of new features
+
+### Changed
+- Description of changes to existing features
+
+### Fixed
+- Description of bug fixes
+
+### Removed
+- Description of removed features
+```
+
+#### Changelog Quality Checklist
+
+Before drafting any entries, run through this checklist. It is NOT optional -- skipping steps here is the most common way a release goes out with misleading notes.
+
+##### 5.1. Diff the code, not just the commit log
+
+Commit messages describe intent at the moment of commit; they over- and under-represent the cumulative effect at release time. Before drafting entries, **run a real diff** for each area of substantial change:
+
+```bash
+# Full diff between tags
+git diff v<prev>..HEAD
+
+# Or narrowed to an area you're unsure about
+git diff v<prev>..HEAD -- src/components/ComposeBox.tsx
+```
+
+Only the diff reveals intra-release churn (commits that cancel each other out, bugs introduced and then fixed, refactors that land and get reverted). Reading commit messages alone is insufficient.
+
+##### 5.2. Trace every candidate "Fixed" entry to its origin commit
+
+For each bug fix you're considering listing, find the commit that introduced the bug.
+
+**Fast path -- check for `Regression-of:` trailers**. If the fix commit declares its origin in a trailer, you don't need to hunt:
+
+```bash
+# List all commits in the release window with their Regression-of trailers (if any)
+git log v<prev>..HEAD --no-merges \
+  --format='%h %s%n  Regression-of: %(trailers:key=Regression-of,valueonly,separator=%x20)'
+```
+
+For each `Regression-of: <sha>` entry, check whether `<sha>` is also in the release window:
+
+```bash
+# Returns 0 if <sha> is BEFORE v<prev> (pre-existing bug -> legit "Fixed" entry)
+# Returns non-zero if <sha> is AFTER v<prev> (intra-release -> omit from "Fixed")
+git merge-base --is-ancestor <sha> v<prev>
+```
+
+**Fallback -- manual tracing** (when no trailer is present):
+
+```bash
+# Show the history of a file across all commits
+git log --oneline v<prev>..HEAD -- path/to/file.tsx
+
+# Or blame the specific lines the fix touched
+git blame -L <start>,<end> -- path/to/file.tsx
+```
+
+**If the introducing commit is also in this release window (i.e. after the previous tag), the bug is intra-release.** The user on the previous version never experienced it. Do NOT list it as a "Fixed" entry. Fold it into the relevant "Added" or "Changed" entry, or omit it entirely.
+
+##### 5.3. The "Would a user on the previous version notice this?" test
+
+The changelog describes the delta between the previous release and this one **from the user's perspective** -- not the development history. Before writing each entry, ask:
+
+> "Did a user on the previous published version experience this exact thing?"
+
+- If they experienced a broken state that is now fixed: **"Fixed" entry**
+- If they experienced the old behavior and now see new behavior: **"Changed" or "Added" entry**
+- If they never saw either state (introduced AND resolved within this release window): **omit entirely**
+
+This applies to more than just bugs:
+- A feature added and then reverted in the same release: omit both
+- A refactor that was done and then undone: omit both
+- A performance regression introduced and then fixed: omit both
+- A typo introduced in a new string and then corrected: mention the new string (if user-facing) as a single "Added"/"Changed" entry, with no "Fixed" entry
+
+##### 5.4. Worked example -- intra-release bug
+
+> **Scenario:** Commit A overhauls the compass and, as a side effect, breaks the radar animation. Commit B, later in the same release window, restores the animation.
+>
+> **Correct changelog:** One "Added" entry describing the compass overhaul. The radar animation is part of the finished state the user receives.
+>
+> **Incorrect changelog:** An "Added" entry for the overhaul AND a "Fixed" entry for the radar animation. The user on the previous version never saw the broken animation; listing it invents a problem they didn't have and makes the release notes read like a developer changelog.
+
+#### Rules
+
+- Only include categories that have entries (omit empty categories)
+- Write **user-facing descriptions**, not raw commit messages
+- Keep descriptions concise -- one line per change
+- Group related commits into single entries where appropriate
+- Use present tense ("Add dark mode toggle", not "Added dark mode toggle")
+- Focus on what the user sees/experiences, not internal implementation details
+- Use the current date in YYYY-MM-DD format
+- **Never use Nostr protocol jargon.** NIP numbers (e.g., "NIP-89", "NIP-17"), kind numbers (e.g., "kind 30078"), and other protocol-level references must not appear in the changelog. Describe the feature in plain language from the user's perspective. For example, write "Profile search" instead of "NIP-50 profile search". The changelog audience is end users, not protocol developers.
+- **Only ship what the user sees.** If a bug was introduced AND fixed within this release, the user never saw it -- omit the fix entirely (or fold the net result into the relevant Added/Changed entry). The same applies to features that were added and reverted, refactors that cancel out, and any other intra-release churn. See the Changelog Quality Checklist above (especially 5.2 and 5.3) for the procedure to verify this.
+- **Collapse related work into one entry.** If a feature was added and then tweaked across multiple commits in the same release, present the finished result as a single "Added" entry. Never list something as "Added" and then also list fixes for that same thing -- the user sees the end product, not the development history.
+- **Omit purely internal changes.** CI fixes, build pipeline tweaks, developer tooling, and infrastructure changes should be omitted from the changelog entirely unless they have a direct, visible impact on the user experience. The changelog is for users, not developers.
+
+### Step 6: Update Version in All Files
+
+Update the version string in these files:
+
+#### 6a. `package.json`
+
+Update the `version` field:
+
+```json
+"version": "X.Y.Z"
+```
+
+#### 6b. `android/app/build.gradle`
+
+Update `versionName`. Do NOT change `versionCode` -- that is managed by CI:
+
+```groovy
+versionName "X.Y.Z"
+```
+
+### Step 7: Pull Latest Changes
+
+Before committing the release, pull the latest changes from the remote to ensure the release commit sits on top of the latest code. This **must** happen before committing and tagging.
+
+```bash
+git pull origin main
+```
+
+**CRITICAL**: Always use `git pull` (merge), NEVER `git pull --rebase`. Rebasing rewrites commit hashes, which would orphan any tag pointing to the original commit. Since version tags are often protected on the remote and cannot be deleted or updated, a broken tag cannot be easily fixed.
+
+If there are merge conflicts with the pulled changes, resolve them before proceeding.
+
+### Step 8: Commit the Release
+
+```bash
+git add package.json CHANGELOG.md android/app/build.gradle
+git commit -m "release: vX.Y.Z"
+```
+
+### Step 9: Tag the Release
+
+```bash
+git tag vX.Y.Z
+```
+
+The tag format is `v` followed by the version with no suffix. Examples: `v2.0.0`, `v2.1.0`, `v2.1.1`.
+
+### Step 10: Push
+
+```bash
+git push origin main vX.Y.Z
+```
+
+**CRITICAL**: Push only the specific tag being released. NEVER use `--tags` -- that pushes ALL local tags, including stale or deleted ones.
+
+This triggers the GitLab CI pipeline which will:
+1. Build a signed Android APK and AAB
+2. Create a GitLab Release with download links
+3. Publish the APK to Zapstore
+
+### Step 11: Confirm
+
+After pushing, inform the user:
+- The new version number
+- A brief summary of what was released
+- That CI will handle building and publishing the artifacts
+
+## File Reference
+
+| File | What to update | Notes |
+|------|---------------|-------|
+| `package.json` | `version` field | Source of truth for the version |
+| `CHANGELOG.md` | Prepend new section | User-facing changelog |
+| `android/app/build.gradle` | `versionName` | `versionCode` is managed by CI |
+
+## CI Pipeline
+
+The CI pipeline (`.gitlab-ci.yml`) is triggered by tags matching the pattern `/^v\d+\.\d+\.\d+$/` (e.g., `v2.1.0`). It runs three jobs:
+
+1. **build-apk**: Builds signed Android APK and AAB, stamps `versionName` and `versionCode` into the build
+2. **release**: Creates a GitLab Release with download links
+3. **publish-zapstore**: Publishes the APK to Zapstore
+
+## Troubleshooting
+
+### "Nothing to release"
+If `git log` shows no commits since the last tag, there genuinely is nothing to release.
+
+### Tests fail
+Fix the failing tests before proceeding. The release must not contain broken code.
+
+### Wrong version bumped
+If you tagged the wrong version and haven't pushed yet:
+```bash
+git tag -d vX.Y.Z          # delete the local tag
+git reset --soft HEAD~1     # undo the commit but keep changes staged
+```
+Then redo steps 4-9 with the correct version.
+
+### Already pushed a bad release
+This requires manual intervention. Inform the user and suggest they delete the tag and release from GitLab manually, then re-run the release process.

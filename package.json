@@ -14,10 +14,15 @@
     "create-og-image": "node scripts/create-og-image.js",
     "fetch-hero-images": "node scripts/fetch-hero-images.js",
     "check-translations": "node scripts/check-translations.js",
+    "cap:sync": "npx cap sync",
+    "keygen": "keytool -genkey -v -keystore android/app/my-upload-key.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000",
     "analyze": "npm run build && npx vite-bundle-analyzer dist",
     "build:analyze": "npm i && vite build --mode analyze && cp dist/index.html dist/404.html"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/keyboard": "^8.0.3",
     "@fontsource/pirata-one": "^5.2.8",
     "@getalby/sdk": "^5.1.2",
     "@hookform/resolvers": "^3.10.0",
@@ -79,6 +84,8 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
     "@eslint/js": "^9.39.4",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.9.1",

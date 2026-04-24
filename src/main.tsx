@@ -10,6 +10,43 @@ import './styles/adventure.css'
 // Validate React is properly loaded before proceeding
 validateReactAvailability();
 
+// ─── Native status bar theming (Android APK / iOS) ───────────────────────────
+// Keeps the OS top chrome in sync with the active app theme.
+// Runs before React so the very first paint matches the persisted theme.
+// Uses a MutationObserver so it reacts to all subsequent theme changes.
+import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
+
+if (Capacitor.isNativePlatform()) {
+  // Hide the iOS keyboard accessory bar (prev/next/done toolbar above the keyboard).
+  if (Capacitor.getPlatform() === 'ios') {
+    import('@capacitor/keyboard').then(({ Keyboard }) => {
+      Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
+    }).catch(() => {});
+  }
+
+  /**
+   * Sync the native system bar icon style with the active CSS theme.
+   *
+   * SystemBarsStyle.Dark  = light/white icons (use on dark backgrounds)
+   * SystemBarsStyle.Light = dark/black icons  (use on light backgrounds)
+   */
+  function updateStatusBar() {
+    const isDark = document.documentElement.classList.contains('dark');
+    SystemBars.setStyle({ style: isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {});
+  }
+
+  // Apply immediately
+  updateStatusBar();
+
+  // Re-apply whenever the theme class changes on <html>
+  const classObserver = new MutationObserver(() => updateStatusBar());
+  classObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Ensure React is properly loaded before creating the app
 const rootElement = document.getElementById("root");
 if (!rootElement) {

@@ -21,3 +21,24 @@ dist-ssr
 *.sln
 *.sw?
 .ai-history
+
+# Android (Capacitor)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/src/main/assets/public
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/src/main/res/xml/config.xml
+android/capacitor-cordova-android-plugins
+*.apk
+*.aab
+*.jks
+*.keystore
+android/key.properties
+
+# iOS (Capacitor)
+ios/App/App/public
+ios/App/App/capacitor.config.json
+ios/App/Pods
