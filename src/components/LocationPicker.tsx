@@ -10,7 +10,7 @@ import { MAP_STYLES } from "@/config/mapStyles";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { useTheme } from "@/hooks/useTheme";
-import { autocorrectCoordinates, parseCoordinate, formatCoordinateForInput } from "@/utils/coordinates";
+import { autocorrectCoordinates, formatCoordinateForInput, parseCoordinateString, CoordinateParseResult } from "@/utils/coordinates";
 import { mapIcons } from "@/utils/mapIcons";
 import { createRoot } from "react-dom/client";
 
@@ -412,10 +412,10 @@ function NearMeControl({
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const { theme, systemTheme } = useTheme();
   const { location: initialLocation } = useInitialLocation();
-  const [manualCoords, setManualCoords] = useState({
-    lat: value?.lat?.toString() || "",
-    lng: value?.lng?.toString() || "",
-  });
+  const [coordInput, setCoordInput] = useState(
+    value ? `${value.lat}, ${value.lng}` : ""
+  );
+  const [coordParseResult, setCoordParseResult] = useState<CoordinateParseResult | string | null>(null);
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([initialLocation.lat, initialLocation.lng]);
   const [beaconLocation, setBeaconLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pinDropped, setPinDropped] = useState(false);
@@ -495,12 +495,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   useEffect(() => {
     if (value) {
-      // Only update manual coords if they haven't been manually modified
+      // Only update coord input if it hasn't been manually modified
       if (!manualCoordsModified) {
-        setManualCoords({
-          lat: formatCoordinateForInput(value.lat, true),
-          lng: formatCoordinateForInput(value.lng, true),
-        });
+        setCoordInput(`${formatCoordinateForInput(value.lat, true)}, ${formatCoordinateForInput(value.lng, true)}`);
+        setCoordParseResult(null);
       }
 
       // Only update map center if pin wasn't just dropped
@@ -525,10 +523,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       // Set beacon location for current location
       setBeaconLocation(location);
       setMapCenter([lat, lng]);
-      setManualCoords({
-        lat: formatCoordinateForInput(lat, true),
-        lng: formatCoordinateForInput(lng, true)
-      });
+      setCoordInput(`${formatCoordinateForInput(lat, true)}, ${formatCoordinateForInput(lng, true)}`);
+      setCoordParseResult(null);
       setManualCoordsModified(false);
 
       // If no pin has been set yet, automatically set it at current location
@@ -542,28 +538,79 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     getLocation();
   };
 
-  const handleManualInput = () => {
-    const inputLat = parseCoordinate(manualCoords.lat);
-    const inputLng = parseCoordinate(manualCoords.lng);
+  const handleCoordInputChange = (newValue: string) => {
+    setManualCoordsModified(true);
+    setCoordInput(newValue);
 
-    if (isNaN(inputLat) || isNaN(inputLng)) {
-      alert("Please enter valid coordinates. Examples: 40.7128, -74.0060 or 40, -74");
+    if (!newValue.trim()) {
+      setCoordParseResult(null);
       return;
     }
 
-    // Validate coordinate ranges
-    if (Math.abs(inputLat) > 90 || Math.abs(inputLng) > 180) {
-      alert("Coordinates out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180.");
-      return;
-    }
+    const result = parseCoordinateString(newValue);
+    setCoordParseResult(result);
+  };
 
-    // Use coordinates as-is (no autocorrection)
-    const { lat, lng } = autocorrectCoordinates(inputLat, inputLng);
-
+  const applyParsedCoordinates = (result: CoordinateParseResult) => {
+    const { lat, lng } = autocorrectCoordinates(result.lat, result.lng);
     const location = { lat, lng };
-    setManualCoordsModified(false); // Reset modification flag
+    setManualCoordsModified(false);
+    setCoordParseResult(null);
+    setCoordInput(`${formatCoordinateForInput(lat, true)}, ${formatCoordinateForInput(lng, true)}`);
     onChange(location);
     setMapCenter([lat, lng]);
+  };
+
+  const handleManualInput = () => {
+    const result = parseCoordinateString(coordInput);
+    if (typeof result === 'string') {
+      // It's an error string — set it so the UI shows it
+      setCoordParseResult(result);
+      return;
+    }
+    // It's a valid parse (possibly with a warning)
+    if (result.possibleSwap) {
+      // Don't auto-apply swapped coords — let user confirm
+      setCoordParseResult(result);
+      return;
+    }
+    applyParsedCoordinates(result);
+  };
+
+  const handleSwapCoordinates = () => {
+    if (coordParseResult && typeof coordParseResult !== 'string' && coordParseResult.possibleSwap) {
+      const swapped: CoordinateParseResult = {
+        ...coordParseResult,
+        lat: coordParseResult.lng,
+        lng: coordParseResult.lat,
+        warning: undefined,
+        possibleSwap: false,
+      };
+      applyParsedCoordinates(swapped);
+    }
+  };
+
+  const handleCoordPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData('text');
+    if (!pasted.trim()) return;
+
+    // Parse the pasted value immediately
+    const result = parseCoordinateString(pasted.trim());
+    if (typeof result !== 'string' && !result.possibleSwap && !result.warning) {
+      // Valid, clean result — auto-apply after a short delay to let the input update
+      e.preventDefault();
+      setCoordInput(pasted.trim());
+      setCoordParseResult(result);
+      applyParsedCoordinates(result);
+    }
+    // Otherwise let normal typing flow handle it (the onChange will parse it)
+  };
+
+  const handleCoordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleManualInput();
+    }
   };
 
   const handleLocationSearch = (location: { lat: number; lng: number; name: string }) => {
@@ -574,11 +621,9 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     // Set beacon location for searched location
     setBeaconLocation(newLocation);
     setMapCenter([lat, lng]);
-    // Update manual coords and reset modification flag
-    setManualCoords({
-      lat: formatCoordinateForInput(lat, true),
-      lng: formatCoordinateForInput(lng, true)
-    });
+    // Update coord input and reset modification flag
+    setCoordInput(`${formatCoordinateForInput(lat, true)}, ${formatCoordinateForInput(lng, true)}`);
+    setCoordParseResult(null);
     setManualCoordsModified(false);
 
     // Don't automatically set the cache location - user must click on map
@@ -645,9 +690,9 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       <div className="space-y-4">
         <details className="group">
           <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-center">
-            Manual Coordinates
+            Enter coordinates manually
           </summary>
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-2">
             {/* Selected location display */}
             {value && (
               <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
@@ -660,41 +705,77 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:underline inline-block mt-1"
                 >
-                  View on OpenStreetMap →
+                  View on OpenStreetMap &rarr;
                 </a>
               </div>
             )}
 
+            {/* Single coordinate input */}
+            <Input
+              type="text"
+              placeholder="Paste coordinates, e.g. 40.7128, -74.0060"
+              value={coordInput}
+              onChange={(e) => handleCoordInputChange(e.target.value)}
+              onPaste={handleCoordPaste}
+              onKeyDown={handleCoordKeyDown}
+              className="text-sm font-mono"
+              autoComplete="off"
+              spellCheck={false}
+            />
+
+            {/* Live parse feedback */}
+            {coordParseResult && (
+              <div className="text-xs space-y-1">
+                {typeof coordParseResult === 'string' ? (
+                  /* Error message */
+                  <p className="text-destructive">{coordParseResult}</p>
+                ) : coordParseResult.possibleSwap ? (
+                  /* Swap suggestion */
+                  <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-md p-2 space-y-1.5">
+                    <p className="text-yellow-700 dark:text-yellow-400 font-medium">
+                      {coordParseResult.warning}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Parsed: {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs h-7"
+                      onClick={handleSwapCoordinates}
+                    >
+                      Swap to {coordParseResult.lng.toFixed(5)}, {coordParseResult.lat.toFixed(5)}
+                    </Button>
+                  </div>
+                ) : coordParseResult.warning ? (
+                  /* Warning (still usable) */
+                  <div className="space-y-1">
+                    <p className="text-yellow-600 dark:text-yellow-400">{coordParseResult.warning}</p>
+                    <p className="text-muted-foreground">
+                      Detected: <span className="text-foreground font-medium">{coordParseResult.format}</span>
+                      {' '}&rarr; {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
+                    </p>
+                  </div>
+                ) : (
+                  /* Clean parse */
+                  <p className="text-green-600 dark:text-green-400">
+                    {coordParseResult.format}: {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Format help */}
             <p className="text-xs text-muted-foreground">
-              Accepts formats like: 40.7128, -74.0060
+              Accepts: decimal, DMS, direction-suffixed, or Google Maps URLs
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Input
-                type="text"
-                placeholder="Latitude"
-                value={manualCoords.lat}
-                onChange={(e) => {
-                  setManualCoordsModified(true);
-                  setManualCoords({ ...manualCoords, lat: e.target.value });
-                }}
-                className="text-sm"
-              />
-              <Input
-                type="text"
-                placeholder="Longitude"
-                value={manualCoords.lng}
-                onChange={(e) => {
-                  setManualCoordsModified(true);
-                  setManualCoords({ ...manualCoords, lng: e.target.value });
-                }}
-                className="text-sm"
-              />
-            </div>
+
             <Button
               type="button"
               variant="secondary"
               onClick={handleManualInput}
-              disabled={!manualCoords.lat || !manualCoords.lng}
+              disabled={!coordInput.trim() || typeof coordParseResult === 'string'}
               className="w-full"
               size="sm"
             >
