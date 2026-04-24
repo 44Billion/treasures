@@ -45,6 +45,7 @@
   "navigation.texasRenFest": "Texas Ren Fest",
   "navigation.toggleMenu": "メニューを切り替え",
   "navigation.walletSettings": "ウォレット設定",
+  "profileSearch.placeholder": "名前で検索またはnpubを貼り付け...",
   "profile.browseMore": "さらに宝物を閲覧",
   "profile.clipboard.copied": "コピーしました！",
   "profile.clipboard.copiedDescription": "{{field}}をクリップボードにコピーしました",
