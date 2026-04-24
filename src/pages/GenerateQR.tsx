@@ -36,11 +36,11 @@ const customConfig: Config = {
 
 type QrStyle = "full" | "cutout" | "micro" | "sheet" | "stamp";
 
-const QR_STYLES: { value: QrStyle; label: string; description: string }[] = [
-  { value: "full", label: "Full", description: "Standard size with branding" },
-  { value: "cutout", label: "Cutout", description: "Center cutout for custom labels" },
-  { value: "micro", label: "Micro", description: "Compact — fits in small containers" },
-  { value: "sheet", label: "Sheet (9)", description: "Print 9 at once for multiple hides" },
+const QR_STYLES: { value: QrStyle; labelKey: string; descriptionKey: string }[] = [
+  { value: "full", labelKey: "generateQR.styleLabels.full", descriptionKey: "generateQR.styleDescriptions.full" },
+  { value: "cutout", labelKey: "generateQR.styleLabels.cutout", descriptionKey: "generateQR.styleDescriptions.cutout" },
+  { value: "micro", labelKey: "generateQR.styleLabels.micro", descriptionKey: "generateQR.styleDescriptions.micro" },
+  { value: "sheet", labelKey: "generateQR.styleLabels.sheet", descriptionKey: "generateQR.styleDescriptions.sheet" },
 ];
 
 export default function GenerateQR() {
@@ -304,7 +304,7 @@ export default function GenerateQR() {
 
             {/* 2. Style pills with overflow menu */}
             <div className="mb-5">
-              <p className="text-xs text-muted-foreground mb-2 text-center">Style</p>
+              <p className="text-xs text-muted-foreground mb-2 text-center">{t('generateQR.styleLabel')}</p>
               <div className="flex flex-wrap gap-1.5 justify-center items-center">
                 {QR_STYLES.map((style) => (
                   <button
@@ -317,7 +317,7 @@ export default function GenerateQR() {
                         : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
                     }`}
                   >
-                    {style.label}
+                    {t(style.labelKey)}
                   </button>
                 ))}
                 {/* Overflow menu for less common options */}
@@ -336,7 +336,7 @@ export default function GenerateQR() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setQrType("stamp")}>
-                      Stamp (42) — bulk print grid
+                      {t('generateQR.styleLabels.stamp')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -344,8 +344,8 @@ export default function GenerateQR() {
               {/* Description of selected style */}
               <p className="text-[11px] text-muted-foreground text-center mt-1.5">
                 {qrType === 'stamp'
-                  ? '6×7 grid for bulk hiding'
-                  : QR_STYLES.find(s => s.value === qrType)?.description}
+                  ? t('generateQR.styleDescriptions.stamp')
+                  : (() => { const style = QR_STYLES.find(s => s.value === qrType); return style ? t(style.descriptionKey) : ''; })()}
               </p>
             </div>
 

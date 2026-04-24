@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useNostrLogin } from '@nostrify/react/login';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
@@ -7,6 +8,7 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 const LOGINS_STORAGE_KEY = 'nostr:login';
 
 export function RemoteLoginSuccess() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { logins } = useNostrLogin();
   const [checkCount, setCheckCount] = useState(0);
@@ -83,31 +85,31 @@ export function RemoteLoginSuccess() {
         {status === 'checking' && (
           <>
             <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Completing Login...</h1>
-            <p className="text-muted-foreground">Please wait while we verify your session.</p>
+            <h1 className="text-2xl font-bold mb-2">{t('remoteLogin.completing')}</h1>
+            <p className="text-muted-foreground">{t('remoteLogin.verifying')}</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Login Successful!</h1>
-            <p className="text-muted-foreground">Redirecting you now...</p>
+            <h1 className="text-2xl font-bold mb-2">{t('remoteLogin.success')}</h1>
+            <p className="text-muted-foreground">{t('remoteLogin.redirecting')}</p>
           </>
         )}
 
         {status === 'timeout' && (
           <>
             <XCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Session Not Found</h1>
+            <h1 className="text-2xl font-bold mb-2">{t('remoteLogin.timeout')}</h1>
             <p className="text-muted-foreground mb-4">
-              We couldn't detect an active login session.
+              {t('remoteLogin.timeoutDescription')}
             </p>
             <a
               href="/"
               className="text-primary hover:underline"
             >
-              Return to home page
+              {t('remoteLogin.returnHome')}
             </a>
           </>
         )}

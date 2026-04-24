@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { MapPinned, FileText, ListChecks, Eye, Check, ChevronLeft, ChevronRight, X, MapPin, Compass, Image as ImageIcon, Sword, Map, Moon, Satellite } from "lucide-react";
@@ -29,11 +30,13 @@ import type { Geocache } from "@/types/geocache";
 import type { AdventureTheme, AdventureMapStyle } from "@/types/adventure";
 
 // Step configuration — mirrors CreateCache pattern
+const STEP_KEYS = ['createAdventure.stepDetails', 'createAdventure.stepLocation', 'createAdventure.stepTreasures', 'createAdventure.stepReview'] as const;
+
 const STEPS = [
-  { number: 1, label: "Details", icon: FileText },
-  { number: 2, label: "Location", icon: MapPinned },
-  { number: 3, label: "Treasures", icon: ListChecks },
-  { number: 4, label: "Review", icon: Eye },
+  { number: 1, labelKey: STEP_KEYS[0], icon: FileText },
+  { number: 2, labelKey: STEP_KEYS[1], icon: MapPinned },
+  { number: 3, labelKey: STEP_KEYS[2], icon: ListChecks },
+  { number: 4, labelKey: STEP_KEYS[3], icon: Eye },
 ] as const;
 
 const TOTAL_STEPS = STEPS.length;
@@ -42,6 +45,7 @@ const DEFAULT_RADIUS_KM = 5;
 const MAX_RADIUS_KM = 100;
 
 export default function CreateAdventure() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { naddr } = useParams<{ naddr: string }>();
   const isEditMode = !!naddr;
@@ -175,8 +179,8 @@ export default function CreateAdventure() {
       }
     } catch {
       toast({
-        title: "Upload failed",
-        description: "Could not upload image. Please try again.",
+        title: t('createAdventure.uploadFailed'),
+        description: t('createAdventure.uploadFailedDescription'),
         variant: "destructive",
       });
     }
@@ -189,8 +193,8 @@ export default function CreateAdventure() {
     if (currentStep === 1) {
       if (!title.trim()) {
         toast({
-          title: "Title required",
-          description: "Give your adventure a name before continuing.",
+          title: t('createAdventure.titleRequired'),
+          description: t('createAdventure.titleRequiredDescription'),
           variant: "destructive",
         });
         return;
@@ -202,16 +206,16 @@ export default function CreateAdventure() {
     if (currentStep === 2) {
       if (!location) {
         toast({
-          title: "Location required",
-          description: "Drop a pin on the map to set the adventure center.",
+          title: t('createAdventure.locationRequired'),
+          description: t('createAdventure.locationRequiredDescription'),
           variant: "destructive",
         });
         return;
       }
       if (allAvailableCaches.length === 0) {
         toast({
-          title: "No treasures found",
-          description: "Try increasing the radius or choosing a different location.",
+          title: t('createAdventure.noTreasuresFound'),
+          description: t('createAdventure.noTreasuresFoundDescription'),
           variant: "destructive",
         });
         return;
@@ -223,8 +227,8 @@ export default function CreateAdventure() {
     if (currentStep === 3) {
       if (selectedCaches.length === 0) {
         toast({
-          title: "Treasures required",
-          description: "Keep at least one treasure in your adventure.",
+          title: t('createAdventure.treasuresRequired'),
+          description: t('createAdventure.treasuresRequiredDescription'),
           variant: "destructive",
         });
         return;
@@ -265,16 +269,16 @@ export default function CreateAdventure() {
       });
 
       toast({
-        title: isEditMode ? "Adventure updated!" : "Adventure published!",
-        description: isEditMode ? "Redirecting to your adventure..." : "Redirecting to your adventure...",
+        title: isEditMode ? t('createAdventure.publishedEdit') : t('createAdventure.publishedCreate'),
+        description: t('createAdventure.publishedRedirect'),
       });
 
       navigate(`/adventure/${resultNaddr}`);
     } catch (error) {
       const errorObj = error as { message?: string };
       toast({
-        title: "Failed to publish",
-        description: errorObj.message || "Something went wrong. Please try again.",
+        title: t('createAdventure.publishFailed'),
+        description: errorObj.message || t('createAdventure.publishFailedDescription'),
         variant: "destructive",
       });
     }
@@ -285,11 +289,11 @@ export default function CreateAdventure() {
     return (
       <>
         <DesktopHeader />
-        <PageHero icon={Compass} title={isEditMode ? "Edit Adventure" : "Create Adventure"} description={isEditMode ? "Update your adventure." : "Curate a treasure hunt for the community."}>
+        <PageHero icon={Compass} title={isEditMode ? t('createAdventure.titleEdit') : t('createAdventure.titleCreate')} description={isEditMode ? t('createAdventure.descriptionEdit') : t('createAdventure.descriptionCreate')}>
           <div className="container mx-auto px-4 py-10 max-w-md">
             <LoginRequiredCard
               icon={Compass}
-              description={isEditMode ? "Please log in with Nostr to edit this adventure." : "Please log in with Nostr to create an adventure."}
+              description={isEditMode ? t('createAdventure.loginRequiredEdit') : t('createAdventure.loginRequiredCreate')}
               className="max-w-md mx-auto"
             />
           </div>
@@ -304,7 +308,7 @@ export default function CreateAdventure() {
       <>
         <DesktopHeader />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <PageLoading title="Loading adventure..." size="lg" />
+          <PageLoading title={t('createAdventure.loading')} size="lg" />
         </div>
       </>
     );
@@ -315,12 +319,12 @@ export default function CreateAdventure() {
     return (
       <>
         <DesktopHeader />
-        <PageHero icon={Compass} title="Edit Adventure" description="You can only edit your own adventures.">
+        <PageHero icon={Compass} title={t('createAdventure.notOwnerTitle')} description={t('createAdventure.notOwnerDescription')}>
           <div className="container mx-auto px-4 py-10 max-w-md">
             <div className="text-center space-y-4">
-              <p className="text-muted-foreground">This adventure belongs to another user.</p>
+              <p className="text-muted-foreground">{t('createAdventure.notOwnerMessage')}</p>
               <Button asChild variant="outline">
-                <a href={`/adventure/${naddr}`}>View Adventure</a>
+                <a href={`/adventure/${naddr}`}>{t('common.viewAdventure')}</a>
               </Button>
             </div>
           </div>
@@ -333,12 +337,12 @@ export default function CreateAdventure() {
     return (
       <>
         <DesktopHeader />
-        <PageHero icon={Compass} title="Edit Adventure" description="Adventure not found.">
+        <PageHero icon={Compass} title={t('createAdventure.notFoundTitle')} description={t('createAdventure.notFoundDescription')}>
           <div className="container mx-auto px-4 py-10 max-w-md">
             <div className="text-center space-y-4">
-              <p className="text-muted-foreground">This adventure may have been removed or the link is invalid.</p>
+              <p className="text-muted-foreground">{t('createAdventure.notFoundMessage')}</p>
               <Button asChild variant="outline">
-                <a href="/adventures">Browse Adventures</a>
+                <a href="/adventures">{t('common.browseAdventures')}</a>
               </Button>
             </div>
           </div>
@@ -348,16 +352,16 @@ export default function CreateAdventure() {
   }
 
   const stepDescriptions = [
-    "Name your adventure and add a description.",
-    "Set the center and radius to find nearby treasures.",
-    "Review the treasures included in your adventure.",
-    isEditMode ? "Review everything and save." : "Review everything and publish.",
+    t('createAdventure.stepDescriptions.details'),
+    t('createAdventure.stepDescriptions.location'),
+    t('createAdventure.stepDescriptions.treasures'),
+    isEditMode ? t('createAdventure.stepDescriptions.reviewEdit') : t('createAdventure.stepDescriptions.reviewCreate'),
   ];
 
   return (
     <>
       <DesktopHeader />
-      <PageHero icon={Compass} title={isEditMode ? "Edit Adventure" : "Create Adventure"} description={stepDescriptions[currentStep - 1]}>
+      <PageHero icon={Compass} title={isEditMode ? t('createAdventure.titleEdit') : t('createAdventure.titleCreate')} description={stepDescriptions[currentStep - 1]}>
         <div className="container mx-auto px-4 max-w-2xl pb-12">
           <div className="rounded-xl border bg-card p-5 md:p-6">
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
@@ -386,7 +390,7 @@ export default function CreateAdventure() {
                               ? 'text-primary/70 hidden md:block'
                               : 'text-muted-foreground hidden md:block'
                         }`}>
-                          {step.label}
+                          {t(step.labelKey)}
                         </span>
                       </div>
                       {index < TOTAL_STEPS - 1 && (
@@ -403,41 +407,41 @@ export default function CreateAdventure() {
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="adventure-title">Title *</Label>
+                    <Label htmlFor="adventure-title">{t('createAdventure.fieldTitle')}</Label>
                     <Input
                       id="adventure-title"
                       value={title}
                       onChange={e => setTitle(e.target.value)}
-                      placeholder="Texas Ren Fest Treasure Hunt"
+                      placeholder={t('createAdventure.fieldTitlePlaceholder')}
                       maxLength={100}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="adventure-summary">Short Summary</Label>
+                    <Label htmlFor="adventure-summary">{t('createAdventure.fieldSummary')}</Label>
                     <Input
                       id="adventure-summary"
                       value={summary}
                       onChange={e => setSummary(e.target.value)}
-                      placeholder="Find all the hidden treasures at the festival!"
+                      placeholder={t('createAdventure.fieldSummaryPlaceholder')}
                       maxLength={200}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Shown on cards in the browse page.</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('createAdventure.fieldSummaryHelp')}</p>
                   </div>
 
                   <div>
-                    <Label htmlFor="adventure-description">Full Description</Label>
+                    <Label htmlFor="adventure-description">{t('createAdventure.fieldDescription')}</Label>
                     <Textarea
                       id="adventure-description"
                       value={description}
                       onChange={e => setDescription(e.target.value)}
-                      placeholder="Describe the adventure — rules, tips, what to expect..."
+                      placeholder={t('createAdventure.fieldDescriptionPlaceholder')}
                       rows={5}
                     />
                   </div>
 
                   <div>
-                    <Label>Banner Image</Label>
+                    <Label>{t('createAdventure.fieldBannerImage')}</Label>
                     {image ? (
                       <div className="relative mt-2">
                         <img src={image} alt="Banner preview" className="w-full aspect-[2/1] object-cover rounded-lg border" />
@@ -455,11 +459,11 @@ export default function CreateAdventure() {
                       <label className="mt-2 flex flex-col items-center justify-center w-full aspect-[3/1] border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           {isUploading ? (
-                            <span className="text-sm">Uploading...</span>
+                            <span className="text-sm">{t('common.uploading')}</span>
                           ) : (
                             <>
                               <ImageIcon className="h-8 w-8" />
-                              <span className="text-sm">Click to upload</span>
+                              <span className="text-sm">{t('common.clickToUpload')}</span>
                             </>
                           )}
                         </div>
@@ -476,8 +480,8 @@ export default function CreateAdventure() {
 
                   {/* Theme selector */}
                   <div>
-                    <Label>Page Theme</Label>
-                    <p className="text-xs text-muted-foreground mb-2">Default theme shown to visitors (won't override their preference).</p>
+                    <Label>{t('createAdventure.fieldPageTheme')}</Label>
+                    <p className="text-xs text-muted-foreground mb-2">{t('createAdventure.fieldPageThemeHelp')}</p>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -486,7 +490,7 @@ export default function CreateAdventure() {
                           !adventureTheme ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-muted/50'
                         }`}
                       >
-                        None
+                        {t('createAdventure.themeNone')}
                       </button>
                       <button
                         type="button"
@@ -496,22 +500,22 @@ export default function CreateAdventure() {
                         }`}
                       >
                         <Sword className="h-4 w-4" />
-                        Adventure
+                        {t('createAdventure.themeAdventure')}
                       </button>
                     </div>
                   </div>
 
                   {/* Map style selector */}
                   <div>
-                    <Label>Map Style</Label>
-                    <p className="text-xs text-muted-foreground mb-2">Default map style for the adventure page.</p>
+                    <Label>{t('createAdventure.fieldMapStyle')}</Label>
+                    <p className="text-xs text-muted-foreground mb-2">{t('createAdventure.fieldMapStyleHelp')}</p>
                     <div className="flex flex-wrap gap-2">
                       {([
-                        { key: undefined, label: 'Default', icon: null },
-                        { key: 'original' as const, label: 'Original', icon: Map },
-                        { key: 'dark' as const, label: 'Dark', icon: Moon },
-                        { key: 'satellite' as const, label: 'Satellite', icon: Satellite },
-                        { key: 'adventure' as const, label: 'Quest', icon: Sword },
+                        { key: undefined, label: t('createAdventure.mapStyleDefault'), icon: null },
+                        { key: 'original' as const, label: t('createAdventure.mapStyleOriginal'), icon: Map },
+                        { key: 'dark' as const, label: t('createAdventure.mapStyleDark'), icon: Moon },
+                        { key: 'satellite' as const, label: t('createAdventure.mapStyleSatellite'), icon: Satellite },
+                        { key: 'adventure' as const, label: t('createAdventure.mapStyleQuest'), icon: Sword },
                       ] as const).map(({ key, label, icon: Icon }) => (
                         <button
                           key={label}
@@ -539,12 +543,12 @@ export default function CreateAdventure() {
                     onGeocacheSelect={() => {}}
                     onTextSearch={() => {}}
                     geocaches={[]}
-                    placeholder="Search for a location..."
-                    mobilePlaceholder="Search location..."
+                    placeholder={t('createAdventure.searchPlaceholder')}
+                    mobilePlaceholder={t('createAdventure.searchPlaceholder')}
                   />
 
                   <p className="text-sm text-muted-foreground text-center">
-                    {location ? 'Tap the map to move the center' : 'Search above or tap the map to set the center'}
+                    {location ? t('createAdventure.tapToMove') : t('createAdventure.searchOrTap')}
                   </p>
 
                   <div className="h-96 rounded-lg overflow-hidden border">
@@ -568,7 +572,7 @@ export default function CreateAdventure() {
                   {/* Radius slider */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label>Radius</Label>
+                      <Label>{t('createAdventure.radius')}</Label>
                       <span className="text-sm font-medium text-primary">{radiusKm} km</span>
                     </div>
                     <Slider
@@ -580,7 +584,7 @@ export default function CreateAdventure() {
                     />
                     {location && (
                       <p className="text-xs text-muted-foreground">
-                        {treasuresInRadius.length} {treasuresInRadius.length === 1 ? 'treasure' : 'treasures'} found within {radiusKm} km
+                        {t('createAdventure.treasuresFoundInRadius', { count: treasuresInRadius.length, treasureWord: treasuresInRadius.length === 1 ? t('common.treasure') : t('common.treasure', { count: 2 }), radius: radiusKm })}
                       </p>
                     )}
                   </div>
@@ -599,10 +603,10 @@ export default function CreateAdventure() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      Tap a treasure to deselect it.
+                      {t('createAdventure.tapToDeselect')}
                     </p>
                     <p className="text-sm font-medium text-primary">
-                      {selectedCaches.length}/{allAvailableCaches.length} selected
+                      {selectedCaches.length}/{allAvailableCaches.length} {t('common.selected')}
                     </p>
                   </div>
 
@@ -634,7 +638,7 @@ export default function CreateAdventure() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground border rounded-lg">
-                      <p className="text-sm">No treasures in this area. Go back and adjust the radius.</p>
+                      <p className="text-sm">{t('createAdventure.noTreasuresInArea')}</p>
                     </div>
                   )}
                 </div>
@@ -644,12 +648,12 @@ export default function CreateAdventure() {
               {currentStep === 4 && (
                 <div className="space-y-4">
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Preview</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('common.preview')}</h4>
                     <div className="space-y-3">
                       {image && (
                         <img src={image} alt="Banner" className="w-full aspect-[2/1] object-cover rounded-lg" />
                       )}
-                      <h5 className="font-medium text-foreground text-lg">{title || "Your Adventure"}</h5>
+                      <h5 className="font-medium text-foreground text-lg">{title || t('createAdventure.yourAdventure')}</h5>
                       {summary && <p className="text-sm text-muted-foreground">{summary}</p>}
                       {description && <p className="text-sm whitespace-pre-wrap">{description}</p>}
                       {location && (
@@ -673,7 +677,7 @@ export default function CreateAdventure() {
                         </div>
                       )}
                       <div className="border-t pt-3">
-                        <p className="text-sm font-medium mb-2">{selectedCaches.length} Treasures:</p>
+                        <p className="text-sm font-medium mb-2">{t('createAdventure.treasureCount', { count: selectedCaches.length })}</p>
                         <ol className="space-y-1">
                           {selectedCaches.map((cache, i) => (
                             <li key={cache.id} className="text-sm text-muted-foreground">
@@ -698,7 +702,7 @@ export default function CreateAdventure() {
                       className="flex-1"
                     >
                       <ChevronLeft className="h-4 w-4 mr-1" />
-                      Back
+                      {t('common.back')}
                     </Button>
                   )}
                   <Button
@@ -706,7 +710,7 @@ export default function CreateAdventure() {
                     onClick={validateAndAdvance}
                     className="flex-1"
                   >
-                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                    {t('common.next')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               ) : (
@@ -719,7 +723,7 @@ export default function CreateAdventure() {
                       className="flex-1"
                     >
                       <ChevronLeft className="h-4 w-4 mr-1" />
-                      Back
+                      {t('common.back')}
                     </Button>
                   </div>
                   <Button
@@ -729,9 +733,9 @@ export default function CreateAdventure() {
                     className="w-full"
                   >
                     {isPending ? (
-                      isEditMode ? 'Saving...' : 'Publishing...'
+                      isEditMode ? t('common.saving') : t('common.publishing')
                     ) : (
-                      <><Check className="h-4 w-4 mr-1" /> {isEditMode ? 'Save Changes' : 'Publish Adventure'}</>
+                      <><Check className="h-4 w-4 mr-1" /> {isEditMode ? t('createAdventure.saveChanges') : t('createAdventure.publishAdventure')}</>
                     )}
                   </Button>
                 </div>

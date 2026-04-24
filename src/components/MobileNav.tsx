@@ -163,9 +163,9 @@ export function MobileHeader() {
                   </NavLink>
 
                   <NavLink
-                    to="/texas-ren-fest"
+                    to="/adventure/naddr1qvzqqqyj35pzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qq0xzerkv4h8gatjv5knzdehxcuryve4xuerjv3h94nrsmn2w3msduh0ez"
                     icon={Sparkles}
-                    isActive={location.pathname === '/texas-ren-fest'}
+                    isActive={location.pathname === '/adventure/naddr1qvzqqqyj35pzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qq0xzerkv4h8gatjv5knzdehxcuryve4xuerjv3h94nrsmn2w3msduh0ez'}
                     onClick={closeSheet}
                   >
                     {t('navigation.texasRenFest')}

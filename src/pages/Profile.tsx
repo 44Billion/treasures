@@ -453,13 +453,13 @@ export default function Profile() {
       <AlertDialog open={!!deletingDraft} onOpenChange={(open) => { if (!open) setDeletingDraft(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete draft?</AlertDialogTitle>
+            <AlertDialogTitle>{t('profile.draft.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              "{deletingDraft?.name}" will be permanently deleted. This cannot be undone.
+              {t('profile.draft.deleteDescription', { name: deletingDraft?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (!deletingDraft) return;
@@ -477,22 +477,22 @@ export default function Profile() {
                       return next;
                     });
                     toast({
-                      title: "Failed to delete draft",
-                      description: "Please try again.",
+                      title: t('profile.draft.deleteFailed'),
+                      description: t('profile.draft.deleteFailedDescription'),
                       variant: "destructive",
                     });
                   },
                   onSuccess: () => {
                     toast({
-                      title: "Draft deleted",
-                      description: `"${name}" has been removed.`,
+                      title: t('profile.draft.deleted'),
+                      description: t('profile.draft.deletedDescription', { name }),
                     });
                   },
                 });
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

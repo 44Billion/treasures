@@ -61,7 +61,7 @@ export function ExploreMenuItems({ showMapLink = true }: ExploreMenuItemsProps) 
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
-        <Link to="/texas-ren-fest">
+        <Link to="/adventure/naddr1qvzqqqyj35pzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qq0xzerkv4h8gatjv5knzdehxcuryve4xuerjv3h94nrsmn2w3msduh0ez">
           <Sparkles className="h-4 w-4 mr-2" />
           {t('navigation.texasRenFest')}
         </Link>

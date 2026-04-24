@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, RefreshCw, Settings, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,16 +34,17 @@ export function RelayErrorFallback({
   className,
   compact = false,
 }: RelayErrorFallbackProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const isError = !isEmpty && !!error;
   
   const defaultTitle = isError 
-    ? "Connection Failed"
-    : "No Treasures Found";
+    ? t('relayError.connectionFailed')
+    : t('relayError.noTreasures');
     
   const defaultDescription = isError
-    ? "Unable to connect to your relays. Check your connection or manage your relays in Settings."
-    : "No treasures were found on your relays.";
+    ? t('relayError.connectionDescription')
+    : t('relayError.noTreasuresDescription');
 
   const finalTitle = title || defaultTitle;
   const finalDescription = description || defaultDescription;
@@ -76,9 +78,9 @@ export function RelayErrorFallback({
               disabled={isRetrying}
             >
               {isRetrying ? (
-                <><RefreshCw className="h-3 w-3 mr-2 animate-spin" />Retrying...</>
+                <><RefreshCw className="h-3 w-3 mr-2 animate-spin" />{t('common.retrying')}</>
               ) : (
-                <><RefreshCw className="h-3 w-3 mr-2" />Retry</>
+                <><RefreshCw className="h-3 w-3 mr-2" />{t('common.retry')}</>
               )}
             </Button>
           )}
@@ -88,7 +90,7 @@ export function RelayErrorFallback({
             onClick={() => navigate('/settings')}
           >
             <Settings className="h-3 w-3 mr-2" />
-            Relay Settings
+            {t('relayError.relaySettings')}
           </Button>
         </div>
       </div>
@@ -135,9 +137,9 @@ export function RelayErrorFallback({
                 className="flex-1"
               >
                 {isRetrying ? (
-                  <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Retrying...</>
+                  <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />{t('common.retrying')}</>
                 ) : (
-                  <><RefreshCw className="h-4 w-4 mr-2" />Retry</>
+                  <><RefreshCw className="h-4 w-4 mr-2" />{t('common.retry')}</>
                 )}
               </Button>
             )}
@@ -147,7 +149,7 @@ export function RelayErrorFallback({
               className="flex-1"
             >
               <Settings className="h-4 w-4 mr-2" />
-              Relay Settings
+              {t('relayError.relaySettings')}
             </Button>
           </div>
         </CardContent>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Sparkles, Plus, MapPin, ChevronRight } from "lucide-react";
 import { offlineGeocode } from "@/utils/offlineGeocode";
@@ -47,7 +48,7 @@ function GothicBorder({ side, className }: { side: 'left' | 'right'; className?:
 
 // --- Featured adventure card in the hero ---
 
-function HeroFeaturedCard({ adventure, isActive }: { adventure: Adventure; isActive: boolean }) {
+function HeroFeaturedCard({ adventure, isActive, t }: { adventure: Adventure; isActive: boolean; t: (key: string, opts?: Record<string, unknown>) => string }) {
   const author = useAuthor(adventure.pubkey);
   const authorName = author.data?.metadata?.name || adventure.pubkey.slice(0, 8);
   const authorPicture = author.data?.metadata?.picture;
@@ -72,7 +73,7 @@ function HeroFeaturedCard({ adventure, isActive }: { adventure: Adventure; isAct
         )}
         <div className="min-w-0 flex-1">
           <p className="text-amber-400 text-[clamp(0.6rem,2vw,0.69rem)] font-semibold uppercase tracking-widest mb-0.5 md:mb-1 [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]">
-            Now Accepting Challengers
+            {t('adventures.nowAccepting')}
           </p>
           <h3 className="text-[clamp(0.95rem,3.5vw,1.25rem)] md:text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors [text-shadow:0_2px_8px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.9)] line-clamp-1">
             {adventure.title}
@@ -81,7 +82,7 @@ function HeroFeaturedCard({ adventure, isActive }: { adventure: Adventure; isAct
             {authorPicture && <img src={authorPicture} alt="" className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full ring-1 ring-white/30" />}
             <span>{authorName}</span>
             <span className="text-white/50">&middot;</span>
-            <span>{adventure.geocacheRefs.length} treasures</span>
+            <span>{t('common.treasure', { count: adventure.geocacheRefs.length })}</span>
             {cityName && (
               <>
                 <span className="text-white/50">&middot;</span>
@@ -104,7 +105,7 @@ function HeroFeaturedCard({ adventure, isActive }: { adventure: Adventure; isAct
 
 // --- Quest card for the grid ---
 
-function QuestCard({ adventure }: { adventure: Adventure }) {
+function QuestCard({ adventure, t }: { adventure: Adventure; t: (key: string, opts?: Record<string, unknown>) => string }) {
   const author = useAuthor(adventure.pubkey);
   const authorName = author.data?.metadata?.name || adventure.pubkey.slice(0, 8);
   const authorPicture = author.data?.metadata?.picture;
@@ -152,7 +153,7 @@ function QuestCard({ adventure }: { adventure: Adventure }) {
                   <span className="truncate">{authorName}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="flex-shrink-0">{adventure.geocacheRefs.length} {adventure.geocacheRefs.length === 1 ? 'treasure' : 'treasures'}</span>
+                  <span className="flex-shrink-0">{t('common.treasure', { count: adventure.geocacheRefs.length })}</span>
                   {cityName && (
                     <>
                       <span className="text-white/50">&middot;</span>
@@ -169,7 +170,7 @@ function QuestCard({ adventure }: { adventure: Adventure }) {
                 )}
                 <span className="truncate">{authorName}</span>
                 <span className="text-white/50">&middot;</span>
-                <span className="flex-shrink-0">{adventure.geocacheRefs.length} {adventure.geocacheRefs.length === 1 ? 'treasure' : 'treasures'}</span>
+                <span className="flex-shrink-0">{t('common.treasure', { count: adventure.geocacheRefs.length })}</span>
                 {cityName && (
                   <>
                     <span className="text-white/50">&middot;</span>
@@ -251,6 +252,7 @@ function QuestBoardBackground() {
 // --- Main Page ---
 
 export default function Adventures() {
+  const { t } = useTranslation();
   const { data: adventures, isLoading, isError } = useAdventures();
   const { user } = useCurrentUser();
 
@@ -320,22 +322,22 @@ export default function Adventures() {
                 </span>
                 <div>
                   <h1 className="text-[clamp(1.75rem,8vw,3rem)] md:text-7xl font-bold text-white leading-[1.1] [text-shadow:0_4px_16px_rgba(0,0,0,0.7),0_1px_3px_rgba(0,0,0,0.9)]">
-                    Adventures
+                    {t('adventures.title')}
                   </h1>
                   <p className="mt-0.5 md:mt-1 text-amber-400 text-[clamp(0.625rem,2vw,0.75rem)] md:text-sm font-semibold uppercase tracking-[0.2em] [text-shadow:0_2px_6px_rgba(0,0,0,0.7)]">
-                    Choose Your Journey. Find Your Treasures.
+                    {t('adventures.subtitle')}
                   </p>
                 </div>
               </div>
               <p className="mt-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.8rem,3vw,1rem)] md:text-lg text-white/90 max-w-xl leading-relaxed [text-shadow:0_2px_8px_rgba(0,0,0,0.6),0_1px_2px_rgba(0,0,0,0.8)]">
-                Multi-treasure quests across real-world locations. Every adventure is a story waiting to be lived.
+                {t('adventures.heroDescription')}
               </p>
             </div>
 
             {heroAdventures.length > 0 && (
               <div className="relative mb-[clamp(0.75rem,2vw,1.5rem)] animate-slide-up-delay">
                 {heroAdventures.map((adventure, i) => (
-                  <HeroFeaturedCard key={adventure.id} adventure={adventure} isActive={i === heroIndex} />
+                  <HeroFeaturedCard key={adventure.id} adventure={adventure} isActive={i === heroIndex} t={t} />
                 ))}
               </div>
             )}
@@ -378,8 +380,8 @@ export default function Adventures() {
           {isError && (
             <div className="text-center py-[clamp(2rem,8vw,4rem)]">
               <Sparkles className="h-[clamp(2rem,8vw,3rem)] w-[clamp(2rem,8vw,3rem)] text-amber-800/40 dark:text-amber-400/40 mx-auto mb-3 md:mb-4" />
-              <h2 className="text-[clamp(0.95rem,3.5vw,1.125rem)] font-semibold mb-2 text-stone-800 dark:text-amber-100/90">Failed to load adventures</h2>
-              <p className="text-[clamp(0.8rem,2.8vw,1rem)] text-stone-600 dark:text-amber-200/50">Please check your connection and try again.</p>
+              <h2 className="text-[clamp(0.95rem,3.5vw,1.125rem)] font-semibold mb-2 text-stone-800 dark:text-amber-100/90">{t('adventures.errorTitle')}</h2>
+              <p className="text-[clamp(0.8rem,2.8vw,1rem)] text-stone-600 dark:text-amber-200/50">{t('adventures.errorDescription')}</p>
             </div>
           )}
 
@@ -389,15 +391,15 @@ export default function Adventures() {
               <div className="inline-flex items-center justify-center w-[clamp(3rem,10vw,4rem)] h-[clamp(3rem,10vw,4rem)] rounded-full bg-amber-500/15 mb-4 md:mb-6">
                 <Sparkles className="h-[clamp(1.5rem,5vw,2rem)] w-[clamp(1.5rem,5vw,2rem)] text-amber-400" />
               </div>
-              <h2 className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold mb-2 md:mb-3 text-stone-800 dark:text-amber-100/90">No Paths Yet</h2>
+              <h2 className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold mb-2 md:mb-3 text-stone-800 dark:text-amber-100/90">{t('adventures.emptyTitle')}</h2>
               <p className="text-[clamp(0.8rem,2.8vw,1rem)] text-stone-600 dark:text-amber-200/50 mb-6 md:mb-8 max-w-md mx-auto">
-                No adventures have been posted yet. Be the first to chart a course for the community.
+                {t('adventures.emptyDescription')}
               </p>
               {user && (
                 <Button asChild className="bg-amber-700 hover:bg-amber-600 text-white border-0 text-[clamp(0.8rem,2.8vw,1rem)] px-[clamp(1rem,4vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] h-auto">
                   <Link to="/create-adventure">
                     <Plus className="h-4 w-4 mr-2" />
-                    Start the First Adventure
+                    {t('adventures.startFirst')}
                   </Link>
                 </Button>
               )}
@@ -409,16 +411,16 @@ export default function Adventures() {
             <div className="flex items-center justify-between gap-3 mb-[clamp(1.5rem,4vw,2.5rem)] md:mb-10">
               <div className="min-w-0">
                 <h2 className="text-[clamp(1.4rem,6vw,1.875rem)] md:text-4xl font-bold text-stone-800 dark:text-amber-100/90 tracking-tight">
-                  Pick Your Path
+                  {t('adventures.pickYourPath')}
                 </h2>
                 <p className="text-[clamp(0.7rem,2.5vw,0.875rem)] text-stone-500 dark:text-amber-200/40 mt-1 md:mt-2">
-                  {adventures.length} {adventures.length === 1 ? 'adventure awaits' : 'adventures await'}
+                  {t('adventures.adventureAwaits', { count: adventures.length })}
                 </p>
               </div>
               {user && (
                 <Link to="/create-adventure" className="group flex items-center justify-center gap-2 p-2.5 sm:px-5 sm:py-2.5 rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 dark:from-amber-600 dark:to-amber-500 text-white text-sm font-medium shadow-lg shadow-amber-900/20 dark:shadow-amber-900/40 hover:shadow-xl hover:from-amber-600 hover:to-amber-500 dark:hover:from-amber-500 dark:hover:to-amber-400 transition-all duration-200 hover:-translate-y-0.5 flex-shrink-0">
                   <Plus className="h-5 w-5 sm:h-4 sm:w-4 transition-transform group-hover:rotate-90 duration-200" />
-                  <span className="hidden sm:inline">New Adventure</span>
+                  <span className="hidden sm:inline">{t('adventures.newAdventure')}</span>
                 </Link>
               )}
             </div>
@@ -428,7 +430,7 @@ export default function Adventures() {
           {!isLoading && adventures && adventures.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {adventures.map(adventure => (
-                <QuestCard key={adventure.id} adventure={adventure} />
+                <QuestCard key={adventure.id} adventure={adventure} t={t} />
               ))}
             </div>
           )}

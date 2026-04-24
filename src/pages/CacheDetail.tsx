@@ -732,7 +732,7 @@ export default function CacheDetail() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Zap className="h-4 w-4" />
-                      {totalZapAmount.toLocaleString()} sats
+                      {totalZapAmount.toLocaleString()} {t('common.sats')}
                     </span>
                   </div>
                 </div>

@@ -36,11 +36,13 @@ import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, typ
 import { useQueryClient } from "@tanstack/react-query";
 
 // Step configuration for progress indicator
+const STEP_KEYS = ['createCache.steps.location', 'createCache.steps.details', 'createCache.steps.challenge', 'createCache.steps.finish'] as const;
+
 const STEPS = [
-  { number: 1, label: "Location", icon: MapPinned },
-  { number: 2, label: "Details", icon: FileText },
-  { number: 3, label: "Challenge", icon: Gauge },
-  { number: 4, label: "Finish", icon: Camera },
+  { number: 1, labelKey: STEP_KEYS[0], icon: MapPinned },
+  { number: 2, labelKey: STEP_KEYS[1], icon: FileText },
+  { number: 3, labelKey: STEP_KEYS[2], icon: Gauge },
+  { number: 4, labelKey: STEP_KEYS[3], icon: Camera },
 ] as const;
 
 const TOTAL_STEPS = STEPS.length;
@@ -126,8 +128,8 @@ export default function CreateCache() {
     // Basic validation — need at least name + description + location
     if (!formData.name.trim() || !formData.description.trim() || !location) {
       toast({
-        title: "Incomplete draft",
-        description: "Please add a name, description, and location before saving.",
+        title: t('createCache.draft.incomplete'),
+        description: t('createCache.draft.incompleteDescription'),
         variant: "destructive",
       });
       return;
@@ -139,15 +141,15 @@ export default function CreateCache() {
       setEditingDraftSlug(result.slug);
       clearLocalDraft();
       toast({
-        title: "Draft saved",
-        description: "Your treasure draft is encrypted and only visible to you.",
+        title: t('createCache.draft.saved'),
+        description: t('createCache.draft.savedDescription'),
       });
       navigate('/profile');
     } catch (err) {
       console.error('[CreateCache] Failed to save relay draft:', err);
       toast({
-        title: "Draft saved locally",
-        description: "Saved to this device. Relay sync failed — it will retry next time.",
+        title: t('createCache.draft.savedLocally'),
+        description: t('createCache.draft.savedLocallyDescription'),
       });
     }
   }, [saveDraft, currentPayload, toast, navigate, formData, location, editingDraftSlug]);
@@ -340,7 +342,7 @@ export default function CreateCache() {
     if (!formData.name.trim() || !formData.description.trim() || !location) {
       toast({
         title: t('createCache.validation.locationRequired.title'),
-        description: "Please complete all required fields.",
+        description: t('createCache.validation.completeAllFields'),
         variant: "destructive",
       });
       return;
@@ -495,9 +497,9 @@ export default function CreateCache() {
                   <AlertDescription className="flex items-center justify-between">
                     <span className="text-sm flex items-center gap-2">
                       <FileEdit className="h-4 w-4" />
-                      {editingDraftSlug
-                        ? 'Editing your saved draft. Publish when ready.'
-                        : 'Continuing your draft from where you left off.'}
+                       {editingDraftSlug
+                        ? t('createCache.draft.editingNotice')
+                        : t('createCache.draft.continuingNotice')}
                     </span>
                     <Button
                       type="button"
@@ -506,7 +508,7 @@ export default function CreateCache() {
                       onClick={startFresh}
                       className="ml-2"
                     >
-                      Start Fresh
+                      {t('createCache.draft.startFresh')}
                     </Button>
                   </AlertDescription>
                 </Alert>
@@ -537,7 +539,7 @@ export default function CreateCache() {
                               ? 'text-primary/70 hidden md:block'
                               : 'text-muted-foreground hidden md:block'
                         }`}>
-                          {step.label}
+                          {t(step.labelKey)}
                         </span>
                       </div>
                       {index < TOTAL_STEPS - 1 && (
@@ -558,7 +560,7 @@ export default function CreateCache() {
                   {!hasDraft && !location && (
                     <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
                       <AlertDescription className="text-sm">
-                        <span className="font-medium">What you&apos;ll need:</span> A GPS location where you&apos;ve placed (or plan to place) your cache, a name and description, and optionally some photos of the area.
+                        <span className="font-medium">{t('createCache.whatYouNeed')}</span> {t('createCache.whatYouNeedDescription')}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -590,7 +592,7 @@ export default function CreateCache() {
                         )}
                         <div className="flex-1 space-y-2">
                           <span className="text-sm font-medium text-foreground">
-                            {hasWarnings ? 'Location has potential issues' : 'Location looks good'}
+                            {hasWarnings ? t('createCache.locationHasIssues') : t('createCache.locationLooksGood')}
                           </span>
                           <p className="text-xs text-muted-foreground">
                             {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
@@ -609,7 +611,7 @@ export default function CreateCache() {
                           )}
 
                           <p className="text-[11px] text-muted-foreground leading-snug pt-1">
-                            By continuing, you confirm this location is publicly accessible, safe for finders, and that you have permission to place a cache here.
+                            {t('createCache.locationConfirmation')}
                           </p>
                         </div>
                       </div>
@@ -641,7 +643,7 @@ export default function CreateCache() {
 
                   {/* Divider */}
                   <div className="border-t pt-4">
-                    <p className="text-xs text-muted-foreground mb-3">What kind of container are seekers looking for?</p>
+                    <p className="text-xs text-muted-foreground mb-3">{t('createCache.containerQuestion')}</p>
                   </div>
 
                   <CacheTypeField
@@ -676,7 +678,7 @@ export default function CreateCache() {
 
                   {/* Live rating preview */}
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">How this will appear to seekers</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.ratingPreview')}</h4>
                     <DifficultyTerrainRating
                       difficulty={parseInt(formData.difficulty) || 1}
                       terrain={parseInt(formData.terrain) || 1}
@@ -707,8 +709,8 @@ export default function CreateCache() {
                   <div className="bg-muted/20 border border-muted rounded-lg p-4">
                     <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('createCache.preview.title')}</h4>
                     <div className="space-y-3">
-                      <h5 className="font-medium text-foreground text-lg">{formData.name || "Your Cache Name"}</h5>
-                      <p className="text-sm text-muted-foreground">{formData.description || "Your description..."}</p>
+                      <h5 className="font-medium text-foreground text-lg">{formData.name || t('createCache.previewCacheName')}</h5>
+                      <p className="text-sm text-muted-foreground">{formData.description || t('createCache.previewDescription')}</p>
                       {images.length > 0 && (
                         <div className="flex gap-2 flex-wrap">
                           {images.filter(url => url).map((url, index) => (
@@ -765,7 +767,7 @@ export default function CreateCache() {
                     {currentStep === 1 && isVerifying ? (
                       <>
                         <CompassSpinner size={16} variant="component" className="mr-2" />
-                        Checking location…
+                        {t('createCache.checkingLocation')}
                       </>
                     ) : (
                       <>{t('common.next')} <ChevronRight className="h-4 w-4 ml-1" /></>
@@ -795,12 +797,12 @@ export default function CreateCache() {
                       {isSavingDraft ? (
                         <>
                           <Cloud className="h-4 w-4 mr-1 animate-pulse" />
-                          Saving…
+                          {t('common.saving')}
                         </>
                       ) : (
                         <>
                           <EyeOff className="h-4 w-4 mr-1" />
-                          Save Draft
+                          {t('createCache.draft.saveDraft')}
                         </>
                       )}
                     </Button>

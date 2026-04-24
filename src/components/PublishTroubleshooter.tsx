@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,6 +16,7 @@ interface PublishTroubleshooterProps {
 }
 
 export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: PublishTroubleshooterProps) {
+  const { t } = useTranslation();
   const { user } = useCurrentUser();
   useRelayHealth();
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -41,56 +43,56 @@ export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: Pu
     switch (errorType) {
       case 'relay_connection':
         return [
-          'Check your internet connection',
-          'Try refreshing the page',
-          'Wait a moment and try again - relays may be temporarily unavailable',
-          'Check if other Nostr apps are working',
+          t('troubleshooter.step.checkInternet'),
+          t('troubleshooter.step.refreshPage'),
+          t('troubleshooter.step.relaysUnavailable'),
+          t('troubleshooter.step.checkOtherApps'),
         ];
       
       case 'timeout':
         return [
-          'Your internet connection may be slow',
-          'Try again - the event may have been published successfully',
-          'Check your network connection',
-          'Try refreshing the page if the issue persists',
+          t('troubleshooter.step.slowConnection'),
+          t('troubleshooter.step.mayHavePublished'),
+          t('troubleshooter.step.checkNetwork'),
+          t('troubleshooter.step.refreshPersists'),
         ];
       
       case 'user_cancelled':
         return [
-          'You cancelled the signing process',
-          'Click the publish button again to retry',
-          'Make sure to approve the signing request in your Nostr extension',
+          t('troubleshooter.step.cancelled'),
+          t('troubleshooter.step.clickRetry'),
+          t('troubleshooter.step.approveSign'),
         ];
       
       case 'not_logged_in':
         return [
-          'You need to log in with a Nostr account',
-          'Click the login button to connect your account',
-          'Make sure you have a Nostr extension installed',
+          t('troubleshooter.step.needLogin'),
+          t('troubleshooter.step.clickLogin'),
+          t('troubleshooter.step.installExtension'),
         ];
       
       case 'no_signer':
         return [
-          'Install a Nostr browser extension (like Alby, nos2x, or Flamingo)',
-          'Make sure the extension is enabled',
-          'Refresh the page after installing the extension',
-          'Check that the extension has permission to access this site',
+          t('troubleshooter.step.installNostrExt'),
+          t('troubleshooter.step.enableExtension'),
+          t('troubleshooter.step.refreshAfterInstall'),
+          t('troubleshooter.step.checkPermission'),
         ];
       
       case 'network':
         return [
-          'Check your internet connection',
-          'Try switching networks (WiFi to mobile data or vice versa)',
-          'Disable VPN if you\'re using one',
-          'Try again in a few minutes',
+          t('troubleshooter.step.checkInternet'),
+          t('troubleshooter.step.switchNetworks'),
+          t('troubleshooter.step.disableVPN'),
+          t('troubleshooter.step.tryLater'),
         ];
       
       default:
         return [
-          'Try refreshing the page',
-          'Check your internet connection',
-          'Make sure your Nostr extension is working',
-          'Try again in a few minutes',
+          t('troubleshooter.step.refreshPage'),
+          t('troubleshooter.step.checkInternet'),
+          t('troubleshooter.step.checkExtension'),
+          t('troubleshooter.step.tryLater'),
         ];
     }
   };
@@ -124,10 +126,10 @@ export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: Pu
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {getErrorIcon()}
-          Publishing Issue Detected
+          {t('troubleshooter.title')}
         </CardTitle>
         <CardDescription>
-          Let's help you get back to publishing your content.
+          {t('troubleshooter.description')}
         </CardDescription>
       </CardHeader>
       
@@ -141,34 +143,34 @@ export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: Pu
         )}
 
         <div className="space-y-2">
-          <h4 className="font-medium">Quick Checks:</h4>
+          <h4 className="font-medium">{t('troubleshooter.quickChecks')}</h4>
           
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm">Logged in</span>
+              <span className="text-sm">{t('troubleshooter.loggedIn')}</span>
               <Badge variant={user ? 'default' : 'destructive'} className="gap-1">
                 {user ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                {user ? 'Yes' : 'No'}
+                {user ? t('common.yes') : t('common.no')}
               </Badge>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm">Signer available</span>
+              <span className="text-sm">{t('troubleshooter.signerAvailable')}</span>
               <Badge variant={user?.signer ? 'default' : 'destructive'} className="gap-1">
                 {user?.signer ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                {user?.signer ? 'Yes' : 'No'}
+                {user?.signer ? t('common.yes') : t('common.no')}
               </Badge>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm">Relay connection</span>
+              <span className="text-sm">{t('troubleshooter.relayConnection')}</span>
               <RelayStatusIndicator compact />
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          <h4 className="font-medium">Troubleshooting Steps:</h4>
+          <h4 className="font-medium">{t('troubleshooter.steps')}</h4>
           <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
             {getTroubleshootingSteps().map((step, index) => (
               <li key={index}>{step}</li>
@@ -184,7 +186,7 @@ export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: Pu
               ) : (
                 <RefreshCw className="h-4 w-4" />
               )}
-              Try Again
+              {t('troubleshooter.tryAgain')}
             </Button>
           )}
           
@@ -192,7 +194,7 @@ export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: Pu
             variant="outline" 
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
-            {showAdvanced ? 'Hide' : 'Show'} Advanced Info
+            {showAdvanced ? t('troubleshooter.hideAdvanced') : t('troubleshooter.showAdvanced')} {t('troubleshooter.advancedInfo')}
           </Button>
         </div>
 
@@ -202,8 +204,8 @@ export function PublishTroubleshooter({ error, onRetry, isRetrying = false }: Pu
             
             <div className="text-xs text-muted-foreground space-y-1">
               <p><strong>User Agent:</strong> {navigator.userAgent}</p>
-              <p><strong>Online:</strong> {navigator.onLine ? 'Yes' : 'No'}</p>
-              <p><strong>Connection:</strong> {(navigator as any).connection?.effectiveType || 'Unknown'}</p>
+              <p><strong>{t('troubleshooter.online')}:</strong> {navigator.onLine ? t('common.yes') : t('common.no')}</p>
+              <p><strong>{t('troubleshooter.connection')}:</strong> {(navigator as any).connection?.effectiveType || t('troubleshooter.unknown')}</p>
             </div>
           </div>
         )}

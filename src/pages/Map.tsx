@@ -645,7 +645,7 @@ export default function Map() {
           <div className="px-4 pt-3 pb-1 flex-shrink-0">
             <Link to="/" className="flex items-center gap-2">
               <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
-              <span className="text-xl font-bold text-foreground">Treasures</span>
+              <span className="text-xl font-bold text-foreground">{t('navigation.appName')}</span>
             </Link>
           </div>
           {/* Filters */}

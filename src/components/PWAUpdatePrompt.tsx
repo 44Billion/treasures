@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Compass, X } from 'lucide-react';
 
@@ -6,6 +7,7 @@ import { Compass, X } from 'lucide-react';
  * Component that prompts users to update when a new service worker is available
  */
 export function PWAUpdatePrompt() {
+  const { t } = useTranslation();
   const [showPrompt, setShowPrompt] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -71,14 +73,14 @@ export function PWAUpdatePrompt() {
         >
           <Compass className={`h-5 w-5 shrink-0 text-primary ${isUpdating ? 'animate-spin' : ''}`} />
           <span className="text-sm font-medium text-foreground truncate">
-            {isUpdating ? 'Updating...' : 'Update available — Click to refresh'}
+            {isUpdating ? t('pwaUpdate.updating') : t('pwaUpdate.available')}
           </span>
         </button>
         {!isUpdating && (
           <button
             onClick={handleDismiss}
             className="shrink-0 p-1 rounded-md hover:bg-accent transition-colors"
-            aria-label="Dismiss update notification"
+            aria-label={t('pwaUpdate.dismiss')}
           >
             <X className="h-4 w-4 text-muted-foreground" />
           </button>

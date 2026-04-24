@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { Compass, Share2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
@@ -26,6 +27,7 @@ import { useTheme } from "@/hooks/useTheme";
 import type { Geocache } from "@/types/geocache";
 
 export default function AdventureDetail() {
+  const { t } = useTranslation();
   const { naddr } = useParams<{ naddr: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -126,7 +128,7 @@ export default function AdventureDetail() {
       }
     } else {
       await navigator.clipboard.writeText(url);
-      toast({ title: "Link copied to clipboard" });
+      toast({ title: t('adventureDetail.linkCopied') });
     }
   };
 
@@ -156,7 +158,7 @@ export default function AdventureDetail() {
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <PageLoading title="Seeking adventure..." size="lg" />
+        <PageLoading title={t('adventureDetail.loading')} size="lg" />
       </div>
     );
   }
@@ -167,10 +169,10 @@ export default function AdventureDetail() {
       <div className="h-screen flex items-center justify-center">
         <div className="text-center space-y-4 px-4">
           <Compass className="h-12 w-12 text-muted-foreground mx-auto" />
-          <h2 className="text-xl font-semibold">Adventure not found</h2>
-          <p className="text-muted-foreground">This adventure may have been removed or the link is invalid.</p>
+          <h2 className="text-xl font-semibold">{t('adventureDetail.notFoundTitle')}</h2>
+          <p className="text-muted-foreground">{t('adventureDetail.notFoundDescription')}</p>
           <Button asChild variant="outline">
-            <Link to="/adventures">Browse Adventures</Link>
+            <Link to="/adventures">{t('common.browseAdventures')}</Link>
           </Button>
         </div>
       </div>
@@ -205,8 +207,8 @@ export default function AdventureDetail() {
     return (
       <div className="p-3 rounded-lg bg-muted/50 border">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Your Progress</span>
-          <span className="text-sm text-muted-foreground">{totalFound}/{totalCaches} found</span>
+          <span className="text-sm font-medium">{t('adventureDetail.yourProgress')}</span>
+          <span className="text-sm text-muted-foreground">{t('adventureDetail.found', { found: totalFound, total: totalCaches })}</span>
         </div>
         <div className="w-full bg-muted rounded-full h-2">
           <div
@@ -236,7 +238,7 @@ export default function AdventureDetail() {
 
       {geocaches.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
-          <p className="text-sm">No treasures in this adventure yet.</p>
+          <p className="text-sm">{t('adventureDetail.noTreasures')}</p>
         </div>
       )}
     </div>
@@ -283,7 +285,7 @@ export default function AdventureDetail() {
               <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 pt-2">
                 <Link to="/" className="flex items-center gap-1.5">
                   <img src="/icon.svg" alt="Treasures" className="h-7 w-7 drop-shadow-md" />
-                  <span className={`text-sm font-bold drop-shadow-sm ${adventure.image ? 'text-white' : 'text-foreground'}`}>Treasures</span>
+                  <span className={`text-sm font-bold drop-shadow-sm ${adventure.image ? 'text-white' : 'text-foreground'}`}>{t('navigation.appName')}</span>
                 </Link>
                 <div className="flex items-center gap-1">
                   {isOwner && (
@@ -306,9 +308,9 @@ export default function AdventureDetail() {
               <div className={`absolute bottom-0 left-0 right-0 px-4 pb-3 ${adventure.image ? '[text-shadow:0_1px_4px_rgba(0,0,0,0.7),0_2px_8px_rgba(0,0,0,0.4)]' : ''}`}>
                 <h1 className={`text-lg font-bold leading-tight truncate ${adventure.image ? 'text-white' : 'text-foreground'}`}>{adventure.title}</h1>
                 <div className={`flex items-center gap-2 text-xs mt-0.5 ${adventure.image ? 'text-white/90' : 'text-muted-foreground'}`}>
-                  <span>by {authorName}</span>
+                  <span>{t('common.by')} {authorName}</span>
                   <span>&middot;</span>
-                  <span>{geocaches.length} {geocaches.length === 1 ? 'treasure' : 'treasures'}</span>
+                  <span>{t('common.treasure', { count: geocaches.length })}</span>
                 </div>
                 {adventure.description && (
                   <p className={`text-xs mt-2 line-clamp-3 ${adventure.image ? 'text-white/80' : 'text-muted-foreground'}`}>{adventure.description}</p>
@@ -334,7 +336,7 @@ export default function AdventureDetail() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm shadow-md">
                   <Compass className="h-4 w-4 mr-1.5" />
-                  Explore
+                  {t('adventureDetail.explore')}
                   <ChevronDown className="ml-1 h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -427,9 +429,9 @@ export default function AdventureDetail() {
               <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 [text-shadow:0_1px_4px_rgba(0,0,0,0.7),0_2px_8px_rgba(0,0,0,0.4)]">
                 <h1 className="text-base font-bold text-white leading-tight">{adventure.title}</h1>
                 <div className="flex items-center gap-2 text-xs text-white/90 mt-0.5">
-                  <span>by {authorName}</span>
+                  <span>{t('common.by')} {authorName}</span>
                   <span>&middot;</span>
-                  <span>{geocaches.length} {geocaches.length === 1 ? 'treasure' : 'treasures'}</span>
+                  <span>{t('common.treasure', { count: geocaches.length })}</span>
                 </div>
                 {adventure.description && (
                   <p className="text-xs mt-2 line-clamp-3 text-white/80">{adventure.description}</p>

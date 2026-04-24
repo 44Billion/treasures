@@ -44,6 +44,7 @@ function useTreasureCities(treasures: Geocache[]) {
 
 /** Treasure info shown in the hero — name, location, author. */
 function HeroTreasureInfo({ treasure, city, onClick }: { treasure: Geocache; city: string; onClick: () => void }) {
+  const { t } = useTranslation();
   const author = useAuthor(treasure.pubkey);
   const authorName = author.data?.metadata?.name || treasure.pubkey.slice(0, 8);
   const authorPicture = author.data?.metadata?.picture;
@@ -67,7 +68,7 @@ function HeroTreasureInfo({ treasure, city, onClick }: { treasure: Geocache; cit
         {authorPicture && (
           <img src={authorPicture} alt="" className="w-3.5 h-3.5 rounded-full object-cover" loading="lazy" />
         )}
-        <span>by {authorName}</span>
+        <span>{t('home.by', { name: authorName })}</span>
       </div>
     </button>
   );

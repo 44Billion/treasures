@@ -193,12 +193,12 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Search className="h-5 w-5" />
-                    Search Relays
+                    {t('settings.searchRelays.title')}
                   </CardTitle>
                   <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${searchRelaysOpen ? 'rotate-180' : ''}`} />
                 </div>
                 <CardDescription>
-                  NIP-50 relays used for full-text treasure search.
+                  {t('settings.searchRelays.description')}
                 </CardDescription>
               </CardHeader>
             </CollapsibleTrigger>
@@ -243,12 +243,12 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Upload className="h-5 w-5" />
-                    Blossom Servers
+                    {t('settings.blossom.title')}
                   </CardTitle>
                   <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${blossomOpen ? 'rotate-180' : ''}`} />
                 </div>
                 <CardDescription>
-                  File upload servers for media hosting. Files are mirrored across all servers for redundancy.
+                  {t('settings.blossom.description')}
                 </CardDescription>
               </CardHeader>
             </CollapsibleTrigger>

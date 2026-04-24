@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { RelayIdentity } from '@/components/RelayIdentity';
 
 export function SearchRelaySettings() {
+  const { t } = useTranslation();
   const { config, updateConfig } = useAppContext();
   const { user } = useCurrentUser();
   const { mutate: publishEvent } = useNostrPublish();
@@ -57,18 +59,18 @@ export function SearchRelaySettings() {
       useAppSearchRelays: enabled,
     }));
     toast({
-      title: enabled ? 'App search relays enabled' : 'App search relays disabled',
+      title: enabled ? t('searchRelays.enabledToast') : t('searchRelays.disabledToast'),
       description: enabled
-        ? 'App search relays will be used alongside your personal search relays.'
-        : 'Only your personal search relays will be used.',
+        ? t('searchRelays.appEnabled')
+        : t('searchRelays.appDisabled'),
     });
   };
 
   const handleAddRelay = () => {
     if (!isValidRelayUrl(newRelayUrl)) {
       toast({
-        title: 'Invalid relay URL',
-        description: 'Please enter a valid WebSocket URL (e.g., wss://relay.example.com)',
+        title: t('searchRelays.invalidUrl'),
+        description: t('searchRelays.invalidUrlDescription'),
         variant: 'destructive',
       });
       return;
@@ -78,7 +80,7 @@ export function SearchRelaySettings() {
 
     if (relays.some((r) => r === normalized)) {
       toast({
-        title: 'Relay already added',
+        title: t('searchRelays.alreadyAdded'),
         variant: 'destructive',
       });
       return;
@@ -121,15 +123,15 @@ export function SearchRelaySettings() {
       {
         onSuccess: () => {
           toast({
-            title: 'Search relay list published',
-            description: 'Your search relay list has been published to Nostr.',
+            title: t('searchRelays.published'),
+            description: t('searchRelays.publishedDescription'),
           });
         },
         onError: (error: unknown) => {
           console.error('Failed to publish search relay list:', error);
           toast({
-            title: 'Failed to publish search relay list',
-            description: 'There was an error publishing your search relay list to Nostr.',
+            title: t('searchRelays.publishFailed'),
+            description: t('searchRelays.publishFailedDescription'),
             variant: 'destructive',
           });
         },
@@ -143,13 +145,13 @@ export function SearchRelaySettings() {
       <div className="pt-4 pb-4">
         <div className="px-3 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">App Search Relays</h3>
+            <h3 className="text-sm font-medium">{t('searchRelays.appTitle')}</h3>
             <div className="flex items-center gap-2">
               <Label
                 htmlFor="use-app-search-relays"
                 className="text-xs text-muted-foreground cursor-pointer"
               >
-                {config.useAppSearchRelays ? 'Enabled' : 'Disabled'}
+                {config.useAppSearchRelays ? t('common.enabled') : t('common.disabled')}
               </Label>
               <Switch
                 id="use-app-search-relays"
@@ -160,7 +162,7 @@ export function SearchRelaySettings() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Default relays that support NIP-50 full-text search. Used to find treasures by name.
+            {t('searchRelays.appDescription')}
           </p>
         </div>
 
@@ -182,16 +184,16 @@ export function SearchRelaySettings() {
       {/* User Search Relays Section */}
       <div className="pb-4 pt-4">
         <div className="px-3 space-y-3">
-          <h3 className="text-sm font-medium">Your Search Relays</h3>
+          <h3 className="text-sm font-medium">{t('searchRelays.yourTitle')}</h3>
           <p className="text-xs text-muted-foreground">
-            Your personal NIP-50 search relays. Synced to Nostr as a kind 10007 event when logged in.
+            {t('searchRelays.yourDescription')}
           </p>
         </div>
 
         <div className="mt-3">
           {relays.length === 0 ? (
             <div className="text-xs text-muted-foreground py-8 text-center">
-              No personal search relays configured. Add a relay below or enable App Search Relays above.
+              {t('searchRelays.empty')}
             </div>
           ) : (
             <div className="space-y-1">
@@ -220,7 +222,7 @@ export function SearchRelaySettings() {
           <div className="flex gap-2">
             <div className="flex-1">
               <Label htmlFor="new-search-relay-url" className="sr-only">
-                Search Relay URL
+                {t('searchRelays.urlLabel')}
               </Label>
               <Input
                 id="new-search-relay-url"
@@ -241,13 +243,13 @@ export function SearchRelaySettings() {
               className="h-9 shrink-0 text-xs"
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" />
-              Add
+              {t('common.add')}
             </Button>
           </div>
 
           {!user && (
             <p className="text-[10px] text-muted-foreground mt-2">
-              Log in to sync your search relay list with Nostr
+              {t('searchRelays.loginHint')}
             </p>
           )}
         </div>

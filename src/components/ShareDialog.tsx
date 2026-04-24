@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, Copy, Share2, ExternalLink } from 'lucide-react';
 import {
   Dialog,
@@ -20,6 +21,7 @@ interface ShareDialogProps {
 }
 
 export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   // Generate the shareable URL using the actual geocache kind
@@ -49,7 +51,7 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
       try {
         await navigator.share({
           title: geocache.name,
-          text: `Check out this geocache: ${geocache.name}`,
+          text: t('shareDialog.shareText', { name: geocache.name }),
           url: shareUrl,
         });
       } catch (error) {
@@ -72,16 +74,16 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Share Treasure
+            {t('shareDialog.title')}
           </DialogTitle>
           <DialogDescription>
-            Share "{geocache.name}" with others
+            {t('shareDialog.description', { name: geocache.name })}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="share-url">Link</Label>
+            <Label htmlFor="share-url">{t('shareDialog.link')}</Label>
             <div className="flex gap-2">
               <Input
                 id="share-url"
@@ -108,7 +110,7 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
             {'share' in navigator && (
               <Button onClick={handleNativeShare} className="flex-1">
                 <Share2 className="h-4 w-4 mr-2" />
-                Share
+                {t('common.share')}
               </Button>
             )}
             <Button 
@@ -117,19 +119,19 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
               className="flex-1"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
-              Open
+              {t('common.open')}
             </Button>
             {!('share' in navigator) && (
               <Button onClick={handleCopyLink} className="flex-1">
                 {copied ? (
                   <>
                     <Check className="h-4 w-4 mr-2 text-primary" />
-                    Copied!
+                    {t('common.copiedBang')}
                   </>
                 ) : (
                   <>
                     <Copy className="h-4 w-4 mr-2" />
-                    Copy Link
+                    {t('common.copyLink')}
                   </>
                 )}
               </Button>

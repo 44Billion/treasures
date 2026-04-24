@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { APP_BLOSSOM_SERVERS } from '@/lib/appBlossom';
 import { cn } from '@/lib/utils';
 
 export function BlossomSettings() {
+  const { t } = useTranslation();
   const { config, updateConfig } = useAppContext();
   const { user } = useCurrentUser();
   const { mutate: publishEvent } = useNostrPublish();
@@ -56,18 +58,18 @@ export function BlossomSettings() {
       useAppBlossomServers: enabled,
     }));
     toast({
-      title: enabled ? 'App Blossom servers enabled' : 'App Blossom servers disabled',
+      title: enabled ? t('blossomServers.enabledToast') : t('blossomServers.disabledToast'),
       description: enabled
-        ? 'App Blossom servers will be used alongside your personal servers.'
-        : 'Only your personal Blossom servers will be used.',
+        ? t('blossomServers.appEnabled')
+        : t('blossomServers.appDisabled'),
     });
   };
 
   const handleAddServer = () => {
     if (!isValidServerUrl(newServerUrl)) {
       toast({
-        title: 'Invalid server URL',
-        description: 'Please enter a valid HTTPS URL (e.g., https://blossom.example.com/)',
+        title: t('blossomServers.invalidUrl'),
+        description: t('blossomServers.invalidUrlDescription'),
         variant: 'destructive',
       });
       return;
@@ -77,7 +79,7 @@ export function BlossomSettings() {
 
     if (servers.some((s) => s === normalized)) {
       toast({
-        title: 'Server already added',
+        title: t('blossomServers.alreadyAdded'),
         variant: 'destructive',
       });
       return;
@@ -120,15 +122,15 @@ export function BlossomSettings() {
       {
         onSuccess: () => {
           toast({
-            title: 'Blossom server list published',
-            description: 'Your Blossom server list has been published to Nostr.',
+            title: t('blossomServers.published'),
+            description: t('blossomServers.publishedDescription'),
           });
         },
         onError: (error: unknown) => {
           console.error('Failed to publish Blossom server list:', error);
           toast({
-            title: 'Failed to publish Blossom server list',
-            description: 'There was an error publishing your server list to Nostr.',
+            title: t('blossomServers.publishFailed'),
+            description: t('blossomServers.publishFailedDescription'),
             variant: 'destructive',
           });
         },
@@ -151,13 +153,13 @@ export function BlossomSettings() {
       <div className="pt-4 pb-4">
         <div className="px-3 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">App Blossom Servers</h3>
+            <h3 className="text-sm font-medium">{t('blossomServers.appTitle')}</h3>
             <div className="flex items-center gap-2">
               <Label
                 htmlFor="use-app-blossom-servers"
                 className="text-xs text-muted-foreground cursor-pointer"
               >
-                {config.useAppBlossomServers ? 'Enabled' : 'Disabled'}
+                {config.useAppBlossomServers ? t('common.enabled') : t('common.disabled')}
               </Label>
               <Switch
                 id="use-app-blossom-servers"
@@ -168,7 +170,7 @@ export function BlossomSettings() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Default file upload servers for reliable media hosting. Used alongside your personal servers when enabled.
+            {t('blossomServers.appDescription')}
           </p>
         </div>
 
@@ -193,16 +195,16 @@ export function BlossomSettings() {
       {/* User Blossom Servers Section */}
       <div className="pb-4 pt-4">
         <div className="px-3 space-y-3">
-          <h3 className="text-sm font-medium">Your Blossom Servers</h3>
+          <h3 className="text-sm font-medium">{t('blossomServers.yourTitle')}</h3>
           <p className="text-xs text-muted-foreground">
-            Your personal Blossom server list. Synced to Nostr when logged in. Files are mirrored across all servers for redundancy.
+            {t('blossomServers.yourDescription')}
           </p>
         </div>
 
         <div className="mt-3">
           {servers.length === 0 ? (
             <div className="text-xs text-muted-foreground py-8 text-center">
-              No personal Blossom servers configured. Add a server below or enable App Blossom Servers above.
+              {t('blossomServers.empty')}
             </div>
           ) : (
             <div className="space-y-1">
@@ -234,7 +236,7 @@ export function BlossomSettings() {
           <div className="flex gap-2">
             <div className="flex-1">
               <Label htmlFor="new-blossom-url" className="sr-only">
-                Blossom Server URL
+                {t('blossomServers.urlLabel')}
               </Label>
               <Input
                 id="new-blossom-url"
@@ -255,13 +257,13 @@ export function BlossomSettings() {
               className="h-9 shrink-0 text-xs"
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" />
-              Add
+              {t('common.add')}
             </Button>
           </div>
 
           {!user && (
             <p className="text-[10px] text-muted-foreground mt-2">
-              Log in to sync your Blossom server list with Nostr
+              {t('blossomServers.loginHint')}
             </p>
           )}
         </div>
@@ -271,13 +273,13 @@ export function BlossomSettings() {
       <div className="pb-4 pt-4">
         <div className="px-3 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Compress Images</h3>
+            <h3 className="text-sm font-medium">{t('blossomServers.compressTitle')}</h3>
             <div className="flex items-center gap-2">
               <Label
                 htmlFor="compress-images"
                 className="text-xs text-muted-foreground cursor-pointer"
               >
-                {config.imageQuality === 'compressed' ? 'Enabled' : 'Disabled'}
+                {config.imageQuality === 'compressed' ? t('common.enabled') : t('common.disabled')}
               </Label>
               <Switch
                 id="compress-images"
@@ -290,7 +292,7 @@ export function BlossomSettings() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Resizes large images and picks the smallest format before uploading. Disable to upload images exactly as-is.
+            {t('blossomServers.compressDescription')}
           </p>
         </div>
       </div>
@@ -299,13 +301,13 @@ export function BlossomSettings() {
       <div className="pb-4">
         <div className="px-3 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Thumbnail Proxy</h3>
+            <h3 className="text-sm font-medium">{t('blossomServers.thumbnailTitle')}</h3>
             <div className="flex items-center gap-2">
               <Label
                 htmlFor="image-proxy"
                 className="text-xs text-muted-foreground cursor-pointer"
               >
-                {config.imageProxy ? 'Enabled' : 'Disabled'}
+                {config.imageProxy ? t('common.enabled') : t('common.disabled')}
               </Label>
               <Switch
                 id="image-proxy"
@@ -318,11 +320,11 @@ export function BlossomSettings() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Resizes thumbnails in lists for faster scrolling. Detail pages always load full-size images directly.
+            {t('blossomServers.thumbnailDescription')}
           </p>
           {config.imageProxy && (
             <div className="space-y-1.5">
-              <Label htmlFor="image-proxy-url" className="text-xs font-medium">Proxy URL</Label>
+              <Label htmlFor="image-proxy-url" className="text-xs font-medium">{t('blossomServers.proxyUrl')}</Label>
               <Input
                 id="image-proxy-url"
                 type="url"

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RadarOverlayProvider } from "@/hooks/useRadarOverlay";
@@ -25,7 +25,6 @@ const Install = lazy(() => import("./pages/Install"));
 const Claim = lazy(() => import("./pages/Claim"));
 const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const TexasRenFest = lazy(() => import("./pages/TexasRenFest"));
 const Adventures = lazy(() => import("./pages/Adventures"));
 const AdventureDetail = lazy(() => import("./pages/AdventureDetail"));
 const CreateAdventure = lazy(() => import("./pages/CreateAdventure"));
@@ -69,7 +68,7 @@ export function AppRouter() {
             <Route path="/install" element={<Install />} />
             <Route path="/claim" element={<Claim />} />
             <Route path="/about" element={<About />} />
-            <Route path="/texas-ren-fest" element={<TexasRenFest />} />
+            <Route path="/texas-ren-fest" element={<Navigate to="/adventure/naddr1qvzqqqyj35pzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qq0xzerkv4h8gatjv5knzdehxcuryve4xuerjv3h94nrsmn2w3msduh0ez" replace />} />
             <Route path="/adventures" element={<Adventures />} />
             <Route path="/adventure/:naddr" element={<AdventureDetail />} />
             <Route path="/create-adventure" element={<CreateAdventure />} />
