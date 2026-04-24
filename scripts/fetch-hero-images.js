@@ -4,8 +4,8 @@
  * Fetch hero images for the curated treasures carousel.
  *
  * Connects to the relay, resolves each curated naddr, downloads the first
- * image of each event, compresses it to WebP via sharp, and writes it to
- * public/hero/curated-<index>.webp.
+ * image of each event, compresses it to up to 1920px-wide WebP (q80, 600KB
+ * cap) via sharp, and writes it to public/hero/curated-<index>.webp.
  *
  * Also writes public/hero/curated.json — an ordered manifest mapping each
  * curated treasure to its local image filename so the frontend can resolve
@@ -27,10 +27,11 @@ const __dirname = path.dirname(__filename);
 
 const HERO_DIR = path.join(__dirname, '../public/hero');
 const RELAY_URL = 'wss://relay.ditto.pub';
-const IMAGE_WIDTH = 1280;
-const MAX_BYTES = 500 * 1024; // 500 KB hard ceiling
-const WEBP_QUALITY_START = 90;
-const WEBP_QUALITY_MIN = 50;
+const IMAGE_WIDTH_MAX = 1920;
+const IMAGE_WIDTH_MIN = 1280;
+const IMAGE_WIDTH_STEP = 160;
+const MAX_BYTES = 600 * 1024; // 600 KB hard ceiling
+const WEBP_QUALITY = 80;
 
 /**
  * Same list as src/hooks/useCuratedTreasures.ts — keep in sync.
@@ -173,25 +174,41 @@ async function main() {
       const raw = await downloadImage(imageUrl);
       const originalKB = (raw.length / 1024).toFixed(0);
 
-      // Resize by width (preserve aspect ratio), then compress to WebP.
-      // If still over MAX_BYTES, reduce quality iteratively until it fits.
-      const resized = sharp(raw).rotate().resize(IMAGE_WIDTH, null, {
-        withoutEnlargement: true,
-        fit: 'inside',
-      });
+      // Resize at fixed quality, reducing width if needed to stay under MAX_BYTES.
+      // This preserves visual quality by trading resolution instead of compression.
+      // If still over budget at minimum width, reduce quality as a last resort.
+      let width = IMAGE_WIDTH_MAX;
+      let quality = WEBP_QUALITY;
+      let compressed;
 
-      let quality = WEBP_QUALITY_START;
-      let compressed = await resized.clone().webp({ quality }).toBuffer();
+      // First pass: reduce width at fixed quality
+      while (true) {
+        compressed = await sharp(raw)
+          .rotate()
+          .resize(width, null, { withoutEnlargement: true, fit: 'inside' })
+          .sharpen({ sigma: 0.5, m1: 1.0, m2: 0.5 })
+          .webp({ quality, effort: 6, smartSubsample: true })
+          .toBuffer();
 
-      while (compressed.length > MAX_BYTES && quality > WEBP_QUALITY_MIN) {
+        if (compressed.length <= MAX_BYTES || width <= IMAGE_WIDTH_MIN) break;
+        width -= IMAGE_WIDTH_STEP;
+      }
+
+      // Second pass: if still over budget at min width, reduce quality
+      while (compressed.length > MAX_BYTES && quality > 50) {
         quality -= 5;
-        compressed = await resized.clone().webp({ quality }).toBuffer();
+        compressed = await sharp(raw)
+          .rotate()
+          .resize(width, null, { withoutEnlargement: true, fit: 'inside' })
+          .sharpen({ sigma: 0.5, m1: 1.0, m2: 0.5 })
+          .webp({ quality, effort: 6, smartSubsample: true })
+          .toBuffer();
       }
 
       const compressedKB = (compressed.length / 1024).toFixed(0);
       fs.writeFileSync(outPath, compressed);
 
-      console.log(`${label}   ${originalKB} KB → ${compressedKB} KB (q${quality})  ✓ ${filename}`);
+      console.log(`${label}   ${originalKB} KB → ${compressedKB} KB (${width}px, q${quality})  ✓ ${filename}`);
 
       manifest.push({
         naddr: item.naddr,
