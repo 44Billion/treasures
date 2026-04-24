@@ -215,6 +215,18 @@
   font-weight: 500;
 }
 
+/* Quest Map — adventure popup card readability.
+   The blend-mode overlays darken everything in the map container.
+   Force the adventure card to use white text so it stays legible. */
+.leaflet-container.adventure-theme .adventure-popup-card h3,
+.leaflet-container.adventure-theme .adventure-popup-card span,
+.leaflet-container.adventure-theme .adventure-popup-card p {
+  color: #ffffff !important;
+}
+.leaflet-container.adventure-theme .adventure-popup-card * {
+  text-shadow: none !important;
+}
+
 /* ===== REACT POPUP OVERRIDES ===== */
 /* When the popup uses React portal, clean up Leaflet's wrapper and let Tailwind work. */
 .react-popup .leaflet-popup-content-wrapper {

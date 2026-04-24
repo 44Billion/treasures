@@ -23,7 +23,7 @@ export function AdventurePopupCard({ adventure, onClose }: AdventurePopupCardPro
   const hasImage = !!adventure.image;
 
   return (
-    <div className="w-[min(320px,calc(100vw-4rem))] overflow-hidden">
+    <div className="adventure-popup-card w-[min(320px,calc(100vw-4rem))] overflow-hidden">
       {/* Banner with info baked in — mirrors AdventureDetail sidebar */}
       <div className="relative cursor-pointer" onClick={handleView}>
         {hasImage ? (
