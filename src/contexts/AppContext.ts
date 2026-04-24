@@ -30,6 +30,13 @@ export interface AppConfig {
    *  Any URL = proxy thumbnails through that host (must support wsrv.nl-compatible API).
    *  Default public instance: 'https://wsrv.nl' (open-source, self-hostable). */
   imageProxy: string;
+  /** NIP-51 search relay list (kind 10007) */
+  searchRelayMetadata: {
+    relays: string[];
+    updatedAt: number;
+  };
+  /** Whether to use app default search relays in addition to user search relays */
+  useAppSearchRelays: boolean;
   /** Plausible Analytics domain (empty string = disabled). */
   plausibleDomain: string;
   /** Plausible Analytics API endpoint (empty string = use default). */

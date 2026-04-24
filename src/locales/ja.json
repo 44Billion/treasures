@@ -372,7 +372,7 @@
   "claim.alert.validating": "QRコードを検出しました！宝物を検証中...",
   "map.search.placeholder": "宝物を検索...",
   "map.locationSearch.placeholder": "都市または郵便番号を検索...",
-  "map.omniSearch.placeholder": "宝物、場所を検索...",
+  "map.omniSearch.placeholder": "宝物を検索...",
   "map.omniSearch.mobilePlaceholder": "検索...",
   "map.tabs.list": "リスト",
   "map.tabs.map": "地図",

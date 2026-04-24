@@ -16,7 +16,7 @@ import { AppConfig } from '@/contexts/AppContext';
 import { StoreProvider } from '@/stores/StoreProvider';
 import { NWCProvider } from '@/components/NWCProvider';
 import { PlausibleProvider } from '@/components/PlausibleProvider';
-import { APP_RELAYS } from '@/lib/appRelays';
+import { APP_RELAYS, SEARCH_RELAYS } from '@/lib/appRelays';
 import { APP_BLOSSOM_SERVERS } from '@/lib/appBlossom';
 
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
@@ -45,6 +45,8 @@ const defaultConfig: AppConfig = {
   useAppBlossomServers: true,
   imageQuality: 'compressed',
   imageProxy: 'https://wsrv.nl',
+  searchRelayMetadata: { relays: [], updatedAt: 0 },
+  useAppSearchRelays: true,
   plausibleDomain: import.meta.env.VITE_PLAUSIBLE_DOMAIN || '',
   plausibleEndpoint: import.meta.env.VITE_PLAUSIBLE_ENDPOINT || '',
 };

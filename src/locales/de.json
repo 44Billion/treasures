@@ -372,7 +372,7 @@
   "claim.alert.validating": "QR-Code erkannt! Schatz wird validiert...",
   "map.search.placeholder": "Schätze suchen...",
   "map.locationSearch.placeholder": "Stadt oder PLZ suchen...",
-  "map.omniSearch.placeholder": "Schätze, Orte suchen...",
+  "map.omniSearch.placeholder": "Schätze suchen...",
   "map.omniSearch.mobilePlaceholder": "Suchen...",
   "map.tabs.list": "Liste",
   "map.tabs.map": "Karte",

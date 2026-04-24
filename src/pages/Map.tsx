@@ -73,6 +73,9 @@ export default function Map() {
   // Virtualized list scroll containers
   const desktopScrollRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const desktopFilterBarRef = useRef<HTMLDivElement>(null);
+  const mobileFilterBarRef = useRef<HTMLDivElement>(null);
+  const mobileMapFilterBarRef = useRef<HTMLDivElement>(null);
   const { open: openRadar } = useRadarOverlay();
   const myFoundCaches = useMyFoundCaches();
 
@@ -646,29 +649,30 @@ export default function Map() {
             </Link>
           </div>
           {/* Filters */}
-          <div className="px-4 pb-3 pt-2 bg-background/95 backdrop-blur-sm flex-shrink-0">
-            <div className="flex gap-2">
+          <div className="px-4 pb-2 pt-1 bg-background/95 backdrop-blur-sm flex-shrink-0">
+            <div ref={desktopFilterBarRef} className="flex gap-2">
               <OmniSearch
                 onLocationSelect={handleLocationSelect}
                 onGeocacheSelect={(cache) => handleCardClick(cache)}
                 onTextSearch={setSearchQuery}
                 geocaches={filteredGeocaches}
                 placeholder={t('map.omniSearch.placeholder')}
+                containerRef={desktopFilterBarRef}
               />
               {(showNearMe || searchLocation || searchInView) && (
                 <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
-                  <SelectTrigger className="w-auto h-9 text-xs shrink-0 px-2 gap-1">
-                    <SelectValue placeholder={t('map.searchRadius.options.25')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
-                    <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                    <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                    <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                    <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                    <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                    <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                  </SelectContent>
+                  <SelectTrigger className="w-auto h-9 text-xs shrink-0 px-2 gap-1 border-border">
+                     <SelectValue placeholder={t('map.searchRadius.options.25')} />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
+                     <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                     <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                     <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                     <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                     <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                     <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                   </SelectContent>
                 </Select>
               )}
               <FilterButton
@@ -685,9 +689,6 @@ export default function Map() {
               />
             </div>
           </div>
-
-
-
           {/* Results */}
           <div ref={desktopScrollRef} className="flex-1 overflow-y-auto min-h-0 styled-scrollbar">
             {showMapSkeletons ? (
@@ -741,10 +742,10 @@ export default function Map() {
                   </div>
                 }
               >
-                <div className="p-4">
+                <div className="px-4 pt-2 pb-4">
                 {/* Only show count when filters are active */}
                 {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="text-sm text-muted-foreground">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span>
@@ -864,8 +865,8 @@ export default function Map() {
             <div className={cn("h-full flex flex-col bg-background overflow-hidden", activeTab !== 'list' && "hidden")}>
               {/* Search Bar for List View */}
               <div className="bg-background/95 backdrop-blur-sm flex-shrink-0">
-                <div className="p-3">
-                  <div className="flex gap-1.5">
+                <div className="px-3 pt-3 pb-2">
+                  <div ref={mobileFilterBarRef} className="flex gap-1.5">
                     <OmniSearch
                       onLocationSelect={handleLocationSelect}
                       onGeocacheSelect={(cache) => handleCardClick(cache)}
@@ -873,10 +874,11 @@ export default function Map() {
                       geocaches={filteredGeocaches}
                       placeholder={t('map.omniSearch.placeholder')}
                       mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                      containerRef={mobileFilterBarRef}
                     />
                     {(showNearMe || searchLocation || searchInView) && (
                       <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
-                        <SelectTrigger className="w-auto h-9 text-xs shrink-0 px-2 gap-1">
+                        <SelectTrigger className="w-auto h-9 text-xs shrink-0 px-2 gap-1 border-border">
                           <SelectValue placeholder="25 km" />
                         </SelectTrigger>
                         <SelectContent>
@@ -909,7 +911,7 @@ export default function Map() {
 
               <div
                 ref={mobileScrollRef}
-                className="flex-1 overflow-y-auto p-4 pb-6 min-h-0 relative styled-scrollbar"
+                className="flex-1 overflow-y-auto px-4 pt-2 pb-6 min-h-0 relative styled-scrollbar"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -1037,7 +1039,7 @@ export default function Map() {
             <div className={cn("h-full w-full bg-background relative", activeTab !== 'map' && "hidden")}>
                 {/* Floating Search Bar - positioned over the map */}
                 <div className="absolute top-3 left-3 right-3 z-[999] pointer-events-none">
-                  <div className="flex gap-1.5 pointer-events-auto">
+                  <div ref={mobileMapFilterBarRef} className="flex gap-1.5 pointer-events-auto">
                     <OmniSearch
                       onLocationSelect={handleLocationSelect}
                       onGeocacheSelect={(cache) => handleCardClick(cache)}
@@ -1045,10 +1047,11 @@ export default function Map() {
                       geocaches={filteredGeocaches}
                       placeholder={t('map.omniSearch.placeholder')}
                       mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                      containerRef={mobileMapFilterBarRef}
                     />
                     {(showNearMe || searchLocation || searchInView) && (
                       <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
-                        <SelectTrigger className="w-auto h-9 text-xs bg-background/90 backdrop-blur-sm shadow-sm rounded-md px-2 gap-1 shrink-0">
+                        <SelectTrigger className="w-auto h-9 text-xs bg-background/90 backdrop-blur-sm shadow-sm rounded-md px-2 gap-1 shrink-0 border-border">
                           <SelectValue placeholder="25 km" />
                         </SelectTrigger>
                         <SelectContent>

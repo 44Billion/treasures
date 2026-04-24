@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Sun, Moon, Monitor, Wifi, Compass, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown } from "lucide-react";
+import { Palette, Sun, Moon, Monitor, Wifi, Search, Compass, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
 import { DittoIcon } from "@/components/icons/DittoIcon";
@@ -11,6 +11,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { Label } from "../components/ui/label";
 
 import { RelayListManager } from "../components/RelayListManager";
+import { SearchRelaySettings } from "../components/SearchRelaySettings";
 import { BlossomSettings } from "../components/BlossomSettings";
 import { WalletSettings } from "../components/WalletSettings";
 import { LanguageSelector } from "../components/LanguageSelector";
@@ -23,6 +24,7 @@ export default function Settings() {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [relaysOpen, setRelaysOpen] = useState(false);
+  const [searchRelaysOpen, setSearchRelaysOpen] = useState(false);
   const [blossomOpen, setBlossomOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
 
@@ -178,6 +180,31 @@ export default function Settings() {
             <CollapsibleContent>
               <CardContent>
                 <RelayListManager />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Search Relay Configuration — Collapsible */}
+        <Collapsible open={searchRelaysOpen} onOpenChange={setSearchRelaysOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer select-none hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Search className="h-5 w-5" />
+                    Search Relays
+                  </CardTitle>
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${searchRelaysOpen ? 'rotate-180' : ''}`} />
+                </div>
+                <CardDescription>
+                  NIP-50 relays used for full-text treasure search.
+                </CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <SearchRelaySettings />
               </CardContent>
             </CollapsibleContent>
           </Card>

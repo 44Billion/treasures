@@ -191,7 +191,7 @@ export function FilterButton({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size={compact ? "sm" : "default"}
+          size="sm"
           className={cn(
             "relative !border-border",
             activeFilterCount > 0 && "!border-primary",
