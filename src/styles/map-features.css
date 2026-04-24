@@ -108,8 +108,9 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Enhanced close button styling for better visibility against images */
+/* Close button hidden — popups dismiss on outside click / Escape instead */
 .leaflet-popup-close-button {
+  display: none !important;
   position: absolute !important;
   top: 8px !important;
   right: 8px !important;

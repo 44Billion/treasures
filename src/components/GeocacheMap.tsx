@@ -569,12 +569,12 @@ function PopupController({
               maxWidth: 400,
               minWidth: 200,
               className: 'geocache-popup react-popup',
-              closeButton: true,
+              closeButton: false,
               autoPan: true,
               autoPanPaddingTopLeft: L.point(padding.left, padding.top),
               autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
               keepInView: false,
-              closeOnClick: false,
+              closeOnClick: true,
               closeOnEscapeKey: true,
             });
 
@@ -1444,12 +1444,12 @@ export function GeocacheMap({
                 maxWidth: 400,
                 minWidth: 200,
                 className: 'geocache-popup react-popup',
-                closeButton: true,
+                closeButton: false,
                 autoPan: true,
                 autoPanPaddingTopLeft: L.point(padding.left, padding.top),
                 autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
                 keepInView: false,
-                closeOnClick: false,
+                closeOnClick: true,
                 closeOnEscapeKey: true,
               });
 
@@ -1684,12 +1684,12 @@ export function GeocacheMap({
                     maxWidth: 340,
                     minWidth: 200,
                     className: 'geocache-popup react-popup',
-                    closeButton: true,
+                    closeButton: false,
                     autoPan: true,
                     autoPanPaddingTopLeft: L.point(padding.left, padding.top),
                     autoPanPaddingBottomRight: L.point(padding.right, padding.bottom),
                     keepInView: false,
-                    closeOnClick: false,
+                    closeOnClick: true,
                     closeOnEscapeKey: true,
                   });
 

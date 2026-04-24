@@ -361,10 +361,10 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         maxWidth: 400,
         minWidth: 200,
         className: 'geocache-popup react-popup',
-        closeButton: true,
+        closeButton: false,
         autoPan: true,
         keepInView: true,
-        closeOnClick: false,
+        closeOnClick: true,
         closeOnEscapeKey: true,
       });
 
