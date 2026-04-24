@@ -376,10 +376,21 @@ export default function Home() {
         )}
       </section>
 
+      {/* Shared sky + gradient across How It Works + Recent Caches */}
+      <div className="relative">
+        {/* Night sky overlay */}
+        {!isDitto && (
+          <div
+            className="absolute inset-0 pointer-events-none opacity-0 dark:opacity-50 transition-opacity"
+            style={{
+              background: 'linear-gradient(to bottom, #020208 0%, #030310 30%, #020208 60%, #020208 100%)',
+            }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/10 to-transparent pointer-events-none"></div>
+
       {/* How It Works — zig-zag layout with feature images */}
       <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 overflow-hidden">
-        {/* Smooth gradient fade from hero section */}
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/10 to-transparent pointer-events-none"></div>
 
         {/* Dotted trail connecting steps — treasure map style */}
         <div className="absolute inset-0 pointer-events-none flex justify-center">
@@ -482,23 +493,32 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden bg-transparent">
-        {/* Forest skyline background - positioned at bottom, fades naturally into page */}
+      <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden">
+        {/* Grass footer background - positioned at bottom, fixed aspect ratio */}
         {!isDitto && (
           <div
-            className="absolute inset-x-0 bottom-0 pointer-events-none opacity-30"
+            className="absolute inset-x-0 bottom-0 pointer-events-none opacity-50 dark:brightness-[0.5]"
             style={{
-              height: 'clamp(400px, 50vh, 600px)',
-              background: `url(/forest-skyline.webp) center bottom / cover no-repeat`,
-              maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)'
+              aspectRatio: '1750 / 656',
+              maxHeight: '100%',
+              background: `url(/grass-footer.webp) center bottom / 100% 100% no-repeat`,
+              maskImage: 'linear-gradient(to top, black 0%, black 70%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to top, black 0%, black 70%, transparent 100%)',
             }}
           >
             {/* Subtle overlay for tone adjustment */}
-            <div className="absolute inset-0 bg-white/35 dark:bg-white/15 adventure:bg-amber-50/20" />
+            <div className="absolute inset-0 bg-white/35 dark:bg-black/50 adventure:bg-amber-50/20" />
             <div className="absolute inset-0 adventure:sepia" style={{
-              background: `url(/forest-skyline.webp) center bottom / cover no-repeat`
+              background: `url(/grass-footer.webp) center bottom / cover no-repeat`
             }} />
+            {/* Film grain noise texture */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none dark:hidden" style={{ opacity: 0.3 }}>
+              <filter id="grass-grain">
+                <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+                <feColorMatrix type="saturate" values="0" />
+              </filter>
+              <rect width="100%" height="100%" filter="url(#grass-grain)" />
+            </svg>
           </div>
         )}
 
@@ -597,6 +617,7 @@ export default function Home() {
           )}
         </div>
       </section>
+      </div>{/* end shared gradient wrapper */}
 
       {/* Login and Signup Dialogs */}
       <LoginDialog
