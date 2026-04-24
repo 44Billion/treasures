@@ -17,7 +17,7 @@ interface SaveButtonProps {
 export function SaveButton({ 
   geocache, 
   variant = 'outline', 
-  size = 'sm', 
+  size = 'icon', 
   className 
 }: SaveButtonProps) {
   const { isCacheSaved, toggleSaveCache, isNostrEnabled } = useSavedCaches();

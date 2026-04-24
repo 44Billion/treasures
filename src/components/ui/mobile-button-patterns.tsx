@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, Cloud, KeyRound } from 'lucide-react';
+import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, Cloud, KeyRound, SearchX, NotebookText, Wrench, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/utils/utils';
@@ -133,15 +133,16 @@ export function LogTypeButtonGroup({
   disabled = false,
   className
 }: LogTypeButtonGroupProps) {
+  const { t } = useTranslation();
   const mainLogTypes: MobileButtonItem[] = [
-    { id: 'found', label: 'Found It', icon: Trophy },
-    { id: 'dnf', label: 'DNF', disabled },
-    { id: 'note', label: 'Note', disabled },
+    { id: 'found', label: t('logs.type.found'), icon: Trophy },
+    { id: 'dnf', label: t('logs.type.dnf'), icon: SearchX, disabled },
+    { id: 'note', label: t('logs.type.note'), icon: NotebookText, disabled },
   ];
 
   const ownerLogTypes: MobileButtonItem[] = [
-    { id: 'maintenance', label: 'Maintenance', disabled },
-    { id: 'archived', label: 'Archive', disabled },
+    { id: 'maintenance', label: t('logs.type.maintenance'), icon: Wrench, disabled },
+    { id: 'archived', label: t('logs.type.archive'), icon: Archive, disabled },
   ];
 
   return (

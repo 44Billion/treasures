@@ -37,6 +37,8 @@ import {
   animals,
 } from "unique-names-generator";
 import { CompactUrlGeneratorDialog } from "@/components/CompactUrlGeneratorDialog";
+import { ProfileSearch } from "@/components/ProfileSearch";
+import { WotAuthorCard } from "@/components/WotAuthorCard";
 
 const customConfig: Config = {
   dictionaries: [adjectives, colors, animals],
@@ -378,35 +380,18 @@ export default function CreateCacheLanding() {
                         <Gift className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="text-xs font-medium text-foreground">{t('createCache.gift.title')}</span>
                       </div>
-                      <input
-                        type="text"
+                      <ProfileSearch
+                        onSelect={(pubkey) => {
+                          const npub = nip19.npubEncode(pubkey);
+                          setCustomNpub(npub);
+                          setNpubError("");
+                          setSubmittedNpub(npub);
+                          toast({ title: t('createCache.gift.updated'), description: t('createCache.gift.updatedDescription') });
+                        }}
                         placeholder={t('createCache.gift.placeholder')}
                         value={customNpub}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setCustomNpub(value);
-                          if (value && !validateNpub(value)) {
-                            setNpubError(t('createCache.gift.invalidNpub'));
-                          } else {
-                            setNpubError("");
-                          }
-                        }}
-                        className="w-full px-3 py-2 text-sm border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
-                      {npubError && <p className="text-xs text-destructive mt-1">{npubError}</p>}
-                      {customNpub && !npubError && (
-                        <Button
-                          size="sm"
-                          onClick={async () => {
-                            setSubmittedNpub(customNpub);
-                            toast({ title: t('createCache.gift.updated'), description: t('createCache.gift.updatedDescription') });
-                          }}
-                          className="w-full"
-                        >
-                          <Gift className="h-4 w-4 mr-1" />
-                          {t('createCache.gift.createQR')}
-                        </Button>
-                      )}
+                      {submittedNpub && <WotAuthorCard pubkey={submittedNpub} />}
                     </div>
                   )}
                 </div>

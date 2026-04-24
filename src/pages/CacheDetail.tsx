@@ -673,21 +673,21 @@ export default function CacheDetail() {
                       <>
                         {isEditing ? (
                           <>
-                            <Button size="sm" onClick={handleSaveEdit} disabled={isEditingGeocache}>
+                            <Button size="icon" onClick={handleSaveEdit} disabled={isEditingGeocache}>
                               <Save className="h-4 w-4" />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={isEditingGeocache}>
+                            <Button variant="outline" size="icon" onClick={handleCancelEdit} disabled={isEditingGeocache}>
                               <RotateCcw className="h-4 w-4" />
                             </Button>
                           </>
                         ) : (
                           <>
-                            <Button variant="outline" size="sm" onClick={handleEdit} disabled={isEditingGeocache}>
+                            <Button variant="outline" size="icon" onClick={handleEdit} disabled={isEditingGeocache}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
-                              size="sm"
+                              size="icon"
                               onClick={handleDelete}
                               disabled={isDeletingAny}
                             >

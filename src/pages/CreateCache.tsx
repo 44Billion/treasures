@@ -766,7 +766,7 @@ export default function CreateCache() {
                   >
                     {currentStep === 1 && isVerifying ? (
                       <>
-                        <CompassSpinner size={16} variant="component" className="mr-2" />
+                        <CompassSpinner size={16} variant="button" className="mr-2" />
                         {t('createCache.checkingLocation')}
                       </>
                     ) : (
@@ -817,7 +817,7 @@ export default function CreateCache() {
                   >
                     {isVerifying ? (
                       <>
-                        <CompassSpinner size={16} variant="component" className="mr-2" />
+                        <CompassSpinner size={16} variant="button" className="mr-2" />
                         {t('createCache.verifyingLocation')}
                       </>
                     ) : isPending ? (

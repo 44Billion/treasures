@@ -6,12 +6,13 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
-import { Input } from './ui/input';
 import { Slider } from './ui/slider';
 import { Progress } from './ui/progress';
 import { WotAuthorCard } from './WotAuthorCard';
+import { ProfileSearch } from './ProfileSearch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { useState } from 'react';
+import { nip19 } from 'nostr-tools';
 
 export function WotSettings() {
   const { t } = useTranslation();
@@ -45,8 +46,13 @@ export function WotSettings() {
     }
   };
 
-  const handleStartingPointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStartingPoint(e.target.value);
+  const handleProfileSelect = (pubkey: string) => {
+    // setStartingPoint accepts npub or hex, convert to npub for display
+    try {
+      setStartingPoint(nip19.npubEncode(pubkey));
+    } catch {
+      setStartingPoint(pubkey);
+    }
   };
   
   const isFilterEnabled = trustLevel > 0;
@@ -163,17 +169,16 @@ export function WotSettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="starting-point">{t('settings.wot.startingUser')}</Label>
+              <Label>{t('settings.wot.startingUser')}</Label>
               <p className="text-sm text-muted-foreground">
                 {t('settings.wot.startingUserDescription')}
               </p>
               {(startingPoint || user?.pubkey) && <WotAuthorCard pubkey={startingPoint || user?.pubkey || ""} />}
               <div className="flex gap-2">
-                <Input
-                  id="starting-point"
+                <ProfileSearch
+                  onSelect={handleProfileSelect}
                   placeholder={t('settings.wot.startingUserPlaceholder')}
                   value={startingPoint}
-                  onChange={handleStartingPointChange}
                   disabled={!isFilterEnabled || isLoading}
                   className="flex-1"
                 />

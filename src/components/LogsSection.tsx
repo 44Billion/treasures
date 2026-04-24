@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
+import { Notebook, NotebookPen, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogTypeButtonGroup } from "@/components/ui/mobile-button-patterns";
 import { Textarea } from "@/components/ui/textarea";
@@ -158,8 +158,11 @@ export function LogsSection({
       {user && !(verificationKey && isVerificationValid) && !hideForm && (
         <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
           {!compact && (
-            <div className="lg:p-6 lg:pb-0 px-4 sm:p-4 lg:pt-6 sm:pt-2">
-              <h3 className="text-lg font-semibold text-card-foreground">{t('logs.post.title')}</h3>
+            <div className="lg:p-6 lg:pb-2 px-4 sm:p-4 lg:pt-6 sm:pt-2 pb-2">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
+                <Notebook className="h-5 w-5" />
+                {t('logs.post.title')}
+              </h3>
             </div>
           )}
           <div className={compact ? "p-4 space-y-3" : "lg:p-6 lg:pt-0 p-4 space-y-4 lg:pb-6 pb-2"}>
@@ -203,6 +206,7 @@ export function LogsSection({
               size={compact ? "sm" : "default"}
               className="w-full"
             >
+              <NotebookPen className="h-4 w-4" />
               {isCreatingLog || isSharing ? t('logs.post.posting') : t('logs.post.button')}
             </Button>
 
@@ -279,7 +283,7 @@ export function LogsSection({
         <LogList logs={logs} compact={compact} />
       ) : (
         <EmptyStateCard
-          icon={MessageSquare}
+          icon={Notebook}
           title={t('logs.empty.title')}
           description={compact ? undefined : user ? t('logs.empty.description') : t('logs.empty.descriptionNotLoggedIn')}
           action={!user ? <LoginArea /> : undefined}

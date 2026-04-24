@@ -11,7 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 
 interface CompassSpinnerProps {
   size?: number | 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'page' | 'component';
+  variant?: 'page' | 'component' | 'button';
   className?: string;
 }
 
@@ -30,10 +30,14 @@ export function CompassSpinner({
         xl: 'h-12 w-12'
       }[size];
 
-  // Use green for page loads (like the old compass-loading.tsx), grey for components
+  // Use green for page loads, grey for components, inherit for buttons
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
-  const colorClass = variant === 'page' ? isAdventureTheme ? 'text-stone-600' : 'text-primary' : 'text-muted-foreground';
+  const colorClass = variant === 'page'
+    ? isAdventureTheme ? 'text-stone-600' : 'text-primary'
+    : variant === 'button'
+      ? 'text-current'
+      : 'text-muted-foreground';
 
   return (
     <Compass
