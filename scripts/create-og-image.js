@@ -32,7 +32,7 @@ async function createOgImage() {
     
     // Create text overlay using SVG
     const titleText = 'Treasures';
-    const subtitleText = 'Decentralized Geocaches on Nostr';
+    const subtitleText = 'Decentralized Geocaching on Nostr';
     
     const textSvg = `
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
