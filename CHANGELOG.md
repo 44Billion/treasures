@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.1] - 2026-04-24
+
+### Fixed
+- Hero treasure name sits above bottom safe area on notched devices
+- Left navigation drawer respects bottom safe area
+- Toast notifications clear top safe area
+- Map and adventure pages no longer hidden behind mobile nav bar
+- Left nav highlights only the active tab (map vs list)
+- Loading spinner centers correctly without scroll overflow
+- Tapping adventure name bar expands the detail drawer
+
 ## [2.0.0] - 2026-04-24
 
 ### Added
