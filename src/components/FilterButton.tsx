@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle, Sparkles } from "lucide-react";
 import { sneaker, treesForest, chest } from '@lucide/lab';
@@ -26,7 +26,7 @@ const SneakerIcon = ({ className, ...props }: { className?: string }) => (
     {...props}
   >
     {sneaker.map(([element, attrs], index) => {
-      const Element = element as keyof JSX.IntrinsicElements;
+      const Element = element as React.ElementType;
       const { key, ...restAttrs } = attrs as any;
       return <Element key={key || index} {...restAttrs} />;
     })}
@@ -48,7 +48,7 @@ const TreesForestIcon = ({ className, ...props }: { className?: string }) => (
     {...props}
   >
     {treesForest.map(([element, attrs], index) => {
-      const Element = element as keyof JSX.IntrinsicElements;
+      const Element = element as React.ElementType;
       const { key, ...restAttrs } = attrs as any;
       return <Element key={key || index} {...restAttrs} />;
     })}
@@ -70,7 +70,7 @@ const ChestIcon = ({ className, ...props }: { className?: string }) => (
     {...props}
   >
     {chest.map(([element, attrs], index) => {
-      const Element = element as keyof JSX.IntrinsicElements;
+      const Element = element as React.ElementType;
       const { key, ...restAttrs } = attrs as any;
       return <Element key={key || index} {...restAttrs} />;
     })}

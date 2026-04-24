@@ -19,7 +19,7 @@ const SneakerIcon = ({ className, ...props }: { className?: string }) => (
     {...props}
   >
     {sneaker.map(([element, attrs], index) => {
-      const Element = element as keyof JSX.IntrinsicElements;
+      const Element = element as React.ElementType;
       const { key, ...restAttrs } = attrs as any;
       return <Element key={key || index} {...restAttrs} />;
     })}
@@ -41,7 +41,7 @@ const TreesForestIcon = ({ className, ...props }: { className?: string }) => (
     {...props}
   >
     {treesForest.map(([element, attrs], index) => {
-      const Element = element as keyof JSX.IntrinsicElements;
+      const Element = element as React.ElementType;
       const { key, ...restAttrs } = attrs as any;
       return <Element key={key || index} {...restAttrs} />;
     })}

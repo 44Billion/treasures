@@ -48,8 +48,8 @@ export function OmniSearch({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholder);
-  const searchTimeout = useRef<NodeJS.Timeout>();
-  const abortController = useRef<AbortController>();
+  const searchTimeout = useRef<NodeJS.Timeout>(undefined);
+  const abortController = useRef<AbortController>(undefined);
   const inputRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });

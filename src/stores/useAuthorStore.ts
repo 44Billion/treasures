@@ -44,7 +44,7 @@ export function useAuthorStore(config: Partial<StoreConfig> = {}): AuthorStore {
   }, []);
 
   // Update current user when user changes - use a ref to avoid hoisting issues
-  const fetchAuthorRef = useRef<(pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>>();
+  const fetchAuthorRef = useRef<(pubkey: string) => Promise<StoreActionResult<AuthorMetadata>>>(undefined);
 
   useEffect(() => {
     if (user?.pubkey) {

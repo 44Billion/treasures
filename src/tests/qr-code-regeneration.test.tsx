@@ -16,7 +16,7 @@ vi.mock('@/utils/verification', () => ({
   downloadQRCode: vi.fn(),
 }));
 
-const mockGenerateVerificationQR = generateVerificationQR as ReturnType<typeof vi.fn>;
+const mockGenerateVerificationQR = vi.mocked(generateVerificationQR);
 
 describe('VerificationQRDialog', () => {
   const mockProps = {
@@ -181,12 +181,12 @@ describe('VerificationQRDialog', () => {
       // that our mock function exists and can be called with the right parameters
       
       // Direct test of the core logic
-      await mockGenerateVerificationQR(mockProps.naddr, mockProps.verificationKeyPair.nsec, type);
+      await mockGenerateVerificationQR(mockProps.naddr, type, { line1: 'test', line2: 'test' });
       
       expect(mockGenerateVerificationQR).toHaveBeenCalledWith(
         mockProps.naddr,
-        mockProps.verificationKeyPair.nsec,
-        type
+        type,
+        { line1: 'test', line2: 'test' }
       );
     }
   });

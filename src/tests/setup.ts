@@ -97,7 +97,7 @@ beforeAll(() => {
   // Mock crypto.getRandomValues for verification key generation
   if (!global.crypto) {
     global.crypto = {
-      getRandomValues: vi.fn(<T extends ArrayBufferView | null>(array: T): T => {
+      getRandomValues: vi.fn((array: ArrayBufferView) => {
         if (array instanceof Uint8Array) {
           for (let i = 0; i < array.length; i++) {
             array[i] = Math.floor(Math.random() * 256);
@@ -107,14 +107,14 @@ beforeAll(() => {
       }),
     } as any;
   } else if (!global.crypto.getRandomValues) {
-    global.crypto.getRandomValues = vi.fn(<T extends ArrayBufferView | null>(array: T): T => {
+    global.crypto.getRandomValues = vi.fn((array: ArrayBufferView) => {
       if (array instanceof Uint8Array) {
         for (let i = 0; i < array.length; i++) {
           array[i] = Math.floor(Math.random() * 256);
         }
       }
       return array;
-    });
+    }) as any;
   }
 
   // Mock setInterval and clearInterval for timer tests

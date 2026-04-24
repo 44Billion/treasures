@@ -91,7 +91,7 @@ interface ZapContentProps {
   openInWallet: () => void;
   setAmount: (amount: number | string) => void;
   setComment: (comment: string) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   zap: (amount: number, comment: string) => void;
 }
 

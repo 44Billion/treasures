@@ -194,7 +194,7 @@ interface GeocacheMapProps {
   showStyleSelector?: boolean; // Whether to show the map style selector
   isNearMeActive?: boolean; // Whether "Near Me" mode is active
   isGettingLocation?: boolean; // Whether location is being retrieved
-  mapRef?: React.RefObject<L.Map>; // Reference to the map instance
+  mapRef?: React.RefObject<L.Map | null>; // Reference to the map instance
   isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
   isVisible?: boolean; // Whether the map is currently visible (for handling tab switches on mobile)
   onOpenRadar?: () => void; // Callback to open the radar compass overlay
@@ -732,7 +732,7 @@ function MapRefController({
   mapRef,
   onMapReady
 }: {
-  mapRef?: React.RefObject<L.Map>;
+  mapRef?: React.RefObject<L.Map | null>;
   onMapReady?: () => void;
 }) {
   const map = useMap();

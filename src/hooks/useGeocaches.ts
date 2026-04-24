@@ -3,6 +3,7 @@ import { useGeocacheStoreContext } from '@/stores/hooks';
 import { useIsWotEnabled } from '@/utils/wot';
 import { useWotStore } from '@/stores/useWotStore';
 import { useNostr } from '@nostrify/react';
+import type { NostrEvent } from '@nostrify/nostrify';
 import { nip19, nip57 } from 'nostr-tools';
 import { TIMEOUTS, QUERY_LIMITS } from '@/config';
 import { useZapStore } from '@/stores/useZapStore';
@@ -110,10 +111,10 @@ export function useGeocaches() {
         });
 
         // Process zap events by target
-        const zapEventsByTarget = new Map<string, Record<string, unknown>[]>();
+        const zapEventsByTarget = new Map<string, NostrEvent[]>();
 
         // Single pass over all events — O(N) instead of O(N*M)
-        allEvents.forEach((event: Record<string, unknown>) => {
+        allEvents.forEach((event: NostrEvent) => {
           const kind = event.kind as number;
           const tags = event.tags as string[][];
           const eventPubkey = event.pubkey as string;
@@ -324,9 +325,8 @@ export function useGeocaches() {
 }
 
 // Helper function to extract zap amount from event
-function getZapAmount(event: Record<string, unknown>): number {
-  const tags = event.tags as string[][];
-  const bolt11 = tags.find((t) => t[0] === 'bolt11')?.[1];
+function getZapAmount(event: NostrEvent): number {
+  const bolt11 = event.tags.find((t) => t[0] === 'bolt11')?.[1];
   if (bolt11) {
     try {
       return nip57.getSatoshisAmountFromBolt11(bolt11);
