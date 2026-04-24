@@ -62,22 +62,22 @@ export function PWAUpdatePrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:top-4 md:right-4 md:bottom-auto md:left-auto md:translate-x-0 z-50 animate-in slide-in-from-bottom-4 md:slide-in-from-top-4 duration-500 max-w-full">
-      <div className="relative group">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:bottom-auto md:right-4 md:top-4 md:max-w-sm z-50 animate-in slide-in-from-bottom-4 md:slide-in-from-top-4 duration-500">
+      <div className="flex items-center gap-2 rounded-lg border bg-background/95 backdrop-blur-sm shadow-lg px-4 py-2.5">
         <button
           onClick={handleUpdate}
           disabled={isUpdating}
-          className={`relative flex items-center gap-2 px-4 py-2.5 ${!isUpdating ? 'pr-10' : ''} bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-100 dark:to-primary-200 border-2 border-primary dark:border-primary rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100 max-w-full truncate`}
+          className="flex items-center gap-2 min-w-0 flex-1 disabled:cursor-not-allowed"
         >
-          <Compass className={`h-5 w-5 text-primary dark:text-primary ${isUpdating ? 'animate-spin' : 'group-hover:rotate-12 transition-transform duration-300'}`} />
-          <span className="text-sm font-medium whitespace-nowrap max-w-full truncate text-foreground dark:text-foreground">
+          <Compass className={`h-5 w-5 shrink-0 text-primary ${isUpdating ? 'animate-spin' : ''}`} />
+          <span className="text-sm font-medium text-foreground truncate">
             {isUpdating ? 'Updating...' : 'Update available — Click to refresh'}
           </span>
         </button>
         {!isUpdating && (
           <button
             onClick={handleDismiss}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-primary-100 dark:hover:bg-primary-100 transition-colors duration-200"
+            className="shrink-0 p-1 rounded-md hover:bg-accent transition-colors"
             aria-label="Dismiss update notification"
           >
             <X className="h-4 w-4 text-muted-foreground" />

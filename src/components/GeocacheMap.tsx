@@ -1400,12 +1400,7 @@ export function GeocacheMap({
     });
   }, []);
 
-  // Stable cluster event handlers
-  const clusterEventHandlers = useMemo(() => ({
-    clusteringbegin: () => {},
-    clusteringend: () => {},
-    unspiderfied: () => {},
-  }), []);
+
 
   // Memoize marker elements so the cluster group does not reprocess markers
   // on every parent re-render (which would destroy open popups).
@@ -1734,7 +1729,6 @@ export function GeocacheMap({
         chunkedLoadingDelay={0} // No delay for instant marker rendering
         // Prevent popup issues during clustering operations
         iconCreateFunction={clusterIconFn}
-        eventHandlers={clusterEventHandlers}
       >
         {markerElements}
       </MarkerClusterGroup>
