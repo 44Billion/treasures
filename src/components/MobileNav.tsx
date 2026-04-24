@@ -10,7 +10,6 @@ import { nip19 } from 'nostr-tools';
 import { DittoIcon } from '@/components/icons/DittoIcon';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { LoginArea } from '@/components/auth/LoginArea';
 import LoginDialog from '@/components/auth/LoginDialog';
 import SignupDialog from '@/components/auth/SignupDialog';
 import { WelcomeModal } from '@/components/auth/WelcomeModal';
