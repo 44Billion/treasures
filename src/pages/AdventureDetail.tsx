@@ -350,7 +350,7 @@ export default function AdventureDetail() {
       </div>
 
       {/* Mobile View — full-screen map with slide-down drawer */}
-      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: '3rem', bottom: '3rem' }}>
+      <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: 'calc(3rem + env(safe-area-inset-top, 0px))', bottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))' }}>
         {/* Full-screen map */}
         <div className="flex-1 relative overflow-hidden">
           {mapCenter && isMobile && <GeocacheMap {...mapProps} mapRef={mapRef} />}
@@ -364,15 +364,18 @@ export default function AdventureDetail() {
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
-            <div className={`relative flex items-center gap-2 px-3 py-2 ${adventure.image ? 'bg-black/50 backdrop-blur-sm' : 'bg-background/90 backdrop-blur-sm'}`}>
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className={`flex-shrink-0 ${adventure.image ? 'text-white/80' : 'text-muted-foreground'}`}
-              >
+            <div
+              onClick={() => setDrawerOpen(true)}
+              className={`relative flex items-center gap-2 px-3 py-2 cursor-pointer ${adventure.image ? 'bg-black/50 backdrop-blur-sm' : 'bg-background/90 backdrop-blur-sm'}`}
+            >
+              <div className={`flex-shrink-0 ${adventure.image ? 'text-white/80' : 'text-muted-foreground'}`}>
                 <ChevronDown className="h-4 w-4" />
-              </button>
+              </div>
               <span className={`text-sm font-semibold truncate flex-1 ${adventure.image ? 'text-white' : ''}`}>{adventure.title}</span>
-              <div className={`flex items-center gap-1 flex-shrink-0 ${adventure.image ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10' : ''}`}>
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className={`flex items-center gap-1 flex-shrink-0 ${adventure.image ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10' : ''}`}
+              >
                 {renderActionButtons("h-3.5 w-3.5")}
               </div>
             </div>

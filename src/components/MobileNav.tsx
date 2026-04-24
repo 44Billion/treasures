@@ -352,9 +352,9 @@ export function MobileHeader() {
                   <NavSectionLabel first>{t('navigation.explore')}</NavSectionLabel>
                   <div className="space-y-0.5">
                     <NavLink
-                      to="/map"
+                      to="/map?tab=map"
                       icon={Search}
-                      isActive={location.pathname === '/map'}
+                      isActive={location.pathname === '/map' && !location.search.includes('tab=list')}
                       onClick={closeSheet}
                     >
                       {isAdventureTheme ? t('navigation.revealMap') : t('navigation.exploreMap')}
@@ -473,7 +473,7 @@ export function MobileHeader() {
               </div>
 
               {/* Footer: Theme Selector + Settings for logged-out users */}
-              <div className="mobile-nav-footer border-t bg-muted/50 dark:bg-muted p-2 xs:p-3 shrink-0">
+              <div className="mobile-nav-footer border-t bg-muted/50 dark:bg-muted p-2 xs:p-3 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] xs:pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shrink-0">
                 {/* Theme Selector */}
                 <div className="px-1">
                   <label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/70 mb-1 block">

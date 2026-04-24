@@ -358,7 +358,7 @@ export default function Home() {
 
         {/* Current treasure info — bottom left */}
         {curatedTreasures && curatedTreasures.length > 0 && curatedTreasures[heroTreasureIndex] && (
-          <div className="absolute bottom-0 left-0 z-10 px-2 pb-0.5 xs:px-3 xs:pb-1 md:p-8">
+          <div className="absolute bottom-0 left-0 z-10 px-2 pb-[calc(0.125rem+env(safe-area-inset-bottom,0px))] xs:px-3 xs:pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))] md:p-8">
             <HeroTreasureInfo
               treasure={curatedTreasures[heroTreasureIndex]}
               city={treasureCities[curatedTreasures[heroTreasureIndex].id] || ''}
