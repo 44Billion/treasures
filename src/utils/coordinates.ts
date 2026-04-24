@@ -146,12 +146,19 @@ export function formatCoordinateForInput(value: number, isFromAutomaticSource: b
 export interface CoordinateParseResult {
   lat: number;
   lng: number;
-  /** The detected input format for display */
+  /** The detected input format key (translation key under "locationPicker.format.*") */
   format: string;
-  /** Warning message (non-blocking, coordinates are still usable) */
-  warning?: string;
+  /** Warning translation key (non-blocking, coordinates are still usable) */
+  warningKey?: string;
   /** Whether lat/lng appear swapped (lat > 90 but lng <= 90) */
   possibleSwap?: boolean;
+}
+
+/**
+ * Error result from coordinate parsing — contains a translation key
+ */
+export interface CoordinateParseError {
+  errorKey: string;
 }
 
 /**
@@ -165,16 +172,16 @@ export interface CoordinateParseResult {
  *  - Google Maps short link:     "https://maps.app.goo.gl/..." (not resolved, user should paste coords)
  *  - Apple Maps / OSM links with lat/lng query params
  *
- * @returns CoordinateParseResult on success, or a string error message on failure.
+ * @returns CoordinateParseResult on success, or CoordinateParseError on failure.
  */
-export function parseCoordinateString(input: string): CoordinateParseResult | string {
+export function parseCoordinateString(input: string): CoordinateParseResult | CoordinateParseError {
   if (!input || typeof input !== 'string') {
-    return 'Please enter coordinates';
+    return { errorKey: 'locationPicker.error.empty' };
   }
 
   const trimmed = input.trim();
   if (trimmed === '') {
-    return 'Please enter coordinates';
+    return { errorKey: 'locationPicker.error.empty' };
   }
 
   // --- Try Google Maps URL first ---
@@ -205,7 +212,7 @@ export function parseCoordinateString(input: string): CoordinateParseResult | st
   const decResult = tryParseDecimal(cleaned);
   if (decResult) return addWarnings(decResult);
 
-  return 'Could not parse coordinates. Try formats like "40.7128, -74.0060" or "40°42\'46"N 74°00\'22"W"';
+  return { errorKey: 'locationPicker.error.cannotParse' };
 }
 
 
@@ -218,7 +225,7 @@ function tryParseGoogleMapsUrl(input: string): CoordinateParseResult | null {
     const lat = parseFloat(atMatch[1]);
     const lng = parseFloat(atMatch[2]);
     if (isFinite(lat) && isFinite(lng)) {
-      return { lat, lng, format: 'Google Maps URL' };
+      return { lat, lng, format: 'locationPicker.format.googleMapsUrl' };
     }
   }
 
@@ -228,7 +235,7 @@ function tryParseGoogleMapsUrl(input: string): CoordinateParseResult | null {
     const lat = parseFloat(qMatch[1]);
     const lng = parseFloat(qMatch[2]);
     if (isFinite(lat) && isFinite(lng)) {
-      return { lat, lng, format: 'Maps URL' };
+      return { lat, lng, format: 'locationPicker.format.mapsUrl' };
     }
   }
 
@@ -238,7 +245,7 @@ function tryParseGoogleMapsUrl(input: string): CoordinateParseResult | null {
     const lat = parseFloat(placeMatch[1]);
     const lng = parseFloat(placeMatch[2]);
     if (isFinite(lat) && isFinite(lng)) {
-      return { lat, lng, format: 'Google Maps URL' };
+      return { lat, lng, format: 'locationPicker.format.googleMapsUrl' };
     }
   }
 
@@ -257,7 +264,7 @@ function tryParseUrlParams(input: string): CoordinateParseResult | null {
       const latNum = parseFloat(lat);
       const lngNum = parseFloat(lng);
       if (isFinite(latNum) && isFinite(lngNum)) {
-        return { lat: latNum, lng: lngNum, format: 'Map URL' };
+        return { lat: latNum, lng: lngNum, format: 'locationPicker.format.mapsUrl' };
       }
     }
   } catch {
@@ -291,7 +298,7 @@ function tryParseDMS(input: string): CoordinateParseResult | null {
 
   if (!isFinite(lat) || !isFinite(lng)) return null;
 
-  return { lat, lng, format: 'DMS (degrees/minutes/seconds)' };
+  return { lat, lng, format: 'locationPicker.format.dms' };
 }
 
 function tryParseDirectionDecimal(input: string): CoordinateParseResult | null {
@@ -304,7 +311,7 @@ function tryParseDirectionDecimal(input: string): CoordinateParseResult | null {
 
   if (!isFinite(lat) || !isFinite(lng)) return null;
 
-  return { lat, lng, format: 'Decimal degrees with direction' };
+  return { lat, lng, format: 'locationPicker.format.directionDecimal' };
 }
 
 function tryParseDecimal(input: string): CoordinateParseResult | null {
@@ -317,39 +324,38 @@ function tryParseDecimal(input: string): CoordinateParseResult | null {
 
   if (!isFinite(lat) || !isFinite(lng)) return null;
 
-  return { lat, lng, format: 'Decimal degrees' };
+  return { lat, lng, format: 'locationPicker.format.decimal' };
 }
 
 /**
  * Add validation warnings to a parsed coordinate result
  */
-function addWarnings(result: CoordinateParseResult): CoordinateParseResult | string {
+function addWarnings(result: CoordinateParseResult): CoordinateParseResult | CoordinateParseError {
   const { lat, lng } = result;
 
   // Hard errors
   if (Math.abs(lat) > 90 && Math.abs(lng) > 180) {
-    return 'Both values are out of range. Latitude must be -90 to 90, longitude -180 to 180.';
+    return { errorKey: 'locationPicker.error.bothOutOfRange' };
   }
 
   // Possible lat/lng swap
   if (Math.abs(lat) > 90 && Math.abs(lng) <= 90) {
     return {
       ...result,
-      warning: 'Latitude is out of range (must be -90 to 90). Did you swap lat and lng?',
+      warningKey: 'locationPicker.warning.possibleSwap',
       possibleSwap: true,
-      // Offer the swapped version in the result so the UI can provide a fix button
     };
   }
 
   if (Math.abs(lng) > 180) {
-    return 'Longitude is out of range (must be -180 to 180).';
+    return { errorKey: 'locationPicker.error.lngOutOfRange' };
   }
 
   // Near Null Island
   if (Math.abs(lat) < 0.5 && Math.abs(lng) < 0.5) {
     return {
       ...result,
-      warning: 'These coordinates are near 0,0 (Gulf of Guinea). Is this correct?',
+      warningKey: 'locationPicker.warning.nearNullIsland',
     };
   }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OmniSearch } from "@/components/OmniSearch";
@@ -10,7 +11,7 @@ import { MAP_STYLES } from "@/config/mapStyles";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { useTheme } from "@/hooks/useTheme";
-import { autocorrectCoordinates, formatCoordinateForInput, parseCoordinateString, CoordinateParseResult } from "@/utils/coordinates";
+import { autocorrectCoordinates, formatCoordinateForInput, parseCoordinateString, CoordinateParseResult, CoordinateParseError } from "@/utils/coordinates";
 import { mapIcons } from "@/utils/mapIcons";
 import { createRoot } from "react-dom/client";
 
@@ -410,12 +411,13 @@ function NearMeControl({
 }
 
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
+  const { t } = useTranslation();
   const { theme, systemTheme } = useTheme();
   const { location: initialLocation } = useInitialLocation();
   const [coordInput, setCoordInput] = useState(
     value ? `${value.lat}, ${value.lng}` : ""
   );
-  const [coordParseResult, setCoordParseResult] = useState<CoordinateParseResult | string | null>(null);
+  const [coordParseResult, setCoordParseResult] = useState<CoordinateParseResult | CoordinateParseError | null>(null);
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([initialLocation.lat, initialLocation.lng]);
   const [beaconLocation, setBeaconLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pinDropped, setPinDropped] = useState(false);
@@ -561,10 +563,13 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     setMapCenter([lat, lng]);
   };
 
+  const isParseError = (result: CoordinateParseResult | CoordinateParseError): result is CoordinateParseError => {
+    return 'errorKey' in result;
+  };
+
   const handleManualInput = () => {
     const result = parseCoordinateString(coordInput);
-    if (typeof result === 'string') {
-      // It's an error string — set it so the UI shows it
+    if (isParseError(result)) {
       setCoordParseResult(result);
       return;
     }
@@ -578,12 +583,12 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   };
 
   const handleSwapCoordinates = () => {
-    if (coordParseResult && typeof coordParseResult !== 'string' && coordParseResult.possibleSwap) {
+    if (coordParseResult && !isParseError(coordParseResult) && coordParseResult.possibleSwap) {
       const swapped: CoordinateParseResult = {
         ...coordParseResult,
         lat: coordParseResult.lng,
         lng: coordParseResult.lat,
-        warning: undefined,
+        warningKey: undefined,
         possibleSwap: false,
       };
       applyParsedCoordinates(swapped);
@@ -596,8 +601,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
     // Parse the pasted value immediately
     const result = parseCoordinateString(pasted.trim());
-    if (typeof result !== 'string' && !result.possibleSwap && !result.warning) {
-      // Valid, clean result — auto-apply after a short delay to let the input update
+    if (!isParseError(result) && !result.possibleSwap && !result.warningKey) {
+      // Valid, clean result — auto-apply
       e.preventDefault();
       setCoordInput(pasted.trim());
       setCoordParseResult(result);
@@ -640,8 +645,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             onGeocacheSelect={() => {}} // No geocache selection on create page
             onTextSearch={() => {}} // No text search on create page
             geocaches={[]}
-            placeholder="Search for a location or enter coordinates..."
-            mobilePlaceholder="Search location..."
+            placeholder={t("locationPicker.searchPlaceholder")}
+            mobilePlaceholder={t("locationPicker.searchPlaceholderMobile")}
           />
         </div>
 
@@ -679,10 +684,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
       <p className="text-sm text-gray-600 dark:text-muted-foreground text-center">
         {beaconLocation ? (
-          <>Tap the map to set your cache location<br />
-          <span className="text-blue-600">Blue beacon shows your current/searched location</span></>
+          <>{t("locationPicker.tapToSet")}<br />
+          <span className="text-blue-600">{t("locationPicker.beaconHint")}</span></>
         ) : (
-          "Tap the map to set your cache location"
+          t("locationPicker.tapToSet")
         )}
       </p>
 
@@ -690,14 +695,14 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       <div className="space-y-4">
         <details className="group">
           <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-center">
-            Enter coordinates manually
+            {t("locationPicker.enterManually")}
           </summary>
           <div className="mt-3 space-y-2">
             {/* Selected location display */}
             {value && (
               <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
                 <p className="text-sm font-medium text-foreground">
-                  Selected: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
+                  {t("locationPicker.selected", { coords: `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}` })}
                 </p>
                 <a
                   href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
@@ -705,7 +710,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:underline inline-block mt-1"
                 >
-                  View on OpenStreetMap &rarr;
+                  {t("locationPicker.viewOnOSM")}
                 </a>
               </div>
             )}
@@ -713,7 +718,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             {/* Single coordinate input */}
             <Input
               type="text"
-              placeholder="Paste coordinates, e.g. 40.7128, -74.0060"
+              placeholder={t("locationPicker.inputPlaceholder")}
               value={coordInput}
               onChange={(e) => handleCoordInputChange(e.target.value)}
               onPaste={handleCoordPaste}
@@ -726,17 +731,17 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             {/* Live parse feedback */}
             {coordParseResult && (
               <div className="text-xs space-y-1">
-                {typeof coordParseResult === 'string' ? (
+                {isParseError(coordParseResult) ? (
                   /* Error message */
-                  <p className="text-destructive">{coordParseResult}</p>
+                  <p className="text-destructive">{t(coordParseResult.errorKey)}</p>
                 ) : coordParseResult.possibleSwap ? (
                   /* Swap suggestion */
                   <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-md p-2 space-y-1.5">
                     <p className="text-yellow-700 dark:text-yellow-400 font-medium">
-                      {coordParseResult.warning}
+                      {coordParseResult.warningKey && t(coordParseResult.warningKey)}
                     </p>
                     <p className="text-muted-foreground">
-                      Parsed: {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
+                      {t("locationPicker.parsed", { coords: `${coordParseResult.lat.toFixed(5)}, ${coordParseResult.lng.toFixed(5)}` })}
                     </p>
                     <Button
                       type="button"
@@ -745,22 +750,21 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                       className="w-full text-xs h-7"
                       onClick={handleSwapCoordinates}
                     >
-                      Swap to {coordParseResult.lng.toFixed(5)}, {coordParseResult.lat.toFixed(5)}
+                      {t("locationPicker.swapTo", { coords: `${coordParseResult.lng.toFixed(5)}, ${coordParseResult.lat.toFixed(5)}` })}
                     </Button>
                   </div>
-                ) : coordParseResult.warning ? (
+                ) : coordParseResult.warningKey ? (
                   /* Warning (still usable) */
                   <div className="space-y-1">
-                    <p className="text-yellow-600 dark:text-yellow-400">{coordParseResult.warning}</p>
+                    <p className="text-yellow-600 dark:text-yellow-400">{t(coordParseResult.warningKey)}</p>
                     <p className="text-muted-foreground">
-                      Detected: <span className="text-foreground font-medium">{coordParseResult.format}</span>
-                      {' '}&rarr; {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
+                      {t("locationPicker.detected", { format: t(coordParseResult.format), coords: `${coordParseResult.lat.toFixed(5)}, ${coordParseResult.lng.toFixed(5)}` })}
                     </p>
                   </div>
                 ) : (
                   /* Clean parse */
                   <p className="text-green-600 dark:text-green-400">
-                    {coordParseResult.format}: {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
+                    {t(coordParseResult.format)}: {coordParseResult.lat.toFixed(5)}, {coordParseResult.lng.toFixed(5)}
                   </p>
                 )}
               </div>
@@ -768,18 +772,18 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
             {/* Format help */}
             <p className="text-xs text-muted-foreground">
-              Accepts: decimal, DMS, direction-suffixed, or Google Maps URLs
+              {t("locationPicker.formatHelp")}
             </p>
 
             <Button
               type="button"
               variant="secondary"
               onClick={handleManualInput}
-              disabled={!coordInput.trim() || typeof coordParseResult === 'string'}
+              disabled={!coordInput.trim() || (coordParseResult !== null && isParseError(coordParseResult))}
               className="w-full"
               size="sm"
             >
-              Set Coordinates
+              {t("locationPicker.setCoordinates")}
             </Button>
           </div>
         </details>
