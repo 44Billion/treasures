@@ -15,7 +15,7 @@ import { GeocacheCard } from "@/components/ui/geocache-card";
 import { HeroGallery } from "@/components/HeroGallery";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
-import { useCuratedTreasures } from "@/hooks/useCuratedTreasures";
+import { useCuratedTreasures, getCuratedHeroImage } from "@/hooks/useCuratedTreasures";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useAuthor } from "@/hooks/useAuthor";
 import { offlineGeocode } from "@/utils/offlineGeocode";
@@ -206,7 +206,8 @@ export default function Home() {
         ) : curatedTreasures && curatedTreasures.length > 0 ? (
           <div className="absolute inset-0 overflow-hidden">
             {curatedTreasures.map((treasure, i) => {
-              const img = treasure.images?.[0];
+              const heroImg = getCuratedHeroImage(treasure.pubkey, treasure.dTag);
+              const img = heroImg || treasure.images?.[0];
               if (!img) return null;
               return (
                 <div

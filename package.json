@@ -12,6 +12,7 @@
     "generate-icons": "node scripts/generate-icons.js",
     "process-icon": "node scripts/process-icon.js",
     "create-og-image": "node scripts/create-og-image.js",
+    "fetch-hero-images": "node scripts/fetch-hero-images.js",
     "check-translations": "node scripts/check-translations.js",
     "analyze": "npm run build && npx vite-bundle-analyzer dist",
     "build:analyze": "npm i && vite build --mode analyze && cp dist/index.html dist/404.html"

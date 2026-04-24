@@ -1,0 +1,66 @@
+[
+  {
+    "naddr": "naddr1qvzqqqyj3spzpyexz3t34l966ngh5xg7u2q788hthdqmj0av3lv8s2tz9t43zt6dqyt8wumn8ghj7un9d3shjtnswf5k6ctv9ehx2aqqy9ekzen994kkzem9de6xztt8wfshxumgdac8qetj95unxv3kxy6r2dcyc5sxz",
+    "identifier": "safe-magenta-grasshopper-93261457",
+    "pubkey": "932614571afcbad4d17a191ee281e39eebbb41b93fac8fd87829622aeb112f4d",
+    "kind": 37516,
+    "name": "Stateline Fire Lookout",
+    "image": "/hero/curated-0.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3vpzpyexz3t34l966ngh5xg7u2q788hthdqmj0av3lv8s2tz9t43zt6dqyt8wumn8ghj7un9d3shjtnswf5k6ctv9ehx2aqqr4mxzuned9hxwttzv45kwefdvd6kx6m0duknjvejxccngdfhjtmdv6",
+    "identifier": "varying-beige-cuckoo-93261457",
+    "pubkey": "932614571afcbad4d17a191ee281e39eebbb41b93fac8fd87829622aeb112f4d",
+    "kind": 37515,
+    "name": "Hawk Island Adventure",
+    "image": "/hero/curated-1.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3spzpyexz3t34l966ngh5xg7u2q788hthdqmj0av3lv8s2tz9t43zt6dqy28wumn8ghj7un9d3shjtnyv9kh2uewd9hsqfnswfhkwun9wdekjan994shqunfvdhhgttrdpsk6etvv4hkutfexvervvf5x5ms5pltzh",
+    "identifier": "progressive-apricot-chameleon-93261457",
+    "pubkey": "932614571afcbad4d17a191ee281e39eebbb41b93fac8fd87829622aeb112f4d",
+    "kind": 37516,
+    "name": "Spirited Away",
+    "image": "/hero/curated-2.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3spzqgynh25xy8zmy40g7n7zcm7lcyxc54vc5f23wejwl2agvpe47ypsqy28wumn8ghj7un9d3shjtnyv9kh2uewd9hsqp35xumryve3v8qhcg",
+    "identifier": "476231",
+    "pubkey": "2093baa8621c5b255e8f4fc2c6fdfc10d8a5598a25517664efaba860735f1030",
+    "kind": 37516,
+    "name": "Warm up with some spicy Thai food",
+    "image": "/hero/curated-3.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3spzqprpljlvcnpnw3pejvkkhrc3y6wvmd7vjuad0fg2ud3dky66gaxaqy28wumn8ghj7un9d3shjtnyv9kh2uewd9hsqxmxv9hxx7fddaexzmn8v5kkxmmjv9kz6vp5xcckvcmzv5xp5x46",
+    "identifier": "fancy-orange-coral-0461fcbe",
+    "pubkey": "0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd",
+    "kind": 37516,
+    "name": "Behind Shakespeare's Garden",
+    "image": "/hero/curated-4.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3spzpn5hxe78t47er7umcw7xladm80d49svfgxluuteksctde0c2mlf0qy28wumn8ghj7un9d3shjtnyv9kh2uewd9hsq8t8wfskgatpdskkx7tpdckkcmmzwd6x2u3dvdjnjdenxcmkxfcpj0e",
+    "identifier": "gradual-cyan-lobster-ce97367c",
+    "pubkey": "ce97367c75d7d91fb9bc3bc6ff5bb3bdb52c18941bfce2f368616dcbf0adfd2f",
+    "kind": 37516,
+    "name": "The Whispering Tree Cache",
+    "image": "/hero/curated-5.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3vpzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qyt8wumn8ghj7un9d3shjtnwdaehgu3wvfskueqpz4mhxue69uhkg6t5w3hjuur4vghhyetvv9usqxnrv93ksefdxymn2vpsxq6n2dpc8qungttev35h5mmrrr7kdd",
+    "identifier": "cache-1750005548894-ydizoc",
+    "pubkey": "86184109eae937d8d6f980b4a0b46da4ef0d983eade403ee1b4c0b6bde238b47",
+    "kind": 37515,
+    "name": "The Crescent Guardian",
+    "image": "/hero/curated-6.webp"
+  },
+  {
+    "naddr": "naddr1qvzqqqyj3vpzpgfduuysj5zjup023e423f35k7dmzxfc8jfctrde3cqudl8hn0ulqyt8wumn8ghj7un9d3shjtnswf5k6ctv9ehx2aqqr46kuer9wgkhg6r994kxzun8v5khymmrdvkkzvfjv3jnwvpefwmkxn",
+    "identifier": "under-the-large-rock-a12de709",
+    "pubkey": "a12de709095052e05ea8e6aa8a634b79bb119383c93858db98e01c6fcf79bf9f",
+    "kind": 37515,
+    "name": "Tranquil Park, Sturdy Rock",
+    "image": "/hero/curated-7.webp"
+  }
+]
