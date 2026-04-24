@@ -37,17 +37,15 @@ export default function Settings() {
     <PageLayout maxWidth="2xl" background="muted">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SettingsIcon className="h-5 w-5" />
-              {t('settings.title')}
-            </CardTitle>
-            <CardDescription>
-              {t('settings.description')}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="px-1">
+          <h1 className="flex items-center gap-2 text-lg font-semibold">
+            <SettingsIcon className="h-5 w-5" />
+            {t('settings.title')}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t('settings.description')}
+          </p>
+        </div>
 
         {/* Appearance Settings */}
         <Card>

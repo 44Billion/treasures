@@ -139,6 +139,29 @@ function GemJewel({ rotation, animated = false }: { rotation: number; animated?:
   );
 }
 
+function NearbyGem() {
+  return (
+    <g style={{ animation: 'compass-nearby-hover 2.5s ease-in-out infinite' }}>
+      <polygon
+        points="120,28 72,148 120,210 168,148"
+        className="fill-primary/60"
+        filter="url(#gem-aura)"
+        style={{ animation: 'compass-nearby-glow 1.8s ease-in-out infinite' }}
+      />
+      <polygon points="120,28 72,148 120,120" className="fill-primary" stroke="none" />
+      <polygon points="120,28 168,148 120,120" className="fill-primary/90" stroke="none" />
+      <polygon points="72,148 120,210 120,120" className="fill-primary/80" stroke="none" />
+      <polygon points="168,148 120,210 120,120" className="fill-primary/70" stroke="none" />
+      <rect x="60" y="28" width="120" height="182" fill="url(#gem-spec)" clipPath="url(#gem-clip)" />
+      <line x1="72" y1="148" x2="120" y2="120" stroke="white" strokeOpacity="0.12" strokeWidth="0.5" />
+      <line x1="168" y1="148" x2="120" y2="120" stroke="white" strokeOpacity="0.08" strokeWidth="0.5" />
+      <line x1="120" y1="28" x2="120" y2="210" stroke="white" strokeOpacity="0.05" strokeWidth="0.5" />
+      <line x1="72" y1="148" x2="168" y2="148" stroke="white" strokeOpacity="0.05" strokeWidth="0.5" />
+      <polygon points="120,28 72,148 120,210 168,148" fill="none" className="stroke-primary" strokeWidth="2.5" strokeLinejoin="round" />
+    </g>
+  );
+}
+
 function DormantGem() {
   return (
     <g style={{ animation: 'compass-dormant-pulse 3s ease-in-out infinite' }}>
@@ -166,6 +189,14 @@ const COMPASS_STYLES = `
   50% { opacity: 0.7; }
 }
 @keyframes compass-dormant-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+@keyframes compass-nearby-hover {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes compass-nearby-glow {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
@@ -235,6 +266,7 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
   const distance = compass.distance;
   const bearing = compass.bearing;
   const isLocating = compass.isLocating || (!compass.isActive && !compass.error && !compass.sensorError);
+  const isNearby = distance !== null && distance <= 10;
 
   const compassSvg = (size: string, animated: boolean) => (
     <div className="relative select-none">
@@ -244,21 +276,11 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
         <ArcaneCrosshairs active />
         <ArcaneDots active twinkle={animated} />
         <ArcaneTicks active />
-        <GemJewel rotation={rotation} animated={animated} />
+        {isNearby
+          ? <NearbyGem />
+          : <GemJewel rotation={rotation} animated={animated} />
+        }
       </svg>
-    </div>
-  );
-
-  const distanceInfo = distance !== null && (
-    <div className="flex flex-col items-center">
-      <span className={cn('font-bold tabular-nums text-foreground', 'text-2xl lg:text-2xl')}>
-        {formatCompassDistance(distance)}
-      </span>
-      {bearing !== null && (
-        <span className="text-sm text-muted-foreground mt-1">
-          {getBearingLabel(bearing)}
-        </span>
-      )}
     </div>
   );
 
@@ -266,34 +288,24 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
     <>
       <style>{COMPASS_STYLES}</style>
 
-      {/* Desktop: inline compass (hidden on mobile) */}
-      <div className={cn('hidden lg:flex flex-col items-center gap-3', className)}>
-        {compassSvg('h-64 w-64', false)}
-        {distanceInfo}
-        <button
-          onClick={handleDeactivate}
-          className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-        >
-          {t('compass.deactivate', 'Stop')}
-        </button>
-      </div>
+      {/* Full-screen overlay compass */}
+      <CompassOverlay
+        isLocating={isLocating}
+        error={compass.error}
+        sensorError={compass.sensorError}
+        onRetry={() => compass.startTracking()}
+        onClose={handleDeactivate}
+        zClass="z-[9999]"
+      >
+        {compassSvg('h-[85vw] w-[85vw] max-h-[70vh] max-w-[70vh]', true)}
 
-      {/* Mobile: full-screen overlay via shared shell */}
-      <div className="lg:hidden">
-        <CompassOverlay
-          isLocating={isLocating}
-          error={compass.error}
-          sensorError={compass.sensorError}
-          onRetry={() => compass.startTracking()}
-          onClose={handleDeactivate}
-          zClass="z-[9999]"
-        >
-          {/* Compass SVG */}
-          {compassSvg('h-[85vw] w-[85vw] max-h-[70vh] max-w-[70vh]', true)}
-
-          {/* Distance info below */}
-          {distance !== null && (
-            <div className="mt-6 flex flex-col items-center">
+        <div className="mt-6 flex flex-col items-center">
+          {isNearby ? (
+            <span className="text-3xl font-bold text-primary animate-pulse">
+              {t('compass.nearby', 'Treasure Nearby!')}
+            </span>
+          ) : distance !== null ? (
+            <>
               <span className="text-4xl font-bold tabular-nums text-foreground">
                 {formatCompassDistance(distance)}
               </span>
@@ -302,10 +314,10 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
                   {getBearingLabel(bearing)}
                 </span>
               )}
-            </div>
-          )}
-        </CompassOverlay>
-      </div>
+            </>
+          ) : null}
+        </div>
+      </CompassOverlay>
     </>
   );
 }

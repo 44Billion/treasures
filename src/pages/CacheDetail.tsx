@@ -69,7 +69,6 @@ export default function CacheDetail() {
   const navigationState = location.state as { geocacheData?: any; justCreated?: boolean } | null;
   const passedGeocacheData = navigationState?.geocacheData;
   const justCreated = navigationState?.justCreated;
-
   const [showQuickCompass, setShowQuickCompass] = useState(false);
 
   // State for tracking multi-relay attempts
@@ -987,15 +986,6 @@ export default function CacheDetail() {
             {!isEditing && (
               <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
                 <NavigationCompass target={geocache.location} />
-                <div className="flex justify-center mt-4 pt-3 border-t border-border/50">
-                  <button
-                    onClick={openRadar}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
-                  >
-                    <Compass className="h-4 w-4 group-hover:rotate-45 transition-transform" />
-                    {t('compass.openRadar', 'Find nearby treasures with Magic Compass')}
-                  </button>
-                </div>
               </div>
             )}
 
