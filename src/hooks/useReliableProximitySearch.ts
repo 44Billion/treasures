@@ -82,18 +82,6 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
   ]);
 
   const applyClientSideFilters = useCallback((geocaches: GeocacheWithDistance[]): GeocacheWithDistance[] => {
-    console.log('🗺️ applyClientSideFilters input:', {
-      totalCount: geocaches.length,
-      hasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
-      filters: {
-        search: options.search,
-        difficulty: options.difficulty,
-        terrain: options.terrain,
-        cacheType: options.cacheType,
-        hasProximity: hasProximityParams
-      }
-    });
-
     let filtered = [...geocaches];
 
     // Text search filter
@@ -141,16 +129,6 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
       // Don't sort by creation date as this reorders the geocaches unexpectedly
     }
 
-    console.log('🗺️ applyClientSideFilters output:', {
-      filteredCount: filtered.length,
-      hasStats: filtered.some(g => 'foundCount' in g || 'zapTotal' in g),
-      sampleStats: filtered.slice(0, 3).map(g => ({
-        name: g.name,
-        foundCount: g.foundCount,
-        zapTotal: g.zapTotal
-      }))
-    });
-
     return filtered;
   }, [
     options.search,
@@ -178,15 +156,6 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
       try {
         if (baseGeocaches !== undefined) {
           geocaches = baseGeocaches;
-          console.log('🗺️ useReliableProximitySearch using pre-fetched geocaches:', {
-            count: geocaches.length,
-            hasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
-            sampleStats: baseGeocaches.slice(0, 3).map(g => ({
-              name: g.name,
-              foundCount: g.foundCount,
-              zapTotal: g.zapTotal
-            }))
-          });
         } else {
           const result = await geocacheStore.fetchGeocaches();
           if (!result.success) {
@@ -194,10 +163,6 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
           }
           
           geocaches = result.data || [];
-          console.log('🗺️ useReliableProximitySearch fetched geocaches from store:', {
-            count: geocaches.length,
-            hasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g)
-          });
         }
         
         searchStrategy = 'broad';
@@ -215,23 +180,6 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
 
       // Step 3: Apply client-side filters
       const filteredGeocaches = applyClientSideFilters(visibleGeocaches);
-
-      console.log('🗺️ useReliableProximitySearch final result:', {
-        originalCount: geocaches.length,
-        filteredCount: filteredGeocaches.length,
-        originalHasStats: geocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
-        filteredHasStats: filteredGeocaches.some(g => 'foundCount' in g || 'zapTotal' in g),
-        sampleOriginal: geocaches.slice(0, 1).map(g => ({
-          name: g.name,
-          foundCount: g.foundCount,
-          zapTotal: g.zapTotal
-        })),
-        sampleFiltered: filteredGeocaches.slice(0, 1).map(g => ({
-          name: g.name,
-          foundCount: g.foundCount,
-          zapTotal: g.zapTotal
-        }))
-      });
 
       return {
         geocaches: filteredGeocaches,

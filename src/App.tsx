@@ -21,7 +21,6 @@ import { APP_BLOSSOM_SERVERS } from '@/lib/appBlossom';
 
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import './lib/i18n';
-import './styles/leaflet-overrides.css';
 import './styles/print.css';
 
 const queryClient = new QueryClient({
@@ -45,6 +44,7 @@ const defaultConfig: AppConfig = {
   blossomServerMetadata: APP_BLOSSOM_SERVERS,
   useAppBlossomServers: true,
   imageQuality: 'compressed',
+  imageProxy: 'https://wsrv.nl',
   plausibleDomain: import.meta.env.VITE_PLAUSIBLE_DOMAIN || '',
   plausibleEndpoint: import.meta.env.VITE_PLAUSIBLE_ENDPOINT || '',
 };

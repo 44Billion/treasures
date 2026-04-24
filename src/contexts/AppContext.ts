@@ -25,6 +25,11 @@ export interface AppConfig {
   useAppBlossomServers: boolean;
   /** Image upload quality: compressed resizes large images, original uploads as-is */
   imageQuality: 'compressed' | 'original';
+  /** Image proxy base URL for thumbnails in lists. Reduces bandwidth and speeds up scrolling.
+   *  Empty string = disabled (load original images directly, fully decentralized).
+   *  Any URL = proxy thumbnails through that host (must support wsrv.nl-compatible API).
+   *  Default public instance: 'https://wsrv.nl' (open-source, self-hostable). */
+  imageProxy: string;
   /** Plausible Analytics domain (empty string = disabled). */
   plausibleDomain: string;
   /** Plausible Analytics API endpoint (empty string = use default). */

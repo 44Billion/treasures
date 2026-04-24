@@ -64,25 +64,6 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const geocachesQuery = useQuery({
     queryKey: createQueryKey('geocache', 'list'),
     queryFn: async () => {
-      console.log('🚀 Geocache store query starting...', {
-        timestamp: new Date().toISOString(),
-        userPubkey: user?.pubkey,
-        timeout: TIMEOUTS.QUERY
-      });
-
-      console.log('📡 Fetching geocaches from relay...', {
-        kinds: [NIP_GC_KINDS.GEOCACHE],
-        legacyIds: LEGACY_GEOCACHE_IDS.length,
-        limit: QUERY_LIMITS.GEOCACHES,
-        queryLimits: QUERY_LIMITS.GEOCACHES,
-        fullFilter: {
-          kinds: [NIP_GC_KINDS.GEOCACHE],
-          limit: QUERY_LIMITS.GEOCACHES
-        }
-      });
-
-      const startTime = Date.now();
-
       // Query for kind 37516 geocaches
       const { data: newGeocacheEvents } = await baseStore.batchQuery([{
         kinds: [NIP_GC_KINDS.GEOCACHE],
@@ -98,16 +79,6 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       // Combine both result sets
       const events = [...(newGeocacheEvents || []), ...(legacyGeocacheEvents || [])];
 
-      const queryDuration = Date.now() - startTime;
-
-      console.log('📊 Relay query completed:', {
-        newGeocaches: newGeocacheEvents?.length || 0,
-        legacyGeocaches: legacyGeocacheEvents?.length || 0,
-        totalEvents: events?.length || 0,
-        queryDuration: `${queryDuration}ms`,
-        timeout: TIMEOUTS.QUERY
-      });
-
       const geocaches = (events || [])
         .map(parseGeocacheEvent)
         .filter((g: Geocache | null): g is Geocache => {
@@ -117,12 +88,6 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
           return true;
         })
         .sort((a: Geocache, b: Geocache) => b.created_at - a.created_at);
-
-      console.log('✅ Geocache processing completed:', {
-        originalEvents: events?.length || 0,
-        validGeocaches: geocaches.length,
-        filteredOut: (events?.length || 0) - geocaches.length
-      });
 
       // Update pagination state
       if (geocaches.length > 0) {
@@ -158,40 +123,23 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   // Optimized data fetching actions
   const fetchGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      console.log('🔄 STORE FETCH: Returning current query data...');
-
       // If the query has data, return it directly
       if (geocachesQuery.data) {
-        console.log('🔄 STORE FETCH: Using existing query data:', {
-          dataLength: geocachesQuery.data.length,
-          queryStatus: geocachesQuery.status
-        });
         return geocachesQuery.data;
       }
 
       // If no data but query is loading, wait for it
       if (geocachesQuery.isLoading) {
-        console.log('🔄 STORE FETCH: Query is loading, waiting for completion...');
         try {
           const result = await geocachesQuery.refetch();
-          console.log('🔄 STORE FETCH: Loading query completed:', {
-            dataLength: result.data?.length || 0,
-            isError: result.isError
-          });
           return result.data || [];
         } catch (error) {
-          console.error('🔄 STORE FETCH: Loading query failed:', error);
           throw error;
         }
       }
 
       // If no data and not loading, trigger a fresh fetch
-      console.log('🔄 STORE FETCH: No data and not loading, triggering fresh fetch...');
       const result = await geocachesQuery.refetch();
-      console.log('🔄 STORE FETCH: Fresh fetch completed:', {
-        dataLength: result.data?.length || 0,
-        isError: result.isError
-      });
       return result.data || [];
     }, 'fetchGeocaches');
   }, [geocachesQuery, baseStore]);
@@ -199,15 +147,8 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const loadMoreGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
       if (!hasMore || !oldestTimestamp) {
-        console.log('📄 Load more: No more geocaches to load');
         return state.geocaches;
       }
-
-      console.log('📄 Loading more geocaches...', {
-        currentCount: state.geocaches.length,
-        oldestTimestamp,
-        hasMore
-      });
 
       // Query for kind 37516 geocaches before the oldest timestamp
       const { data: newGeocacheEvents } = await baseStore.batchQuery([{
@@ -235,12 +176,6 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
           return true;
         })
         .sort((a: Geocache, b: Geocache) => b.created_at - a.created_at);
-
-      console.log('✅ Load more completed:', {
-        newEvents: events.length,
-        newGeocaches: newGeocaches.length,
-        totalGeocaches: state.geocaches.length + newGeocaches.length
-      });
 
       // Update pagination state
       if (newGeocaches.length > 0) {

@@ -553,11 +553,25 @@
 }
 
 .custom-cache-icon {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* No transition on the icon container — transitions on 50-100 markers cause
+     significant jank during map panning because the browser must composite
+     every element on every frame. Hover effects use instant changes instead. */
 }
 
 .custom-cache-icon:hover {
   z-index: 1000;
+}
+
+/* Standard marker hover effect — no transition, instant feedback */
+.custom-cache-icon:hover > div:first-child {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+/* Adventure marker hover effect */
+.adventure-cache-icon:hover > div:first-child {
+  transform: scale(1.05);
+  box-shadow: 0 3px 6px rgba(65, 105, 225, 0.4);
 }
 
 .user-location-icon {

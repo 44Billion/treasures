@@ -15,6 +15,7 @@ import { mapIcons } from "@/utils/mapIcons";
 import { createRoot } from "react-dom/client";
 
 import "leaflet/dist/leaflet.css";
+import "@/styles/leaflet-overrides.css";
 
 interface LocationPickerProps {
   value: { lat: number; lng: number } | null;

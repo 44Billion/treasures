@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useMap } from 'react-leaflet';
-import L from 'leaflet';
 import type { LatLngExpression } from 'leaflet';
 
 interface UseMapControllerProps {
@@ -21,240 +20,107 @@ export function useMapController({
   const map = useMap();
   const lastCenterRef = useRef<string | null>(null);
   const lastRadiusRef = useRef<number | null>(null);
-  const userIsInteracting = useRef(false);
-  const userHasInteracted = useRef(false);
-  const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isMovingRef = useRef(false);
-  const isProgrammaticMove = useRef(false);
-  const isManualCardClick = useRef(false);
+  // Track whether the user is actively dragging the map
+  const isDragging = useRef(false);
+  // Brief cooldown after a user drag to avoid fighting with the user
+  const cooldownUntil = useRef(0);
+  // Track programmatic setView calls so zoomend/moveend don't set cooldowns
+  const isProgrammatic = useRef(false);
 
-  // Function to handle explicit card clicks - clears all interaction locks
-  const handleCardClick = (newCenter: { lat: number; lng: number }, newZoom: number) => {
-    // Clear all interaction locks for explicit user actions
-    userIsInteracting.current = false;
-    userHasInteracted.current = false;
-
-    if (interactionTimeoutRef.current) {
-      clearTimeout(interactionTimeoutRef.current);
-      interactionTimeoutRef.current = null;
-    }
-
-    // Mark as programmatic move and manual card click to prevent useEffect from triggering
-    isProgrammaticMove.current = true;
-    isManualCardClick.current = true;
+  // Function to handle explicit card clicks — bypasses all guards
+  const handleCardClick = useCallback((newCenter: { lat: number; lng: number }, newZoom: number) => {
+    cooldownUntil.current = 0;
+    isDragging.current = false;
+    isProgrammatic.current = true;
 
     map.setView([newCenter.lat, newCenter.lng], newZoom, {
-      animate: false, // No animation for immediate response
-      duration: 0
+      animate: false,
+      duration: 0,
     });
 
-    // Reset programmatic move flag after a short delay
-    setTimeout(() => {
-      isProgrammaticMove.current = false;
-      isManualCardClick.current = false;
-    }, 100);
-
-    // Update last center reference to prevent useEffect from triggering
     const centerKey = `${newCenter.lat},${newCenter.lng},${newZoom}`;
     lastCenterRef.current = centerKey;
-  };
-
-  useEffect(() => {
-    // Comprehensive user interaction tracking
-    const handleInteractionStart = (_event?: L.LeafletEvent) => {
-      // Don't mark as user interaction if this is a programmatic move
-      if (isProgrammaticMove.current) {
-        return;
-      }
-
-      userIsInteracting.current = true;
-      userHasInteracted.current = true;
-
-      // Clear any existing timeout
-      if (interactionTimeoutRef.current) {
-        clearTimeout(interactionTimeoutRef.current);
-      }
-    };
-
-    const handleInteractionEnd = () => {
-      userIsInteracting.current = false;
-
-      // Set a reasonable timeout before allowing automatic updates
-      interactionTimeoutRef.current = setTimeout(() => {
-        userHasInteracted.current = false;
-      }, 8000); // 8 seconds - balanced protection that's not too long
-    };
-
-    // Track map movement state
-    const handleMoveStart = (event?: L.LeafletEvent) => {
-      isMovingRef.current = true;
-      // If this is not a programmatic move, mark it as user interaction
-      if (!isProgrammaticMove.current) {
-        handleInteractionStart(event);
-      }
-    };
-
-    const handleMoveEnd = () => {
-      isMovingRef.current = false;
-      // Reset programmatic move flag after move completes
-      if (isProgrammaticMove.current) {
-        isProgrammaticMove.current = false;
-      }
-    };
-
-    // Listen to all possible user interactions
-    map.on('dragstart', handleInteractionStart);
-    map.on('dragend', handleInteractionEnd);
-    map.on('zoomstart', handleInteractionStart);
-    map.on('zoomend', handleInteractionEnd);
-    map.on('movestart', handleMoveStart);
-    map.on('moveend', handleMoveEnd);
-
-    // Also track movement for popup timing
-    map.on('movestart', handleMoveStart);
-    map.on('moveend', handleMoveEnd);
-    map.on('zoomstart', handleMoveStart);
-    map.on('zoomend', handleMoveEnd);
-
-    // Also listen for mouse/touch events as backup
-    const mapContainer = map.getContainer();
-    const handleDomInteractionStart = (_e: Event) => {
-      handleInteractionStart();
-    };
-    mapContainer.addEventListener('mousedown', handleDomInteractionStart);
-    mapContainer.addEventListener('touchstart', handleDomInteractionStart);
-
-    return () => {
-      map.off('dragstart', handleInteractionStart);
-      map.off('dragend', handleInteractionEnd);
-      map.off('zoomstart', handleInteractionStart);
-      map.off('zoomend', handleInteractionEnd);
-      map.off('movestart', handleMoveStart);
-      map.off('moveend', handleMoveEnd);
-
-      map.off('movestart', handleMoveStart);
-      map.off('moveend', handleMoveEnd);
-      map.off('zoomstart', handleMoveStart);
-      map.off('zoomend', handleMoveEnd);
-
-      mapContainer.removeEventListener('mousedown', handleDomInteractionStart);
-      mapContainer.removeEventListener('touchstart', handleDomInteractionStart);
-
-      if (interactionTimeoutRef.current) {
-        clearTimeout(interactionTimeoutRef.current);
-      }
-    };
   }, [map]);
 
   useEffect(() => {
-    if (center) {
-      // Create a key to track if the center has actually changed
-      const centerArray = Array.isArray(center) ? center : [(center as { lat: number; lng: number }).lat, (center as { lat: number; lng: number }).lng];
-      const centerKey = `${centerArray[0]},${centerArray[1]},${zoom}`;
+    const onDragStart = () => {
+      isDragging.current = true;
+    };
+    const onDragEnd = () => {
+      isDragging.current = false;
+      cooldownUntil.current = Date.now() + 2000;
+    };
+    const onMoveEnd = () => {
+      // Clear the programmatic flag once the move finishes
+      isProgrammatic.current = false;
+    };
 
-      // If isMapCenterLocked is false (which happens when Near Me or other explicit actions are triggered),
-      // clear the interaction state to allow the map to update
-      if (!isMapCenterLocked && userHasInteracted.current) {
-        userHasInteracted.current = false;
-        userIsInteracting.current = false;
-        if (interactionTimeoutRef.current) {
-          clearTimeout(interactionTimeoutRef.current);
-          interactionTimeoutRef.current = null;
-        }
-      }
+    map.on('dragstart', onDragStart);
+    map.on('dragend', onDragEnd);
+    map.on('moveend', onMoveEnd);
 
-      // Only update if center has actually changed, user isn't currently interacting,
-      // and this is not a manual card click (which is handled separately)
-      if (centerKey !== lastCenterRef.current &&
-          !userIsInteracting.current &&
-          !isMapCenterLocked &&
-          !isManualCardClick.current) {
+    return () => {
+      map.off('dragstart', onDragStart);
+      map.off('dragend', onDragEnd);
+      map.off('moveend', onMoveEnd);
+    };
+  }, [map]);
 
-        lastCenterRef.current = centerKey;
+  // React to center/zoom prop changes
+  useEffect(() => {
+    if (!center || isMapCenterLocked) return;
 
-        // Mark this as a programmatic move to prevent triggering user interaction tracking
-        isProgrammaticMove.current = true;
+    const centerArray = Array.isArray(center)
+      ? center
+      : [(center as { lat: number; lng: number }).lat, (center as { lat: number; lng: number }).lng];
+    const centerKey = `${centerArray[0]},${centerArray[1]},${zoom}`;
 
-        // Reset user interaction state for explicit card clicks (high zoom levels)
-        if (zoom >= 15) {
-          userHasInteracted.current = false;
-          if (interactionTimeoutRef.current) {
-            clearTimeout(interactionTimeoutRef.current);
-          }
-        }
+    if (centerKey === lastCenterRef.current) return;
+    if (isDragging.current || Date.now() < cooldownUntil.current) return;
 
-        // If we have a search location with radius, use radius-based zoom
-        if (searchLocation && searchRadius) {
-          const targetZoom = getZoomForRadius(searchRadius);
+    lastCenterRef.current = centerKey;
+    isProgrammatic.current = true;
 
-          map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
-            animate: true,
-            duration: 0.5
-          });
-          lastRadiusRef.current = searchRadius;
-        } else {
-          // For card clicks (when zoom is 16 or higher), use no animation for immediate response
-          const useAnimation = zoom < 15;
-
-          map.setView(center, zoom, {
-            animate: useAnimation,
-            duration: useAnimation ? 0.5 : 0
-          });
-        }
-
-        // Reset programmatic move flag after a short delay
-        setTimeout(() => {
-          isProgrammaticMove.current = false;
-        }, 100);
-      }
+    if (searchLocation && searchRadius) {
+      const targetZoom = getZoomForRadius(searchRadius);
+      map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
+        animate: true,
+        duration: 0.5,
+      });
+      lastRadiusRef.current = searchRadius;
+    } else {
+      const useAnimation = zoom < 15;
+      map.setView(center, zoom, {
+        animate: useAnimation,
+        duration: useAnimation ? 0.5 : 0,
+      });
     }
   }, [map, center, zoom, searchLocation, searchRadius, isMapCenterLocked]);
 
-  // Handle radius changes independently of center changes
+  // Handle radius changes independently
   useEffect(() => {
-    if (searchLocation && searchRadius &&
-        lastRadiusRef.current !== searchRadius &&
-        !userIsInteracting.current &&
-        !isMapCenterLocked) {
+    if (!searchLocation || !searchRadius || isMapCenterLocked) return;
+    if (lastRadiusRef.current === searchRadius) return;
+    if (isDragging.current || Date.now() < cooldownUntil.current) return;
 
-      lastRadiusRef.current = searchRadius;
+    lastRadiusRef.current = searchRadius;
+    isProgrammatic.current = true;
 
-      // Mark this as a programmatic move to prevent triggering user interaction tracking
-      isProgrammaticMove.current = true;
-
-      // Calculate appropriate zoom level based on radius and update map
-      const targetZoom = getZoomForRadius(searchRadius);
-
-      map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
-        animate: true,
-        duration: 0.25
-      });
-
-      // Reset programmatic move flag after a short delay
-      setTimeout(() => {
-        isProgrammaticMove.current = false;
-      }, 100);
-    }
+    const targetZoom = getZoomForRadius(searchRadius);
+    map.setView([searchLocation.lat, searchLocation.lng], targetZoom, {
+      animate: true,
+      duration: 0.25,
+    });
   }, [map, searchLocation, searchRadius, isMapCenterLocked]);
 
-  return {
-    handleCardClick,
-  };
+  return { handleCardClick };
 }
 
-// Helper function to calculate appropriate zoom level based on search radius
 function getZoomForRadius(radius: number): number {
-  if (radius <= 1) {
-    return 15; // Very close for 1km
-  } else if (radius <= 5) {
-    return 13; // Close for 5km
-  } else if (radius <= 10) {
-    return 12; // Medium for 10km
-  } else if (radius <= 25) {
-    return 10; // Wider for 25km
-  } else if (radius <= 50) {
-    return 9;  // Wide for 50km
-  } else {
-    return 8;  // Very wide for 100km+
-  }
+  if (radius <= 1) return 15;
+  if (radius <= 5) return 13;
+  if (radius <= 10) return 12;
+  if (radius <= 25) return 10;
+  if (radius <= 50) return 9;
+  return 8;
 }

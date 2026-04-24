@@ -47,6 +47,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@tanstack/react-query": "^5.95.2",
+    "@tanstack/react-virtual": "^3.13.24",
     "cities.json": "^1.1.50",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/geocache-form.fields";
 import { DifficultyTerrainRating } from "@/components/ui/difficulty-terrain-rating";
 import "leaflet/dist/leaflet.css";
+import "@/styles/leaflet-overrides.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";

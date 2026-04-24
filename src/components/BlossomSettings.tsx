@@ -294,6 +294,52 @@ export function BlossomSettings() {
           </p>
         </div>
       </div>
+
+      {/* Thumbnail Proxy */}
+      <div className="pb-4">
+        <div className="px-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">Thumbnail Proxy</h3>
+            <div className="flex items-center gap-2">
+              <Label
+                htmlFor="image-proxy"
+                className="text-xs text-muted-foreground cursor-pointer"
+              >
+                {config.imageProxy ? 'Enabled' : 'Disabled'}
+              </Label>
+              <Switch
+                id="image-proxy"
+                checked={!!config.imageProxy}
+                onCheckedChange={(checked) =>
+                  updateConfig((prev) => ({ ...prev, imageProxy: checked ? 'https://wsrv.nl' : '' }))
+                }
+                className="scale-90"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Resizes thumbnails in lists for faster scrolling. Detail pages always load full-size images directly.
+          </p>
+          {config.imageProxy && (
+            <div className="space-y-1.5">
+              <Label htmlFor="image-proxy-url" className="text-xs font-medium">Proxy URL</Label>
+              <Input
+                id="image-proxy-url"
+                type="url"
+                value={config.imageProxy}
+                onChange={(e) =>
+                  updateConfig((prev) => ({ ...prev, imageProxy: e.target.value }))
+                }
+                placeholder="https://wsrv.nl"
+                className="h-8 text-xs"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Must support the <a href="https://github.com/weserv/images" target="_blank" rel="noopener noreferrer" className="underline">weserv/images</a> API. Default: <button type="button" className="underline" onClick={() => updateConfig((prev) => ({ ...prev, imageProxy: 'https://wsrv.nl' }))}>wsrv.nl</button>
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

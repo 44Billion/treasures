@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useSearchParams, Link } from "react-router-dom";
 import { RefreshCw, Sparkles, Compass, ChevronDown, Earth } from "lucide-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -69,6 +70,9 @@ export default function Map() {
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
+  // Virtualized list scroll containers
+  const desktopScrollRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
   const { open: openRadar } = useRadarOverlay();
   const myFoundCaches = useMyFoundCaches();
 
@@ -321,6 +325,54 @@ export default function Map() {
 
     return filtered;
   }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType]);
+
+  // Virtualizers for desktop sidebar and mobile list.
+  // They share the same data but each has its own scroll container.
+  const desktopVirtualizer = useVirtualizer({
+    count: filteredGeocaches.length,
+    getScrollElement: () => desktopScrollRef.current,
+    estimateSize: () => 80, // estimated card height in px
+    overscan: 5,
+  });
+
+  const mobileVirtualizer = useVirtualizer({
+    count: filteredGeocaches.length,
+    getScrollElement: () => mobileScrollRef.current,
+    estimateSize: () => 80,
+    overscan: 5,
+  });
+
+  // Pagination: load more geocaches when the virtualizer scrolls near the bottom
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef(false); // guard against concurrent calls
+
+  useEffect(() => {
+    if (!baseGeocaches.hasMore || isLoadingMore || loadMoreRef.current) return;
+
+    // Check if either virtualizer has scrolled near the end
+    const desktopItems = desktopVirtualizer.getVirtualItems();
+    const mobileItems = mobileVirtualizer.getVirtualItems();
+    const lastDesktop = desktopItems[desktopItems.length - 1]?.index ?? -1;
+    const lastMobile = mobileItems[mobileItems.length - 1]?.index ?? -1;
+    const lastVisible = Math.max(lastDesktop, lastMobile);
+    const totalCount = filteredGeocaches.length;
+
+    // Trigger load when within 5 items of the end
+    if (totalCount > 0 && lastVisible >= totalCount - 5) {
+      loadMoreRef.current = true;
+      setIsLoadingMore(true);
+      baseGeocaches.loadMore().finally(() => {
+        setIsLoadingMore(false);
+        loadMoreRef.current = false;
+      });
+    }
+  }, [
+    desktopVirtualizer.getVirtualItems(),
+    mobileVirtualizer.getVirtualItems(),
+    filteredGeocaches.length,
+    baseGeocaches.hasMore,
+    isLoadingMore,
+  ]);
 
   // Filter adventures by type and radius, matching geocache filter behavior
   const filteredAdventures = useMemo(() => {
@@ -637,7 +689,7 @@ export default function Map() {
 
 
           {/* Results */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div ref={desktopScrollRef} className="flex-1 overflow-y-auto min-h-0 styled-scrollbar">
             {showMapSkeletons ? (
               // Show skeleton cards during loading
               <div className="p-4">
@@ -708,18 +760,41 @@ export default function Map() {
                     </div>
                   </div>
                 )}
-                <div className="space-y-3">
-                  {filteredGeocaches.map((cache) => (
-                    <CompactGeocacheCard
-                      key={cache.id}
-                      cache={cache}
-                      distance={cache.distance}
-                      onClick={() => handleCardClick(cache)}
-                      statsLoading={baseGeocaches.isStatsLoading}
-                      isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
-                    />
-                  ))}
+                {/* Virtualized card list — only visible cards are mounted */}
+                <div style={{ height: `${desktopVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+                  {desktopVirtualizer.getVirtualItems().map((virtualItem) => {
+                    const cache = filteredGeocaches[virtualItem.index]!;
+                    return (
+                      <div
+                        key={cache.id}
+                        data-index={virtualItem.index}
+                        ref={desktopVirtualizer.measureElement}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          transform: `translateY(${virtualItem.start}px)`,
+                        }}
+                      >
+                        <div className="pb-3">
+                          <CompactGeocacheCard
+                            cache={cache}
+                            distance={cache.distance}
+                            onClick={() => handleCardClick(cache)}
+                            statsLoading={baseGeocaches.isStatsLoading}
+                            isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+                {isLoadingMore && (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-muted-foreground/30 border-t-primary" />
+                  </div>
+                )}
               </div>
             </SmartLoadingState>
             )}
@@ -833,7 +908,8 @@ export default function Map() {
               </div>
 
               <div
-                className="flex-1 overflow-y-auto p-4 pb-6 min-h-0 relative"
+                ref={mobileScrollRef}
+                className="flex-1 overflow-y-auto p-4 pb-6 min-h-0 relative styled-scrollbar"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -916,18 +992,41 @@ export default function Map() {
                       )}
                     </div>
                   )}
-                  <div className="space-y-3">
-                    {filteredGeocaches.map((cache) => (
-                      <CompactGeocacheCard
-                        key={cache.id}
-                        cache={cache}
-                        distance={cache.distance}
-                        onClick={() => handleCardClick(cache)}
-                        statsLoading={baseGeocaches.isStatsLoading}
-                        isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
-                      />
-                    ))}
+                  {/* Virtualized card list — only visible cards are mounted */}
+                  <div style={{ height: `${mobileVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+                    {mobileVirtualizer.getVirtualItems().map((virtualItem) => {
+                      const cache = filteredGeocaches[virtualItem.index]!;
+                      return (
+                        <div
+                          key={cache.id}
+                          data-index={virtualItem.index}
+                          ref={mobileVirtualizer.measureElement}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            transform: `translateY(${virtualItem.start}px)`,
+                          }}
+                        >
+                          <div className="pb-3">
+                            <CompactGeocacheCard
+                              cache={cache}
+                              distance={cache.distance}
+                              onClick={() => handleCardClick(cache)}
+                              statsLoading={baseGeocaches.isStatsLoading}
+                              isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                  {isLoadingMore && (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-muted-foreground/30 border-t-primary" />
+                    </div>
+                  )}
                 </div>
               </SmartLoadingState>
                 </div>

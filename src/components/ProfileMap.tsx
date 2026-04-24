@@ -9,32 +9,36 @@ import type { Geocache } from "@/types/geocache";
 import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
 
-// Import Leaflet CSS and adventure theme
+// Import Leaflet CSS, overrides, and adventure theme
 import "leaflet/dist/leaflet.css";
+import "@/styles/leaflet-overrides.css";
 import "@/styles/map-features.css";
 
-// Create cache icons with optional adventure theme styling
-const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
+// Cached icon instances: 3 types x 2 themes = 6 icons total.
+// Icons are created once and reused across all markers.
+const iconCache = new Map<string, L.DivIcon>();
+
+function getCachedCacheIcon(type: string, isAdventureTheme: boolean): L.DivIcon {
+  const key = `${type}-${isAdventureTheme}`;
+  const cached = iconCache.get(key);
+  if (cached) return cached;
+
   const iconSvg = getCacheIconSvg(type);
   const color = getCacheColor(type);
 
+  let icon: L.DivIcon;
+
   if (isAdventureTheme) {
-    // Adventure-style quest markers - slightly more blue with parchment texture
     const adventureColors = {
-      background: '#6495ED', // Cornflower blue - slightly more blue
-      border: '#4169E1',     // Royal blue - more blue border
-      icon: '#FFFFFF',       // Pure white - maximum contrast against sepia
-      shadow: '#4682B4',     // Steel blue shadow
+      background: '#6495ED',
+      border: '#4169E1',
+      icon: '#FFFFFF',
     };
 
-    return L.divIcon({
+    icon = L.divIcon({
       html: `
         <div style="
-          background:
-            url('/parchment-50.jpg'),
-            ${adventureColors.background};
-          background-blend-mode: soft-light;
-          background-size: 50px 50px, auto;
+          background: ${adventureColors.background};
           border: 2px solid ${adventureColors.border};
           border-radius: 4px;
           width: 36px;
@@ -44,7 +48,6 @@ const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
           justify-content: center;
           box-shadow: 0 2px 4px rgba(65, 105, 225, 0.3);
           position: relative;
-          transition: all 0.2s ease;
           cursor: pointer;
           color: ${adventureColors.icon};
         ">
@@ -60,67 +63,53 @@ const createCacheIcon = (type: string, isAdventureTheme: boolean = false) => {
           border-left: 6px solid transparent;
           border-right: 6px solid transparent;
           border-top: 6px solid ${adventureColors.background};
-          filter: drop-shadow(0 1px 2px rgba(70, 130, 180, 0.3));
         "></div>
-        <style>
-          .custom-cache-icon:hover > div:first-child {
-            transform: scale(1.05);
-            box-shadow: 0 3px 6px rgba(65, 105, 225, 0.4);
-            opacity: 1;
-          }
-        </style>
       `,
       className: "custom-cache-icon adventure-cache-icon adventure-quest-marker",
       iconSize: [36, 42],
       iconAnchor: [18, 42],
       popupAnchor: [0, -42],
     });
+  } else {
+    icon = L.divIcon({
+      html: `
+        <div style="
+          background: ${color};
+          border: 3px solid white;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+          position: relative;
+          cursor: pointer;
+        ">
+          ${iconSvg}
+        </div>
+        <div style="
+          position: absolute;
+          bottom: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 8px solid transparent;
+          border-right: 8px solid transparent;
+          border-top: 8px solid ${color};
+        "></div>
+      `,
+      className: "custom-cache-icon",
+      iconSize: [40, 48],
+      iconAnchor: [20, 48],
+      popupAnchor: [0, -48],
+    });
   }
 
-  // Standard theme icons
-  return L.divIcon({
-    html: `
-      <div style="
-        background: ${color};
-        border: 3px solid white;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-        position: relative;
-        transition: all 0.2s ease;
-        cursor: pointer;
-      ">
-        ${iconSvg}
-      </div>
-      <div style="
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-top: 8px solid ${color};
-        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
-      "></div>
-      <style>
-        .custom-cache-icon:hover > div:first-child {
-          transform: scale(1.1);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-        }
-      </style>
-    `,
-    className: "custom-cache-icon",
-    iconSize: [40, 48],
-    iconAnchor: [20, 48],
-    popupAnchor: [0, -48],
-  });
-};
+  iconCache.set(key, icon);
+  return icon;
+}
 
 interface ProfileMapProps {
   geocaches: Geocache[];
@@ -517,7 +506,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
             <Marker
               key={geocache.dTag}
               position={[geocache.location.lat, geocache.location.lng]}
-              icon={createCacheIcon(geocache.type, currentMapStyle === 'adventure')}
+              icon={getCachedCacheIcon(geocache.type, currentMapStyle === 'adventure')}
               eventHandlers={{
                 click: (e) => {
                   const marker = e.target;

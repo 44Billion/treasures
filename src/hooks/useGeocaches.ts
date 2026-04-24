@@ -19,22 +19,20 @@ interface GeocacheWithStats {
 export function useGeocaches() {
   const geocacheStore = useGeocacheStoreContext();
   const isWotEnabled = useIsWotEnabled();
-  const { wotPubkeys } = useWotStore();
+  const { wotPubkeys, lastCalculated: wotLastCalculated } = useWotStore();
   const { nostr } = useNostr();
   const { setZaps } = useZapStore();
 
   // Step 1: Fetch geocaches first
   const geocachesQuery = useQuery({
-    queryKey: ['geocaches', isWotEnabled, Array.from(wotPubkeys).sort().join(',')],
+    queryKey: ['geocaches', isWotEnabled, wotPubkeys.size, wotLastCalculated],
     queryFn: async () => {
-      console.log('🚀 Fetching geocaches...');
       const result = await geocacheStore.fetchGeocaches();
       
       if (!result.success) {
         throw result.error;
       }
       
-      console.log('✅ Geocaches fetched:', result.data?.length || 0);
       return result.data || [];
     },
     staleTime: 600000, // 10 minutes - longer stale time for better cache consistency
@@ -44,7 +42,7 @@ export function useGeocaches() {
 
   // Step 2: Fetch stats for all geocaches (depends on geocaches being loaded)
   const statsQuery = useQuery({
-    queryKey: ['geocache-stats', geocachesQuery.data?.map(g => `${g.pubkey}:${g.dTag}`).join(','), isWotEnabled, Array.from(wotPubkeys).sort().join(',')],
+    queryKey: ['geocache-stats', geocachesQuery.data?.length, geocachesQuery.dataUpdatedAt, isWotEnabled, wotPubkeys.size, wotLastCalculated],
     queryFn: async (c) => {
       const geocaches = geocachesQuery.data;
       
@@ -52,8 +50,6 @@ export function useGeocaches() {
         return new Map<string, GeocacheWithStats>();
       }
 
-      console.log('📊 Fetching stats for', geocaches.length, 'geocaches...');
-      
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(TIMEOUTS.STATS_QUERY)]);
       
       try {
@@ -64,7 +60,7 @@ export function useGeocaches() {
         
         // Create consolidated filters instead of individual ones
         const logsLimit = Math.min(QUERY_LIMITS.LOGS * geocaches.length, 1000); // Cap at 1000 to avoid excessive limits
-        const allFilters: any[] = [
+        const allFilters: Record<string, unknown>[] = [
           // Single filter for all found logs
           {
             kinds: [NIP_GC_KINDS.FOUND_LOG],
@@ -84,51 +80,12 @@ export function useGeocaches() {
           },
         ];
 
-        console.log('📡 Querying with optimized filters:', {
-          filterCount: allFilters.length,
-          totalCoordinates: coordinates.length,
-          estimatedEventsLimit: allFilters.reduce((sum, filter) => sum + (filter.limit || 0), 0)
-        });
-        
-        // Execute queries with larger batch size since we have fewer filters
-        console.log('🚀 Starting batched query for stats...');
-        const queryStartTime = Date.now();
-        
-        let allEvents: any[] = [];
-        
-        try {
-          allEvents = await batchedQuery(nostr, allFilters, 3, signal);
-          const queryDuration = Date.now() - queryStartTime;
-          
-          console.log('✅ Batched query completed successfully:', {
-            duration: `${queryDuration}ms`,
-            eventsReceived: allEvents.length,
-            filtersUsed: allFilters.length
-          });
-          
-          // Continue processing events instead of returning them directly
-        } catch (queryError) {
-          const queryDuration = Date.now() - queryStartTime;
-          console.error('❌ Batched query failed:', {
-            duration: `${queryDuration}ms`,
-            error: queryError,
-            filtersUsed: allFilters.length,
-            coordinates: coordinates.length
-          });
-          throw queryError;
-        }
+        const allEvents = await batchedQuery(nostr, allFilters, 3, signal);
         
         // Make sure allEvents is defined before proceeding
         if (!allEvents) {
-          console.warn('❌ No events returned from batched query');
           return new Map<string, GeocacheWithStats>();
         }
-        
-        console.log('✅ Stats fetched:', {
-          totalEvents: allEvents.length,
-          zapEvents: allEvents.filter(e => e.kind === 9735).length,
-          logEvents: allEvents.filter(e => e.kind === NIP_GC_KINDS.FOUND_LOG || e.kind === NIP_GC_KINDS.COMMENT_LOG).length
-        });
 
         // Process all events and build stats map
         const statsMap = new Map<string, GeocacheWithStats>();
@@ -140,47 +97,66 @@ export function useGeocaches() {
         });
 
         // Process logs and count by geocache
+        // When WoT is enabled, pre-index events by geocache key to avoid O(N*M) nested loop
         const logCounts = new Map<string, { foundCount: Set<string>; logCount: number }>();
+        const wotLogCounts = new Map<string, { foundCount: Set<string>; logCount: number }>();
         
         geocaches.forEach(geocache => {
           const key = `${geocache.pubkey}:${geocache.dTag}`;
           logCounts.set(key, { foundCount: new Set(), logCount: 0 });
+          if (isWotEnabled && wotPubkeys.size > 0) {
+            wotLogCounts.set(key, { foundCount: new Set(), logCount: 0 });
+          }
         });
 
         // Process zap events by target
-        const zapEventsByTarget = new Map<string, any[]>();
+        const zapEventsByTarget = new Map<string, Record<string, unknown>[]>();
 
-        // Separate and process events
-        allEvents.forEach(event => {
+        // Single pass over all events — O(N) instead of O(N*M)
+        allEvents.forEach((event: Record<string, unknown>) => {
+          const kind = event.kind as number;
+          const tags = event.tags as string[][];
+          const eventPubkey = event.pubkey as string;
+
           // Handle log events
-          if (event.kind === NIP_GC_KINDS.FOUND_LOG || event.kind === NIP_GC_KINDS.COMMENT_LOG) {
-            const aTag = event.tags.find((t: string[]) => t[0] === 'a')?.[1];
+          if (kind === NIP_GC_KINDS.FOUND_LOG || kind === NIP_GC_KINDS.COMMENT_LOG) {
+            const aTag = tags.find((t) => t[0] === 'a')?.[1];
             if (!aTag) return;
 
-            const [kind, pubkey, dTag] = aTag.split(':');
-            if ((kind !== NIP_GC_KINDS.GEOCACHE.toString() && kind !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) || !pubkey || !dTag) return;
+            const [tagKind, pubkey, dTag] = aTag.split(':');
+            if ((tagKind !== NIP_GC_KINDS.GEOCACHE.toString() && tagKind !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) || !pubkey || !dTag) return;
 
             const key = `${pubkey}:${dTag}`;
+
+            // Standard counts
             const counts = logCounts.get(key);
             if (!counts) return;
-
             counts.logCount++;
-            
-            // Count found logs (unique by pubkey)
-            if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
-              counts.foundCount.add(event.pubkey);
+            if (kind === NIP_GC_KINDS.FOUND_LOG) {
+              counts.foundCount.add(eventPubkey);
+            }
+
+            // WoT-filtered counts (computed in the same pass, avoiding the O(N*M) re-scan)
+            if (isWotEnabled && wotPubkeys.size > 0 && wotPubkeys.has(eventPubkey)) {
+              const wotCounts = wotLogCounts.get(key);
+              if (wotCounts) {
+                wotCounts.logCount++;
+                if (kind === NIP_GC_KINDS.FOUND_LOG) {
+                  wotCounts.foundCount.add(eventPubkey);
+                }
+              }
             }
           }
 
           // Handle zap events
-          if (event.kind === 9735) {
+          if (kind === 9735) {
             // Check for 'a' tag (naddr zaps)
-            const aTag = event.tags.find((t: string[]) => t[0] === 'a')?.[1];
+            const aTag = tags.find((t) => t[0] === 'a')?.[1];
             if (aTag) {
               try {
-                const [kind, pubkey, identifier] = aTag.split(':');
+                const [zapKind, pubkey, identifier] = aTag.split(':');
                 const naddr = nip19.naddrEncode({
-                  kind: parseInt(kind),
+                  kind: parseInt(zapKind),
                   pubkey,
                   identifier,
                 });
@@ -189,13 +165,13 @@ export function useGeocaches() {
                   zapEventsByTarget.set(key, []);
                 }
                 zapEventsByTarget.get(key)!.push(event);
-              } catch (e) {
-                console.error("Failed to encode naddr from a-tag:", aTag, e);
+              } catch {
+                // Skip malformed a-tags
               }
             }
 
             // Check for 'e' tag (event id zaps)
-            const eTag = event.tags.find((t: string[]) => t[0] === 'e')?.[1];
+            const eTag = tags.find((t) => t[0] === 'e')?.[1];
             if (eTag) {
               const key = `event:${eTag}`;
               if (!zapEventsByTarget.has(key)) {
@@ -206,86 +182,47 @@ export function useGeocaches() {
           }
         });
 
-        // Apply WoT filtering if enabled and update stats map
-        logCounts.forEach((counts, key) => {
-          let foundCount = counts.foundCount.size;
-          let logCount = counts.logCount;
-
-          if (isWotEnabled && wotPubkeys.size > 0) {
-            // Filter logs by WoT pubkeys
-            const wotFoundLogs = new Set<string>();
-            let wotTotalLogs = 0;
-
-            allEvents.forEach(event => {
-              if (event.kind !== NIP_GC_KINDS.FOUND_LOG && event.kind !== NIP_GC_KINDS.COMMENT_LOG) return;
-              
-              const aTag = event.tags.find((t: string[]) => t[0] === 'a')?.[1];
-              if (!aTag) return;
-
-              const [kind, pubkey, dTag] = aTag.split(':');
-              if ((kind !== NIP_GC_KINDS.GEOCACHE.toString() && kind !== NIP_GC_KINDS.GEOCACHE_LEGACY.toString()) || !pubkey || !dTag) return;
-              if (`${pubkey}:${dTag}` !== key) return;
-
-              if (wotPubkeys.has(event.pubkey)) {
-                wotTotalLogs++;
-                if (event.kind === NIP_GC_KINDS.FOUND_LOG) {
-                  wotFoundLogs.add(event.pubkey);
-                }
-              }
-            });
-
-            foundCount = wotFoundLogs.size;
-            logCount = wotTotalLogs;
-          }
-
-          // Update stats map with log counts
+        // Apply counts to stats map — use WoT counts when enabled
+        const sourceCounts = (isWotEnabled && wotPubkeys.size > 0) ? wotLogCounts : logCounts;
+        sourceCounts.forEach((counts, key) => {
           const currentStats = statsMap.get(key) || { foundCount: 0, logCount: 0, zapTotal: 0 };
           statsMap.set(key, {
             ...currentStats,
-            foundCount,
-            logCount,
+            foundCount: counts.foundCount.size,
+            logCount: counts.logCount,
           });
         });
 
         // Process zap totals and update stats map
+        // Build a lookup map for geocaches to avoid repeated .find() calls
+        const geocacheByNaddr = new Map<string, typeof geocaches[number]>();
+        const geocacheByEvent = new Map<string, typeof geocaches[number]>();
+        const geocacheByCoord = new Map<string, typeof geocaches[number]>();
+        geocaches.forEach(g => {
+          if (g.naddr) geocacheByNaddr.set(`naddr:${g.naddr}`, g);
+          if (g.id) geocacheByEvent.set(`event:${g.id}`, g);
+          geocacheByCoord.set(`${g.kind || NIP_GC_KINDS.GEOCACHE}:${g.pubkey}:${g.dTag}`, g);
+        });
+
         zapEventsByTarget.forEach((events, targetKey) => {
-          // Try to find the corresponding geocache using multiple strategies
-          let geocache: typeof geocaches[number] | undefined = undefined;
+          let geocache = geocacheByNaddr.get(targetKey) || geocacheByEvent.get(targetKey);
           let zapStoreKey = targetKey;
-          
-          // Strategy 1: Try exact match with naddr/event key
-          geocache = geocaches.find(g => {
-            const geocacheKey = g.naddr ? `naddr:${g.naddr}` : `event:${g.id}`;
-            return geocacheKey === targetKey;
-          });
           
           // Strategy 2: If targetKey is naddr format, try to parse it and match by pubkey/dTag
           if (!geocache && targetKey.startsWith('naddr:')) {
             try {
-              const naddrPart = targetKey.substring(6); // Remove 'naddr:' prefix
+              const naddrPart = targetKey.substring(6);
               const decoded = nip19.decode(naddrPart);
               if (decoded.type === 'naddr') {
                 const { kind, pubkey, identifier } = decoded.data;
-                geocache = geocaches.find(g => 
-                  g.pubkey === pubkey && 
-                  g.dTag === identifier && 
-                  (g.kind || NIP_GC_KINDS.GEOCACHE) === kind
-                );
-                
-                // If found, update the zapStoreKey to use the geocache's actual naddr
+                geocache = geocacheByCoord.get(`${kind}:${pubkey}:${identifier}`);
                 if (geocache && geocache.naddr) {
                   zapStoreKey = `naddr:${geocache.naddr}`;
                 }
               }
-            } catch (e) {
-              console.warn('Failed to parse naddr from zap target key:', targetKey, e);
+            } catch {
+              // Skip malformed naddr
             }
-          }
-          
-          // Strategy 3: If targetKey is event format, try to match by event ID
-          if (!geocache && targetKey.startsWith('event:')) {
-            const eventId = targetKey.substring(7); // Remove 'event:' prefix
-            geocache = geocaches.find(g => g.id === eventId);
           }
           
           if (geocache) {
@@ -294,19 +231,16 @@ export function useGeocaches() {
               return total + getZapAmount(event);
             }, 0);
 
-            // Update stats map with zap totals
             const currentStats = statsMap.get(statsKey) || { foundCount: 0, logCount: 0, zapTotal: 0 };
             statsMap.set(statsKey, {
               ...currentStats,
               zapTotal,
             });
 
-            // Update zap store with the corrected key
             setZaps(zapStoreKey, events);
           }
         });
 
-        console.log('✅ Stats processing completed for', statsMap.size, 'geocaches');
         return statsMap;
       
     } catch (error) {
@@ -383,20 +317,22 @@ export function useGeocaches() {
     data: geocachesWithStats,
     // Stats loading state
     isStatsLoading,
+    // Pagination
+    hasMore: geocacheStore.hasMore,
+    loadMore: geocacheStore.loadMoreGeocaches,
   };
 }
 
 // Helper function to extract zap amount from event
-function getZapAmount(event: any): number {
-  const bolt11 = event.tags.find((t: any[]) => t[0] === 'bolt11')?.[1];
+function getZapAmount(event: Record<string, unknown>): number {
+  const tags = event.tags as string[][];
+  const bolt11 = tags.find((t) => t[0] === 'bolt11')?.[1];
   if (bolt11) {
     try {
       return nip57.getSatoshisAmountFromBolt11(bolt11);
-    } catch (e) {
-      console.error("Invalid bolt11 invoice", bolt11, e);
+    } catch {
       return 0;
     }
   }
   return 0;
 }
-

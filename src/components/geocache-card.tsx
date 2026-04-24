@@ -22,6 +22,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Geocache } from '@/types/geocache';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useThumbnailUrl } from '@/hooks/useThumbnailUrl';
 
 // Base interface for all geocache cards
 interface BaseGeocacheCardProps {
@@ -130,6 +131,7 @@ export function GeocacheCard({
   const isMobile = useIsMobile();
   const { navigateToGeocache } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
+  const thumbnail = useThumbnailUrl();
   const zapStoreKey = cache.naddr ? `naddr:${cache.naddr}` : `event:${cache.id}`;
 
   // Select the memoized zap total directly from store state
@@ -145,8 +147,7 @@ export function GeocacheCard({
   const [avatarError, setAvatarError] = React.useState(false);
   const handleAvatarError = React.useCallback(() => {
     setAvatarError(true);
-    console.warn('Avatar failed to load for:', authorName);
-  }, [authorName]);
+  }, []);
 
   // Get city name with flag from coordinates (100% offline, lazy-loaded)
   const [cityName, setCityName] = useState<string>(cache.city || '');
@@ -204,7 +205,7 @@ export function GeocacheCard({
         <span className="truncate font-medium">{authorName}</span>
         {profilePicture && !avatarError && (
           <img
-            src={profilePicture}
+            src={thumbnail(profilePicture, 32)}
             alt={authorName}
             className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full object-cover shrink-0 ml-1"
             onError={handleAvatarError}
@@ -373,10 +374,13 @@ export function GeocacheCard({
                     />
                   ) : (
                     <img
-                      src={previewImage}
+                      src={thumbnail(previewImage, 224)}
                       alt={cache.name}
                       className="absolute inset-0 w-full h-full object-cover object-center"
                       loading="lazy"
+                      decoding="async"
+                      width={112}
+                      height={112}
                     />
                   )
                 )}
@@ -476,10 +480,13 @@ export function GeocacheCard({
                     />
                   ) : (
                     <img
-                      src={previewImage}
+                      src={thumbnail(previewImage, 160)}
                       alt={cache.name}
                       className="absolute inset-0 w-full h-full object-cover object-center"
                       loading="lazy"
+                      decoding="async"
+                      width={80}
+                      height={120}
                     />
                   )
                 )}

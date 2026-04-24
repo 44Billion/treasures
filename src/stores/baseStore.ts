@@ -114,51 +114,12 @@ export function useBaseStore(
         // Ignore errors when trying to get relay info
       }
       
-      console.log(`🔍 [${storeName}] Starting batch query:`, {
-        context,
-        relay: currentRelay,
-        filterCount: filters.length,
-        timeout,
-        filters: filters.map(f => ({
-          kinds: f.kinds,
-          limit: f.limit,
-          authors: f.authors?.length || 0
-        }))
-      });
-      
       const signal = AbortSignal.timeout(timeout);
-      const startTime = Date.now();
       
       try {
         const events = await nostr.query(filters, { signal });
-        const queryDuration = Date.now() - startTime;
-        
-        // Check if this was a timeout (duration equals timeout)
-        const isTimeout = queryDuration >= timeout - 100; // Within 100ms of timeout
-        
-        console.log(`✅ [${storeName}] Batch query completed:`, {
-          context,
-          relay: currentRelay,
-          eventCount: events.length,
-          queryDuration: `${queryDuration}ms`,
-          timeout,
-          isTimeout,
-          wasSuccessful: !isTimeout || events.length > 0
-        });
-        
         return events;
       } catch (error) {
-        const queryDuration = Date.now() - startTime;
-        const isTimeout = queryDuration >= timeout - 100;
-        
-        console.error(`❌ [${storeName}] Batch query failed:`, {
-          context,
-          relay: currentRelay,
-          queryDuration: `${queryDuration}ms`,
-          timeout,
-          isTimeout,
-          error: error instanceof Error ? error.message : error
-        });
         throw error;
       }
     }, context);
