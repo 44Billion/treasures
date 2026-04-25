@@ -109,7 +109,7 @@ export function MobileHeader() {
   const location = useLocation();
   const { user } = useCurrentUser();
   const { currentUser, otherUsers, setLogin, removeLogin, isLoadingCurrentUser } = useLoggedInAccounts();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const { hasDittoTheme } = useActiveProfileTheme();
   const themeClasses = getThemeClasses(theme);
   const isHero = location.pathname === '/' || location.pathname === '/adventures';
@@ -155,18 +155,18 @@ export function MobileHeader() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isHero]);
 
+  const isDarkTheme = resolvedTheme === 'dark' || resolvedTheme === 'adventure'
+    || (resolvedTheme === 'ditto' && isDittoDark);
+
   useEffect(() => {
-    if (inHeroViewport) {
+    if (isDarkTheme || inHeroViewport) {
+      // Dark themes always need light/white status bar icons.
+      // Hero viewport also needs them (dark image background).
       document.documentElement.setAttribute('data-status-bar', 'dark');
     } else {
-      const isDark = theme === 'dark' || theme === 'adventure'
-        || (theme === 'ditto' && isDittoDark);
-      document.documentElement.setAttribute('data-status-bar', isDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-status-bar', 'light');
     }
-    return () => {
-      document.documentElement.removeAttribute('data-status-bar');
-    };
-  }, [inHeroViewport, theme, isDittoDark]);
+  }, [inHeroViewport, isDarkTheme]);
 
   // Login/signup dialog state (managed here since LoginArea is no longer in the header)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);

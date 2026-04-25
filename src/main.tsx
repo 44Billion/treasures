@@ -46,8 +46,10 @@ if (Capacitor.isNativePlatform()) {
     } else if (explicit === 'light') {
       isDark = false;
     } else {
-      // Fall back to theme class
-      isDark = el.classList.contains('dark');
+      // Fall back to theme class — all dark-background themes need light/white icons
+      isDark = el.classList.contains('dark')
+        || el.classList.contains('adventure')
+        || el.classList.contains('ditto-dark');
     }
     SystemBars.setStyle({ style: isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {});
   }

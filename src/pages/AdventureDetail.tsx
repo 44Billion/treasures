@@ -33,7 +33,7 @@ export default function AdventureDetail() {
   const isMobile = useIsMobile();
   const { user } = useCurrentUser();
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
@@ -57,7 +57,7 @@ export default function AdventureDetail() {
 
     const storageKey = 'ui-theme';
     const savedTheme = localStorage.getItem(storageKey);
-    const savedResolvedTheme = theme;
+    const savedResolvedTheme = resolvedTheme;
 
     setTheme(adventure.theme);
 
@@ -76,7 +76,8 @@ export default function AdventureDetail() {
     return () => {
       setTheme(savedResolvedTheme ?? 'system');
       // Let MobileHeader take over status bar management again
-      const wasItDark = savedResolvedTheme === 'dark' || savedResolvedTheme === 'adventure';
+      const wasItDark = savedResolvedTheme === 'dark' || savedResolvedTheme === 'adventure'
+        || (savedResolvedTheme === 'ditto' && document.documentElement.classList.contains('ditto-dark'));
       document.documentElement.setAttribute('data-status-bar', wasItDark ? 'dark' : 'light');
       // Restore localStorage again on cleanup (setTheme overwrites it)
       if (savedTheme) {
