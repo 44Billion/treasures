@@ -356,19 +356,21 @@ export default function Map() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadMoreRef = useRef(false); // guard against concurrent calls
 
+  const desktopVirtualItems = desktopVirtualizer.getVirtualItems();
+  const mobileVirtualItems = mobileVirtualizer.getVirtualItems();
+  const filteredCount = filteredGeocaches.length;
+  const hasMore = baseGeocaches.hasMore;
+
   useEffect(() => {
-    if (!baseGeocaches.hasMore || isLoadingMore || loadMoreRef.current) return;
+    if (!hasMore || isLoadingMore || loadMoreRef.current) return;
 
     // Check if either virtualizer has scrolled near the end
-    const desktopItems = desktopVirtualizer.getVirtualItems();
-    const mobileItems = mobileVirtualizer.getVirtualItems();
-    const lastDesktop = desktopItems[desktopItems.length - 1]?.index ?? -1;
-    const lastMobile = mobileItems[mobileItems.length - 1]?.index ?? -1;
+    const lastDesktop = desktopVirtualItems[desktopVirtualItems.length - 1]?.index ?? -1;
+    const lastMobile = mobileVirtualItems[mobileVirtualItems.length - 1]?.index ?? -1;
     const lastVisible = Math.max(lastDesktop, lastMobile);
-    const totalCount = filteredGeocaches.length;
 
     // Trigger load when within 5 items of the end
-    if (totalCount > 0 && lastVisible >= totalCount - 5) {
+    if (filteredCount > 0 && lastVisible >= filteredCount - 5) {
       loadMoreRef.current = true;
       setIsLoadingMore(true);
       baseGeocaches.loadMore().finally(() => {
@@ -377,11 +379,12 @@ export default function Map() {
       });
     }
   }, [
-    desktopVirtualizer.getVirtualItems(),
-    mobileVirtualizer.getVirtualItems(),
-    filteredGeocaches.length,
-    baseGeocaches.hasMore,
+    desktopVirtualItems,
+    mobileVirtualItems,
+    filteredCount,
+    hasMore,
     isLoadingMore,
+    baseGeocaches,
   ]);
 
   // Filter adventures by type and radius, matching geocache filter behavior

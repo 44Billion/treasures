@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.3] - 2026-04-25
+
+### Added
+- Haptic feedback on key interactions: compass proximity alerts, publish confirmations, save toggles, share actions, map pin drops, and verified reveals
+
+### Changed
+- Splash screen uses original brand colors instead of plain white
+
+### Fixed
+- Status bar icons now match the theme when the device is in system dark mode
+- "Near me" location marker no longer appears as a white dot on the map
+
 ## [2.0.2] - 2026-04-25
 
 ### Changed

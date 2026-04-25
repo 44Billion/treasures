@@ -130,12 +130,8 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
       // If no data but query is loading, wait for it
       if (geocachesQuery.isLoading) {
-        try {
-          const result = await geocachesQuery.refetch();
-          return result.data || [];
-        } catch (error) {
-          throw error;
-        }
+        const result = await geocachesQuery.refetch();
+        return result.data || [];
       }
 
       // If no data and not loading, trigger a fresh fetch

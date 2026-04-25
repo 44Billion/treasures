@@ -116,14 +116,10 @@ export function useBaseStore(
       
       const signal = AbortSignal.timeout(timeout);
       
-      try {
-        const events = await nostr.query(filters, { signal });
-        return events;
-      } catch (error) {
-        throw error;
-      }
+      const events = await nostr.query(filters, { signal });
+      return events;
     }, context);
-  }, [safeAsyncOperation, nostr, storeName]);
+  }, [safeAsyncOperation, nostr]);
 
 
 

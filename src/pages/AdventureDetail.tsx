@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -88,7 +88,7 @@ export default function AdventureDetail() {
     };
   }, [adventure?.theme]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const geocaches = adventure?.geocaches || [];
+  const geocaches = useMemo(() => adventure?.geocaches || [], [adventure?.geocaches]);
 
   // Map center for initial render — fitBounds handles the actual zoom
   const mapCenter = geocaches.length > 0

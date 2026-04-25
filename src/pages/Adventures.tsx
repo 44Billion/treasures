@@ -5,7 +5,7 @@ import { Sparkles, Plus, MapPin, ChevronRight } from "lucide-react";
 import { offlineGeocode } from "@/utils/offlineGeocode";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdventures } from "@/hooks/useAdventures";
 import { useAuthor } from "@/hooks/useAuthor";

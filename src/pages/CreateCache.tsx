@@ -152,7 +152,7 @@ export default function CreateCache() {
         description: t('createCache.draft.savedLocallyDescription'),
       });
     }
-  }, [saveDraft, currentPayload, toast, navigate, formData, location, editingDraftSlug]);
+  }, [saveDraft, currentPayload, toast, navigate, formData, location, editingDraftSlug, t]);
 
   // Clear the local form draft (relay drafts are managed from the profile)
   const clearFormDraft = useCallback(() => {

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useRelayInfo } from '@/hooks/useRelayInfo';
 
-export function renderRelayUrl(url: string): string {
+function renderRelayUrl(url: string): string {
   try {
     const parsed = new URL(url);
     if (parsed.protocol === 'wss:') {
