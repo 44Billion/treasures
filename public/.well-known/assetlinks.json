@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "to.treasures.app",
+    "sha256_cert_fingerprints": [
+      "19:55:D2:DF:FB:63:F0:65:E2:DD:89:99:77:91:40:5D:1E:1B:2F:3D:86:A4:9D:35:33:9E:C2:C2:EE:12:6E:97"
+    ]
+  }
+}]
