@@ -3,14 +3,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Shield, Upload, AlertTriangle, Sparkles, Crown, Gem, Star, Loader2, Copy, Check, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Upload, Sparkles, Crown, Gem, Star, Loader2, Copy, Check, ChevronDown, ExternalLink, Shield, KeyRound } from 'lucide-react';
 import { QRCodeCanvas } from '@/components/ui/qrcode';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BaseDialog } from '@/components/ui/base-dialog';
-import { TabsContent } from '@/components/ui/tabs';
-import { LoginMethodTabs } from '@/components/ui/mobile-button-patterns';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   useLoginActions,
   generateNostrConnectParams,
@@ -39,6 +37,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
   const [connectError, setConnectError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showBunkerInput, setShowBunkerInput] = useState(false);
+  const [showConnectSection, setShowConnectSection] = useState(false);
+  const [showKeySection, setShowKeySection] = useState(false);
   const [errors, setErrors] = useState<{
     nsec?: string;
     bunker?: string;
@@ -49,6 +49,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
   const abortControllerRef = useRef<AbortController | null>(null);
   const login = useLoginActions();
 
+  // Check if extension is available
+  const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
   // Check if on mobile device
   const isMobile = useIsMobile();
   // Generate nostrconnect params (sync) - just creates the QR code data
@@ -96,6 +98,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       setIsWaitingForConnect(false);
       setConnectError(null);
       setShowBunkerInput(false);
+      setShowConnectSection(false);
+      setShowKeySection(false);
       setErrors({});
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -309,45 +313,47 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
         </div>
 
         {/* Login Methods */}
-        <LoginMethodTabs 
-          defaultMethod='key'
-          onValueChange={(value) => {
-            if (value === 'connect' && !nostrConnectParams && !connectError) {
-              generateConnectSession();
-            }
-          }}
-        >
-            <TabsContent value='extension' className='space-y-3 bg-muted'>
+        <div className='space-y-3'>
+          {/* Extension login - prominent button if available */}
+          {hasExtension && (
+            <>
+              <Button
+                onClick={handleExtensionLogin}
+                disabled={isLoading}
+                className='w-full py-5 rounded-full'
+              >
+                <Shield className='w-4 h-4 mr-2' />
+                {isLoading && !showConnectSection ? t('login.extension.loggingIn') : t('login.extension.button')}
+              </Button>
               {errors.extension && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>{errors.extension}</AlertDescription>
-                </Alert>
+                <p className='text-sm text-red-500 text-center'>{errors.extension}</p>
               )}
-              <div className='text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800'>
-                <Shield className='w-12 h-12 mx-auto mb-3 text-primary' />
-                <p className='text-sm text-gray-600 dark:text-gray-300 mb-4'>
-                  {t('login.extension.title')}
-                </p>
-                <div className="flex justify-center">
-                  <Button
-                    className='w-full rounded-full py-4'
-                    onClick={handleExtensionLogin}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? t('login.extension.loggingIn') : t('login.extension.button')}
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
+            </>
+          )}
 
-            <TabsContent value='connect' className='space-y-4'>
-              {/* Nostrconnect Section */}
+          {/* Remote signer button */}
+          <Button
+            variant='outline'
+            onClick={() => {
+              setShowConnectSection(!showConnectSection);
+              if (!showConnectSection && !nostrConnectParams && !connectError) {
+                generateConnectSession();
+              }
+            }}
+            className='w-full rounded-full'
+          >
+            <ExternalLink className='w-4 h-4 mr-2' />
+            {t('login.tab.connect')}
+          </Button>
+
+          {/* Connect section - shown when toggled */}
+          {showConnectSection && (
+            <div className='space-y-4 pt-2'>
               <div className='flex flex-col items-center space-y-4'>
                 {connectError ? (
-                  <div className='flex flex-col items-center space-y-4 py-4'>
+                  <div className='flex flex-col items-center space-y-3 py-4'>
                     <p className='text-sm text-red-500 text-center'>{connectError}</p>
-                    <Button variant='outline' onClick={handleRetry}>
+                    <Button variant='outline' onClick={handleRetry} className='rounded-full'>
                       {t('login.connect.retry')}
                     </Button>
                   </div>
@@ -355,10 +361,10 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   <>
                     {/* QR Code - only show on desktop */}
                     {!isMobile && (
-                      <div className='p-4 bg-white dark:bg-white rounded-xl'>
+                      <div className='p-4 bg-white rounded-2xl shadow-sm'>
                         <QRCodeCanvas
                           value={nostrConnectUri}
-                          size={180}
+                          size={160}
                           level='M'
                         />
                       </div>
@@ -379,7 +385,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     {/* Open Signer App button - primary action on mobile */}
                     {isMobile && (
                       <Button
-                        className='w-full gap-2 py-6 rounded-full'
+                        className='w-full gap-2 py-5 rounded-full'
                         onClick={handleOpenSignerApp}
                       >
                         <ExternalLink className='w-5 h-5' />
@@ -390,18 +396,17 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     {/* Copy button */}
                     <Button
                       variant='outline'
-                      size={isMobile ? 'default' : 'sm'}
-                      className={isMobile ? 'w-full gap-2 rounded-full' : 'gap-2'}
+                      className='rounded-full'
                       onClick={handleCopyUri}
                     >
                       {copied ? (
                         <>
-                          <Check className='w-4 h-4' />
+                          <Check className='w-4 h-4 mr-2' />
                           {t('login.connect.copied')}
                         </>
                       ) : (
                         <>
-                          <Copy className='w-4 h-4' />
+                          <Copy className='w-4 h-4 mr-2' />
                           {t('login.connect.copy')}
                         </>
                       )}
@@ -414,94 +419,73 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                 )}
               </div>
 
-              {/* Manual URI input section - collapsible */}
-              <div className='pt-4 border-t border-gray-200 dark:border-gray-700'>
-                <button
-                  type='button'
-                  onClick={() => setShowBunkerInput(!showBunkerInput)}
-                  className='flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2'
-                >
+              {/* Manual bunker URI - collapsible */}
+              <Collapsible open={showBunkerInput} onOpenChange={setShowBunkerInput}>
+                <CollapsibleTrigger className='w-full flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground py-2'>
                   <span>{t('login.connect.manualBunker')}</span>
-                  {showBunkerInput ? (
-                    <ChevronUp className='w-4 h-4' />
-                  ) : (
-                    <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showBunkerInput ? 'rotate-180' : ''}`} />
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className='space-y-3 pt-2'>
+                  <Input
+                    id='connectBunkerUri'
+                    value={bunkerUri}
+                    onChange={(e) => setBunkerUri(e.target.value)}
+                    placeholder='bunker://'
+                    className='rounded-xl text-sm'
+                  />
+                  {bunkerUri && !validateBunkerUri(bunkerUri) && (
+                    <p className='text-red-500 text-xs'>{t('login.bunker.invalidFormat')}</p>
                   )}
-                </button>
+                  <Button
+                    className='w-full rounded-full'
+                    variant='outline'
+                    onClick={handleBunkerLogin}
+                    disabled={isLoading || !bunkerUri.trim() || !validateBunkerUri(bunkerUri)}
+                  >
+                    {isLoading ? t('login.bunker.connecting') : t('login.bunker.button')}
+                  </Button>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          )}
 
-                {showBunkerInput && (
-                  <div className='space-y-3 mt-3'>
-                    <div className='space-y-2'>
-                      <Input
-                        id='connectBunkerUri'
-                        value={bunkerUri}
-                        onChange={(e) => setBunkerUri(e.target.value)}
-                        className='rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary text-sm'
-                        placeholder='bunker://'
-                      />
-                      {bunkerUri && !validateBunkerUri(bunkerUri) && (
-                        <p className='text-red-500 text-xs'>{t('login.bunker.invalidFormat')}</p>
-                      )}
-                    </div>
+          {/* Secret key login - collapsible when extension exists, shown directly otherwise */}
+          {hasExtension ? (
+            <Collapsible open={showKeySection} onOpenChange={setShowKeySection}>
+              <CollapsibleTrigger className='w-full flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground py-2'>
+                <KeyRound className='w-4 h-4' />
+                <span>{t('login.useSecretKey')}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showKeySection ? 'rotate-180' : ''}`} />
+              </CollapsibleTrigger>
 
-                    <Button
-                      className='w-full rounded-full py-4'
-                      variant='outline'
-                      onClick={handleBunkerLogin}
-                      disabled={isLoading || !bunkerUri.trim() || !validateBunkerUri(bunkerUri)}
-                    >
-                      {isLoading ? t('login.bunker.connecting') : t('login.bunker.button')}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value='key' className='space-y-4'>
-              <div className='space-y-4'>
+              <CollapsibleContent className='space-y-3'>
                 <div className='space-y-2'>
-                  <label htmlFor='nsec' className='text-sm font-medium'>
-                    {t('login.key.label')}
-                  </label>
                   <Input
                     id='nsec'
-                    type="password"
+                    type='password'
                     value={nsec}
                     onChange={(e) => {
                       setNsec(e.target.value);
                       if (errors.nsec) setErrors(prev => ({ ...prev, nsec: undefined }));
                     }}
-                    className={`rounded-lg ${
-                      errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''
-                    }`}
+                    className={`rounded-xl ${errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     placeholder={t('login.key.placeholder')}
-                    autoComplete="off"
+                    autoComplete='off'
                   />
                   {errors.nsec && (
-                    <p className="text-sm text-red-500">{errors.nsec}</p>
+                    <p className='text-sm text-red-500 text-center'>{errors.nsec}</p>
                   )}
                 </div>
 
-                <Button
-                  className='w-full rounded-full py-3'
-                  onClick={handleKeyLogin}
-                  disabled={isLoading || !nsec.trim()}
-                >
-                  {isLoading ? t('login.key.verifying') : t('login.key.logIn')}
-                </Button>
-
-                <div className='relative'>
-                  <div className='absolute inset-0 flex items-center'>
-                    <div className='w-full border-t border-muted'></div>
-                  </div>
-                  <div className='relative flex justify-center text-xs'>
-                    <span className='px-2 bg-background text-muted-foreground'>
-                      {t('login.key.or')}
-                    </span>
-                  </div>
-                </div>
-
-                <div className='text-center'>
+                <div className='flex gap-2'>
+                  <Button
+                    onClick={handleKeyLogin}
+                    disabled={isLoading || !nsec.trim()}
+                    className='flex-1 rounded-full'
+                  >
+                    {isLoading ? t('login.key.verifying') : t('login.key.logIn')}
+                  </Button>
                   <input
                     type='file'
                     accept='.txt'
@@ -511,20 +495,70 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   />
                   <Button
                     variant='outline'
-                    className='w-full'
+                    size='icon'
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isLoading || isFileLoading}
+                    className='rounded-full'
                   >
-                    <Upload className='w-4 h-4 mr-2' />
-                    {isFileLoading ? t('login.key.readingFile') : t('login.key.upload')}
+                    <Upload className='w-4 h-4' />
                   </Button>
-                  {errors.file && (
-                    <p className="text-sm text-red-500 mt-2">{errors.file}</p>
-                  )}
                 </div>
+                {errors.file && (
+                  <p className='text-sm text-red-500 text-center'>{errors.file}</p>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          ) : (
+            <div className='space-y-3'>
+              <div className='space-y-2'>
+                <Input
+                  id='nsec'
+                  type='password'
+                  value={nsec}
+                  onChange={(e) => {
+                    setNsec(e.target.value);
+                    if (errors.nsec) setErrors(prev => ({ ...prev, nsec: undefined }));
+                  }}
+                  className={`rounded-xl ${errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  placeholder={t('login.key.placeholder')}
+                  autoComplete='off'
+                />
+                {errors.nsec && (
+                  <p className='text-sm text-red-500 text-center'>{errors.nsec}</p>
+                )}
               </div>
-            </TabsContent>
-          </LoginMethodTabs>
+
+              <div className='flex gap-2'>
+                <Button
+                  onClick={handleKeyLogin}
+                  disabled={isLoading || !nsec.trim()}
+                  className='flex-1 rounded-full'
+                >
+                  {isLoading ? t('login.key.verifying') : t('login.key.logIn')}
+                </Button>
+                <input
+                  type='file'
+                  accept='.txt'
+                  className='hidden'
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                />
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading || isFileLoading}
+                  className='rounded-full'
+                >
+                  <Upload className='w-4 h-4' />
+                </Button>
+              </div>
+              {errors.file && (
+                <p className='text-sm text-red-500 text-center'>{errors.file}</p>
+              )}
+            </div>
+          )}
+        </div>
         </div>
       </BaseDialog>
     );
