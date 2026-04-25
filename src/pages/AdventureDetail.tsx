@@ -61,6 +61,10 @@ export default function AdventureDetail() {
 
     setTheme(adventure.theme);
 
+    // Explicitly sync the native status bar with the adventure's theme
+    const isDarkTheme = adventure.theme === 'dark' || adventure.theme === 'adventure';
+    document.documentElement.setAttribute('data-status-bar', isDarkTheme ? 'dark' : 'light');
+
     // Immediately restore localStorage so the user's preference isn't lost on crash/nav
     if (savedTheme) {
       localStorage.setItem(storageKey, savedTheme);
@@ -70,6 +74,9 @@ export default function AdventureDetail() {
 
     return () => {
       setTheme(savedResolvedTheme ?? 'system');
+      // Let MobileHeader take over status bar management again
+      const wasItDark = savedResolvedTheme === 'dark' || savedResolvedTheme === 'adventure';
+      document.documentElement.setAttribute('data-status-bar', wasItDark ? 'dark' : 'light');
       // Restore localStorage again on cleanup (setTheme overwrites it)
       if (savedTheme) {
         localStorage.setItem(storageKey, savedTheme);

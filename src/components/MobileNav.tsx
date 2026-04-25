@@ -116,18 +116,57 @@ export function MobileHeader() {
   const hideHeaderLogo = location.pathname === '/'; // Home has its own large logo in the hero
   const isAdventureTheme = theme === 'adventure';
 
-  // On native, sync the status bar icon style with header context.
-  // Hero pages have dark image backgrounds → need light/white status bar icons.
+  // Track ditto-dark class changes for status bar sync
+  const [isDittoDark, setIsDittoDark] = useState(
+    () => document.documentElement.classList.contains('ditto-dark')
+  );
   useEffect(() => {
-    if (isHero) {
+    if (theme !== 'ditto') return;
+    const observer = new MutationObserver(() => {
+      setIsDittoDark(document.documentElement.classList.contains('ditto-dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    // Sync immediately in case it was set before observer attached
+    setIsDittoDark(document.documentElement.classList.contains('ditto-dark'));
+    return () => observer.disconnect();
+  }, [theme]);
+
+  // On native, sync the status bar icon style with header context.
+  // Hero pages have dark image backgrounds → need light/white status bar icons,
+  // but only while the hero is visible. Once the user scrolls past the hero into
+  // light content, switch back to theme-based icons.
+  const [inHeroViewport, setInHeroViewport] = useState(isHero);
+
+  useEffect(() => {
+    if (!isHero) {
+      setInHeroViewport(false);
+      return;
+    }
+
+    setInHeroViewport(true);
+
+    const handleScroll = () => {
+      // Hero is min-h-dvh on mobile; switch when scrolled past ~95% of viewport
+      setInHeroViewport(window.scrollY < window.innerHeight * 0.95);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHero]);
+
+  useEffect(() => {
+    if (inHeroViewport) {
       document.documentElement.setAttribute('data-status-bar', 'dark');
     } else {
-      document.documentElement.removeAttribute('data-status-bar');
+      const isDark = theme === 'dark' || theme === 'adventure'
+        || (theme === 'ditto' && isDittoDark);
+      document.documentElement.setAttribute('data-status-bar', isDark ? 'dark' : 'light');
     }
     return () => {
       document.documentElement.removeAttribute('data-status-bar');
     };
-  }, [isHero]);
+  }, [inHeroViewport, theme, isDittoDark]);
 
   // Login/signup dialog state (managed here since LoginArea is no longer in the header)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
