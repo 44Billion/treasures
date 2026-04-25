@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.5] - 2026-04-25
+
+### Fixed
+- Key save during account creation no longer hangs on Android
+
 ## [2.0.4] - 2026-04-25
 
 ### Changed
