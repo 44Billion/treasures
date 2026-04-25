@@ -160,6 +160,9 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
   },
+  optimizeDeps: {
+    exclude: ['@capacitor/filesystem'],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

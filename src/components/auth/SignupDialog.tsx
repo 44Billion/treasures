@@ -12,8 +12,8 @@ import { toast } from '@/hooks/useToast';
 import { useLoginActions } from '@/hooks/useLoginActions';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useUploadFile } from '@/hooks/useUploadFile';
-import { generateSecretKey, nip19 } from 'nostr-tools';
-import { sanitizeFilename } from '@/utils/security';
+import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
+import { saveNsec } from '@/lib/credentialManager';
 
 interface SignupDialogProps {
   isOpen: boolean;
@@ -64,18 +64,13 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
     if (isSavingKey) return;
     setIsSavingKey(true);
     try {
-      // Download the key file
-      const blob = new Blob([nsec], { type: 'text/plain; charset=utf-8' });
-      const url = globalThis.URL.createObjectURL(blob);
-      const filename = sanitizeFilename('treasure-key.txt');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      globalThis.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Derive the npub from the nsec for credential storage
+      const { data: sk } = nip19.decode(nsec);
+      const npub = nip19.npubEncode(getPublicKey(sk as Uint8Array));
+
+      // Save key using platform-native credential manager (Android/iOS)
+      // or file download (web). Falls back to file on de-Googled Android.
+      await saveNsec(npub, nsec, 'Treasures');
 
       // Log in and advance
       login.nsec(nsec);
