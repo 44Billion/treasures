@@ -21,6 +21,7 @@ dist-ssr
 *.sln
 *.sw?
 .ai-history
+.env
 
 # Android (Capacitor)
 android/.gradle/
