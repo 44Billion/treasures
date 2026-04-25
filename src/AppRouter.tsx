@@ -34,7 +34,7 @@ const RemoteLoginSuccess = lazy(() => import("./pages/RemoteLoginSuccess"));
 // Loading fallback for lazy-loaded routes — matches the initial-loading spinner from index.html
 function PageFallback() {
   return (
-    <div className="flex items-center justify-center min-h-screen overflow-hidden">
+    <div className="flex items-center justify-center flex-1 overflow-hidden">
       <CompassSpinner size={64} variant="page" />
     </div>
   );
@@ -51,7 +51,7 @@ export function AppRouter() {
       <MobileHeader />
 
       {/* Main Content Area - with bottom padding for mobile nav */}
-      <main className="flex-1 pb-12 md:pb-0 bg-background overflow-x-hidden">
+      <main className="flex-1 flex flex-col pb-12 md:pb-0 bg-background overflow-x-hidden">
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<Home />} />

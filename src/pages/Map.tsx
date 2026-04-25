@@ -212,17 +212,24 @@ export default function Map() {
 
   // Auto-trigger Near Me radius search on initial load
   // Replicates the behavior of the GPS corner button automatically
+  // Uses sessionStorage so we only auto-locate once per session, not on every navigation
   const hasAutoTriggeredNearMe = useRef(false);
   const isAutoTriggeredNearMe = useRef(false);
   useEffect(() => {
-    // Only auto-trigger once, and only if no URL params are providing a specific location
+    // Only auto-trigger once per component mount
     if (hasAutoTriggeredNearMe.current) return;
+    // Only auto-trigger once per session — if we already asked, don't ask again
+    if (sessionStorage.getItem('hasAutoTriggeredNearMe')) {
+      hasAutoTriggeredNearMe.current = true;
+      return;
+    }
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
     if (lat && lng) return; // URL params take priority — don't auto-trigger
 
     hasAutoTriggeredNearMe.current = true;
     isAutoTriggeredNearMe.current = true;
+    sessionStorage.setItem('hasAutoTriggeredNearMe', '1');
 
     // Replicate handleNearMe behavior without the toggle-off logic
     setShowNearMe(true);
