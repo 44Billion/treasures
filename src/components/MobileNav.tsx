@@ -116,6 +116,19 @@ export function MobileHeader() {
   const hideHeaderLogo = location.pathname === '/'; // Home has its own large logo in the hero
   const isAdventureTheme = theme === 'adventure';
 
+  // On native, sync the status bar icon style with header context.
+  // Hero pages have dark image backgrounds → need light/white status bar icons.
+  useEffect(() => {
+    if (isHero) {
+      document.documentElement.setAttribute('data-status-bar', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-status-bar');
+    }
+    return () => {
+      document.documentElement.removeAttribute('data-status-bar');
+    };
+  }, [isHero]);
+
   // Login/signup dialog state (managed here since LoginArea is no longer in the header)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);

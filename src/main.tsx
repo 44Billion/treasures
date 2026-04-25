@@ -25,24 +25,41 @@ if (Capacitor.isNativePlatform()) {
   }
 
   /**
-   * Sync the native system bar icon style with the active CSS theme.
+   * Sync the native system bar icon style with the page content.
    *
    * SystemBarsStyle.Dark  = light/white icons (use on dark backgrounds)
    * SystemBarsStyle.Light = dark/black icons  (use on light backgrounds)
+   *
+   * Priority:
+   *   1. data-status-bar="light" or "dark" on <html> (explicit page override)
+   *   2. Theme class on <html> (dark → dark icons, otherwise light icons)
+   *
+   * Components set data-status-bar when they know the header sits over
+   * dark content (e.g. hero images) regardless of the active theme.
    */
   function updateStatusBar() {
-    const isDark = document.documentElement.classList.contains('dark');
+    const el = document.documentElement;
+    const explicit = el.getAttribute('data-status-bar');
+    let isDark: boolean;
+    if (explicit === 'dark') {
+      isDark = true;
+    } else if (explicit === 'light') {
+      isDark = false;
+    } else {
+      // Fall back to theme class
+      isDark = el.classList.contains('dark');
+    }
     SystemBars.setStyle({ style: isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {});
   }
 
   // Apply immediately
   updateStatusBar();
 
-  // Re-apply whenever the theme class changes on <html>
-  const classObserver = new MutationObserver(() => updateStatusBar());
-  classObserver.observe(document.documentElement, {
+  // Re-apply whenever the theme class OR data-status-bar attribute changes on <html>
+  const observer = new MutationObserver(() => updateStatusBar());
+  observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['class'],
+    attributeFilter: ['class', 'data-status-bar'],
   });
 }
 // ─────────────────────────────────────────────────────────────────────────────
