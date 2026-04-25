@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MoreVertical, Share2, MapPin, Bookmark, BookmarkCheck, BookmarkX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +39,40 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
   const naddr = `${30001}:${geocache.pubkey}:${geocache.dTag}`;
   const isSaved = isCacheSaved(geocache.id, geocache.dTag, geocache.pubkey);
   const isOffline = isCacheSavedOffline(naddr);
+
+  // Track touch movement to distinguish scroll gestures from taps.
+  // On mobile, a scroll that starts on the trigger button would otherwise
+  // open the dropdown menu via Radix's pointerdown handler.
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const wasScrolling = useRef(false);
+  const SCROLL_THRESHOLD = 8; // pixels of movement before treating as scroll
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    wasScrolling.current = false;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+    if (dx > SCROLL_THRESHOLD || dy > SCROLL_THRESHOLD) {
+      wasScrolling.current = true;
+    }
+  }, []);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    // Prevent opening the menu if the user was scrolling
+    if (open && wasScrolling.current) {
+      wasScrolling.current = false;
+      touchStartPos.current = null;
+      return;
+    }
+    touchStartPos.current = null;
+    setDropdownOpen(open);
+  }, []);
 
   const handleViewOnMap = () => {
     const mapUrl = `/map?lat=${geocache.location.lat}&lng=${geocache.location.lng}&zoom=16&highlight=${geocache.dTag}&tab=map`;
@@ -124,12 +158,14 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
 
   return (
     <>
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
+      <DropdownMenu open={dropdownOpen} onOpenChange={handleOpenChange} modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size={buttonSize}
             className={className}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
             onClick={(e) => {
               e.stopPropagation(); // Prevent triggering parent click handlers
             }}
