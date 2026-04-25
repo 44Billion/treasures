@@ -18,6 +18,14 @@ description: |
   - Lightning zaps for geocache creators
   - Fully decentralized — your data lives on Nostr relays
 
+images:
+  - https://blossom.dreamith.to/0d5b4ce0f9c65b1611aa9dc622eceba7f3a84b12683f85be07b192b8b5061990.png
+  - https://blossom.dreamith.to/2fbc6ca620859432fa109f2c70711652922c642adba3cdad4368f5afbc5efc98.png
+  - https://blossom.dreamith.to/85c7879f06211280c78c30b2405f9f8be544c8886ad1298eb9c1af6529e8d3e4.png
+  - https://blossom.dreamith.to/9ce5762b9459c36165cdce41252acf7b8e71a69df4d84566da78159df0ccc421.png
+  - https://blossom.dreamith.to/85cf75fffa048c7a0e70bf3696df7b9773750e4918cf8e18b1aef0ddff101c1c.png
+  - https://blossom.dreamith.to/83390df680874af0e9f549a3bf03fa76a02d7d108644694e5d63d1785cee4dea.png
+
 tags:
   - nostr
   - geocaching
