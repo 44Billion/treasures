@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.2] - 2026-04-25
+
+### Changed
+- Status bar icons adapt dynamically when scrolling past the hero section
+- Ditto profile themes correctly trigger light or dark status bar icons
+
+### Fixed
+- Status bar no longer stays white-on-white after navigating away from hero pages
+- Adventure detail pages with dark themes now show light status bar icons
+- Deep linking for treasures.to URLs (Digital Asset Links)
+- Zapstore repository URL and icon format
+
 ## [2.0.1] - 2026-04-24
 
 ### Fixed
