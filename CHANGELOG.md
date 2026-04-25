@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.4] - 2026-04-25
+
+### Changed
+- New account key is saved to your device's password manager (Google Password Manager, iCloud Keychain, or browser credential store) instead of downloading a text file; falls back to file save on de-Googled devices and unsupported browsers
+
 ## [2.0.3] - 2026-04-25
 
 ### Added
