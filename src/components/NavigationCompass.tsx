@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCompass, formatCompassDistance, getBearingLabel } from '@/hooks/useCompass';
 import { CompassOverlay } from '@/components/CompassOverlay';
 import { cn } from '@/lib/utils';
+import { hapticCompassActivated, hapticProximityThreshold, hapticTreasureNearby, hapticMedium } from '@/utils/haptics';
 
 interface NavigationCompassProps {
   target: { lat: number; lng: number } | null;
@@ -212,6 +213,7 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
 
   const handleActivate = useCallback(async () => {
     setIsActivated(true);
+    hapticMedium();
     await compass.startTracking();
   }, [compass]);
 
@@ -228,6 +230,44 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Haptic feedback for proximity thresholds ──────────────────
+  const lastThresholdRef = useRef<number | null>(null);
+  const wasNearbyRef = useRef(false);
+  const wasActiveRef = useRef(false);
+
+  useEffect(() => {
+    // Haptic on first GPS lock (transition to active)
+    if (compass.isActive && !wasActiveRef.current) {
+      hapticCompassActivated();
+    }
+    wasActiveRef.current = compass.isActive;
+  }, [compass.isActive]);
+
+  useEffect(() => {
+    const distance = compass.distance;
+    if (distance === null || !compass.isActive) return;
+
+    // Nearby threshold (≤10m) — celebratory burst
+    const isNearby = distance <= 10;
+    if (isNearby && !wasNearbyRef.current) {
+      hapticTreasureNearby();
+    }
+    wasNearbyRef.current = isNearby;
+
+    // Distance thresholds — pulse when crossing inward
+    const thresholds = [500, 200, 100, 50, 25];
+    const currentThreshold = thresholds.find(t => distance <= t) ?? null;
+
+    if (
+      currentThreshold !== null &&
+      currentThreshold !== lastThresholdRef.current &&
+      (lastThresholdRef.current === null || currentThreshold < lastThresholdRef.current)
+    ) {
+      hapticProximityThreshold();
+    }
+    lastThresholdRef.current = currentThreshold;
+  }, [compass.distance, compass.isActive]);
 
   // Dormant state — not yet activated
   if (!isActivated) {

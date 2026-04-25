@@ -4,6 +4,7 @@ import { Crosshair } from 'lucide-react';
 import { useCompass, formatCompassDistance, getBearingLabel } from '@/hooks/useCompass';
 import { computeNearbyTargets, type RadarTarget } from '@/hooks/useRadarCompass';
 import { CompassOverlay } from '@/components/CompassOverlay';
+import { hapticBlipLock, hapticCompassActivated } from '@/utils/haptics';
 import type { Geocache } from '@/types/geocache';
 
 interface RadarCompassProps {
@@ -230,11 +231,20 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
   const compass = useCompass(compassTarget);
 
   // Start compass on mount
+  const wasActiveRef = useRef(false);
   useEffect(() => {
     compass.startTracking();
     return () => { compass.stopTracking(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Haptic on first GPS lock
+  useEffect(() => {
+    if (compass.isActive && !wasActiveRef.current) {
+      hapticCompassActivated();
+    }
+    wasActiveRef.current = compass.isActive;
+  }, [compass.isActive]);
 
   const handleClose = useCallback(() => {
     compass.stopTracking();
@@ -242,6 +252,7 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
   }, [compass, onClose]);
 
   const handleBlipTap = useCallback((dTag: string) => {
+    hapticBlipLock();
     setLockedOnDTag(prev => prev === dTag ? null : dTag);
   }, []);
 

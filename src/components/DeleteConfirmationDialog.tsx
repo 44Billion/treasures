@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { hapticHeavy } from "@/utils/haptics";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export function DeleteConfirmationDialog({
             {cancelText}
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            onClick={() => { hapticHeavy(); onConfirm(); }}
             disabled={isDeleting}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >

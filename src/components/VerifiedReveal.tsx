@@ -21,6 +21,7 @@ import { useEffect, useRef, useState, useLayoutEffect, useCallback, useMemo } fr
 import { useTranslation } from 'react-i18next';
 import { ShieldCheck, UserPlus, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { hapticHeavy, hapticMedium, hapticSuccess } from '@/utils/haptics';
 
 // ── Easing ────────────────────────────────────────────────────────────────────
 
@@ -252,6 +253,22 @@ export function VerifiedReveal({
   const textIn       = ease.outQuart(sub(0.26, 0.38));
   const nameIn       = ease.outQuart(sub(0.32, 0.44));
   const congratsIn   = ease.outQuart(sub(0.42, 0.54));
+
+  // ── Haptic bursts at key animation moments ──
+  const hapticPhaseRef = useRef(0);
+  useEffect(() => {
+    const phase = hapticPhaseRef.current;
+    if (phase < 1 && logoIn > 0.5) {
+      hapticHeavy();       // logo appears
+      hapticPhaseRef.current = 1;
+    } else if (phase < 2 && badgeIn > 0.5) {
+      hapticMedium();      // verified badge pops
+      hapticPhaseRef.current = 2;
+    } else if (phase < 3 && congratsIn > 0.5) {
+      hapticSuccess();     // congrats text
+      hapticPhaseRef.current = 3;
+    }
+  }, [logoIn, badgeIn, congratsIn]);
   const buttonsIn    = ease.outQuart(sub(0.50, 0.60)); // logged-out only
   const motesIn      = ease.outQuart(sub(0.14, 0.30));
   const fadeOut       = isLoggedIn

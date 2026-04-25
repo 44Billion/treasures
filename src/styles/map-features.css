@@ -589,6 +589,8 @@
 
 .user-location-icon {
   z-index: 999;
+  background: none;
+  border: none;
 }
 
 .leaflet-container.leaflet-touch-drag {

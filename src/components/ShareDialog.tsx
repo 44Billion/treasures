@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Copy, Share2, ExternalLink } from 'lucide-react';
+import { hapticLight } from '@/utils/haptics';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      hapticLight();
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -48,6 +50,7 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
 
   const handleNativeShare = async () => {
     if ('share' in navigator && navigator.share) {
+      hapticLight();
       try {
         await navigator.share({
           title: geocache.name,

@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { TIMEOUTS, RETRY_CONFIG } from "@/config";
 import { getAdaptiveTimeout } from "@/utils/network";
+import { hapticSuccess, hapticError } from "@/utils/haptics";
 
 interface EventTemplate {
   kind: number;
@@ -161,9 +162,11 @@ export function useNostrPublish() {
     },
     onError: (error) => {
       console.error('Publish error:', error);
+      hapticError();
     },
     onSuccess: (data) => {
       console.log('Event published successfully:', data.id);
+      hapticSuccess();
     },
   });
 }

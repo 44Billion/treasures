@@ -13,6 +13,7 @@ import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { useTheme } from "@/hooks/useTheme";
 import { autocorrectCoordinates, formatCoordinateForInput, parseCoordinateString, CoordinateParseResult, CoordinateParseError } from "@/utils/coordinates";
 import { mapIcons } from "@/utils/mapIcons";
+import { hapticMedium } from "@/utils/haptics";
 import { createRoot } from "react-dom/client";
 
 import "leaflet/dist/leaflet.css";
@@ -53,6 +54,7 @@ function LocationSelector({
         return; // Don't place marker on control clicks
       }
 
+      hapticMedium();
       onChange({
         lat: e.latlng.lat,
         lng: e.latlng.lng,

@@ -4,6 +4,7 @@ import { CompassSpinner } from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
 import { useSavedCaches } from '@/hooks/useSavedCaches';
 import { useToast } from '@/hooks/useToast';
+import { hapticLight } from '@/utils/haptics';
 import type { Geocache } from '@/types/geocache';
 
 interface SaveButtonProps {
@@ -39,6 +40,7 @@ export function SaveButton({
     }
     
     setIsLoading(true);
+    hapticLight();
     
     try {
       await toggleSaveCache(geocache);
