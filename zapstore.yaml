@@ -38,7 +38,7 @@ license: AGPL-3.0
 
 website: https://treasures.to
 
-icon: ./public/icon.svg
+icon: ./public/icon-512x512.png
 
 supported_nips:
   - "01"  # Basic protocol — events, filters, subscriptions
