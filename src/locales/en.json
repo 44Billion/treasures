@@ -782,6 +782,8 @@
   "signup.toast.keySecured.description": "Your key has been safely stored in your vault. Guard it well!",
   "signup.toast.downloadFailed.title": "Download failed",
   "signup.toast.downloadFailed.description": "Could not download the key file. Please copy it manually.",
+  "signup.toast.keySavedToFile.title": "Key saved",
+  "signup.toast.keySavedToFile.description": "Your secret key was saved to the Documents folder on your device.",
   "signup.toast.copied.title": "Copied to your spellbook!",
   "signup.toast.copied.description": "Key safely transcribed to clipboard",
   "signup.toast.loginFailed.title": "Login Failed",

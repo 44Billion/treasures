@@ -782,6 +782,8 @@
   "signup.toast.keySecured.description": "Dein Schlüssel wurde sicher in deinem Tresor gespeichert. Bewahre ihn gut auf!",
   "signup.toast.downloadFailed.title": "Download fehlgeschlagen",
   "signup.toast.downloadFailed.description": "Die Schlüsseldatei konnte nicht heruntergeladen werden. Bitte kopiere sie manuell.",
+  "signup.toast.keySavedToFile.title": "Schlüssel gespeichert",
+  "signup.toast.keySavedToFile.description": "Dein geheimer Schlüssel wurde im Ordner Dokumente auf deinem Gerät gespeichert.",
   "signup.toast.copied.title": "In dein Zauberbuch kopiert!",
   "signup.toast.copied.description": "Schlüssel sicher in die Zwischenablage übertragen",
   "signup.toast.loginFailed.title": "Anmeldung fehlgeschlagen",

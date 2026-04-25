@@ -70,7 +70,14 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
 
       // Save key using platform-native credential manager (Android/iOS)
       // or file download (web). Falls back to file on de-Googled Android.
-      await saveNsec(npub, nsec, 'Treasures');
+      const result = await saveNsec(npub, nsec, 'Treasures');
+
+      if (result === 'saved-to-file') {
+        toast({
+          title: t('signup.toast.keySavedToFile.title'),
+          description: t('signup.toast.keySavedToFile.description'),
+        });
+      }
 
       // Log in and advance
       login.nsec(nsec);

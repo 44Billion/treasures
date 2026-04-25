@@ -782,6 +782,8 @@
   "signup.toast.keySecured.description": "กุญแจของคุณถูกเก็บไว้ในตู้เซฟของคุณอย่างปลอดภัย ดูแลให้ดี!",
   "signup.toast.downloadFailed.title": "ดาวน์โหลดล้มเหลว",
   "signup.toast.downloadFailed.description": "ไม่สามารถดาวน์โหลดไฟล์กุญแจได้ โปรดคัดลอกด้วยตนเอง",
+  "signup.toast.keySavedToFile.title": "บันทึกกุญแจแล้ว",
+  "signup.toast.keySavedToFile.description": "กุญแจลับของคุณถูกบันทึกในโฟลเดอร์เอกสารบนอุปกรณ์ของคุณ",
   "signup.toast.copied.title": "คัดลอกไปยังหนังสือคาถาของคุณแล้ว!",
   "signup.toast.copied.description": "กุญแจถูกคัดลอกไปยังคลิปบอร์ดอย่างปลอดภัย",
   "signup.toast.loginFailed.title": "เข้าสู่ระบบล้มเหลว",

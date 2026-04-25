@@ -782,6 +782,8 @@
   "signup.toast.keySecured.description": "あなたの鍵は安全に保管庫に保存されました。よく守ってください！",
   "signup.toast.downloadFailed.title": "ダウンロード失敗",
   "signup.toast.downloadFailed.description": "鍵ファイルをダウンロードできませんでした。手動でコピーしてください。",
+  "signup.toast.keySavedToFile.title": "鍵を保存しました",
+  "signup.toast.keySavedToFile.description": "秘密鍵がデバイスのドキュメントフォルダに保存されました。",
   "signup.toast.copied.title": "呪文書にコピーしました！",
   "signup.toast.copied.description": "鍵がクリップボードに安全に転写されました",
   "signup.toast.loginFailed.title": "ログイン失敗",
