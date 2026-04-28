@@ -77,7 +77,7 @@ export function CompassOverlay({
   const closeButton = (
     <button
       onClick={handleClose}
-      className="absolute top-4 right-4 z-10 p-2 rounded-full text-muted-foreground/60 hover:text-foreground transition-colors"
+      className="absolute top-4 right-4 z-10 p-2 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors"
       style={{
         paddingTop: 'calc(0.5rem + env(safe-area-inset-top, 0px))',
         paddingRight: 'calc(0.5rem + env(safe-area-inset-right, 0px))',
@@ -141,7 +141,7 @@ export function CompassOverlay({
           {/* Sensor help — expandable browser instructions */}
           {isSensorError && (
             <Collapsible open={helpOpen} onOpenChange={setHelpOpen} className="w-full">
-              <CollapsibleTrigger className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors w-full py-1">
+              <CollapsibleTrigger className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition-colors w-full py-1">
                 <Smartphone className="h-3 w-3" />
                 <span>{t('compass.howToEnable', 'How to enable motion sensors')}</span>
                 <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', helpOpen && 'rotate-180')} />
@@ -165,7 +165,7 @@ export function CompassOverlay({
                     steps={t('compass.helpSafari', 'Should work automatically. If not, go to Settings > Safari > Motion & Orientation Access > enable')}
                   />
                   <div className="pt-2 border-t border-border/30">
-                    <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
                       {t('compass.helpAndroidNote', 'On Android, you may also need to grant sensor permissions to your browser app itself: Android Settings > Apps > [Your Browser] > Permissions')}
                     </p>
                   </div>
@@ -201,7 +201,7 @@ export function CompassOverlay({
           <button
             onClick={handleClose}
             className={cn(
-              'absolute bottom-8 text-sm text-muted-foreground/50 hover:text-muted-foreground transition-all duration-500 delay-300',
+              'absolute bottom-8 text-sm text-muted-foreground/70 hover:text-muted-foreground transition-all duration-500 delay-300',
               isActive ? 'opacity-100' : 'opacity-0',
             )}
             style={{
@@ -220,8 +220,8 @@ export function CompassOverlay({
 function SensorHelpItem({ browser, steps }: { browser: string; steps: string }) {
   return (
     <div className="text-xs">
-      <span className="font-medium text-foreground/80">{browser}</span>
-      <p className="text-muted-foreground/70 mt-0.5 leading-relaxed">{steps}</p>
+      <span className="font-medium text-foreground">{browser}</span>
+      <p className="text-muted-foreground mt-0.5 leading-relaxed">{steps}</p>
     </div>
   );
 }

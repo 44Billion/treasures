@@ -289,10 +289,10 @@ export function NavigationCompass({ target, className, autoActivate = false, onD
             </svg>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span className="text-sm font-medium text-primary/80 group-hover:text-primary transition-colors">
+            <span className="text-sm font-medium text-primary group-hover:text-primary transition-colors">
               {t('compass.activate', 'Use Magic Compass')}
             </span>
-            <span className="text-xs text-muted-foreground/60">
+            <span className="text-xs text-muted-foreground">
               {t('compass.activateHint', 'Follow the gem to the treasure')}
             </span>
           </div>

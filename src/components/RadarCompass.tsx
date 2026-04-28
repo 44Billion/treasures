@@ -323,7 +323,7 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
             <span className="text-sm text-muted-foreground mt-1">
               {getBearingLabel(activeTarget.bearing)}
             </span>
-            <span className="text-xs text-muted-foreground/70 mt-2 max-w-[60vw] text-center truncate flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground mt-2 max-w-[60vw] text-center truncate flex items-center gap-1.5">
               {isLockedOn && <Crosshair className="h-3 w-3 text-primary shrink-0" />}
               {activeTarget.geocache.name}
             </span>
@@ -331,7 +331,7 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
         )}
 
         {radarTargets.length > 1 && (
-          <span className="text-[10px] text-muted-foreground/50 mt-3">
+          <span className="text-[10px] text-muted-foreground/80 mt-3">
             {radarTargets.length} {t('radar.nearbyCaches', 'nearby treasures')}
             {!isLockedOn && ` · ${t('radar.tapToLock', 'tap to lock on')}`}
           </span>
