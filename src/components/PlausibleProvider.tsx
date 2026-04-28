@@ -7,14 +7,23 @@ interface PlausibleProviderProps {
 
 /**
  * Reactively initializes Plausible Analytics from AppConfig.
- * Plausible's `init()` can only be called once, so we guard with a ref.
+ *
+ * The tracker's `init()` can only be called once per page load, so we
+ * guard with a ref. Init only happens when:
+ *   - the operator configured a `plausibleDomain` (build-time env var), AND
+ *   - the user has not opted out via the Privacy settings.
+ *
+ * Once initialized for a tab, turning analytics off only takes effect on
+ * the next full reload — the Privacy UI explains this to the user.
  */
 export function PlausibleProvider({ children }: PlausibleProviderProps) {
   const { config } = useAppContext();
   const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (initializedRef.current || !config.plausibleDomain) return;
+    if (initializedRef.current) return;
+    if (!config.plausibleDomain) return;
+    if (!config.analyticsEnabled) return;
     initializedRef.current = true;
 
     import('@plausible-analytics/tracker').then(({ init }) => {
@@ -23,7 +32,7 @@ export function PlausibleProvider({ children }: PlausibleProviderProps) {
         ...(config.plausibleEndpoint && { endpoint: config.plausibleEndpoint }),
       });
     }).catch(console.error);
-  }, [config.plausibleDomain, config.plausibleEndpoint]);
+  }, [config.plausibleDomain, config.plausibleEndpoint, config.analyticsEnabled]);
 
   return <>{children}</>;
 }

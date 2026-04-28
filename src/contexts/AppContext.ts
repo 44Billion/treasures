@@ -37,10 +37,12 @@ export interface AppConfig {
   };
   /** Whether to use app default search relays in addition to user search relays */
   useAppSearchRelays: boolean;
-  /** Plausible Analytics domain (empty string = disabled). */
+  /** Plausible Analytics domain (empty string = not configured by operator). */
   plausibleDomain: string;
-  /** Plausible Analytics API endpoint (empty string = use default). */
+  /** Plausible Analytics API endpoint (empty string = use default Plausible Cloud). */
   plausibleEndpoint: string;
+  /** User opt-in/opt-out for analytics. Defaults to true; only has effect when `plausibleDomain` is configured. */
+  analyticsEnabled: boolean;
 }
 
 export interface AppContextType {

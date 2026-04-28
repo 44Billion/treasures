@@ -1343,6 +1343,17 @@
   "settings.blossom.title": "เซิร์ฟเวอร์ Blossom",
   "settings.blossom.description": "เซิร์ฟเวอร์อัปโหลดไฟล์สำหรับโฮสติ้งสื่อ ไฟล์จะถูกมิเรอร์ไปยังทุกเซิร์ฟเวอร์เพื่อความซ้ำซ้อน",
 
+  "settings.privacy.title": "Privacy",
+  "settings.privacy.description": "Control whether anonymous usage analytics are collected from your session.",
+  "settings.privacy.analyticsTitle": "Anonymous analytics",
+  "settings.privacy.disclaimerBefore": "Treasures uses ",
+  "settings.privacy.disclaimerLink": "Plausible Analytics",
+  "settings.privacy.disclaimerAfter": ", a privacy-friendly alternative to Google Analytics. Pageviews are reported without cookies, without cross-site tracking, and without any personal identifiers.",
+  "settings.privacy.disclaimerPurpose": "The anonymous data is used only to understand which parts of the app are worth iterating on next.",
+  "settings.privacy.reportingTo": "Reporting to {{domain}}.",
+  "settings.privacy.reportingToVia": "Reporting to {{domain}} via {{endpoint}}.",
+  "settings.privacy.reloadNotice": "Analytics is off for future sessions. If the tracker already loaded in this tab, reload the page to stop reporting entirely.",
+
   "createCache.steps.location": "สถานที่",
   "createCache.steps.details": "รายละเอียด",
   "createCache.steps.challenge": "ความท้าทาย",

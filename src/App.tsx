@@ -49,6 +49,7 @@ const defaultConfig: AppConfig = {
   useAppSearchRelays: true,
   plausibleDomain: import.meta.env.VITE_PLAUSIBLE_DOMAIN || '',
   plausibleEndpoint: import.meta.env.VITE_PLAUSIBLE_ENDPOINT || '',
+  analyticsEnabled: true,
 };
 
 export function App() {
