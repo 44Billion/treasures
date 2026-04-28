@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.6] - 2026-04-28
+
+### Added
+- Privacy setting to opt out of anonymous analytics collection
+
+### Fixed
+- Confirmation message now appears when your account key is saved to the Documents folder during sign-up
+- Notifications appear correctly above dialogs and modals
+- Compass text is easier to read in low-contrast situations
+
 ## [2.0.5] - 2026-04-25
 
 ### Fixed
