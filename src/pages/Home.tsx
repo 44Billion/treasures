@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Link } from "react-router-dom";
-import { Search, Compass, MapPin } from "lucide-react";
+import { Search, Compass, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { LoginDialog } from "@/components/auth";
@@ -20,6 +20,7 @@ import { useAuthor } from "@/hooks/useAuthor";
 import { offlineGeocode } from "@/utils/offlineGeocode";
 
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";
+import { Capacitor } from "@capacitor/core";
 import type { Geocache } from "@/types/geocache";
 
 /** Resolve city names for an array of treasures. */
@@ -382,6 +383,29 @@ export default function Home() {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/10 to-transparent pointer-events-none"></div>
 
+      {/* Zapstore download nudge — mobile web only, hidden in native app */}
+      {!Capacitor.isNativePlatform() && (
+        <div className="sm:hidden container mx-auto px-4 pt-10 pb-2 max-w-5xl relative z-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Get the app</p>
+          <div className="flex items-center gap-3">
+            <img src="/icon.svg" alt="Treasures" className="h-10 w-10 shrink-0 rounded-xl" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Treasures for Android</p>
+              <p className="text-xs text-muted-foreground">The full Treasures experience</p>
+            </div>
+            <a
+              href="https://zapstore.dev/apps/to.treasures.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors"
+            >
+              Download
+              <ArrowRight className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* How It Works — zig-zag layout with feature images */}
       <section className="relative py-12 xs:py-16 md:py-20 px-3 xs:px-4 overflow-hidden">
 
@@ -610,6 +634,7 @@ export default function Home() {
           )}
         </div>
       </section>
+
       </div>{/* end shared gradient wrapper */}
 
       {/* Login and Signup Dialogs */}
