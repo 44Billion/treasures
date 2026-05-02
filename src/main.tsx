@@ -3,6 +3,7 @@ import '@fontsource/pirata-one'
 import { validateReactAvailability } from '@/utils/safeContext'
 
 import App from './App.tsx'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import './index.css'
 import './styles/mobile.css'
 import './styles/adventure.css'
@@ -80,7 +81,11 @@ if (typeof createRoot !== 'function') {
 // Add error boundary for context creation issues
 try {
   const root = createRoot(rootElement);
-  root.render(<App />);
+  root.render(
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
 } catch (error) {
   console.error("Failed to initialize React app:", error);
   
