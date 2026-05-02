@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useSearchParams, Link } from "react-router-dom";
-import { RefreshCw, Sparkles, Compass, ChevronDown, Earth } from "lucide-react";
+import { RefreshCw, Sparkles, Compass, ChevronDown, Earth, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
@@ -53,8 +53,9 @@ export default function Map() {
   const [cacheType, setCacheType] = useState<string | undefined>(undefined);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>({ lat: 25, lng: -40 });
-  const [mapZoom, setMapZoom] = useState(3);
+  const [mapZoom, setMapZoom] = useState(window.innerWidth >= 1024 ? 3 : 2);
   const [isMapCenterLocked, setIsMapCenterLocked] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Function to clear interaction state for explicit user actions
   const clearMapInteractionLock = () => {
@@ -101,6 +102,8 @@ export default function Map() {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   const mapRef = useRef<L.Map | null>(null);
+  const desktopMapRef = useRef<L.Map | null>(null);
+  const pendingFlyTo = useRef<{ lat: number; lng: number; zoom: number; onEnd?: () => void } | null>(null);
 
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
   const { location: initialLocation, isLoading: isLoadingInitialLocation } = useInitialLocation();
@@ -253,8 +256,10 @@ export default function Map() {
       // zoom in immediately. For auto-trigger, we wait for results first.
       if (showNearMe && !isAutoTriggeredNearMe.current) {
         clearMapInteractionLock();
-        setMapCenter(location);
-        setMapZoom(13);
+        if (!flyToLocation(location.lat, location.lng, 13, () => { setMapCenter(location); setMapZoom(13); })) {
+          setMapCenter(location);
+          setMapZoom(13);
+        }
       }
     }
   }, [coords, showNearMe]);
@@ -276,8 +281,10 @@ export default function Map() {
     if (proximityResults.length > 0) {
       // Found nearby results — zoom in to the user's location
       clearMapInteractionLock();
-      setMapCenter(userLocation);
-      setMapZoom(13);
+      if (!flyToLocation(userLocation.lat, userLocation.lng, 13, () => { setMapCenter(userLocation); setMapZoom(13); })) {
+        setMapCenter(userLocation);
+        setMapZoom(13);
+      }
     } else {
       // No nearby results — turn off Near Me and stay on the globe
       setShowNearMe(false);
@@ -583,8 +590,11 @@ export default function Map() {
     setSearchLocation(null);
     setSearchInView(false);
     setSearchQuery("");
-    setMapCenter({ lat: 25, lng: -40 });
-    setMapZoom(3);
+    const earthZoom = window.innerWidth >= 1024 ? 3 : 2;
+    if (!flyToLocation(25, -40, earthZoom, () => { setMapCenter({ lat: 25, lng: -40 }); setMapZoom(earthZoom); })) {
+      setMapCenter({ lat: 25, lng: -40 });
+      setMapZoom(earthZoom);
+    }
   };
 
   const handleRetry = async () => {
@@ -645,20 +655,109 @@ export default function Map() {
     // Currently no implementation needed
   }, [config]);
 
+  const flyToLocation = (lat: number, lng: number, zoom: number, onEnd?: () => void) => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+    const map = desktopMapRef.current ?? mapRef.current;
+    if (!map) return false;
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) {
+      // Map not visible yet — snap immediately and queue a fly for when it becomes visible
+      map.setView([lat, lng], zoom, { animate: false });
+      pendingFlyTo.current = { lat, lng, zoom, onEnd };
+      onEnd?.();
+      return true;
+    }
+    map.flyTo([lat, lng], zoom, { animate: true, duration: 1.5 });
+    if (onEnd) map.once('moveend', onEnd);
+    return true;
+  };
+
+  // When switching to the map tab, invalidateSize has a 50ms delay in MapSizeController.
+  // After that, execute any pending flyTo that was queued while the map was hidden.
+  useEffect(() => {
+    if (activeTab !== 'map') return;
+    const pending = pendingFlyTo.current;
+    if (!pending) return;
+    const timer = setTimeout(() => {
+      const map = mapRef.current;
+      if (!map) return;
+      const size = map.getSize();
+      if (size.x > 0 && size.y > 0) {
+        pendingFlyTo.current = null;
+        map.flyTo([pending.lat, pending.lng], pending.zoom, { animate: true, duration: 1.5 });
+      }
+    }, 100); // just after MapSizeController's 50ms invalidateSize
+    return () => clearTimeout(timer);
+  }, [activeTab]);
+
+  const dismissNearMe = () => {
+    setShowNearMe(false);
+    setSearchLocation(null);
+    setSearchInView(false);
+    setShowMobileSearchOptions(false);
+  };
+
+  const ResultsCountRow = ({ showInView = false, className = "" }: { showInView?: boolean; className?: string }) => {
+    if (!searchQuery && difficulty === undefined && terrain === undefined && !cacheType && !isProximitySearchActive) return null;
+    return (
+      <div className={`flex items-center justify-between gap-2 ${className}`}>
+        <div className="text-sm text-muted-foreground min-w-0">
+          <span>
+            {filteredGeocaches.length === 1
+              ? t('map.results.count', { count: filteredGeocaches.length })
+              : t('map.results.countPlural', { count: filteredGeocaches.length })
+            }
+            {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
+            {showInView && searchInView && ` • ${t('map.results.inView')}`}
+          </span>
+        </div>
+        {showNearMe ? (
+          <button
+            onClick={dismissNearMe}
+            className="inline-flex items-center gap-0.5 text-[11px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 hover:bg-primary/20 transition-colors shrink-0"
+          >
+            {t('map.nearMe.title', 'Near Me')}
+            <X className="h-2.5 w-2.5" />
+          </button>
+        ) : isProximitySearchActive && (
+          <Badge
+            variant={proximitySuccessful ? "secondary" : "outline"}
+            className="text-xs flex items-center gap-1 shrink-0"
+            title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
+          >
+            <Sparkles className="h-2 w-2" />
+            {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Desktop View — no header, full height */}
-      <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
+      <div className="hidden lg:flex flex-1 overflow-hidden min-h-0 relative">
         {/* Sidebar */}
-        <div className="w-96 border-r bg-background flex flex-col">
-          {/* Logo */}
-          <div className="px-4 pt-3 pb-1 flex-shrink-0">
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
-              <span className="text-xl font-bold text-foreground">{t('navigation.appName')}</span>
+        {!sidebarCollapsed && (
+        <div className="w-96 border-r bg-background flex flex-col flex-shrink-0">
+          {/* Logo + collapse button */}
+          <div className="px-4 pt-3 pb-1 flex-shrink-0 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2 min-w-0">
+              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo flex-shrink-0" />
+              <span className="text-xl font-bold text-foreground truncate">{t('navigation.appName')}</span>
             </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={() => setSidebarCollapsed(true)}
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </Button>
           </div>
           {/* Filters */}
+          {!sidebarCollapsed && (
           <div className="px-4 pb-2 pt-1 bg-background/95 backdrop-blur-sm flex-shrink-0">
             <div ref={desktopFilterBarRef} className="flex gap-2">
               <OmniSearch
@@ -699,7 +798,9 @@ export default function Map() {
               />
             </div>
           </div>
+          )}
           {/* Results */}
+          {!sidebarCollapsed && (
           <div ref={desktopScrollRef} className="flex-1 overflow-y-auto min-h-0 styled-scrollbar">
             {showMapSkeletons ? (
               // Show skeleton cards during loading
@@ -752,25 +853,8 @@ export default function Map() {
                   </div>
                 }
               >
-                <div className="px-4 pt-2 pb-4">
-                {/* Only show count when filters are active */}
-                {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span>
-                          {filteredGeocaches.length === 1
-                            ? t('map.results.count', { count: filteredGeocaches.length })
-                            : t('map.results.countPlural', { count: filteredGeocaches.length })
-                          }
-                          {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
-                        </span>
-
-
-                      </div>
-                    </div>
-                  </div>
-                )}
+                 <div className="px-4 pt-2 pb-4">
+                 <ResultsCountRow className="mb-2" />
                 {/* Virtualized card list — only visible cards are mounted */}
                 <div style={{ height: `${desktopVirtualizer.getTotalSize()}px`, position: 'relative' }}>
                   {desktopVirtualizer.getVirtualItems().map((virtualItem) => {
@@ -810,7 +894,27 @@ export default function Map() {
             </SmartLoadingState>
             )}
           </div>
+          )}
         </div>
+        )}
+
+        {/* Collapsed sidebar: floating logo + expand button, no background */}
+        {sidebarCollapsed && (
+          <div className="absolute top-3 left-3 z-[1000] flex items-center gap-1">
+            <Link to="/">
+              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={() => setSidebarCollapsed(false)}
+              title="Expand sidebar"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         {/* Map - render immediately with progressive geocache loading */}
         <div className="flex-1 relative min-h-0">
@@ -825,11 +929,12 @@ export default function Map() {
             onSearchInView={handleSearchInView}
             onNearMe={handleNearMe}
             onOpenRadar={openRadar}
+            onShowEarth={handleShowEarth}
             highlightedGeocache={highlightedGeocache || undefined}
             showStyleSelector={true}
             isNearMeActive={showNearMe}
             isGettingLocation={isGettingLocation}
-            mapRef={mapRef}
+            mapRef={desktopMapRef}
             isMapCenterLocked={isMapCenterLocked}
             adventures={filteredAdventures}
             onAdventureMarkerClick={(adventure, container) => {
@@ -866,13 +971,48 @@ export default function Map() {
       <div className="block lg:hidden fixed inset-0 flex flex-col" style={{ top: 'calc(3rem + env(safe-area-inset-top, 0px))', bottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))' }}>
         {/* Mobile Content Area - Full height */}
         <div className="flex-1 overflow-hidden relative">
+
+          {/* Single mobile map — always mounted, fills the container */}
+          <div className="absolute inset-0">
+            <GeocacheMap
+              geocaches={filteredGeocaches}
+              userLocation={userLocation}
+              searchLocation={searchLocation || (showNearMe ? userLocation : null)}
+              searchRadius={searchRadius}
+              center={mapCenter || undefined}
+              zoom={mapZoom}
+              onMarkerClick={handleMarkerClick}
+              onSearchInView={handleSearchInView}
+              onNearMe={handleNearMe}
+              onOpenRadar={openRadar}
+              onShowEarth={handleShowEarth}
+              highlightedGeocache={highlightedGeocache || undefined}
+              showStyleSelector={true}
+              isNearMeActive={showNearMe}
+              isGettingLocation={isGettingLocation}
+              mapRef={mapRef}
+              isMapCenterLocked={isMapCenterLocked}
+              isVisible={activeTab === 'map'}
+              adventures={filteredAdventures}
+              onAdventureMarkerClick={(adventure, container) => {
+                if (!adventure && !container) {
+                  setSelectedAdventure(null);
+                  setAdventurePopupContainer(null);
+                  return;
+                }
+                setSelectedAdventure(adventure);
+                setAdventurePopupContainer(container || null);
+              }}
+            />
+          </div>
+
           <MapViewTabs
             className="h-full"
             value={activeTab}
             onValueChange={setActiveTab}
           >
             {/* List View - Always mounted but hidden when inactive */}
-            <div className={cn("h-full flex flex-col bg-background overflow-hidden", activeTab !== 'list' && "hidden")}>
+            <div className={cn("h-full flex flex-col bg-background overflow-hidden relative z-10", activeTab !== 'list' && "hidden")}>
               {/* Search Bar for List View */}
               <div className="bg-background/95 backdrop-blur-sm flex-shrink-0">
                 <div className="px-3 pt-3 pb-2">
@@ -976,34 +1116,7 @@ export default function Map() {
                   }
                 >
                 <div className="space-y-3">
-                  {/* Only show count when filters are active */}
-                  {(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive) && (
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <span>
-                            {filteredGeocaches.length === 1
-                              ? t('map.results.count', { count: filteredGeocaches.length })
-                              : t('map.results.countPlural', { count: filteredGeocaches.length })
-                            }
-                            {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
-                            {searchInView && ` • ${t('map.results.inView')}`}
-                          </span>
-
-                        </div>
-                      </div>
-                      {isProximitySearchActive && (
-                        <Badge
-                          variant={proximitySuccessful ? "secondary" : "outline"}
-                          className="text-xs flex items-center gap-1"
-                          title={proximityAttempted ? (proximitySuccessful ? t('map.proximity.success') : t('map.proximity.failed')) : t('map.proximity.broad')}
-                        >
-                          <Sparkles className="h-2 w-2" />
-                          {proximitySuccessful ? t('map.badge.smart') : searchStrategy === "fallback" ? t('map.badge.fallback') : t('map.badge.broad')}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                  <ResultsCountRow showInView />
                   {/* Virtualized card list — only visible cards are mounted */}
                   <div style={{ height: `${mobileVirtualizer.getTotalSize()}px`, position: 'relative' }}>
                     {mobileVirtualizer.getVirtualItems().map((virtualItem) => {
@@ -1045,83 +1158,50 @@ export default function Map() {
               </div>
             </div>
 
-            {/* Map View - Always mounted but hidden when inactive */}
-            <div className={cn("h-full w-full bg-background relative", activeTab !== 'map' && "hidden")}>
-                {/* Floating Search Bar - positioned over the map */}
-                <div className="absolute top-3 left-3 right-3 z-[999] pointer-events-none">
-                  <div ref={mobileMapFilterBarRef} className="flex gap-1.5 pointer-events-auto">
-                    <OmniSearch
-                      onLocationSelect={handleLocationSelect}
-                      onGeocacheSelect={(cache) => handleCardClick(cache)}
-                      onTextSearch={setSearchQuery}
-                      geocaches={filteredGeocaches}
-                      placeholder={t('map.omniSearch.placeholder')}
-                      mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
-                      containerRef={mobileMapFilterBarRef}
-                    />
-                    {(showNearMe || searchLocation || searchInView) && (
-                      <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
-                        <SelectTrigger className="w-auto h-9 text-xs bg-background/90 backdrop-blur-sm shadow-sm rounded-md px-2 gap-1 shrink-0 border-border">
-                          <SelectValue placeholder="25 km" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
-                          <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
-                          <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
-                          <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
-                          <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
-                          <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
-                          <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <FilterButton
-                      difficulty={difficulty}
-                      difficultyOperator={difficultyOperator}
-                      onDifficultyChange={setDifficulty}
-                      onDifficultyOperatorChange={setDifficultyOperator}
-                      terrain={terrain}
-                      terrainOperator={terrainOperator}
-                      onTerrainChange={setTerrain}
-                      onTerrainOperatorChange={setTerrainOperator}
-                      cacheType={cacheType}
-                      onCacheTypeChange={setCacheType}
-                      compact
-                    />
-                  </div>
+            {/* Map View - floating search/filter bar only; map is rendered behind all tabs */}
+            <div className={cn("h-full w-full relative pointer-events-none", activeTab !== 'map' && "hidden")}>
+              <div className="absolute top-3 left-3 right-3 z-[999] pointer-events-auto">
+                <div ref={mobileMapFilterBarRef} className="flex gap-1.5">
+                  <OmniSearch
+                    onLocationSelect={handleLocationSelect}
+                    onGeocacheSelect={(cache) => handleCardClick(cache)}
+                    onTextSearch={setSearchQuery}
+                    geocaches={filteredGeocaches}
+                    placeholder={t('map.omniSearch.placeholder')}
+                    mobilePlaceholder={t('map.omniSearch.mobilePlaceholder')}
+                    containerRef={mobileMapFilterBarRef}
+                  />
+                  {(showNearMe || searchLocation || searchInView) && (
+                    <Select value={searchRadius.toString()} onValueChange={handleRadiusChange}>
+                      <SelectTrigger className="w-auto h-9 text-xs bg-background/90 backdrop-blur-sm shadow-sm rounded-md px-2 gap-1 shrink-0 border-border">
+                        <SelectValue placeholder="25 km" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('map.searchRadius.options.all')}</SelectItem>
+                        <SelectItem value="1">{t('map.searchRadius.options.1')}</SelectItem>
+                        <SelectItem value="5">{t('map.searchRadius.options.5')}</SelectItem>
+                        <SelectItem value="10">{t('map.searchRadius.options.10')}</SelectItem>
+                        <SelectItem value="25">{t('map.searchRadius.options.25')}</SelectItem>
+                        <SelectItem value="50">{t('map.searchRadius.options.50')}</SelectItem>
+                        <SelectItem value="100">{t('map.searchRadius.options.100')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <FilterButton
+                    difficulty={difficulty}
+                    difficultyOperator={difficultyOperator}
+                    onDifficultyChange={setDifficulty}
+                    onDifficultyOperatorChange={setDifficultyOperator}
+                    terrain={terrain}
+                    terrainOperator={terrainOperator}
+                    onTerrainChange={setTerrain}
+                    onTerrainOperatorChange={setTerrainOperator}
+                    cacheType={cacheType}
+                    onCacheTypeChange={setCacheType}
+                    compact
+                  />
                 </div>
-
-                <GeocacheMap
-                  geocaches={filteredGeocaches}
-                  userLocation={userLocation}
-                  searchLocation={searchLocation || (showNearMe ? userLocation : null)}
-                  searchRadius={searchRadius}
-                  center={mapCenter || undefined}
-                  zoom={mapZoom}
-                  onMarkerClick={handleMarkerClick}
-                  onSearchInView={handleSearchInView}
-                  onNearMe={handleNearMe}
-                  onOpenRadar={openRadar}
-                  highlightedGeocache={highlightedGeocache || undefined}
-                  showStyleSelector={true}
-                  isNearMeActive={showNearMe}
-                  isGettingLocation={isGettingLocation}
-                  mapRef={mapRef}
-                  isMapCenterLocked={isMapCenterLocked}
-                  isVisible={activeTab === 'map'}
-                  adventures={filteredAdventures}
-                  onAdventureMarkerClick={(adventure, container) => {
-                    if (!adventure && !container) {
-                      setSelectedAdventure(null);
-                      setAdventurePopupContainer(null);
-                      return;
-                    }
-                    setSelectedAdventure(adventure);
-                    setAdventurePopupContainer(container || null);
-                  }}
-                />
-
-
+              </div>
             </div>
           </MapViewTabs>
         </div>

@@ -8,6 +8,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import { MapStyleSelector } from "./MapStyleSelector";
 import { NearMeButton } from "./NearMeButton";
 import { CompassMapButton } from "./CompassMapButton";
+import { EarthViewMapButton } from "./EarthViewMapButton";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useMapController } from "@/hooks/useMapController";
@@ -198,6 +199,7 @@ interface GeocacheMapProps {
   isMapCenterLocked?: boolean; // Whether map center is locked from user interaction
   isVisible?: boolean; // Whether the map is currently visible (for handling tab switches on mobile)
   onOpenRadar?: () => void; // Callback to open the radar compass overlay
+  onShowEarth?: () => void; // Callback to zoom out to earth view and clear near me
   onMapClick?: (location: { lat: number; lng: number }) => void; // Callback for map click (e.g. adventure center selection)
   initialMapStyle?: string; // Override the default map style (e.g. from adventure event)
   adventures?: Adventure[]; // Adventure markers to display alongside geocaches
@@ -1111,7 +1113,7 @@ function CompassMapButtonControl({
     container.className = 'compass-button-container hidden lg:block';
     container.style.cssText = `
       position: absolute;
-      bottom: 64px;
+      bottom: 112px;
       right: 16px;
       z-index: 1000;
       pointer-events: auto;
@@ -1157,6 +1159,76 @@ function CompassMapButtonControl({
       );
     }
   }, [onOpenRadar, isAdventureTheme]);
+
+  return null;
+}
+
+// Custom component for earth view button — positioned between compass and Near Me at lower right
+function EarthViewButtonControl({
+  onShowEarth
+}: {
+  onShowEarth: () => void;
+}) {
+  const map = useMap();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
+  const isInitializedRef = useRef(false);
+
+  const onShowEarthRef = useRef(onShowEarth);
+
+  useEffect(() => {
+    onShowEarthRef.current = onShowEarth;
+  });
+
+  useEffect(() => {
+    if (isInitializedRef.current) return;
+
+    const mapContainer = map.getContainer();
+
+    const container = document.createElement('div');
+    container.className = 'earth-button-container';
+    container.style.cssText = `
+      position: absolute;
+      bottom: 64px;
+      right: 16px;
+      z-index: 1000;
+      pointer-events: auto;
+    `;
+
+    mapContainer.appendChild(container);
+    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = container;
+
+    rootRef.current = createRoot(container);
+    rootRef.current.render(
+      <EarthViewMapButton onClick={onShowEarthRef.current} />
+    );
+
+    (isInitializedRef as React.MutableRefObject<boolean>).current = true;
+
+    const currentContainer = containerRef.current;
+
+    return () => {
+      if (currentContainer && currentContainer.parentNode) {
+        currentContainer.parentNode.removeChild(currentContainer);
+      }
+      if (rootRef.current) {
+        const root = rootRef.current;
+        rootRef.current = null;
+        setTimeout(() => {
+          try { root?.unmount(); } catch { /* ignore */ }
+        }, 0);
+      }
+      (isInitializedRef as React.MutableRefObject<boolean>).current = false;
+    };
+  }, [map]);
+
+  useEffect(() => {
+    if (rootRef.current && isInitializedRef.current) {
+      rootRef.current.render(
+        <EarthViewMapButton onClick={onShowEarthRef.current} />
+      );
+    }
+  }, [onShowEarth]);
 
   return null;
 }
@@ -1223,6 +1295,7 @@ export function GeocacheMap({
   isMapCenterLocked = false,
   isVisible = true,
   onOpenRadar,
+  onShowEarth,
   onMapClick,
   initialMapStyle,
   adventures,
@@ -1604,6 +1677,13 @@ export function GeocacheMap({
         <CompassMapButtonControl
           onOpenRadar={onOpenRadar}
           isAdventureTheme={currentMapStyle === 'adventure'}
+        />
+      )}
+
+      {/* Earth View Button — between compass and Near Me buttons */}
+      {onShowEarth && (
+        <EarthViewButtonControl
+          onShowEarth={onShowEarth}
         />
       )}
 
