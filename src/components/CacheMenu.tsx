@@ -10,10 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ShareDialog } from '@/components/ShareDialog';
 import { useSavedCaches } from '@/hooks/useSavedCaches';
 import { useToast } from '@/hooks/useToast';
 import { CompassSpinner } from '@/components/ui/loading';
+import { geocacheToNaddr } from '@/utils/naddr';
+import { hapticLight } from '@/utils/haptics';
 import type { Geocache } from '@/types/geocache';
 
 interface CacheMenuProps {
@@ -24,7 +25,6 @@ interface CacheMenuProps {
 
 export function CacheMenu({ geocache, variant = 'default', className }: CacheMenuProps) {
   const { t } = useTranslation();
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
@@ -80,9 +80,34 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
     setDropdownOpen(false); // Close dropdown after action
   };
 
-  const handleShare = () => {
-    setShareDialogOpen(true);
-    setDropdownOpen(false); // Close dropdown after action
+  const handleShare = async () => {
+    setDropdownOpen(false);
+    const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
+    const shareUrl = `${window.location.origin}/${naddr}`;
+    hapticLight();
+    if ('share' in navigator && navigator.share) {
+      try {
+        await navigator.share({
+          title: geocache.name,
+          text: t('shareDialog.shareText', { name: geocache.name }),
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled — no-op
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+      } catch {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      toast({ title: t('common.copyLink') });
+    }
   };
 
   const handleToggleSave = async () => {
@@ -233,12 +258,6 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <ShareDialog
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-        geocache={geocache}
-      />
     </>
   );
 }
