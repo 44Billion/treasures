@@ -197,10 +197,30 @@ export default function CreateCacheLanding() {
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
       document.body.appendChild(iframe);
-      iframe.contentDocument?.write(
-        `<img src="${qrDataUrl}" onload="window.print();setTimeout(() => document.body.removeChild(iframe), 100)" />`
-      );
-      iframe.contentDocument?.close();
+
+      const iframeDoc = iframe.contentDocument;
+      if (!iframeDoc) {
+        document.body.removeChild(iframe);
+        return;
+      }
+
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              @page { size: auto; margin: 0mm; }
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              html, body { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: white; }
+              img { max-width: 100%; max-height: 100%; object-fit: contain; }
+            </style>
+          </head>
+          <body>
+            <img src="${qrDataUrl}" onload="window.print(); setTimeout(function() { window.parent.document.body.removeChild(window.frameElement); }, 500);" />
+          </body>
+        </html>
+      `);
+      iframeDoc.close();
     }
   };
 

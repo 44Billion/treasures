@@ -106,31 +106,39 @@ export function VerificationQRDialog({
 
   const handlePrint = () => {
     if (qrDataUrl) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Print QR Code</title>
-              <style>
-                @page { size: auto;  margin: 0mm; }
-                body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-                img { max-width: 100%; max-height: 100%; object-fit: contain; }
-              </style>
-            </head>
-            <body onload="window.print(); setTimeout(function() { window.close(); }, 100);">
-              <img src="${qrDataUrl}" alt="Verification QR Code" />
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-      } else {
+      // Use a hidden iframe instead of window.open — Android WebViews block popups.
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const iframeDoc = iframe.contentDocument;
+      if (!iframeDoc) {
+        document.body.removeChild(iframe);
         toast({
           title: 'Print Failed',
           description: 'Could not open print window. Please check your browser settings.',
           variant: 'destructive',
         });
+        return;
       }
+
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              @page { size: auto; margin: 0mm; }
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              html, body { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: white; }
+              img { max-width: 100%; max-height: 100%; object-fit: contain; }
+            </style>
+          </head>
+          <body>
+            <img src="${qrDataUrl}" onload="window.print(); setTimeout(function() { window.parent.document.body.removeChild(window.frameElement); }, 500);" />
+          </body>
+        </html>
+      `);
+      iframeDoc.close();
     }
   };
 

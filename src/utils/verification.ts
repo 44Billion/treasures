@@ -597,12 +597,25 @@ async function verifyVerificationEvent(
  * Download QR code as PNG file
  */
 export function downloadQRCode(dataUrl: string, filename: string = 'geocache-verification-qr.png'): void {
+  // Convert data URL to Blob URL for Android/WebView compatibility.
+  // Android WebViews block the `download` attribute on data: URLs.
+  const byteString = atob(dataUrl.split(',')[1]);
+  const mimeType = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+  const byteArray = new Uint8Array(byteString.length);
+  for (let i = 0; i < byteString.length; i++) {
+    byteArray[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([byteArray], { type: mimeType });
+  const blobUrl = URL.createObjectURL(blob);
+
   const link = document.createElement('a');
   link.download = filename;
-  link.href = dataUrl;
+  link.href = blobUrl;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  // Revoke shortly after to free memory
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
 }
 
 /**
