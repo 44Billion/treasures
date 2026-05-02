@@ -296,7 +296,8 @@ export default function Home() {
             <img
               src="/icon.svg"
               alt="Treasures"
-              className={`h-36 w-36 xs:h-40 xs:w-40 sm:h-64 sm:w-64 md:h-72 md:w-72 mx-auto mb-4 md:mb-6 drop-shadow-lg animate-slide-up ${isDitto ? 'ditto-logo' : ''}`}
+              className={`mx-auto mb-4 md:mb-6 drop-shadow-lg animate-slide-up ${isDitto ? 'ditto-logo' : ''}`}
+              style={{ width: 'clamp(10rem, 20vw, 28rem)', height: 'clamp(10rem, 20vw, 28rem)' }}
             />
             <h2 className={`text-2xl xs:text-3xl md:text-5xl font-bold mb-3 md:mb-5 animate-slide-up ${isDitto ? 'text-foreground' : 'text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]'}`}>
               {t("home.hero.title1")}
