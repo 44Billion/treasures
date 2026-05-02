@@ -511,16 +511,15 @@ export default function Home() {
 
       {/* Recent Caches */}
       <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden">
-        {/* Grass footer background - positioned at bottom, fixed aspect ratio */}
+        {/* Grass footer background - positioned at bottom */}
         {!isDitto && (
           <div
-            className="absolute inset-x-0 bottom-0 pointer-events-none opacity-50 dark:brightness-[0.5]"
+            className="absolute inset-x-0 bottom-0 translate-y-1/3 pointer-events-none opacity-50 dark:brightness-[0.5] 2xl:blur-sm 2xl:opacity-30"
             style={{
               aspectRatio: '1750 / 656',
-              maxHeight: '100%',
-              background: `url(/grass-footer.webp) center bottom / 100% 100% no-repeat`,
-              maskImage: 'linear-gradient(to top, black 0%, black 70%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to top, black 0%, black 70%, transparent 100%)',
+              background: `url(/grass-footer.webp) center bottom / cover no-repeat`,
+              maskImage: 'linear-gradient(to top, black 0%, black 50%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to top, black 0%, black 50%, transparent 100%)',
             }}
           >
             {/* Subtle overlay for tone adjustment */}
