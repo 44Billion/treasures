@@ -204,6 +204,7 @@ interface GeocacheMapProps {
   initialMapStyle?: string; // Override the default map style (e.g. from adventure event)
   adventures?: Adventure[]; // Adventure markers to display alongside geocaches
   onAdventureMarkerClick?: (adventure: Adventure, popupContainer?: HTMLDivElement) => void;
+  layoutKey?: string | boolean; // Changes to this value trigger map.invalidateSize() — use when container size changes without a window resize
 }
 
 
@@ -644,7 +645,7 @@ function PopupController({
 }
 
 // Component to handle map size invalidation
-function MapSizeController({ isVisible }: { isVisible?: boolean }) {
+function MapSizeController({ isVisible, layoutKey }: { isVisible?: boolean; layoutKey?: string | boolean }) {
   const map = useMap();
 
   useEffect(() => {
@@ -682,6 +683,17 @@ function MapSizeController({ isVisible }: { isVisible?: boolean }) {
     }
     return undefined;
   }, [isVisible, map]);
+
+  // Invalidate map size when layout changes (e.g. sidebar collapse/expand)
+  useEffect(() => {
+    if (layoutKey === undefined) return;
+    const timer = setTimeout(() => {
+      if (map && typeof map.invalidateSize === 'function') {
+        map.invalidateSize();
+      }
+    }, 310); // slightly after the 300ms CSS transition
+    return () => clearTimeout(timer);
+  }, [layoutKey, map]);
 
   return null;
 }
@@ -1300,6 +1312,7 @@ export function GeocacheMap({
   initialMapStyle,
   adventures,
   onAdventureMarkerClick,
+  layoutKey,
 }: GeocacheMapProps) {
   const { navigateToGeocache } = useGeocacheNavigation();
   const { theme, systemTheme } = useTheme();
@@ -1619,7 +1632,7 @@ export function GeocacheMap({
       >
       <OptimizedTileLayer mapStyle={mapStyle} crossOriginTiles={lockdownFeatures.crossOriginTiles} />
 
-      <MapSizeController isVisible={isVisible} />
+      <MapSizeController isVisible={isVisible} layoutKey={layoutKey} />
       <WorldWrapController geocaches={geocaches} />
 
 

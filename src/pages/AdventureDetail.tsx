@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { Compass, Share2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { Compass, Share2, Pencil, ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import L from "leaflet";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -39,6 +39,7 @@ export default function AdventureDetail() {
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const mapRef = useRef<L.Map | null>(null);
 
@@ -272,9 +273,10 @@ export default function AdventureDetail() {
   return (
     <div className="h-screen flex flex-col">
       {/* Desktop View — no header, full height like Map.tsx */}
-      <div className="hidden lg:flex flex-1 overflow-hidden min-h-0">
+      <div className="hidden lg:flex flex-1 overflow-hidden min-h-0 relative">
         {/* Sidebar */}
-        <div className="w-96 border-r bg-background flex flex-col">
+        {!sidebarCollapsed && (
+        <div className="w-96 border-r bg-background flex flex-col flex-shrink-0">
           <div className="flex-1 overflow-y-auto min-h-0">
             {/* Banner with logo, title + actions overlaid */}
             <div className="relative">
@@ -290,7 +292,7 @@ export default function AdventureDetail() {
               ) : (
                 <div className="aspect-[2/1] bg-gradient-to-br from-primary/20 to-primary/5" />
               )}
-              {/* Logo + actions floating in banner top */}
+              {/* Logo + collapse + actions floating in banner top */}
               <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 pt-2">
                 <Link to="/" className="flex items-center gap-1.5">
                   <img src="/icon.svg" alt="Treasures" className="h-7 w-7 drop-shadow-md" />
@@ -311,6 +313,15 @@ export default function AdventureDetail() {
                   >
                     <Share2 className="h-3.5 w-3.5" />
                   </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-8 w-8 ${adventure.image ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground'}`}
+                    onClick={() => setSidebarCollapsed(true)}
+                    title="Collapse sidebar"
+                  >
+                    <PanelLeftClose className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
               {/* Title + description overlaid at bottom of banner */}
@@ -334,10 +345,29 @@ export default function AdventureDetail() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Collapsed sidebar: floating logo + expand button, no background */}
+        {sidebarCollapsed && (
+          <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
+            <Link to="/">
+              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-background/90 backdrop-blur-sm shadow-md"
+              onClick={() => setSidebarCollapsed(false)}
+              title="Expand sidebar"
+            >
+              <PanelLeftOpen className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
 
         {/* Map — fills remaining space */}
         <div className="flex-1 relative min-h-0">
-          {mapCenter && !isMobile && <GeocacheMap {...mapProps} mapRef={mapRef} />}
+          {mapCenter && !isMobile && <GeocacheMap {...mapProps} mapRef={mapRef} layoutKey={sidebarCollapsed} />}
 
           {/* Floating nav controls — upper-right over the map, matches Map.tsx */}
           <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">

@@ -900,18 +900,18 @@ export default function Map() {
 
         {/* Collapsed sidebar: floating logo + expand button, no background */}
         {sidebarCollapsed && (
-          <div className="absolute top-3 left-3 z-[1000] flex items-center gap-1">
+          <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
             <Link to="/">
               <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
             </Link>
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              variant="outline"
+              size="sm"
+              className="bg-background/90 backdrop-blur-sm shadow-md"
               onClick={() => setSidebarCollapsed(false)}
               title="Expand sidebar"
             >
-              <PanelLeftOpen className="h-4 w-4" />
+              <PanelLeftOpen className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
@@ -937,6 +937,7 @@ export default function Map() {
             mapRef={desktopMapRef}
             isMapCenterLocked={isMapCenterLocked}
             adventures={filteredAdventures}
+            layoutKey={sidebarCollapsed}
             onAdventureMarkerClick={(adventure, container) => {
               if (!adventure && !container) {
                 setSelectedAdventure(null);
