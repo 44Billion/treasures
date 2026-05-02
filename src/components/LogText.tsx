@@ -10,6 +10,8 @@ interface LogTextProps {
   text: string;
   onProfileClick?: (pubkey: string) => void;
   hideNostrLinks?: boolean;
+  className?: string;
+  onClick?: () => void;
 }
 
 /** Image extensions rendered inline. */
@@ -233,7 +235,7 @@ function groupImages(tokens: ContentToken[]): ContentToken[] {
   return result;
 }
 
-export function LogText({ text, hideNostrLinks = false }: LogTextProps) {
+export function LogText({ text, hideNostrLinks = false, className, onClick }: LogTextProps) {
   const tokens = useMemo(() => tokenize(text), [text]);
   const groupedTokens = useMemo(() => groupImages(tokens), [tokens]);
 
@@ -273,7 +275,7 @@ export function LogText({ text, hideNostrLinks = false }: LogTextProps) {
   }, [groupedTokens]);
 
   return (
-    <div className="whitespace-pre-wrap break-words">
+    <div className={cn("whitespace-pre-wrap break-words", className)} onClick={onClick}>
       {groupedTokens.map((token, i) => {
         switch (token.type) {
           case "text":
@@ -323,7 +325,8 @@ export function LogText({ text, hideNostrLinks = false }: LogTextProps) {
                 href={token.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                className="underline opacity-80 hover:opacity-100 break-all"
+                onClick={(e) => e.stopPropagation()}
               >
                 {token.url}
               </a>

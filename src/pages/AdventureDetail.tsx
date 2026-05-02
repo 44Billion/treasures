@@ -7,6 +7,7 @@ import L from "leaflet";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocachePopupCard } from "@/components/GeocachePopupCard";
+import { LogText } from "@/components/LogText";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading";
 import { LoginArea } from "@/components/auth/LoginArea";
@@ -15,6 +16,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ExploreMenuItems } from "@/components/ExploreMenuItems";
 import { useAdventure } from "@/hooks/useAdventure";
 import { useAuthor } from "@/hooks/useAuthor";
@@ -40,6 +47,7 @@ export default function AdventureDetail() {
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
 
   const mapRef = useRef<L.Map | null>(null);
 
@@ -324,7 +332,7 @@ export default function AdventureDetail() {
                   </Button>
                 </div>
               </div>
-              {/* Title + description overlaid at bottom of banner */}
+              {/* Title + author + description overlaid at bottom of banner */}
               <div className={`absolute bottom-0 left-0 right-0 px-4 pb-3 ${adventure.image ? '[text-shadow:0_1px_4px_rgba(0,0,0,0.7),0_2px_8px_rgba(0,0,0,0.4)]' : ''}`}>
                 <h1 className={`text-lg font-bold leading-tight truncate ${adventure.image ? 'text-white' : 'text-foreground'}`}>{adventure.title}</h1>
                 <div className={`flex items-center gap-2 text-xs mt-0.5 ${adventure.image ? 'text-white/90' : 'text-muted-foreground'}`}>
@@ -333,7 +341,11 @@ export default function AdventureDetail() {
                   <span>{t('common.treasure', { count: geocaches.length })}</span>
                 </div>
                 {adventure.description && (
-                  <p className={`text-xs mt-2 line-clamp-3 ${adventure.image ? 'text-white/80' : 'text-muted-foreground'}`}>{adventure.description}</p>
+                  <LogText
+                    text={adventure.description}
+                    onClick={() => setDescriptionModalOpen(true)}
+                    className={`text-xs mt-2 cursor-pointer line-clamp-3 ${adventure.image ? 'text-white/80' : 'text-muted-foreground'}`}
+                  />
                 )}
               </div>
             </div>
@@ -476,7 +488,11 @@ export default function AdventureDetail() {
                   <span>{t('common.treasure', { count: geocaches.length })}</span>
                 </div>
                 {adventure.description && (
-                  <p className="text-xs mt-2 line-clamp-3 text-white/80">{adventure.description}</p>
+                  <LogText
+                    text={adventure.description}
+                    onClick={() => setDescriptionModalOpen(true)}
+                    className={`text-xs mt-2 cursor-pointer line-clamp-3 text-white/80`}
+                  />
                 )}
               </div>
             </div>
@@ -504,6 +520,16 @@ export default function AdventureDetail() {
         />,
         popupContainer
       )}
+
+      {/* Description modal */}
+      <Dialog open={descriptionModalOpen} onOpenChange={setDescriptionModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{adventure.title}</DialogTitle>
+          </DialogHeader>
+          <LogText text={adventure.description} className="text-sm text-muted-foreground" />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
