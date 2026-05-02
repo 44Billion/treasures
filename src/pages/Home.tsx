@@ -235,7 +235,7 @@ export default function Home() {
         {/* Decorative overlay — simplified on mobile, full on desktop */}
         {/* Mobile: same desktop paths without the drift animation */}
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.18] z-[1] md:hidden"
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.18] z-[1] lg:hidden"
           viewBox="0 0 200 100"
           preserveAspectRatio="xMidYMid slice"
           aria-hidden="true"
@@ -264,7 +264,7 @@ export default function Home() {
         </svg>
 
         {/* Desktop: full drifting pattern (5 paths, 4 X marks, 5 circles) */}
-        <div className="absolute inset-0 pointer-events-none z-[1] hero-overlay-drift hidden md:block">
+        <div className="absolute inset-0 pointer-events-none z-[1] hero-overlay-drift hidden lg:block">
           <svg className="absolute inset-0 w-full h-full opacity-[0.18]" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
             <path d="M -5,20 C 15,10 30,12 50,22 C 70,32 85,8 110,16 C 135,24 155,12 180,20 C 195,24 200,18 210,20" stroke="white" strokeWidth="1.2" fill="none" strokeDasharray="4,3" strokeLinecap="round" />
             <path d="M -5,48 C 10,38 25,36 45,46 C 65,56 80,34 105,42 C 130,50 145,36 170,44 C 190,50 200,42 210,46" stroke="white" strokeWidth="1" fill="none" strokeDasharray="3,4" strokeLinecap="round" />
@@ -309,7 +309,7 @@ export default function Home() {
             </h2>
 
             <p className={`text-base xs:text-lg md:text-xl font-medium mb-6 md:mb-8 max-w-2xl mx-auto animate-slide-up-delay whitespace-pre-line ${isDitto ? 'text-muted-foreground' : 'text-white/90 [text-shadow:0_2px_6px_rgba(0,0,0,0.4)]'}`}>
-              <span className="hidden md:inline">{t("home.hero.description").split("\n")[0]}{"\n"}</span>
+              <span className="hidden lg:inline">{t("home.hero.description").split("\n")[0]}{"\n"}</span>
               {t("home.hero.description").split("\n")[1]}
             </p>
 

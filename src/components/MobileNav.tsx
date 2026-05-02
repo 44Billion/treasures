@@ -245,7 +245,7 @@ export function MobileHeader() {
   return (
     <>
       <header className={cn(
-        "w-full md:hidden pt-safe-top",
+        "w-full lg:hidden pt-safe-top",
         isHero
           ? "absolute top-0 inset-x-0 z-50 bg-transparent"
           : cn("sticky top-0 z-40", themeClasses.header)
@@ -738,7 +738,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 md:hidden pb-safe-bottom transition-transform duration-300",
+      "fixed bottom-0 left-0 right-0 z-40 lg:hidden pb-safe-bottom transition-transform duration-300",
       themeClasses.header,
       pastHero ? "translate-y-0" : "translate-y-[calc(100%+1.5rem)]"
     )}>

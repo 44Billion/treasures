@@ -185,7 +185,7 @@ export default function MyCaches() {
             }
           />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
             {uniqueCaches.map((cache) => (
               <DetailedGeocacheCard
                 key={cache.id}

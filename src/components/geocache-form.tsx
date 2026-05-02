@@ -396,7 +396,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
       </Label>
 
       {/* Desktop: 5 options in a single row */}
-      <div className="hidden md:grid md:grid-cols-5 gap-2">
+      <div className="hidden lg:grid lg:grid-cols-5 gap-2">
         {difficultyLevels.map((level) => {
           const IconComponent = level.icon;
           return (
@@ -428,7 +428,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
       </div>
 
       {/* Mobile: 3 options in first row, 2 options centered in second row */}
-      <div className="md:hidden space-y-2">
+      <div className="lg:hidden space-y-2">
         {/* First row: 3 options */}
         <div className="grid grid-cols-3 gap-2">
           {difficultyLevels.slice(0, 3).map((level) => {
@@ -554,7 +554,7 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
       </Label>
 
       {/* Desktop: 5 options in a single row */}
-      <div className="hidden md:grid md:grid-cols-5 gap-2">
+      <div className="hidden lg:grid lg:grid-cols-5 gap-2">
         {terrainLevels.map((level) => {
           const IconComponent = level.icon;
           return (
@@ -586,7 +586,7 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
       </div>
 
       {/* Mobile: 3 options in first row, 2 options centered in second row */}
-      <div className="md:hidden space-y-2">
+      <div className="lg:hidden space-y-2">
         {/* First row: 3 options */}
         <div className="grid grid-cols-3 gap-2">
           {terrainLevels.slice(0, 3).map((level) => {

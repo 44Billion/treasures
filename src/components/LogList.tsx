@@ -244,14 +244,14 @@ function LogCard({ log, compact = false }: LogCardProps) {
                   </Link>
                   <Badge variant={getLogTypeBadgeVariant()} className="gap-0.5 md:gap-1 text-[10px] md:text-xs px-1.5 md:px-2.5 py-0 md:py-0.5">
                     {getLogIcon()}
-                    <span className="md:hidden">{getLogTypeLabel().split(' ')[0]}</span>
-                    <span className="hidden md:inline">{getLogTypeLabel()}</span>
+                    <span className="lg:hidden">{getLogTypeLabel().split(' ')[0]}</span>
+                    <span className="hidden lg:inline">{getLogTypeLabel()}</span>
                   </Badge>
                   {log.isVerified && (
                     <Badge variant="outline" className="gap-0.5 md:gap-1 border-primary text-primary text-[10px] md:text-xs px-1.5 md:px-2.5 py-0 md:py-0.5">
                       <ShieldCheck className="h-2.5 w-2.5 md:h-3 md:w-3" />
-                      <span className="md:hidden">&#10003;</span>
-                      <span className="hidden md:inline">Verified</span>
+                      <span className="lg:hidden">&#10003;</span>
+                      <span className="hidden lg:inline">Verified</span>
                     </Badge>
                   )}
                 </div>

@@ -26,8 +26,8 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
   const baseClasses = variant === 'map'
     ? "hidden lg:block border-b sticky top-0 z-50"
     : isHero
-      ? "border-b hidden md:block relative z-50"
-      : "border-b sticky top-0 z-50 hidden md:block";
+      ? "border-b hidden lg:block relative z-50"
+      : "border-b sticky top-0 z-50 hidden lg:block";
 
   const heroClasses = isHero
     ? "bg-transparent border-transparent text-white relative z-50"

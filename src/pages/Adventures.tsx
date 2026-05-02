@@ -97,7 +97,7 @@ function HeroFeaturedCard({ adventure, isActive, t }: { adventure: Adventure; is
             </p>
           )}
         </div>
-        <ChevronRight className="h-5 w-5 text-white/30 group-hover:text-amber-400 transition-colors flex-shrink-0 mt-1 hidden md:block" />
+        <ChevronRight className="h-5 w-5 text-white/30 group-hover:text-amber-400 transition-colors flex-shrink-0 mt-1 hidden lg:block" />
       </div>
     </Link>
   );
@@ -313,7 +313,7 @@ export default function Adventures() {
 
         {/* Content */}
         <div className="relative z-10 w-full pb-[clamp(1.5rem,4vw,3.5rem)] md:pb-14 pt-[clamp(4rem,12vw,10rem)] md:pt-40">
-          <div className="mx-auto px-12 md:px-4 max-w-6xl">
+          <div className="mx-auto px-8 sm:px-10 md:px-4 max-w-6xl">
 
             <div className="mb-[clamp(1.5rem,4vw,3.5rem)] md:mb-14 animate-slide-up">
               <div className="flex items-center gap-[clamp(0.5rem,2vw,1rem)] md:gap-4">
@@ -368,7 +368,7 @@ export default function Adventures() {
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.08) 40%, transparent 100%)',
         }} />
 
-        <div className="relative z-10 mx-auto px-12 md:px-4 py-12 md:py-16 max-w-6xl">
+        <div className="relative z-10 mx-auto px-8 sm:px-10 md:px-4 py-12 md:py-16 max-w-6xl">
           {/* Loading */}
           {isLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

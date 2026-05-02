@@ -536,8 +536,8 @@ export default function CreateCache() {
                           step.number === currentStep
                             ? 'text-primary'
                             : step.number < currentStep
-                              ? 'text-primary/70 hidden md:block'
-                              : 'text-muted-foreground hidden md:block'
+                              ? 'text-primary/70 hidden lg:block'
+                              : 'text-muted-foreground hidden lg:block'
                         }`}>
                           {t(step.labelKey)}
                         </span>

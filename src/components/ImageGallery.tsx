@@ -314,7 +314,7 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
             >
               {/* Desktop zoom controls positioned absolutely within the transform wrapper */}
               <div 
-                className="absolute top-2 md:top-4 right-16 md:right-20 z-50 hidden md:flex gap-1"
+                className="absolute top-2 lg:top-4 right-16 lg:right-20 z-50 hidden lg:flex gap-1"
                 style={{
                   // Account for mobile safe area and navigation
                   top: 'max(0.5rem, env(safe-area-inset-top, 0px))',
@@ -325,7 +325,7 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
 
               {/* Mobile zoom controls positioned at bottom */}
               <div 
-                className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 md:hidden flex gap-1"
+                className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 lg:hidden flex gap-1"
                 style={{
                   // Account for mobile safe area
                   bottom: 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 7rem))',
