@@ -802,7 +802,7 @@ function MapStyleControl({
     container.className = 'map-style-control-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 106px;
+      bottom: calc(106px + env(safe-area-inset-bottom, 0px));
       left: 10px;
       z-index: 1000;
       pointer-events: auto;
@@ -881,7 +881,7 @@ function CustomZoomControl() {
     container.className = 'custom-zoom-control';
     container.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       left: 10px;
       z-index: 1000;
       pointer-events: auto;
@@ -1028,7 +1028,7 @@ function NearMeButtonControl({
     container.className = 'near-me-button-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       right: 16px;
       z-index: 1000;
       pointer-events: auto;
@@ -1125,7 +1125,7 @@ function CompassMapButtonControl({
     container.className = 'compass-button-container hidden lg:block';
     container.style.cssText = `
       position: absolute;
-      bottom: 112px;
+      bottom: calc(112px + env(safe-area-inset-bottom, 0px));
       right: 16px;
       z-index: 1000;
       pointer-events: auto;
@@ -1201,7 +1201,7 @@ function EarthViewButtonControl({
     container.className = 'earth-button-container';
     container.style.cssText = `
       position: absolute;
-      bottom: 64px;
+      bottom: calc(64px + env(safe-area-inset-bottom, 0px));
       right: 16px;
       z-index: 1000;
       pointer-events: auto;
