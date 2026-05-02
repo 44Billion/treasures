@@ -4,6 +4,24 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import RemoteLoginSuccess from '@/pages/RemoteLoginSuccess';
 
+// Mock react-i18next so translation keys resolve to human-readable strings
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'remoteLogin.completing': 'Completing Login...',
+        'remoteLogin.verifying': 'Please wait while we verify your session.',
+        'remoteLogin.success': 'Login Successful',
+        'remoteLogin.redirecting': 'Redirecting...',
+        'remoteLogin.timeout': 'Session Not Found',
+        'remoteLogin.timeoutDescription': "We couldn't detect an active login session.",
+        'remoteLogin.returnHome': 'Return to Home',
+      };
+      return translations[key] ?? key;
+    },
+  }),
+}));
+
 // Mock NostrLoginProvider
 vi.mock('@nostrify/react/login', () => ({
   useNostrLogin: vi.fn(() => ({

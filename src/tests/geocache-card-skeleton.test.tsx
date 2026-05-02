@@ -1,7 +1,15 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { GeocacheCard } from '@/components/geocache-card';
 import { describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
+
+// Mock react-i18next so translation keys resolve to sensible values
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
 
 // Mock the components that are not directly related to the test
 vi.mock('@/components/ui/skeleton', () => ({
@@ -42,6 +50,10 @@ vi.mock('@/components/SaveButton', () => ({
   SaveButton: () => <div data-testid="save-button" />,
 }));
 
+vi.mock('@/components/BlurredImage', () => ({
+  BlurredImage: () => <div data-testid="blurred-image" />,
+}));
+
 vi.mock('@/hooks/useAuthor', () => ({
   useAuthor: () => ({
     data: null,
@@ -69,6 +81,27 @@ vi.mock('@/hooks/useTheme', () => ({
   }),
 }));
 
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => false,
+}));
+
+vi.mock('@/hooks/useThumbnailUrl', () => ({
+  useThumbnailUrl: () => vi.fn(),
+}));
+
+vi.mock('@/stores/useZapStore', () => ({
+  useZapStore: vi.fn(),
+}));
+
+// Mock zustand useStore to return 0 for zapTotal
+vi.mock('zustand', async (importOriginal) => {
+  const zustand = await importOriginal() as Record<string, unknown>;
+  return {
+    ...zustand,
+    useStore: () => 0,
+  };
+});
+
 describe('GeocacheCard Skeleton Loading', () => {
   const mockCache = {
     id: 'test-id',
@@ -87,11 +120,13 @@ describe('GeocacheCard Skeleton Loading', () => {
 
   it('should show actual stats when statsLoading is false', () => {
     render(
-      <GeocacheCard
-        cache={mockCache}
-        variant="default"
-        statsLoading={false}
-      />
+      <MemoryRouter>
+        <GeocacheCard
+          cache={mockCache}
+          variant="default"
+          statsLoading={false}
+        />
+      </MemoryRouter>
     );
 
     // Should show the actual stats values
@@ -105,11 +140,13 @@ describe('GeocacheCard Skeleton Loading', () => {
 
   it('should show skeleton stats when statsLoading is true', () => {
     render(
-      <GeocacheCard
-        cache={mockCache}
-        variant="default"
-        statsLoading={true}
-      />
+      <MemoryRouter>
+        <GeocacheCard
+          cache={mockCache}
+          variant="default"
+          statsLoading={true}
+        />
+      </MemoryRouter>
     );
 
     // Should show skeleton elements instead of actual stats
@@ -139,11 +176,13 @@ describe('GeocacheCard Skeleton Loading', () => {
 
   it('should show skeleton stats in compact variant when statsLoading is true', () => {
     render(
-      <GeocacheCard
-        cache={mockCache}
-        variant="compact"
-        statsLoading={true}
-      />
+      <MemoryRouter>
+        <GeocacheCard
+          cache={mockCache}
+          variant="compact"
+          statsLoading={true}
+        />
+      </MemoryRouter>
     );
 
     // Should show skeleton elements instead of actual stats
@@ -173,12 +212,14 @@ describe('GeocacheCard Skeleton Loading', () => {
 
   it('should not show stats when showStats is false', () => {
     render(
-      <GeocacheCard
-        cache={mockCache}
-        variant="default"
-        showStats={false}
-        statsLoading={true}
-      />
+      <MemoryRouter>
+        <GeocacheCard
+          cache={mockCache}
+          variant="default"
+          showStats={false}
+          statsLoading={true}
+        />
+      </MemoryRouter>
     );
 
     // Should not show any stats or skeletons
@@ -190,11 +231,13 @@ describe('GeocacheCard Skeleton Loading', () => {
 
   it('should show actual stats when statsLoading is false in compact variant', () => {
     render(
-      <GeocacheCard
-        cache={mockCache}
-        variant="compact"
-        statsLoading={false}
-      />
+      <MemoryRouter>
+        <GeocacheCard
+          cache={mockCache}
+          variant="compact"
+          statsLoading={false}
+        />
+      </MemoryRouter>
     );
 
     // Should show the actual stats values

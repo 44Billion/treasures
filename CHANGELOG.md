@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.1.0] - 2026-05-02
+
+### Added
+- Collapsible sidebar on the map and adventure detail pages — collapse it to get a full-screen map view, expand it any time with one tap
+- Earth view button on the map: tap to zoom out to a globe perspective and fly back to the world
+- Animated fly-to when tapping Near Me or switching views — the map smoothly pans and zooms instead of jumping
+- Download nudge on the home page for mobile browsers, pointing to the Android app on Zapstore
+
+### Changed
+- Sharing a geocache now uses the system share sheet on supported devices instead of an in-app dialog
+- Tablets now use the mobile layout, which fits the screen much better than the desktop sidebar layout
+
+### Fixed
+- QR code download and print on Android no longer silently fail
+- Hero logo no longer gets clipped on very large screens
+- Grass footer decoration no longer clips or overflows on ultrawide displays
+
 ## [2.0.6] - 2026-04-28
 
 ### Added

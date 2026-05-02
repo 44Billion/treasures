@@ -3,6 +3,20 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 
+// Mock react-i18next so translation keys resolve to human-readable strings
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'pwaUpdate.available': 'Update available',
+        'pwaUpdate.updating': 'Updating...',
+        'pwaUpdate.dismiss': 'Dismiss update notification',
+      };
+      return translations[key] ?? key;
+    },
+  }),
+}));
+
 // Mock the virtual:pwa-register/react module
 vi.mock('virtual:pwa-register/react', () => ({
   useRegisterSW: vi.fn(() => ({

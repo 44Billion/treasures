@@ -41,6 +41,22 @@ vi.mock('@nostrify/react/login', () => ({
   NostrLoginProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+vi.mock('@/components/PlausibleProvider', () => ({
+  PlausibleProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock('@/components/NostrSync', () => ({
+  NostrSync: () => null,
+}));
+
+vi.mock('@/components/DittoThemeInjector', () => ({
+  DittoThemeInjector: () => null,
+}));
+
+vi.mock('@/components/GlobalRadarCompass', () => ({
+  GlobalRadarCompass: () => null,
+}));
+
 // Mock Nostr hooks and utilities
 vi.mock('@nostrify/react', () => ({
   useNostr: () => ({
