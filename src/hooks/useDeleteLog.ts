@@ -4,6 +4,7 @@ import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import type { GeocacheLog } from '@/types/geocache';
+import { getClientTag } from '@/lib/clientTag';
 
 export function useDeleteLog() {
   const { t } = useTranslation();
@@ -24,13 +25,16 @@ export function useDeleteLog() {
 
       try {
         // Create and sign the deletion event
+        const deletionTags: string[][] = [
+          ['e', logId], // Reference to the log event to delete
+        ];
+        const clientTag = getClientTag();
+        if (clientTag) deletionTags.push(clientTag);
+
         const event = await user.signer.signEvent({
           kind: 5, // Event deletion request
           content: 'Log deleted by author',
-          tags: [
-            ['e', logId], // Reference to the log event to delete
-            ['client', 'treasures'], // Add client tag
-          ],
+          tags: deletionTags,
           created_at: Math.floor(Date.now() / 1000),
         });
 

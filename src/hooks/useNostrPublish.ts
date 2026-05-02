@@ -4,6 +4,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { TIMEOUTS, RETRY_CONFIG } from "@/config";
 import { getAdaptiveTimeout } from "@/utils/network";
 import { hapticSuccess, hapticError } from "@/utils/haptics";
+import { ensureClientTag } from "@/lib/clientTag";
 
 interface EventTemplate {
   kind: number;
@@ -27,12 +28,11 @@ export function useNostrPublish() {
       }
 
       try {
-        const tags = t.tags ?? [];
+        const tags = [...(t.tags ?? [])];
 
-        // Add the client tag if it doesn't exist
-        if (!tags.some((tag) => tag[0] === "client")) {
-          tags.push(["client", "treasures"]);
-        }
+        // Add the NIP-89 client tag if one isn't already present. Dev builds
+        // (http://) are intentionally skipped — see `getClientTag`.
+        ensureClientTag(tags);
 
         // Sign the event
         const event = await user.signer.signEvent({
