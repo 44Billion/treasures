@@ -196,7 +196,7 @@ export default function Home() {
       <DesktopHeader variant="hero" />
 
       {/* Hero Section — full-bleed with real curated treasures */}
-      <section className="relative min-h-dvh lg:min-h-0 lg:h-[65vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
+      <section className="relative min-h-dvh lg:min-h-[640px] lg:h-[75vh] lg:-mt-[81px] flex items-center lg:items-end overflow-hidden">
         {/* Background — ditto bg or curated hero images (static, no network wait) */}
         {dittoBg ? (
           <div className="absolute inset-0 overflow-hidden">
@@ -298,7 +298,7 @@ export default function Home() {
               src="/icon.svg"
               alt="Treasures"
               className={`mx-auto mb-4 md:mb-6 drop-shadow-lg animate-slide-up ${isDitto ? 'ditto-logo' : ''}`}
-              style={{ width: 'clamp(10rem, 20vw, 28rem)', height: 'clamp(10rem, 20vw, 28rem)' }}
+              style={{ width: 'clamp(8rem, min(20vw, 22vh), 28rem)', height: 'clamp(8rem, min(20vw, 22vh), 28rem)' }}
             />
             <h2 className={`text-2xl xs:text-3xl md:text-5xl font-bold mb-3 md:mb-5 animate-slide-up ${isDitto ? 'text-foreground' : 'text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]'}`}>
               {t("home.hero.title1")}
