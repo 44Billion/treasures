@@ -595,11 +595,25 @@ async function verifyVerificationEvent(
 }
 
 /**
- * Download QR code as PNG file
+ * Download QR code as PNG file.
+ *
+ * On Android we call the native QRPlugin.saveImage which writes to
+ * MediaStore (Pictures/Treasures) — visible in the Gallery app.
+ *
+ * On the web we use the classic Blob-URL + anchor-click approach.
  */
-export function downloadQRCode(dataUrl: string, filename: string = 'geocache-verification-qr.png'): void {
-  // Convert data URL to Blob URL for Android/WebView compatibility.
-  // Android WebViews block the `download` attribute on data: URLs.
+export async function downloadQRCode(dataUrl: string, filename: string = 'geocache-verification-qr.png'): Promise<void> {
+  const { Capacitor, registerPlugin } = await import('@capacitor/core');
+
+  if (Capacitor.isNativePlatform()) {
+    const base64 = dataUrl.split(',')[1];
+    const QRPlugin = registerPlugin<{ saveImage(opts: { base64: string; filename: string }): Promise<void> }>('QRPlugin');
+    await QRPlugin.saveImage({ base64, filename });
+    return;
+  }
+
+  // Web: Convert data URL to Blob URL so the `download` attribute is honoured
+  // in browsers that block downloads on raw data: URLs.
   const byteString = atob(dataUrl.split(',')[1]);
   const mimeType = dataUrl.split(',')[0].split(':')[1].split(';')[0];
   const byteArray = new Uint8Array(byteString.length);
@@ -618,6 +632,41 @@ export function downloadQRCode(dataUrl: string, filename: string = 'geocache-ver
   // Revoke shortly after to free memory
   setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
 }
+
+/**
+ * Print a QR code image on Android using the native PrintManager.
+ * On web, uses a hidden iframe + window.print().
+ */
+export async function printQRCode(dataUrl: string): Promise<void> {
+  const { Capacitor, registerPlugin } = await import('@capacitor/core');
+
+  if (Capacitor.isNativePlatform()) {
+    const base64 = dataUrl.split(',')[1];
+    const QRPlugin = registerPlugin<{ printImage(opts: { base64: string }): Promise<void> }>('QRPlugin');
+    await QRPlugin.printImage({ base64 });
+    return;
+  }
+
+  // Web fallback: hidden iframe print
+  return new Promise((resolve) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    const iframeDoc = iframe.contentDocument;
+    if (!iframeDoc) { document.body.removeChild(iframe); resolve(); return; }
+    iframeDoc.write(`<!DOCTYPE html><html><head><style>
+      @page{size:auto;margin:0mm;}
+      *{margin:0;padding:0;box-sizing:border-box;}
+      html,body{width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:white;}
+      img{max-width:100%;max-height:100%;object-fit:contain;}
+    </style></head><body>
+      <img src="${dataUrl}" onload="window.print();setTimeout(function(){window.parent.document.body.removeChild(window.frameElement);},500);"/>
+    </body></html>`);
+    iframeDoc.close();
+    resolve();
+  });
+}
+
 
 /**
  * Generate a printable grid of compact QR codes (stamp).

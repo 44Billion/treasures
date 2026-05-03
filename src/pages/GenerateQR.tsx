@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/useToast";
 import {
   generateVerificationKeyPair,
   downloadQRCode,
+  printQRCode,
   generateVerificationQR,
   generateQRGridImage,
   generateQRStampImage,
@@ -139,92 +140,39 @@ export default function GenerateQR() {
     }
   }, [user, qrType, toast, naddr, verificationKeyPair, t]);
 
-  const handlePrint = () => {
-    if (qrDataUrl) {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      const iframeDoc = iframe.contentDocument;
-      if (!iframeDoc) return;
-
-      const isGrid = qrType === 'sheet' || qrType === 'stamp';
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const gridMargin = isMobile ? '0.4in' : '0.25in';
-
-      iframeDoc.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            @page {
-              size: ${isGrid ? 'letter portrait' : 'auto'};
-              margin: ${isGrid ? gridMargin : '0.5cm'};
-            }
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            html, body {
-              width: 100%;
-              height: 100%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background: white;
-            }
-            img {
-              max-width: 100%;
-              max-height: ${isGrid ? '100%' : '100vh'};
-              width: ${isGrid ? (isMobile ? '95%' : '100%') : 'auto'};
-              height: auto;
-              display: block;
-              object-fit: contain;
-              page-break-inside: avoid;
-              margin: 0 auto;
-            }
-            @media print {
-              html, body {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-              }
-              img {
-                max-width: 100% !important;
-                max-height: ${isGrid ? '100%' : '100vh'} !important;
-                width: ${isGrid ? (isMobile ? '95%' : '100%') : 'auto'} !important;
-                height: auto !important;
-                object-fit: contain !important;
-                page-break-inside: avoid !important;
-                margin: 0 auto !important;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <img src="${qrDataUrl}" onload="window.print(); setTimeout(() => window.parent.document.body.removeChild(window.frameElement), 500)" />
-        </body>
-        </html>
-      `);
-      iframeDoc.close();
+  const handlePrint = async () => {
+    if (!qrDataUrl) return;
+    try {
+      await printQRCode(qrDataUrl);
+    } catch (err) {
+      toast({
+        title: t('generateQR.toast.printFailed.title', 'Print Failed'),
+        description: err instanceof Error ? err.message : 'Could not print the QR code.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleDownloadQR = () => {
-    if (qrDataUrl) {
-      const safeCacheName = cacheName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      let filename = `${safeCacheName}-qr-code.png`;
-      if (qrType === 'sheet') {
-        filename = `${safeCacheName}-qr-sheet.png`;
-      } else if (qrType === 'stamp') {
-        filename = `${safeCacheName}-qr-stamp.png`;
-      }
-      downloadQRCode(qrDataUrl, filename);
+  const handleDownloadQR = async () => {
+    if (!qrDataUrl) return;
+    const safeCacheName = cacheName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    let filename = `${safeCacheName}-qr-code.png`;
+    if (qrType === 'sheet') {
+      filename = `${safeCacheName}-qr-sheet.png`;
+    } else if (qrType === 'stamp') {
+      filename = `${safeCacheName}-qr-stamp.png`;
+    }
+    try {
+      await downloadQRCode(qrDataUrl, filename);
       toast({
         title: t('generateQR.toast.downloaded.title'),
         description: t('generateQR.toast.downloaded.description'),
+      });
+    } catch (err) {
+      toast({
+        title: t('generateQR.toast.downloadFailed.title', 'Download Failed'),
+        description: err instanceof Error ? err.message : 'Could not save the QR code.',
+        variant: 'destructive',
       });
     }
   };

@@ -21,6 +21,7 @@ import {
   generateVerificationQR,
   buildStandardVerificationUrl,
   downloadQRCode,
+  printQRCode,
   generateQRGridImage,
   generateQRStampImage,
   type VerificationKeyPair,
@@ -172,55 +173,43 @@ export default function CreateCacheLanding() {
     }
   }, [qrType, naddr, verificationKeyPair, generateQR]);
 
-  const handleDownloadQR = () => {
-    if (qrDataUrl) {
-      const safeCacheName = cacheName
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "");
-      let filename = `${safeCacheName}-qr-code.png`;
-      if (qrType === 'sheet') {
-        filename = `${safeCacheName}-qr-sheet.png`;
-      } else if (qrType === 'stamp') {
-        filename = `${safeCacheName}-qr-stamp.png`;
-      }
-      downloadQRCode(qrDataUrl, filename);
+  const handleDownloadQR = async () => {
+    if (!qrDataUrl) return;
+    const safeCacheName = cacheName
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+    let filename = `${safeCacheName}-qr-code.png`;
+    if (qrType === 'sheet') {
+      filename = `${safeCacheName}-qr-sheet.png`;
+    } else if (qrType === 'stamp') {
+      filename = `${safeCacheName}-qr-stamp.png`;
+    }
+    try {
+      await downloadQRCode(qrDataUrl, filename);
       toast({
         title: t('createCache.verificationQR.downloaded'),
         description: t('createCache.verificationQR.downloadedDescription'),
       });
+    } catch (err) {
+      toast({
+        title: t('createCache.verificationQR.downloadFailed', 'Download Failed'),
+        description: err instanceof Error ? err.message : 'Could not save the QR code.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handlePrint = () => {
-    if (qrDataUrl) {
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-
-      const iframeDoc = iframe.contentDocument;
-      if (!iframeDoc) {
-        document.body.removeChild(iframe);
-        return;
-      }
-
-      iframeDoc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              @page { size: auto; margin: 0mm; }
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              html, body { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: white; }
-              img { max-width: 100%; max-height: 100%; object-fit: contain; }
-            </style>
-          </head>
-          <body>
-            <img src="${qrDataUrl}" onload="window.print(); setTimeout(function() { window.parent.document.body.removeChild(window.frameElement); }, 500);" />
-          </body>
-        </html>
-      `);
-      iframeDoc.close();
+  const handlePrint = async () => {
+    if (!qrDataUrl) return;
+    try {
+      await printQRCode(qrDataUrl);
+    } catch (err) {
+      toast({
+        title: 'Print Failed',
+        description: err instanceof Error ? err.message : 'Could not print the QR code.',
+        variant: 'destructive',
+      });
     }
   };
 

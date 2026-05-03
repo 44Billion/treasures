@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Copy, QrCode, ChevronDown, Printer } from 'lucide-react';
 import {
@@ -11,7 +11,7 @@ import { ComponentLoading } from '@/components/ui/loading';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/useToast';
-import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from '@/utils/verification';
+import { generateVerificationQR, downloadQRCode, printQRCode, type VerificationKeyPair } from '@/utils/verification';
 import { encodeCompactUrl } from '@/utils/compactUrl';
 import { naddrToGeocache } from '@/utils/naddr-utils';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
@@ -90,57 +90,37 @@ export function VerificationQRDialog({
     setQrType(type);
   };
 
-  const handleDownload = () => {
-    if (qrDataUrl) {
-      const safeCacheName = cacheName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const filename = `${safeCacheName}-${naddr}-verification-qr-${qrType}.png`;
-      downloadQRCode(qrDataUrl, filename);
+  const handleDownload = useCallback(async () => {
+    if (!qrDataUrl) return;
+    const safeCacheName = cacheName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const filename = `${safeCacheName}-${naddr}-verification-qr-${qrType}.png`;
+    try {
+      await downloadQRCode(qrDataUrl, filename);
       toast({
         title: 'QR Code Downloaded',
-        description: 'The verification QR code has been saved to your downloads.',
+        description: 'The verification QR code has been saved.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Download Failed',
+        description: err instanceof Error ? err.message : 'Could not save the QR code.',
+        variant: 'destructive',
       });
     }
-  };
+  }, [qrDataUrl, cacheName, naddr, qrType, toast]);
 
-
-
-  const handlePrint = () => {
-    if (qrDataUrl) {
-      // Use a hidden iframe instead of window.open — Android WebViews block popups.
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      const iframeDoc = iframe.contentDocument;
-      if (!iframeDoc) {
-        document.body.removeChild(iframe);
-        toast({
-          title: 'Print Failed',
-          description: 'Could not open print window. Please check your browser settings.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      iframeDoc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              @page { size: auto; margin: 0mm; }
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              html, body { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: white; }
-              img { max-width: 100%; max-height: 100%; object-fit: contain; }
-            </style>
-          </head>
-          <body>
-            <img src="${qrDataUrl}" onload="window.print(); setTimeout(function() { window.parent.document.body.removeChild(window.frameElement); }, 500);" />
-          </body>
-        </html>
-      `);
-      iframeDoc.close();
+  const handlePrint = useCallback(async () => {
+    if (!qrDataUrl) return;
+    try {
+      await printQRCode(qrDataUrl);
+    } catch (err) {
+      toast({
+        title: 'Print Failed',
+        description: err instanceof Error ? err.message : 'Could not print the QR code.',
+        variant: 'destructive',
+      });
     }
-  };
+  }, [qrDataUrl, toast]);
 
   // Verification QR dialog rendering
 
