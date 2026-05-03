@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthor } from "@/hooks/useAuthor";
+import { useThumbnailUrl } from "@/hooks/useThumbnailUrl";
 import type { Adventure } from "@/types/adventure";
 
 interface AdventurePopupCardProps {
@@ -12,6 +13,7 @@ interface AdventurePopupCardProps {
 export function AdventurePopupCard({ adventure, onClose }: AdventurePopupCardProps) {
   const navigate = useNavigate();
   const author = useAuthor(adventure.pubkey);
+  const thumbnail = useThumbnailUrl();
   const authorName = author.data?.metadata?.name || adventure.pubkey.slice(0, 8);
   const authorPicture = author.data?.metadata?.picture;
 
@@ -29,7 +31,7 @@ export function AdventurePopupCard({ adventure, onClose }: AdventurePopupCardPro
         {hasImage ? (
           <div className="h-32 sm:h-40 bg-muted overflow-hidden">
             <img
-              src={adventure.image}
+              src={thumbnail(adventure.image ?? '', 400)}
               alt={adventure.title}
               className="w-full h-full object-cover"
             />
@@ -49,7 +51,7 @@ export function AdventurePopupCard({ adventure, onClose }: AdventurePopupCardPro
           <div className={`flex items-center gap-1.5 text-[10px] sm:text-[11px] mt-0.5 ${hasImage ? 'text-white' : 'text-muted-foreground'}`}>
             {authorPicture && (
               <img
-                src={authorPicture}
+                src={thumbnail(authorPicture, 32)}
                 alt=""
                 className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full object-cover flex-shrink-0 ring-1 ring-white/30"
               />

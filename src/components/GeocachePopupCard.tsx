@@ -10,6 +10,7 @@ import { useSavedCaches } from "../hooks/useSavedCaches";
 import { useToast } from "@/hooks/useToast";
 
 import { useAuthor } from "@/hooks/useAuthor";
+import { useThumbnailUrl } from "@/hooks/useThumbnailUrl";
 import { formatDistanceToNow } from "@/utils/date";
 import { useNavigate } from "react-router-dom";
 import { geocacheToNaddr } from "@/utils/naddr";
@@ -46,6 +47,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
 
   const recentLog = logs[0];
   const recentLogAuthor = useAuthor(recentLog?.pubkey || "");
+  const thumbnail = useThumbnailUrl();
 
   const totalSats = geocache.zapTotal ?? zapTotal;
   const authorName = author.data?.metadata?.name || geocache.pubkey.slice(0, 8);
@@ -103,7 +105,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
       {hasImages ? (
         <div className="relative w-full h-28 sm:h-36 bg-muted overflow-hidden">
           <img
-            src={geocache.images![0]}
+            src={thumbnail(geocache.images![0], 400)}
             alt={geocache.name}
             className="w-full h-full object-cover"
           />
@@ -151,7 +153,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
           >
             {profilePicture ? (
               <img
-                src={profilePicture}
+                src={thumbnail(profilePicture, 32)}
                 alt={authorName}
                 className="h-6 w-6 rounded-full object-cover flex-shrink-0 ring-1 ring-border"
               />
