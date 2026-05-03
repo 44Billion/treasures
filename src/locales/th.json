@@ -972,6 +972,8 @@
   "about.faq.a7.row7.tr": "โอเพนซอร์ส โปรโตคอลเปิด",
   "about.footer.description": "Treasures เป็นโอเพ่นซอร์สและขับเคลื่อนโดยชุมชน",
   "about.footer.viewSource": "ดูซอร์สโค้ด",
+  "about.footer.viewOnDitto": "เรียกดูบน Ditto",
+  "navigation.viewOnDitto": "เรียกดูบน Ditto",
   "map.popup.viewDetails": "ดูรายละเอียด",
   "map.popup.getDirections": "ขอเส้นทาง",
   "treasureMapWelcome.title": "การค้นพบแผนที่สมบัติ",

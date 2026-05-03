@@ -487,6 +487,16 @@ export function MobileHeader() {
                     >
                       {t('navigation.about')}
                     </NavLink>
+                    <a
+                      href="https://ditto.pub"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground min-h-[40px]"
+                      onClick={closeSheet}
+                    >
+                      <img src="https://ditto.pub/favicon.ico" alt="" className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{t('navigation.viewOnDitto')}</span>
+                    </a>
                   </div>
 
                   {/* Account Section (logged in only) */}

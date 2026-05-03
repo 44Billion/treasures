@@ -972,6 +972,8 @@
   "about.faq.a7.row7.tr": "オープンソース、オープンプロトコル",
   "about.footer.description": "Treasuresはオープンソースでコミュニティ主導です。",
   "about.footer.viewSource": "ソースコードを表示",
+  "about.footer.viewOnDitto": "Dittoで探す",
+  "navigation.viewOnDitto": "Dittoで探す",
   "map.popup.viewDetails": "詳細を表示",
   "map.popup.getDirections": "道順を取得",
   "treasureMapWelcome.title": "宝の地図の発見",

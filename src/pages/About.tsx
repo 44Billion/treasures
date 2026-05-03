@@ -303,6 +303,17 @@ export default function About() {
                 {t('about.tech.learnMore')}
               </a>
             </Button>
+            <Button variant="outline" size="sm" asChild>
+              <a
+                href="https://ditto.pub"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5"
+              >
+                <img src="https://ditto.pub/favicon.ico" alt="" className="h-3.5 w-3.5" />
+                {t('about.footer.viewOnDitto')}
+              </a>
+            </Button>
           </div>
         </div>
       </div>

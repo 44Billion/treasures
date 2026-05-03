@@ -972,6 +972,8 @@
   "about.faq.a7.row7.tr": "Open source, open protocol",
   "about.footer.description": "Treasures is open source and community-driven.",
   "about.footer.viewSource": "Source Code",
+  "about.footer.viewOnDitto": "Browse on Ditto",
+  "navigation.viewOnDitto": "Browse on Ditto",
   "map.popup.viewDetails": "View Details",
   "map.popup.getDirections": "Get directions",
   "treasureMapWelcome.title": "Treasure Map Discovery",
