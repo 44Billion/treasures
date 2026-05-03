@@ -27,9 +27,6 @@ export function useCreateVerifiedLog() {
       if (!data.geocacheId) {
         throw new Error('Geocache ID is required');
       }
-      if (!data.text?.trim()) {
-        throw new Error('Log text is required');
-      }
       if (!data.verificationKey) {
         throw new Error('Verification key is required');
       }
@@ -79,7 +76,7 @@ export function useCreateVerifiedLog() {
       // Create found log event template with embedded verification event
       const logEventTemplate = {
         kind: NIP_GC_KINDS.FOUND_LOG,
-        content: data.text.trim(),
+        content: (data.text || '').trim(),
         tags,
       };
 
@@ -107,48 +104,38 @@ export function useCreateVerifiedLog() {
     },
     onSuccess: (result, variables) => {
       const { logEvent } = result;
-      
-      // Optimistically update the cache immediately
-      queryClient.setQueryData(['geocache-logs', variables.geocacheDTag, variables.geocachePubkey], (oldData: unknown) => {
-        // Create a new log entry from our log event
-        // Extract client and relay info from the event tags
-        const clientTag = logEvent.tags.find(t => t[0] === 'client')?.[1];
-        const relayTags = logEvent.tags.filter(t => t[0] === 'relay').map(t => t[1]);
-        
-        const newLog = {
-          id: logEvent.id,
-          pubkey: logEvent.pubkey, // This is now the user's pubkey
-          created_at: logEvent.created_at,
-          geocacheId: variables.geocacheId,
-          type: variables.type,
-          text: variables.text.trim(),
-          images: variables.images || [],
-          client: clientTag, // Include the client info
-          relays: relayTags, // Include relay tags
-          isVerified: true, // Mark as verified (has embedded verification)
-        };
-        
-        // Handle the case where oldData might be undefined or an empty array
-        const existingLogs = Array.isArray(oldData) ? oldData : [];
-        
-        // Add to the beginning of the list (newest first) and remove duplicates
-        const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== logEvent.id)];
-        
-        return updatedLogs;
-      });
-      
-      // Background refresh after delay (same as regular logs)
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey] });
-        queryClient.invalidateQueries({ queryKey: ['geocache', variables.geocacheId] });
-        queryClient.invalidateQueries({ queryKey: ['geocaches'] });
-      }, 3000);
-      
+
       // Show success toast
       toast({
         title: "Verified log posted!",
         description: "Your verified log has been added to the treasure.",
       });
+
+      // Build the new log entry
+      const clientTag = logEvent.tags.find(t => t[0] === 'client')?.[1];
+      const relayTags = logEvent.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+
+      const newLog = {
+        id: logEvent.id,
+        pubkey: logEvent.pubkey,
+        created_at: logEvent.created_at,
+        geocacheId: variables.geocacheId,
+        type: variables.type,
+        text: (variables.text || '').trim(),
+        images: variables.images || [],
+        client: clientTag,
+        relays: relayTags,
+        isVerified: true,
+      };
+
+      // Update all matching log queries (regardless of verificationPubkey/kind/wot segments)
+      queryClient.setQueriesData(
+        { queryKey: ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey] },
+        (oldData: unknown) => {
+          const existingLogs = Array.isArray(oldData) ? oldData : [];
+          return [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== logEvent.id)];
+        }
+      );
     },
     onError: (error: unknown) => {
       let errorMessage = "Please try again later.";

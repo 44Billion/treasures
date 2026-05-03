@@ -49,7 +49,7 @@ export function VerifiedLogForm({
   const logType = "found";
 
   const handleCreateLog = async () => {
-    if (!logText.trim() || !geocache) return;
+    if (!geocache) return;
 
     setPostingStatus("Creating verified log...");
 
@@ -151,7 +151,7 @@ export function VerifiedLogForm({
 
         <Button
           onClick={handleCreateLog}
-          disabled={!logText.trim() || isCreatingLog || isSharing}
+          disabled={isCreatingLog || isSharing}
           size={compact ? "sm" : "default"}
           className="w-full"
         >

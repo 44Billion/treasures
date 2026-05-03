@@ -63,7 +63,7 @@ export function LogsSection({
 
 
   const handleCreateLog = async () => {
-    if (!logText.trim() || !geocache) return;
+    if (!geocache) return;
 
     setPostingStatus("Signing event...");
 
@@ -202,12 +202,12 @@ export function LogsSection({
 
             <Button
               onClick={handleCreateLog}
-              disabled={!logText.trim() || isCreatingLog || isSharing}
+              disabled={isCreatingLog || isSharing}
               size={compact ? "sm" : "default"}
               className="w-full"
             >
               <NotebookPen className="h-4 w-4" />
-              {isCreatingLog || isSharing ? t('logs.post.posting') : t('logs.post.button')}
+              {isCreatingLog || isSharing ? t('logs.post.posting') : t(`logs.post.button.${logType}`, t('logs.post.button'))}
             </Button>
 
             {postingStatus && (

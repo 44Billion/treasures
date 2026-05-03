@@ -260,9 +260,6 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
       if (!logData.geocacheId) {
         throw new Error('Geocache ID is required');
       }
-      if (!logData.text?.trim()) {
-        throw new Error('Log text is required');
-      }
       if (!logData.geocachePubkey || !logData.geocacheId) {
         throw new Error('Geocache pubkey and dTag are required');
       }
@@ -299,7 +296,7 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
 
       const event = {
         kind: eventKind,
-        content: logData.text.trim(),
+        content: (logData.text || '').trim(),
         tags,
         created_at: Math.floor(Date.now() / 1000),
       };

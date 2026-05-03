@@ -22,10 +22,6 @@ export function useCreateLog() {
       if (!data.geocacheId) {
         throw new Error('Geocache ID is required');
       }
-      if (!data.text?.trim()) {
-        throw new Error('Log text is required');
-      }
-      
       // Determine event kind and build tags based on log type
       let eventKind: number;
       let tags: string[][];
@@ -59,37 +55,8 @@ export function useCreateLog() {
       try {
         const result = await publishEvent({
           kind: eventKind,
-          content: data.text.trim(), // Plain text log message in content
+          content: (data.text || '').trim(),
           tags,
-        });
-
-        // Handle success
-        toast({
-          title: "Log posted!",
-        description: "Your log has been added to the treasure.",
-      });
-
-      // Optimistically update the cache
-      queryClient.setQueryData(['geocache-logs', data.geocacheDTag, data.geocachePubkey], (oldData: unknown) => {
-          const clientTag = result.tags.find(t => t[0] === 'client')?.[1];
-          const relayTags = result.tags.filter(t => t[0] === 'relay').map(t => t[1]);
-          
-          const newLog = {
-            id: result.id,
-            pubkey: result.pubkey,
-            created_at: result.created_at,
-            geocacheId: data.geocacheId,
-            type: data.type,
-            text: data.text.trim(),
-            images: data.images || [],
-            client: clientTag,
-            relays: relayTags,
-          };
-          
-          const existingLogs = Array.isArray(oldData) ? oldData : [];
-          const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== result.id)];
-          
-          return updatedLogs;
         });
 
         return result;
@@ -124,41 +91,31 @@ export function useCreateLog() {
         title: "Log posted!",
         description: "Your log has been added to the treasure.",
       });
-      
-      // Optimistically update the cache immediately
-      queryClient.setQueryData(['geocache-logs', variables.geocacheDTag, variables.geocachePubkey], (oldData: unknown) => {
-        // Create a new log entry from our event
-        // Extract client and relay info from the event tags
-        const clientTag = event.tags.find(t => t[0] === 'client')?.[1];
-        const relayTags = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
-        
-        const newLog = {
-          id: event.id,
-          pubkey: event.pubkey,
-          created_at: event.created_at,
-          geocacheId: variables.geocacheId,
-          type: variables.type,
-          text: variables.text.trim(),
-          images: variables.images || [],
-          client: clientTag, // Include the client info
-          relays: relayTags, // Include relay tags
-        };
-        
-        // Handle the case where oldData might be undefined or an empty array
-        const existingLogs = Array.isArray(oldData) ? oldData : [];
-        
-        // Add to the beginning of the list (newest first) and remove duplicates
-        const updatedLogs = [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== event.id)];
-        
-        return updatedLogs;
-      });
-      
-      // Background refresh after delay
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey] });
-        queryClient.invalidateQueries({ queryKey: ['geocache', variables.geocacheId] });
-        queryClient.invalidateQueries({ queryKey: ['geocaches'] });
-      }, 3000);
+
+      // Build the new log entry
+      const clientTag = event.tags.find(t => t[0] === 'client')?.[1];
+      const relayTags = event.tags.filter(t => t[0] === 'relay').map(t => t[1]);
+
+      const newLog = {
+        id: event.id,
+        pubkey: event.pubkey,
+        created_at: event.created_at,
+        geocacheId: variables.geocacheId,
+        type: variables.type,
+        text: (variables.text || '').trim(),
+        images: variables.images || [],
+        client: clientTag,
+        relays: relayTags,
+      };
+
+      // Update all matching log queries (regardless of verificationPubkey/kind/wot segments)
+      queryClient.setQueriesData(
+        { queryKey: ['geocache-logs', variables.geocacheDTag, variables.geocachePubkey] },
+        (oldData: unknown) => {
+          const existingLogs = Array.isArray(oldData) ? oldData : [];
+          return [newLog, ...existingLogs.filter((log: { id: string }) => log.id !== event.id)];
+        }
+      );
     },
     onError: (error: unknown) => {
       console.error('Create log error:', error);
