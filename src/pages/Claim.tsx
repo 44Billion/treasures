@@ -22,7 +22,7 @@ export default function Claim() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
-  const showScannerButton = isMobile && isBarcodeDetectorSupported();
+  const showScannerButton = false; // hidden for now // isMobile && isBarcodeDetectorSupported();
 
   // Start with the scanner already open on supported mobile devices
   const [scannerOpen, setScannerOpen] = useState(showScannerButton);
