@@ -125,14 +125,18 @@ export default function AdventureDetail() {
     if (isMobile && drawerOpen) {
       setDrawerOpen(false);
     }
-    setHighlightedGeocache(null);
-    queueMicrotask(() => {
-      setHighlightedGeocache(geocache.dTag);
-    });
+    // Close any existing popup before opening a new one
+    if (mapRef.current) {
+      mapRef.current.closePopup();
+    }
+    setSelectedGeocache(null);
+    setPopupContainer(null);
+    // Use a timestamp suffix so re-clicking the same cache always triggers PopupController
+    setHighlightedGeocache(`${geocache.dTag}::${Date.now()}`);
     if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).handleMapCardClick) {
       ((window as unknown as Record<string, unknown>).handleMapCardClick as (loc: { lat: number; lng: number }, zoom: number) => void)(
         { lat: geocache.location.lat, lng: geocache.location.lng },
-        19
+        20
       );
     }
   };
