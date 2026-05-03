@@ -1245,14 +1245,20 @@ function EarthViewButtonControl({
   return null;
 }
 
+// Threshold at which satellite tiles run out and we fall back to original
+const SATELLITE_DEEP_ZOOM_THRESHOLD = 20;
+
 // Custom tile layer with optimizations
 function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: MapStyle; crossOriginTiles?: boolean }) {
+  // All tile providers top out at 19 natively; CARTO upscales cleanly past that
+  const nativeMaxZoom = 19;
 
   return (
     <TileLayer
       attribution={mapStyle.attribution}
       url={mapStyle.url}
-      maxZoom={18} // Reduced max zoom for better performance
+      maxNativeZoom={nativeMaxZoom} // Highest zoom level tile server provides
+      maxZoom={21} // Allow map to zoom past native tiles (Leaflet upscales)
       minZoom={2} // Allow zooming out further to see world wrapping
       // Optimize for fastest possible loading
       keepBuffer={1} // Smaller buffer for faster initial load
@@ -1273,6 +1279,40 @@ function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: M
 }
 
 // Map styles are now imported from MapStyleSelector component
+
+// Switches satellite style to 'original' at deep zoom where satellite tiles run out,
+// and restores it when the user zooms back out.
+function SatelliteZoomFallback({
+  currentStyle,
+  onStyleChange,
+}: {
+  currentStyle: string;
+  onStyleChange: (style: string) => void;
+}) {
+  const map = useMap();
+  // Track the pre-fallback style so we can restore it on zoom-out
+  const savedStyleRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const handleZoom = () => {
+      const z = map.getZoom();
+      if (currentStyle === 'satellite' && z >= SATELLITE_DEEP_ZOOM_THRESHOLD) {
+        // Switch to original without marking it as a manual selection
+        savedStyleRef.current = 'satellite';
+        onStyleChange('original');
+      } else if (savedStyleRef.current === 'satellite' && z < SATELLITE_DEEP_ZOOM_THRESHOLD) {
+        // Restore satellite when zooming back out
+        savedStyleRef.current = null;
+        onStyleChange('satellite');
+      }
+    };
+
+    map.on('zoomend', handleZoom);
+    return () => { map.off('zoomend', handleZoom); };
+  }, [map, currentStyle, onStyleChange]);
+
+  return null;
+}
 
 // Optional click-to-place handler for adventure center selection etc.
 function MapClickHandler({ onClick }: { onClick: (location: { lat: number; lng: number }) => void }) {
@@ -1620,6 +1660,7 @@ export function GeocacheMap({
         style={{ height: "100%", width: "100%" }}
         className="z-0"
         zoomControl={false}
+        maxZoom={21}
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
@@ -1631,6 +1672,7 @@ export function GeocacheMap({
         {...mapOptions}
       >
       <OptimizedTileLayer mapStyle={mapStyle} crossOriginTiles={lockdownFeatures.crossOriginTiles} />
+      <SatelliteZoomFallback currentStyle={currentMapStyle} onStyleChange={setCurrentMapStyle} />
 
       <MapSizeController isVisible={isVisible} layoutKey={layoutKey} />
       <WorldWrapController geocaches={geocaches} />
@@ -1814,7 +1856,7 @@ export function GeocacheMap({
         animateAddingMarkers={false}
         // Performance optimizations
         disableClusteringAtZoom={16} // Disable clustering at high zoom levels
-        maxZoom={18} // Match tile layer max zoom
+        maxZoom={21} // Match tile layer max zoom
         // Enhanced clustering options for better popup handling
         spiderfyDistanceMultiplier={1.5} // Better spiderfy behavior
         clusterPane="markerPane" // Ensure proper layering

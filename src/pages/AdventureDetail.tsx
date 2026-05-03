@@ -132,7 +132,7 @@ export default function AdventureDetail() {
     if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).handleMapCardClick) {
       ((window as unknown as Record<string, unknown>).handleMapCardClick as (loc: { lat: number; lng: number }, zoom: number) => void)(
         { lat: geocache.location.lat, lng: geocache.location.lng },
-        18
+        19
       );
     }
   };
