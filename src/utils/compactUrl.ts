@@ -22,18 +22,16 @@
 
 import { nip19 } from 'nostr-tools';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
+import { getAppOrigin } from '@/utils/appUrl';
 
 /**
  * Get the compact URL prefix based on current environment
  */
 function getCompactUrlPrefix(): string {
-  if (typeof window !== 'undefined') {
-    // Use http for shorter URLs (server redirects to https)
-    const origin = window.location.origin.replace('https://', 'http://');
-    return `${origin}/c/`;
-  }
-  // Fallback for SSR or non-browser environments
-  return 'http://treasures.to/c/';
+  // Use http for shorter URLs (server redirects to https).
+  // getAppOrigin() always returns the canonical origin (treasures.to on native).
+  const origin = getAppOrigin().replace('https://', 'http://');
+  return `${origin}/c/`;
 }
 
 /**

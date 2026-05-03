@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { geocacheToNaddr } from '@/utils/naddr';
+import { getAppOrigin } from '@/utils/appUrl';
 import type { Geocache } from '@/types/geocache';
 
 interface ShareDialogProps {
@@ -27,7 +28,7 @@ export function ShareDialog({ open, onOpenChange, geocache }: ShareDialogProps) 
 
   // Generate the shareable URL using the actual geocache kind
   const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
-  const shareUrl = `${window.location.origin}/${naddr}`;
+  const shareUrl = `${getAppOrigin()}/${naddr}`;
 
   const handleCopyLink = async () => {
     try {

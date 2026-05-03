@@ -12,6 +12,7 @@ import { geocacheToNaddr, parseNaddr } from '@/utils/naddr';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { NIP_GC_KINDS, buildVerificationEventTags, buildVerificationEventContent } from './nip-gc';
 import { drawStyledQR, roundRect } from './qr-renderer';
+import { getAppOrigin } from '@/utils/appUrl';
 
 // Verification constants
 const VERIFICATION_HASH_PREFIX = '#verify=';
@@ -113,7 +114,7 @@ export function buildStandardVerificationUrl(naddr: string, nsec: string): strin
   if (!nsec.startsWith('nsec1')) {
     throw new Error('Invalid nsec format: must start with nsec1');
   }
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://treasures.to';
+  const origin = getAppOrigin();
   return `${origin}/${naddr}#verify=${nsec}`;
 }
 

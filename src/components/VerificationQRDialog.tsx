@@ -15,6 +15,7 @@ import { generateVerificationQR, downloadQRCode, type VerificationKeyPair } from
 import { encodeCompactUrl } from '@/utils/compactUrl';
 import { naddrToGeocache } from '@/utils/naddr-utils';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
+import { getAppOrigin } from '@/utils/appUrl';
 
 interface VerificationQRDialogProps {
   isOpen: boolean;
@@ -51,8 +52,7 @@ export function VerificationQRDialog({
   }, [useCompact, naddrData.pubkey, existingDTag, verificationKeyPair.nsec]);
   
   const standardUrl = useMemo(() => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://treasures.to';
-    return `${origin}/${naddr}#verify=${verificationKeyPair.nsec}`;
+    return `${getAppOrigin()}/${naddr}#verify=${verificationKeyPair.nsec}`;
   }, [naddr, verificationKeyPair.nsec]);
   const verificationUrl = useMemo(() => {
     return useCompact && compactUrl ? compactUrl : standardUrl;

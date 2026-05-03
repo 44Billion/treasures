@@ -30,6 +30,7 @@ import { useAdventureProgress } from "@/hooks/useAdventureProgress";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useToast } from "@/hooks/useToast";
 import { useTheme } from "@/hooks/useTheme";
+import { getAppOrigin } from "@/utils/appUrl";
 
 import type { Geocache } from "@/types/geocache";
 
@@ -137,7 +138,9 @@ export default function AdventureDetail() {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    // On native Capacitor builds window.location.href would be a localhost URL;
+    // reconstruct the canonical URL using the production origin.
+    const url = `${getAppOrigin()}${window.location.pathname}${window.location.hash}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: adventure?.title, url });

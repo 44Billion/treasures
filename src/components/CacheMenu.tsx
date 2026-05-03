@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/useToast';
 import { CompassSpinner } from '@/components/ui/loading';
 import { geocacheToNaddr } from '@/utils/naddr';
 import { hapticLight } from '@/utils/haptics';
+import { getAppOrigin } from '@/utils/appUrl';
 import type { Geocache } from '@/types/geocache';
 
 interface CacheMenuProps {
@@ -83,7 +84,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
   const handleShare = async () => {
     setDropdownOpen(false);
     const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
-    const shareUrl = `${window.location.origin}/${naddr}`;
+    const shareUrl = `${getAppOrigin()}/${naddr}`;
     hapticLight();
     if ('share' in navigator && navigator.share) {
       try {
@@ -245,11 +246,6 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
-              handleShare();
-            }}
-            onSelect={(e) => {
-              // Prevent default select behavior that might interfere with scroll
-              e.preventDefault();
               handleShare();
             }}
           >
