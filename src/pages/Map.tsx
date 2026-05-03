@@ -714,7 +714,7 @@ export default function Map() {
         {showNearMe ? (
           <button
             onClick={dismissNearMe}
-            className="inline-flex items-center gap-0.5 text-[11px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 hover:bg-primary/20 transition-colors shrink-0"
+            className="inline-flex items-center gap-0.5 text-[11px] bg-primary/10 text-primary rounded-full px-2.5 py-1 hover:bg-primary/20 transition-colors shrink-0"
           >
             {t('map.nearMe.title', 'Near Me')}
             <X className="h-2.5 w-2.5" />
@@ -876,6 +876,7 @@ export default function Map() {
                           <CompactGeocacheCard
                             cache={cache}
                             distance={cache.distance}
+                            withinRadius={isProximitySearchActive ? (cache.distance !== undefined && cache.distance <= searchRadius) : undefined}
                             onClick={() => handleCardClick(cache)}
                             statsLoading={baseGeocaches.isStatsLoading}
                             isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
@@ -1139,6 +1140,7 @@ export default function Map() {
                             <CompactGeocacheCard
                               cache={cache}
                               distance={cache.distance}
+                              withinRadius={isProximitySearchActive ? (cache.distance !== undefined && cache.distance <= searchRadius) : undefined}
                               onClick={() => handleCardClick(cache)}
                               statsLoading={baseGeocaches.isStatsLoading}
                               isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}

@@ -48,6 +48,7 @@ interface BaseGeocacheCardProps {
     city?: string;
   };
   distance?: number;
+  withinRadius?: boolean;
   variant?: 'compact' | 'default' | 'detailed' | 'featured';
   onClick?: () => void;
   onDelete?: () => void;
@@ -114,6 +115,7 @@ export type GeocacheCardProps = CompactGeocacheCardProps | DefaultGeocacheCardPr
 export function GeocacheCard({
   cache,
   distance,
+  withinRadius,
   variant = 'default',
   onClick,
   onDelete,
@@ -462,7 +464,7 @@ export function GeocacheCard({
     const hasSpoiler = !!cache.contentWarning;
 
     return (
-      <InteractiveCard onClick={() => handleNavigate()} compact={true} className="group hover:shadow-md transition-shadow duration-200 overflow-hidden h-[120px]">
+      <InteractiveCard onClick={() => handleNavigate()} compact={true} className={`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`}>
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
             {/* Image container - always shown with pastel green background if no image */}

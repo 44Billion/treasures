@@ -628,8 +628,18 @@ export function MobileHeader() {
             </Link>
           )}
 
-          {/* Right Side - empty spacer for balance */}
-          <div className="w-8" />
+          {/* Right Side - Join button when logged out, spacer when logged in */}
+          {!user ? (
+            <Button
+              size="sm"
+              onClick={() => setSignupDialogOpen(true)}
+              className="rounded-full px-3 h-8 text-xs font-semibold"
+            >
+              {t('auth.join', 'Join')}
+            </Button>
+          ) : (
+            <div className="w-8" />
+          )}
         </div>
       </header>
 

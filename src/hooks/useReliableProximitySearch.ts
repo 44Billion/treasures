@@ -112,7 +112,7 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
       filtered = filtered.filter(g => g.type === options.cacheType);
     }
 
-    // Apply proximity filtering and add distances
+    // Apply proximity sorting and add distances (all items shown, sorted by distance)
     if (hasProximityParams) {
       filtered = filtered.map(cache => ({
         ...cache,
@@ -122,8 +122,7 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
           cache.location.lat,
           cache.location.lng
         )
-      })).filter(cache => cache.distance! <= options.radiusKm!)
-        .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
     } else {
       // Preserve original order if no proximity search
       // Don't sort by creation date as this reorders the geocaches unexpectedly
