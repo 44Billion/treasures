@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.1] - 2026-05-03
+
+### Added
+- In-app QR scanner on the claim page — tap to scan the geocache QR code directly without leaving the app; opens automatically on supported mobile devices
+
+### Changed
+- Adventure descriptions are now tappable: tap to read the full text in a popup instead of having it cut off
+
+### Fixed
+- QR code download and print on the Android app now work correctly
+- Map controls no longer clip below the safe area in iPad landscape mode
+- Hero logo no longer clips into the navigation bar in iPad landscape mode
+
 ## [2.1.0] - 2026-05-02
 
 ### Added
