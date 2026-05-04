@@ -76,11 +76,16 @@
   filter: hue-rotate(280deg) saturate(1.1) brightness(0.95);
 }
 
-/* Step illustrations on the Home page — printed-poster-style assets.
-   Same hue-rotate trick. Override the dark:invert / mix-blend-multiply
-   defaults that fight on a dark Mojave theme. */
-.mojave .mojave-step-tint {
-  filter: hue-rotate(280deg) saturate(1.15) brightness(0.9);
+/* Dark line-art illustrations (Home "How it works" steps, Claim QR guide, etc.).
+   The source PNGs are near-greyscale line art on transparent backgrounds,
+   designed for light themes with mix-blend-multiply. On Mojave's near-black
+   CRT background that produces invisible dark-on-dark art, and a pure hue
+   rotation does nothing to greyscale pixels. Invert to white line-art, then
+   colorize to Pip-Boy amber (#e8a838 ≈ hue 39°) via sepia + hue-rotate, the
+   same pattern used by .ditto-invert on dark ditto themes. */
+.mojave .mojave-step-tint,
+.mojave .mojave-invert {
+  filter: invert(1) sepia(1) hue-rotate(-11deg) saturate(1.6) brightness(0.95);
   mix-blend-mode: normal !important;
 }
 

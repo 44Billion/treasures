@@ -254,7 +254,7 @@ export default function Claim() {
                 <img
                   src="/claim-guide.png"
                   alt="QR Code scanning guide"
-                  className="max-w-[180px] w-full h-auto dark:invert ditto-invert"
+                  className="max-w-[180px] w-full h-auto dark:invert ditto-invert mojave-invert"
                 />
               </div>
 

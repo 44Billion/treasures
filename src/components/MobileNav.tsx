@@ -803,7 +803,7 @@ export function MobileBottomNav() {
         <button
           type="button"
           onClick={openRadar}
-          aria-label={t('navigation.radar', 'Radar')}
+          aria-label={t('navigation.compass', 'Compass')}
           className="relative flex flex-col items-center justify-end h-full pb-1.5 min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
         >
           <span className="absolute left-1/2 -translate-x-1/2 -top-4 flex items-center justify-center pointer-events-none">
@@ -819,7 +819,7 @@ export function MobileBottomNav() {
             </span>
           </span>
           <span className={cn("text-[10px] leading-tight", themeClasses.textMuted)}>
-            {t('navigation.radar', 'Radar')}
+            {t('navigation.compass', 'Compass')}
           </span>
         </button>
 
