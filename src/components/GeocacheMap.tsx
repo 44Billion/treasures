@@ -901,7 +901,9 @@ function CustomZoomControl() {
 
     // Create zoom in button
     const zoomInBtn = document.createElement('button');
+    zoomInBtn.type = 'button';
     zoomInBtn.innerHTML = '+';
+    zoomInBtn.setAttribute('aria-label', 'Zoom in');
     zoomInBtn.className = 'zoom-btn zoom-in-btn';
     zoomInBtn.style.cssText = `
       display: flex;
@@ -934,7 +936,9 @@ function CustomZoomControl() {
 
     // Create zoom out button
     const zoomOutBtn = document.createElement('button');
+    zoomOutBtn.type = 'button';
     zoomOutBtn.innerHTML = '−';
+    zoomOutBtn.setAttribute('aria-label', 'Zoom out');
     zoomOutBtn.className = 'zoom-btn zoom-out-btn';
     zoomOutBtn.style.cssText = `
       display: flex;
@@ -1492,7 +1496,7 @@ export function GeocacheMap({
     // Additional performance optimizations
     trackResize: false, // Disable automatic resize tracking
     boxZoom: false, // Disable box zoom for better performance
-    keyboard: false, // Disable keyboard navigation for performance
+    keyboard: true, // Keyboard navigation for accessibility (WCAG); negligible perf impact
     inertia: true, // Enable inertia for smoother panning
     inertiaDeceleration: 3000, // Faster deceleration
     inertiaMaxSpeed: 1500, // Limit max speed for better control
@@ -1543,6 +1547,9 @@ export function GeocacheMap({
           key={geocache.dTag}
           position={normalizedPosition as LatLngExpression}
           icon={getCachedCacheIcon(geocache.type, currentMapStyle === 'adventure')}
+          keyboard={true}
+          title={geocache.name}
+          alt={`${geocache.type} treasure: ${geocache.name}`}
           eventHandlers={{
             click: (e) => {
               const marker = e.target as L.Marker;
@@ -1798,6 +1805,9 @@ export function GeocacheMap({
             key={`adventure-${adventure.dTag}`}
             position={[adventure.location!.lat, adventure.location!.lng]}
             icon={adventureMarkerIcon}
+            keyboard={true}
+            title={adventure.title || 'Adventure'}
+            alt={`Adventure: ${adventure.title || adventure.dTag}`}
             eventHandlers={{
               click: (e) => {
                 const marker = e.target as L.Marker;

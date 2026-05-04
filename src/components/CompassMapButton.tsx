@@ -9,6 +9,7 @@ interface CompassMapButtonProps {
 
 export function CompassMapButton({ onClick, isAdventureTheme: _ = false }: CompassMapButtonProps) {
   const { t } = useTranslation();
+  const label = t('radar.openCompass', 'Magic Compass');
 
   return (
     <Button
@@ -16,9 +17,10 @@ export function CompassMapButton({ onClick, isAdventureTheme: _ = false }: Compa
       size="lg"
       className="!p-0 h-10 w-10 min-w-10 rounded-full transition-all duration-200 flex items-center justify-center border bg-background/95 backdrop-blur-sm hover:bg-background"
       onClick={onClick}
-      title={t('radar.openCompass', 'Magic Compass')}
+      title={label}
+      aria-label={label}
     >
-      <Compass className="h-4 w-4" />
+      <Compass className="h-4 w-4" aria-hidden="true" />
     </Button>
   );
 }

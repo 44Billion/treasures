@@ -133,16 +133,16 @@ export function ProfileHeader({
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
 
           <span className="flex items-center gap-1">
-            <Chest className="h-3 w-3 sm:h-4 sm:w-4" />
-            {hiddenCount} {t('profile.header.hidden')}
+            <Chest className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
+            {hiddenCount === undefined ? '\u2014' : hiddenCount} {t('profile.header.hidden')}
           </span>
           <span className="flex items-center gap-1">
-            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-            {foundCount} {t('profile.header.found')}
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
+            {foundCount === undefined ? '\u2014' : foundCount} {t('profile.header.found')}
           </span>
           {savedCount !== undefined && (
             <span className="flex items-center gap-1">
-              <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
               {savedCount} {t('profile.header.saved')}
             </span>
           )}

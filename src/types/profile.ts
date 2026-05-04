@@ -20,8 +20,8 @@ export interface ProfileHeaderProps {
     lud06?: string;
   };
   createdAt?: number;
-  hiddenCount: number;
-  foundCount: number;
+  hiddenCount: number | undefined;
+  foundCount: number | undefined;
   savedCount?: number;
   variant?: "dialog" | "page";
   className?: string;

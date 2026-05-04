@@ -8,6 +8,7 @@ interface EarthViewMapButtonProps {
 
 export function EarthViewMapButton({ onClick }: EarthViewMapButtonProps) {
   const { t } = useTranslation();
+  const label = t('map.earthView', 'Earth View');
 
   return (
     <Button
@@ -15,9 +16,10 @@ export function EarthViewMapButton({ onClick }: EarthViewMapButtonProps) {
       size="lg"
       className="!p-0 h-10 w-10 min-w-10 rounded-full transition-all duration-200 flex items-center justify-center border bg-background/95 backdrop-blur-sm hover:bg-background"
       onClick={onClick}
-      title={t('map.earthView', 'Earth View')}
+      title={label}
+      aria-label={label}
     >
-      <Earth className="h-4 w-4" />
+      <Earth className="h-4 w-4" aria-hidden="true" />
     </Button>
   );
 }

@@ -192,6 +192,33 @@ export function VerifiedReveal({
   // For logged-in users, play all the way through including fadeOut.
   const stopPoint = isLoggedIn ? 1.0 : 0.60;
 
+  // Haptic bursts fire at animation milestones. Track phase in a ref so the
+  // bursts happen exactly once each — previously this lived in a useEffect
+  // with progress-dependent deps that re-evaluated ~60x/sec.
+  const hapticPhaseRef = useRef(0);
+  const fireHaptics = useCallback((p: number) => {
+    const phase = hapticPhaseRef.current;
+    // The sub-ranges below match the visual sub() ranges in the render body.
+    const logoIn = Math.max(0, Math.min(1, (p - 0.08) / (0.22 - 0.08)));
+    const badgeIn = Math.max(0, Math.min(1, (p - 0.22) / (0.32 - 0.22)));
+    const congratsIn = Math.max(0, Math.min(1, (p - 0.42) / (0.54 - 0.42)));
+    // Apply the outBack easing used visually so the haptic lines up
+    // roughly with when each element "pops" into view.
+    const logoEased = ease.outBack(logoIn);
+    const badgeEased = ease.outBack(badgeIn);
+    const congratsEased = ease.outQuart(congratsIn);
+    if (phase < 1 && logoEased > 0.5) {
+      hapticHeavy();
+      hapticPhaseRef.current = 1;
+    } else if (phase < 2 && badgeEased > 0.5) {
+      hapticMedium();
+      hapticPhaseRef.current = 2;
+    } else if (phase < 3 && congratsEased > 0.5) {
+      hapticSuccess();
+      hapticPhaseRef.current = 3;
+    }
+  }, []);
+
   useLayoutEffect(() => {
     const duration = 7000;
     const start = performance.now();
@@ -200,7 +227,9 @@ export function VerifiedReveal({
     const tick = (now: number) => {
       const raw = Math.min(1, (now - start) / duration);
       const eased = ease.inOutCubic(raw);
-      setProgress(Math.min(eased, stopPoint));
+      const p = Math.min(eased, stopPoint);
+      setProgress(p);
+      fireHaptics(p);
       if (raw < 1 && eased < stopPoint) {
         id = requestAnimationFrame(tick);
       } else if (isLoggedIn) {
@@ -212,7 +241,7 @@ export function VerifiedReveal({
     id = requestAnimationFrame(tick);
     cancelRef.current = () => cancelAnimationFrame(id);
     return cleanup;
-  }, [cleanup, isLoggedIn, stopPoint]);
+  }, [cleanup, isLoggedIn, stopPoint, fireHaptics]);
 
   // Manual dismiss animation (used when logged-out user clicks a button)
   const triggerDismiss = useCallback((callback: () => void) => {
@@ -255,20 +284,8 @@ export function VerifiedReveal({
   const congratsIn   = ease.outQuart(sub(0.42, 0.54));
 
   // ── Haptic bursts at key animation moments ──
-  const hapticPhaseRef = useRef(0);
-  useEffect(() => {
-    const phase = hapticPhaseRef.current;
-    if (phase < 1 && logoIn > 0.5) {
-      hapticHeavy();       // logo appears
-      hapticPhaseRef.current = 1;
-    } else if (phase < 2 && badgeIn > 0.5) {
-      hapticMedium();      // verified badge pops
-      hapticPhaseRef.current = 2;
-    } else if (phase < 3 && congratsIn > 0.5) {
-      hapticSuccess();     // congrats text
-      hapticPhaseRef.current = 3;
-    }
-  }, [logoIn, badgeIn, congratsIn]);
+  // Fired directly in the rAF tick (see fireHaptics above) rather than a
+  // state-derived useEffect that re-runs every frame.
   const buttonsIn    = ease.outQuart(sub(0.50, 0.60)); // logged-out only
   const motesIn      = ease.outQuart(sub(0.14, 0.30));
   const fadeOut       = isLoggedIn

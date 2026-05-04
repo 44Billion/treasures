@@ -37,6 +37,7 @@ import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { cn } from "@/utils/utils";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
+import { hapticLight } from "@/utils/haptics";
 
 
 
@@ -614,7 +615,13 @@ export default function Map() {
     const scrollContainer = e.currentTarget as HTMLElement;
     if (scrollContainer.scrollTop === 0 && distance > 0) {
       e.preventDefault();
-      setPullDistance(Math.min(distance, pullThreshold * 1.5));
+      const clamped = Math.min(distance, pullThreshold * 1.5);
+      // Fire a light haptic the first time the user crosses the threshold,
+      // so they can feel the "release to refresh" moment without looking.
+      if (pullDistance < pullThreshold && clamped >= pullThreshold) {
+        hapticLight();
+      }
+      setPullDistance(clamped);
     }
   };
 
@@ -734,9 +741,10 @@ export default function Map() {
               size="icon"
               className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-foreground"
               onClick={() => setSidebarCollapsed(true)}
-              title="Collapse sidebar"
+              title={t('map.sidebar.collapse', 'Collapse sidebar')}
+              aria-label={t('map.sidebar.collapse', 'Collapse sidebar')}
             >
-              <PanelLeftClose className="h-4 w-4" />
+              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
           {/* Filters */}
@@ -893,9 +901,10 @@ export default function Map() {
               size="sm"
               className="bg-background/90 backdrop-blur-sm shadow-md"
               onClick={() => setSidebarCollapsed(false)}
-              title="Expand sidebar"
+              title={t('map.sidebar.expand', 'Expand sidebar')}
+              aria-label={t('map.sidebar.expand', 'Expand sidebar')}
             >
-              <PanelLeftOpen className="h-3.5 w-3.5" />
+              <PanelLeftOpen className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </div>
         )}
@@ -1055,13 +1064,15 @@ export default function Map() {
                 {(pullDistance > 0 || isPullRefreshing) && (
                   <div
                     className="absolute top-0 left-0 right-0 flex items-center justify-center bg-background/95 backdrop-blur-sm border-b transition-all duration-200 z-10"
+                    role="status"
+                    aria-live="polite"
                     style={{
                       height: `${Math.min(pullDistance, pullThreshold)}px`,
                       opacity: pullDistance > 20 ? 1 : pullDistance / 20
                     }}
                   >
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <RefreshCw className={`h-4 w-4 ${(isPullRefreshing || pullDistance >= pullThreshold) ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`h-4 w-4 ${(isPullRefreshing || pullDistance >= pullThreshold) ? 'animate-spin' : ''}`} aria-hidden="true" />
                       <span>
                         {isPullRefreshing
                           ? t('map.pullToRefresh.refreshing')

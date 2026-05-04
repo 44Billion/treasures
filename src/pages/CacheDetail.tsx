@@ -673,28 +673,47 @@ export default function CacheDetail() {
                       <>
                         {isEditing ? (
                           <>
-                            <Button size="icon" onClick={handleSaveEdit} disabled={isEditingGeocache}>
-                              <Save className="h-4 w-4" />
+                            <Button
+                              size="icon"
+                              onClick={handleSaveEdit}
+                              disabled={isEditingGeocache}
+                              aria-label={t('common.save')}
+                            >
+                              <Save className="h-4 w-4" aria-hidden="true" />
                             </Button>
-                            <Button variant="outline" size="icon" onClick={handleCancelEdit} disabled={isEditingGeocache}>
-                              <RotateCcw className="h-4 w-4" />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={handleCancelEdit}
+                              disabled={isEditingGeocache}
+                              aria-label={t('common.cancel')}
+                            >
+                              <RotateCcw className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </>
                         ) : (
                           <>
-                            <Button variant="outline" size="icon" onClick={handleEdit} disabled={isEditingGeocache}>
-                              <Edit className="h-4 w-4" />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={handleEdit}
+                              disabled={isEditingGeocache}
+                              aria-label={t('common.edit')}
+                            >
+                              <Edit className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button
                               variant="outline"
                               size="icon"
                               onClick={handleDelete}
-                              disabled={isDeletingAny}
+                              disabled={isDeletingAny || isEditing}
+                              title={isEditing ? t('cacheDetail.delete.disabledWhileEditing', 'Save or cancel edits before deleting') : t('common.delete')}
+                              aria-label={t('common.delete')}
                             >
                               {isDeletingAny ? (
-                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <RefreshCw className="h-4 w-4 animate-spin" aria-hidden="true" />
                               ) : (
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                               )}
                             </Button>
                           </>

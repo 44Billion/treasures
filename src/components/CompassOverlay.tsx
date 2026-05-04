@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Locate, MapPinOff, Compass, RotateCcw, X, ChevronDown, Smartphone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Locate, MapPinOff, Compass, RotateCcw, X, ChevronDown, Smartphone, Map as MapIcon, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -44,8 +45,12 @@ export function CompassOverlay({
   children,
 }: CompassOverlayProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [phase, setPhase] = useState<OverlayPhase>('entering');
   const [helpOpen, setHelpOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   // Entry animation
   useEffect(() => {
@@ -68,6 +73,58 @@ export function CompassOverlay({
     setTimeout(onClose, 400);
   }, [onClose]);
 
+  // Remember the focused element before opening so we can restore focus on close.
+  // Also move focus into the overlay so keyboard/SR users aren't stranded.
+  useEffect(() => {
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    // Focus the close button so the user can Escape or Tab to actions.
+    const timer = window.setTimeout(() => {
+      closeButtonRef.current?.focus();
+    }, 50);
+    return () => {
+      window.clearTimeout(timer);
+      const el = previouslyFocusedRef.current;
+      if (el && typeof el.focus === 'function') {
+        el.focus();
+      }
+    };
+  }, []);
+
+  // Escape closes, and keep focus trapped within the overlay.
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const root = rootRef.current;
+      if (!root) return;
+      const focusable = root.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [handleClose]);
+
   const isActive = phase === 'active';
 
   // Determine which error to show (GPS takes priority since it blocks the compass entirely)
@@ -76,16 +133,28 @@ export function CompassOverlay({
 
   const closeButton = (
     <button
+      ref={closeButtonRef}
       onClick={handleClose}
-      className="absolute top-4 right-4 z-10 p-2 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors"
+      aria-label={t('common.close', 'Close')}
+      className="absolute top-4 right-4 z-10 p-2 min-h-11 min-w-11 flex items-center justify-center rounded-full text-muted-foreground/80 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
       style={{
         paddingTop: 'calc(0.5rem + env(safe-area-inset-top, 0px))',
         paddingRight: 'calc(0.5rem + env(safe-area-inset-right, 0px))',
       }}
     >
-      <X className="h-6 w-6" />
+      <X className="h-6 w-6" aria-hidden="true" />
     </button>
   );
+
+  const handleBrowseMap = () => {
+    handleClose();
+    // Small delay so the overlay fades before navigating.
+    setTimeout(() => navigate('/map?tab=map'), 100);
+  };
+  const handleOpenList = () => {
+    handleClose();
+    setTimeout(() => navigate('/map?tab=list'), 100);
+  };
 
   const backdrop = cn(
     'fixed inset-0 flex flex-col items-center justify-center',
@@ -101,7 +170,13 @@ export function CompassOverlay({
 
   // Loading + error render *inside* the overlay backdrop
   return (
-    <div className={backdrop}>
+    <div
+      ref={rootRef}
+      className={backdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('radar.openCompass', 'Magic Compass')}
+    >
       {closeButton}
 
       {isLocating ? (
@@ -175,13 +250,26 @@ export function CompassOverlay({
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-3">
-            <Button onClick={onRetry} variant="outline" size="default" className="gap-2">
-              <RotateCcw className="h-4 w-4" />
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Button onClick={onRetry} variant="outline" size="default" className="gap-2 min-h-11">
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
               {t('compass.tryAgain', 'Try Again')}
             </Button>
-            <Button onClick={handleClose} variant="ghost" size="default">
+            <Button onClick={handleClose} variant="ghost" size="default" className="min-h-11">
               {t('compass.dismiss', 'Dismiss')}
+            </Button>
+          </div>
+
+          {/* Secondary CTAs so the user still has a path forward when
+              GPS or sensors aren't available. */}
+          <div className="flex flex-wrap gap-3 justify-center pt-1 border-t border-border/30 w-full">
+            <Button onClick={handleBrowseMap} variant="secondary" size="sm" className="gap-2 mt-3 min-h-11">
+              <MapIcon className="h-4 w-4" aria-hidden="true" />
+              {t('compass.browseMap', 'Browse Map')}
+            </Button>
+            <Button onClick={handleOpenList} variant="secondary" size="sm" className="gap-2 mt-3 min-h-11">
+              <List className="h-4 w-4" aria-hidden="true" />
+              {t('compass.openList', 'Open List')}
             </Button>
           </div>
         </div>

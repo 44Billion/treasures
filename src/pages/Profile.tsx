@@ -227,9 +227,9 @@ export default function Profile() {
               pubkey={targetPubkey}
               metadata={metadata}
 
-              hiddenCount={userGeocachesWithStats?.length || 0}
-              foundCount={foundCaches?.length || 0}
-              savedCount={isOwnProfile ? savedCaches?.length || 0 : undefined}
+              hiddenCount={isLoadingUserCaches ? undefined : (userGeocachesWithStats?.length || 0)}
+              foundCount={isLoadingFoundCaches ? undefined : (foundCaches?.length || 0)}
+              savedCount={isOwnProfile ? (isLoadingSavedCaches ? undefined : (savedCaches?.length || 0)) : undefined}
               variant="page"
               onCopy={copyToClipboard}
               showExtendedDetails={true}
@@ -238,8 +238,13 @@ export default function Profile() {
               {isOwnProfile && (
                 <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 sm:w-auto sm:h-auto p-0 sm:px-3 sm:py-2">
-                      <Edit className="h-4 w-4 sm:mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-11 min-w-11 p-0 sm:px-3 sm:py-2 sm:min-w-0"
+                      aria-label={t('common.edit')}
+                    >
+                      <Edit className="h-4 w-4 sm:mr-2" aria-hidden="true" />
                       <span className="hidden sm:inline">{t('common.edit')}</span>
                     </Button>
                   </DialogTrigger>
