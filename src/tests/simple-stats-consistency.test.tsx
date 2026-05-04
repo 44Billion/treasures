@@ -190,20 +190,21 @@ describe('Simple Stats Consistency Test', () => {
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
-      expect(result.current.data).toHaveLength(1); // Only first cache should be within 1km
+      // All caches are returned sorted by distance (radius filters UI highlight, not results)
+      expect(result.current.data).toHaveLength(2);
     });
 
     const proximityGeocaches = result.current.data;
 
-    // Verify stats are preserved in proximity results
+    // Verify stats are preserved in proximity results (closest cache first)
     expect(proximityGeocaches[0]?.foundCount).toBe(5);
     expect(proximityGeocaches[0]?.logCount).toBe(8);
     expect(proximityGeocaches[0]?.zapTotal).toBe(1000);
     expect(proximityGeocaches[0]?.name).toBe('Test Cache 1');
     
-    // Verify distance is calculated
+    // Verify distance is calculated and caches are sorted nearest-first
     expect(proximityGeocaches[0]?.distance).toBeDefined();
-    expect(proximityGeocaches[0]?.distance).toBeLessThan(1);
+    expect(proximityGeocaches[0]?.distance).toBeLessThan(proximityGeocaches[1]?.distance ?? Infinity);
   });
 
   it('should handle empty baseGeocaches gracefully', async () => {

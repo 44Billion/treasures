@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.2.0] - 2026-05-04
+
+### Added
+- Cache owners can now set a listing status — mark a hide as **Needs maintenance** or **Archived** directly from the edit form; the status is stored on the listing so seekers always see the current state
+- Status badges appear on cache cards and the detail page so seekers know at a glance whether a cache needs attention or has been retired
+- Map filter lets seekers opt in to seeing maintenance and archived listings (hidden by default to keep the map clean)
+
+### Fixed
+- Mojave theme now correctly shows light status bar icons on Android instead of being treated as a light theme
+- "Compass" label is restored on the mobile bottom navigation bar
+
 ## [2.1.2] - 2026-05-04
 
 ### Added
