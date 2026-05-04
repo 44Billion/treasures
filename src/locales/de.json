@@ -256,6 +256,8 @@
   "createCache.stepValidation.locationRequired.description": "Ein Ort ist erforderlich, um fortzufahren",
   "createCache.stepValidation.fieldsRequired.title": "Bitte fülle die erforderlichen Felder aus",
   "createCache.stepValidation.fieldsRequired.description": "Name und Beschreibung sind erforderlich",
+  "createCache.stepValidation.nameRequired": "Bitte gib einen Cache-Namen ein.",
+  "createCache.stepValidation.descriptionRequired": "Bitte füge eine kurze Beschreibung hinzu.",
   "createCache.confirmLocation.title": "Schatz-Standort bestätigen",
   "createCache.confirmLocation.confirmLabel": "Bitte bestätige:",
   "createCache.confirmLocation.permission": "Du hast die Erlaubnis, diesen Schatz zu platzieren",

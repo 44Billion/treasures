@@ -258,6 +258,8 @@
   "createCache.stepValidation.locationRequired.description": "Location is required to continue",
   "createCache.stepValidation.fieldsRequired.title": "Please complete required fields",
   "createCache.stepValidation.fieldsRequired.description": "Name and description are required",
+  "createCache.stepValidation.nameRequired": "Please enter a cache name.",
+  "createCache.stepValidation.descriptionRequired": "Please add a short description.",
   "createCache.confirmLocation.title": "Confirm Treasure Location",
   "createCache.confirmLocation.confirmLabel": "Please confirm:",
   "createCache.confirmLocation.permission": "You have permission to place this treasure",

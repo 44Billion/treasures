@@ -256,6 +256,8 @@
   "createCache.stepValidation.locationRequired.description": "ต้องระบุตำแหน่งเพื่อดำเนินการต่อ",
   "createCache.stepValidation.fieldsRequired.title": "กรุณากรอกฟิลด์ที่จำเป็น",
   "createCache.stepValidation.fieldsRequired.description": "ต้องระบุชื่อและคำอธิบาย",
+  "createCache.stepValidation.nameRequired": "กรุณากรอกชื่อแคช",
+  "createCache.stepValidation.descriptionRequired": "กรุณาเพิ่มคำอธิบายสั้นๆ",
   "createCache.confirmLocation.title": "ยืนยันตำแหน่งสมบัติ",
   "createCache.confirmLocation.confirmLabel": "กรุณายืนยัน:",
   "createCache.confirmLocation.permission": "คุณมีสิทธิ์วางสมบัติ",

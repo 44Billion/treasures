@@ -256,6 +256,8 @@
   "createCache.stepValidation.locationRequired.description": "続行するには場所が必要です",
   "createCache.stepValidation.fieldsRequired.title": "必須フィールドを入力してください",
   "createCache.stepValidation.fieldsRequired.description": "名前と説明が必要です",
+  "createCache.stepValidation.nameRequired": "キャッシュ名を入力してください。",
+  "createCache.stepValidation.descriptionRequired": "短い説明を追加してください。",
   "createCache.confirmLocation.title": "宝物の場所を確認",
   "createCache.confirmLocation.confirmLabel": "確認してください：",
   "createCache.confirmLocation.permission": "この宝物を配置する許可があります",

@@ -64,15 +64,37 @@ import type { GeocacheFormData, GeocacheFormProps } from '@/types/geocache-form'
 
 // === FORM FIELD COMPONENTS ===
 
+/** Small, accessible "required" indicator used across form fields. */
+function RequiredMark() {
+  return (
+    <>
+      <span aria-hidden="true" className="ml-1 text-destructive">*</span>
+      <span className="sr-only">(required)</span>
+    </>
+  );
+}
+
+/** Inline error message bound via aria-describedby to the field. */
+function FieldError({ id, message }: { id: string; message?: string | null }) {
+  if (!message) return null;
+  return (
+    <p id={id} role="alert" className="text-xs text-destructive mt-1">
+      {message}
+    </p>
+  );
+}
+
 interface CacheNameFieldProps {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
   fieldId?: string;
+  error?: string | null;
 }
 
-export function CacheNameField({ value, onChange, required = false, fieldId = "name" }: CacheNameFieldProps) {
+export function CacheNameField({ value, onChange, required = false, fieldId = "name", error }: CacheNameFieldProps) {
   const { t } = useTranslation();
+  const errorId = `${fieldId}-error`;
   const suggestions = [
     "Hidden Treasure at [Location]",
     "Secret of [Landmark]",
@@ -83,7 +105,7 @@ export function CacheNameField({ value, onChange, required = false, fieldId = "n
   return (
     <div className="space-y-2 text-foreground">
       <Label htmlFor={fieldId}>
-        Cache Name{required && ' *'}
+        Cache Name{required && <RequiredMark />}
       </Label>
       <Input
         id={fieldId}
@@ -91,8 +113,12 @@ export function CacheNameField({ value, onChange, required = false, fieldId = "n
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('createCache.form.name.placeholder')}
         required={required}
+        aria-invalid={!!error || undefined}
+        aria-describedby={error ? errorId : undefined}
+        className={cn(error && 'border-destructive focus-visible:ring-destructive')}
       />
-      {!value && (
+      <FieldError id={errorId} message={error} />
+      {!value && !error && (
         <div className="text-xs text-muted-foreground">
           <p className="mb-1">Name ideas:</p>
           <div className="flex flex-wrap gap-1">
@@ -118,14 +144,16 @@ interface CacheDescriptionFieldProps {
   onChange: (value: string) => void;
   required?: boolean;
   fieldId?: string;
+  error?: string | null;
 }
 
-export function CacheDescriptionField({ value, onChange, required = false, fieldId = "description" }: CacheDescriptionFieldProps) {
+export function CacheDescriptionField({ value, onChange, required = false, fieldId = "description", error }: CacheDescriptionFieldProps) {
   const { t } = useTranslation();
+  const errorId = `${fieldId}-error`;
   return (
     <div className="text-foreground">
       <Label htmlFor={fieldId}>
-        Description{required && ' *'}
+        Description{required && <RequiredMark />}
       </Label>
       <Textarea
         id={fieldId}
@@ -134,7 +162,11 @@ export function CacheDescriptionField({ value, onChange, required = false, field
         placeholder={t('createCache.form.description.placeholder')}
         rows={4}
         required={required}
+        aria-invalid={!!error || undefined}
+        aria-describedby={error ? errorId : undefined}
+        className={cn(error && 'border-destructive focus-visible:ring-destructive')}
       />
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

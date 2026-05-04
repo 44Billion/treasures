@@ -84,6 +84,7 @@ export default function CreateCache() {
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string }>({});
 
   // Hydrate from relay draft once it loads (async)
   useEffect(() => {
@@ -437,12 +438,29 @@ export default function CreateCache() {
     }
 
     if (currentStep === 2) {
-      if (!formData.name.trim() || !formData.description.trim()) {
+      const errors: { name?: string; description?: string } = {};
+      if (!formData.name.trim()) {
+        errors.name = t('createCache.stepValidation.nameRequired', 'Please enter a cache name.');
+      }
+      if (!formData.description.trim()) {
+        errors.description = t('createCache.stepValidation.descriptionRequired', 'Please add a short description.');
+      }
+      setFieldErrors(errors);
+      if (errors.name || errors.description) {
         toast({
           title: t('createCache.stepValidation.fieldsRequired.title'),
           description: t('createCache.stepValidation.fieldsRequired.description'),
           variant: "destructive",
         });
+        // Focus the first invalid field for easier correction
+        const firstInvalid = errors.name ? 'name' : 'description';
+        setTimeout(() => {
+          const el = document.getElementById(firstInvalid);
+          if (el) {
+            el.focus();
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 50);
         return;
       }
       setCurrentStep(3);
@@ -627,14 +645,26 @@ export default function CreateCache() {
 
                   <CacheNameField
                     value={formData.name}
-                    onChange={(value) => setFormData({...formData, name: value})}
+                    onChange={(value) => {
+                      setFormData({...formData, name: value});
+                      if (fieldErrors.name && value.trim()) {
+                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                      }
+                    }}
                     required={true}
+                    error={fieldErrors.name}
                   />
 
                   <CacheDescriptionField
                     value={formData.description}
-                    onChange={(value) => setFormData({...formData, description: value})}
+                    onChange={(value) => {
+                      setFormData({...formData, description: value});
+                      if (fieldErrors.description && value.trim()) {
+                        setFieldErrors((prev) => ({ ...prev, description: undefined }));
+                      }
+                    }}
                     required={true}
+                    error={fieldErrors.description}
                   />
 
                   <CacheHintField
