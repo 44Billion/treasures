@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Bookmark, MapPin, Trash2, Cloud, MoreVertical, RefreshCcw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { DetailedGeocacheCard } from '@/components/geocache-card';
 import { EmptyStateCard } from '@/components/ui/card-patterns';
 import { DesktopHeader } from '@/components/DesktopHeader';
@@ -21,7 +22,21 @@ export default function MyCaches() {
   const { user } = useCurrentUser();
   const { savedCaches, unsaveCache, clearAllSaved, isNostrEnabled, isLoading: isLoadingSaved, isSyncing } = useSavedCaches();
   const { coords } = useGeolocation();
+  const queryClient = useQueryClient();
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['cache-bookmark-list'] }),
+        queryClient.invalidateQueries({ queryKey: ['saved-geocaches'] }),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Calculate distances if location is available
   const savedCachesWithDistance = savedCaches.map(cache => {
@@ -96,20 +111,37 @@ export default function MyCaches() {
 
             {/* Nostr sync status */}
             {isNostrEnabled && (
-              <div className={`flex items-center gap-2 text-sm ${
-                isSyncing ? 'text-blue-600 dark:text-blue-400' : 'text-primary'
-              }`}>
-                {isSyncing ? (
-                  <>
-                    <RefreshCcw className="h-4 w-4 animate-spin" />
-                    <span>{t('myCaches.syncing')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Cloud className="h-4 w-4" />
-                    <span>{t('myCaches.synced')}</span>
-                  </>
-                )}
+              <div className="flex items-center gap-2">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className={`flex items-center gap-2 text-sm ${
+                    isSyncing || isRefreshing ? 'text-blue-600 dark:text-blue-400' : 'text-primary'
+                  }`}
+                >
+                  {isSyncing || isRefreshing ? (
+                    <>
+                      <RefreshCcw className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      <span>{t('myCaches.syncing')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Cloud className="h-4 w-4" aria-hidden="true" />
+                      <span>{t('myCaches.synced')}</span>
+                    </>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={handleRefresh}
+                  disabled={isSyncing || isRefreshing}
+                  aria-label={t('myCaches.refresh', 'Refresh saved caches')}
+                  title={t('myCaches.refresh', 'Refresh saved caches')}
+                >
+                  <RefreshCcw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+                </Button>
               </div>
             )}
           </div>

@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Crosshair } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Crosshair, MapPin, List } from 'lucide-react';
 import { useCompass, formatCompassDistance, getBearingLabel } from '@/hooks/useCompass';
 import { computeNearbyTargets, type RadarTarget } from '@/hooks/useRadarCompass';
 import { CompassOverlay } from '@/components/CompassOverlay';
+import { Button } from '@/components/ui/button';
 import { hapticBlipLock, hapticCompassActivated } from '@/utils/haptics';
 import type { Geocache } from '@/types/geocache';
 
@@ -175,6 +177,7 @@ const RADAR_STYLES = `
 
 export function RadarCompass({ geocaches, onClose, className }: RadarCompassProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const userPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   const [lockedOnDTag, setLockedOnDTag] = useState<string | null>(null);
   const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -315,26 +318,62 @@ export function RadarCompass({ geocaches, onClose, className }: RadarCompassProp
 
       {/* Target info */}
       <div className="mt-6 flex flex-col items-center">
-        {activeTarget && (
+        {radarTargets.length === 0 && !isLocating && !compass.error && !compass.sensorError ? (
+          <div className="flex flex-col items-center gap-3 px-6 text-center">
+            <span className="text-base font-semibold text-foreground">
+              {t('radar.empty.title', 'No treasures nearby')}
+            </span>
+            <span className="text-sm text-muted-foreground max-w-xs">
+              {t('radar.empty.description', 'Nothing within range. Try moving to a new area or browse the full map.')}
+            </span>
+            <div className="flex gap-2 mt-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  handleClose();
+                  navigate('/map');
+                }}
+              >
+                <MapPin className="h-4 w-4 mr-1.5" />
+                {t('radar.empty.openMap', 'Open Map')}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  handleClose();
+                  navigate('/');
+                }}
+              >
+                <List className="h-4 w-4 mr-1.5" />
+                {t('radar.empty.browse', 'Browse list')}
+              </Button>
+            </div>
+          </div>
+        ) : (
           <>
-            <span className="text-4xl font-bold tabular-nums text-foreground">
-              {formatCompassDistance(activeTarget.distance)}
-            </span>
-            <span className="text-sm text-muted-foreground mt-1">
-              {getBearingLabel(activeTarget.bearing)}
-            </span>
-            <span className="text-xs text-muted-foreground mt-2 max-w-[60vw] text-center truncate flex items-center gap-1.5">
-              {isLockedOn && <Crosshair className="h-3 w-3 text-primary shrink-0" />}
-              {activeTarget.geocache.name}
-            </span>
-          </>
-        )}
+            {activeTarget && (
+              <>
+                <span className="text-4xl font-bold tabular-nums text-foreground">
+                  {formatCompassDistance(activeTarget.distance)}
+                </span>
+                <span className="text-sm text-muted-foreground mt-1">
+                  {getBearingLabel(activeTarget.bearing)}
+                </span>
+                <span className="text-xs text-muted-foreground mt-2 max-w-[60vw] text-center truncate flex items-center gap-1.5">
+                  {isLockedOn && <Crosshair className="h-3 w-3 text-primary shrink-0" />}
+                  {activeTarget.geocache.name}
+                </span>
+              </>
+            )}
 
-        {radarTargets.length > 1 && (
-          <span className="text-[10px] text-muted-foreground/80 mt-3">
-            {radarTargets.length} {t('radar.nearbyCaches', 'nearby treasures')}
-            {!isLockedOn && ` · ${t('radar.tapToLock', 'tap to lock on')}`}
-          </span>
+            {radarTargets.length > 1 && (
+              <span className="text-[10px] text-muted-foreground/80 mt-3">
+                {radarTargets.length} {t('radar.nearbyCaches', 'nearby treasures')}
+                {!isLockedOn && ` · ${t('radar.tapToLock', 'tap to lock on')}`}
+              </span>
+            )}
+          </>
         )}
       </div>
     </CompassOverlay>

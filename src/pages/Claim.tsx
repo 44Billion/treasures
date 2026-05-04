@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, QrCode, Link as LinkIcon, ClipboardPaste, Camera } from 'lucide-react';
@@ -28,12 +28,20 @@ export default function Claim() {
   const [scannerOpen, setScannerOpen] = useState(showScannerButton);
 
   /**
+   * Accept treasures.to and any *.treasures.to subdomain (e.g. beta.treasures.to).
+   */
+  const isTreasuresHost = (hostname: string): boolean => {
+    const h = hostname.toLowerCase();
+    return h === 'treasures.to' || h.endsWith('.treasures.to');
+  };
+
+  /**
    * Validate a standard treasures.to URL with naddr + #verify= fragment.
    */
   const validateTreasureUrl = (url: string): { isValid: boolean; naddr?: string; nsec?: string; errorKey?: string } => {
     try {
       const urlObj = new URL(url);
-      if (urlObj.hostname !== 'treasures.to') {
+      if (!isTreasuresHost(urlObj.hostname)) {
         return { isValid: false, errorKey: 'claim.error.qrMustPointToTreasures' };
       }
       const pathname = urlObj.pathname;
@@ -58,6 +66,7 @@ export default function Claim() {
   const tryCompactUrl = (url: string): string | null => {
     try {
       const urlObj = new URL(url);
+      if (!isTreasuresHost(urlObj.hostname)) return null;
       if (!urlObj.pathname.startsWith('/c/')) return null;
       const payload = urlObj.pathname.slice(3);
       const decoded = decodeCompactUrl(payload);
@@ -69,6 +78,28 @@ export default function Claim() {
     }
   };
 
+  /**
+   * Extract a bare naddr from a value that is either the naddr itself or a
+   * treasures.to URL whose path begins with one. No verification fragment required.
+   */
+  const tryBareNaddr = (value: string): string | null => {
+    const trimmed = value.trim();
+    if (trimmed.startsWith('naddr1') && !trimmed.includes('/') && !trimmed.includes(' ')) {
+      return `/${trimmed}`;
+    }
+    try {
+      const urlObj = new URL(trimmed);
+      if (!isTreasuresHost(urlObj.hostname)) return null;
+      const pathname = urlObj.pathname.slice(1);
+      if (pathname.startsWith('naddr1') && !urlObj.hash) {
+        return `/${pathname}`;
+      }
+    } catch {
+      // not a URL
+    }
+    return null;
+  };
+
   const handleUrlSubmit = (url: string) => {
     setIsProcessing(true);
     setError(null);
@@ -78,6 +109,14 @@ export default function Claim() {
     if (compactTarget) {
       toast({ title: t('claim.toast.found.title'), description: t('claim.toast.found.description') });
       navigate(compactTarget);
+      return;
+    }
+
+    // Try bare naddr / naddr-only URLs
+    const bareTarget = tryBareNaddr(url);
+    if (bareTarget) {
+      toast({ title: t('claim.toast.found.title'), description: t('claim.toast.found.description') });
+      navigate(bareTarget);
       return;
     }
 
@@ -112,22 +151,52 @@ export default function Claim() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Manual entry ──────────────────────────────────────────────────────────
+  // ─── Manual entry (debounced auto-submit) ─────────────────────────────────
+
+  const autoSubmitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (autoSubmitTimer.current) clearTimeout(autoSubmitTimer.current);
+  }, []);
+
+  const shouldAutoSubmit = (value: string): boolean => {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    // Bare naddr pasted
+    if (trimmed.startsWith('naddr1') && !trimmed.includes(' ')) return true;
+    try {
+      const u = new URL(trimmed);
+      if (!isTreasuresHost(u.hostname)) return false;
+      if (u.pathname.startsWith('/c/')) return true;
+      if (u.pathname.slice(1).startsWith('naddr1')) return true;
+    } catch {
+      return false;
+    }
+    return false;
+  };
+
+  const scheduleAutoSubmit = (value: string) => {
+    if (autoSubmitTimer.current) clearTimeout(autoSubmitTimer.current);
+    if (!shouldAutoSubmit(value)) return;
+    autoSubmitTimer.current = setTimeout(() => {
+      autoSubmitTimer.current = null;
+      handleUrlSubmit(value.trim());
+    }, 400);
+  };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setManualUrl(value);
     if (error) setError(null);
-    if (value.includes('treasures.to') && value.includes('#verify=')) {
-      setTimeout(() => handleUrlSubmit(value), 100);
-    }
-    if (value.includes('treasures.to/c/')) {
-      setTimeout(() => handleUrlSubmit(value), 100);
-    }
+    scheduleAutoSubmit(value);
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (autoSubmitTimer.current) {
+      clearTimeout(autoSubmitTimer.current);
+      autoSubmitTimer.current = null;
+    }
     if (manualUrl.trim()) handleUrlSubmit(manualUrl.trim());
   };
 
@@ -238,7 +307,8 @@ export default function Claim() {
                 <div className="flex gap-2">
                   <Input
                     id="treasure-url"
-                    type="url"
+                    type="text"
+                    inputMode="url"
                     placeholder="https://treasures.to/naddr1..."
                     value={manualUrl}
                     onChange={handleUrlChange}
@@ -260,11 +330,13 @@ export default function Claim() {
                         const text = await navigator.clipboard.readText();
                         setManualUrl(text);
                         if (error) setError(null);
-                        if (
-                          (text.includes('treasures.to') && text.includes('#verify=')) ||
-                          text.includes('treasures.to/c/')
-                        ) {
-                          setTimeout(() => handleUrlSubmit(text), 100);
+                        // Paste -> immediate submit if it looks valid (no debounce needed)
+                        if (shouldAutoSubmit(text)) {
+                          if (autoSubmitTimer.current) {
+                            clearTimeout(autoSubmitTimer.current);
+                            autoSubmitTimer.current = null;
+                          }
+                          setTimeout(() => handleUrlSubmit(text.trim()), 50);
                         }
                       } catch {
                         toast({

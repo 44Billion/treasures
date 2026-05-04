@@ -914,6 +914,7 @@
   "myCaches.loginRequired": "Please log in with your Nostr account to view your treasures.",
   "myCaches.syncing": "Syncing...",
   "myCaches.synced": "Synced",
+  "myCaches.refresh": "Refresh saved caches",
   "myCaches.description": "Your saved treasures are synced to your Nostr profile and available across all your devices.",
   "myCaches.clearAll": "Clear All Saved Treasures",
   "myCaches.clearAllConfirm.title": "Clear all saved treasures?",
@@ -1423,6 +1424,7 @@
   "settings.privacy.reportingTo": "Reporting to {{domain}}.",
   "settings.privacy.reportingToVia": "Reporting to {{domain}} via {{endpoint}}.",
   "settings.privacy.reloadNotice": "Analytics is off for future sessions. If the tracker already loaded in this tab, reload the page to stop reporting entirely.",
+  "settings.privacy.reloadNow": "Reload now",
 
   "createCache.steps.location": "Location",
   "createCache.steps.details": "Details",

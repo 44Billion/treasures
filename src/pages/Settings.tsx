@@ -31,6 +31,8 @@ export default function Settings() {
   const [blossomOpen, setBlossomOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [analyticsInitial] = useState(() => config.analyticsEnabled);
+  const analyticsChanged = config.analyticsEnabled !== analyticsInitial;
 
   // Only surface the Privacy card when analytics is actually configured for this build.
   // In dev mode we always show it so the UI can be QA'd locally without env vars.
@@ -329,7 +331,20 @@ export default function Settings() {
                       </p>
                     ) : null}
                   </div>
-                  {!config.analyticsEnabled ? (
+                  {analyticsChanged ? (
+                    <div className="flex items-center justify-between gap-3 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3">
+                      <p className="text-xs text-amber-900 dark:text-amber-200">
+                        {t('settings.privacy.reloadNotice')}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.location.reload()}
+                      >
+                        {t('settings.privacy.reloadNow', 'Reload now')}
+                      </Button>
+                    </div>
+                  ) : !config.analyticsEnabled ? (
                     <p className="text-xs text-muted-foreground">
                       {t('settings.privacy.reloadNotice')}
                     </p>

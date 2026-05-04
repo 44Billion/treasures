@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RelayErrorFallback } from '@/components/RelayErrorFallback';
 import { cn } from '@/utils/utils';
@@ -41,28 +41,38 @@ export function GeocacheCardSkeleton({
 
   if (variant === 'detailed') {
     return (
-      <Card className={cn('animate-pulse', className)}>
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Skeleton className="w-12 h-12 rounded-full shrink-0" />
-            <div className="flex-1 min-w-0 space-y-3">
-              <Skeleton className="h-5 w-3/4" />
+      <Card className={cn('animate-pulse overflow-hidden', className)}>
+        <CardContent className="p-0">
+          <div className="flex">
+            {/* Image-left thumbnail matching DetailedGeocacheCard */}
+            <Skeleton className="shrink-0 w-24 sm:w-28 aspect-square rounded-none" />
+            <div className="flex-1 min-w-0 p-3.5 sm:p-4 space-y-2.5">
+              {/* Title row + action buttons */}
+              <div className="flex items-start justify-between gap-3">
+                <Skeleton className="h-5 w-3/4" />
+                <div className="flex gap-1.5 shrink-0">
+                  <Skeleton className="w-8 h-8 rounded" />
+                  <Skeleton className="w-8 h-8 rounded" />
+                </div>
+              </div>
+              {/* Creator row */}
+              <div className="flex items-center gap-2">
+                <Skeleton className="w-4 h-4 rounded-full" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              {/* Metadata line */}
               <Skeleton className="h-3 w-1/2" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-2/3" />
-              <div className="flex gap-2">
-                <Skeleton className="h-6 w-10" />
-                <Skeleton className="h-6 w-10" />
-                <Skeleton className="h-6 w-16" />
+              {/* Difficulty / terrain / size row */}
+              <div className="flex gap-1.5 pt-1">
+                <Skeleton className="h-5 w-10" />
+                <Skeleton className="h-5 w-10" />
+                <Skeleton className="h-5 w-14" />
               </div>
-              <div className="flex gap-3">
-                <Skeleton className="h-4 w-8" />
-                <Skeleton className="h-4 w-8" />
+              {/* Stats row */}
+              <div className="flex gap-3 pt-0.5">
+                <Skeleton className="h-4 w-10" />
+                <Skeleton className="h-4 w-10" />
               </div>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <Skeleton className="w-8 h-8" />
-              <Skeleton className="w-8 h-8" />
             </div>
           </div>
         </CardContent>
@@ -72,32 +82,32 @@ export function GeocacheCardSkeleton({
 
   if (variant === 'featured') {
     return (
-      <Card className={cn('animate-pulse', className)}>
-        <CardContent className="p-3 sm:p-4">
-          <div className="flex items-start gap-3 sm:gap-4">
-            <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shrink-0" />
-            <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <Skeleton className="h-4 w-3/4" />
-                <div className="flex gap-0.5 sm:gap-1 shrink-0">
-                  <Skeleton className="w-6 h-6 sm:w-7 sm:h-7 rounded" />
-                  <Skeleton className="w-6 h-6 sm:w-7 sm:h-7 rounded" />
+      <Card className={cn('animate-pulse overflow-hidden', className)}>
+        <CardContent className="p-0">
+          <div className="flex">
+            <Skeleton className="shrink-0 w-24 sm:w-28 aspect-square rounded-none" />
+            <div className="flex-1 min-w-0 p-3.5 sm:p-4 space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex gap-1 shrink-0">
+                  <Skeleton className="w-7 h-7 rounded" />
+                  <Skeleton className="w-7 h-7 rounded" />
                 </div>
               </div>
               <Skeleton className="h-3 w-1/2" />
-              <div className="hidden sm:block space-y-2">
+              <div className="hidden sm:block space-y-1.5">
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-2/3" />
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex gap-1 sm:gap-1.5">
-                  <Skeleton className="h-5 w-6 sm:w-8" />
-                  <Skeleton className="h-5 w-6 sm:w-8" />
-                  <Skeleton className="h-5 w-8 sm:w-12" />
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex gap-1.5">
+                  <Skeleton className="h-5 w-8" />
+                  <Skeleton className="h-5 w-8" />
+                  <Skeleton className="h-5 w-12" />
                 </div>
-                <div className="flex gap-2 sm:gap-3">
-                  <Skeleton className="h-4 w-4 sm:w-6" />
-                  <Skeleton className="h-4 w-4 sm:w-6" />
+                <div className="flex gap-2.5">
+                  <Skeleton className="h-4 w-6" />
+                  <Skeleton className="h-4 w-6" />
                 </div>
               </div>
             </div>
@@ -107,34 +117,34 @@ export function GeocacheCardSkeleton({
     );
   }
 
-  // Default variant
+  // Default variant - matches standard layout (image-left)
   return (
-    <Card className={cn('animate-pulse', className)}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <Skeleton className="w-16 h-16 rounded-full shrink-0" />
-          <Skeleton className="w-8 h-8" />
-        </div>
-        <Skeleton className="h-6 w-3/4" />
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-5 w-16" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 mb-4">
-          <Skeleton className="h-3 w-full" />
-          <Skeleton className="h-3 w-2/3" />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <Skeleton className="h-6 w-10" />
-            <Skeleton className="h-6 w-10" />
-            <Skeleton className="h-6 w-16" />
-          </div>
-          <div className="flex gap-3">
-            <Skeleton className="h-4 w-8" />
-            <Skeleton className="h-4 w-8" />
+    <Card className={cn('animate-pulse overflow-hidden', className)}>
+      <CardContent className="p-0">
+        <div className="flex">
+          <Skeleton className="shrink-0 w-24 sm:w-28 aspect-square rounded-none" />
+          <div className="flex-1 min-w-0 p-3.5 sm:p-4 space-y-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <Skeleton className="h-5 w-3/4" />
+              <div className="flex gap-1.5 shrink-0">
+                <Skeleton className="w-8 h-8 rounded" />
+                <Skeleton className="w-8 h-8 rounded" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-4 h-4 rounded-full" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-3 w-1/2" />
+            <div className="flex gap-1.5 pt-1">
+              <Skeleton className="h-5 w-10" />
+              <Skeleton className="h-5 w-10" />
+              <Skeleton className="h-5 w-14" />
+            </div>
+            <div className="flex gap-3 pt-0.5">
+              <Skeleton className="h-4 w-10" />
+              <Skeleton className="h-4 w-10" />
+            </div>
           </div>
         </div>
       </CardContent>
