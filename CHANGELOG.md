@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.1.2] - 2026-05-04
+
+### Added
+- Mojave theme — a new Pip-Boy-inspired look with amber-on-black palette, matching map tiles, and themed cache icons
+- Ditto links in the About page footer and navigation menu for folks who want to learn more about the relay
+
+### Changed
+- Radius search is smoother on mobile with a refined control and tighter mobile navigation
+- Map zooms deeper than before, falling back from satellite to standard imagery past zoom 20 so you can keep zeroing in on the hide
+- Tapping a treasure card in the adventure sidebar now focuses the map on that treasure
+- Log comments are optional — leave a quick "found it" without typing anything if you're in a hurry
+- Creating a cache surfaces inline validation as you fill out step 2, so you know what's missing before you hit next
+- Claim page flexibility improvements: the scanner camera stays hidden until you open it, and the flow adapts better to different device capabilities
+- MyCaches refresh, Settings reload, and better skeleton layouts while things are loading
+- Radar empty state is clearer when no caches are nearby
+- Compass overlay, profile counts, and map controls have larger tap targets and better accessibility labels
+- Form fields across the app use proper mobile keyboards (numeric, email, URL) and announce errors to screen readers
+- Save and login buttons give clearer feedback while submitting
+- Error pages, 404s, and PWA update prompts are friendlier and more accessible
+- Map popup preview images load through the image proxy for faster, more reliable thumbnails
+- Settings theme picker is laid out in rows instead of a cramped grid
+
+### Fixed
+- Image uploads on the create-cache form handle size limits, concurrent uploads, and publish gating more reliably
+- Posting a new log updates the log list immediately instead of waiting for a round trip
+
 ## [2.1.1] - 2026-05-03
 
 ### Added
