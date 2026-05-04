@@ -293,17 +293,17 @@ function LogCard({ log, compact = false }: LogCardProps) {
                     >
                       <DropdownMenuItem onClick={handleCopyEventId}>
                         <Copy className="h-4 w-4 mr-2" />
-                        Copy Event ID
+                        {t('logs.copyEventId', 'Copy Event ID')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleViewOnDitto}>
                         <img src="https://ditto.pub/favicon.ico" alt="" className="h-4 w-4 mr-2" />
-                        View on Ditto
+                        {t('logs.viewOnDitto', 'View on Ditto')}
                       </DropdownMenuItem>
                       {isOwnLog && (
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem className="text-red-600 focus:text-red-600">
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete log
+                            {t('logs.deleteLog', 'Delete log')}
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
                       )}
@@ -313,19 +313,36 @@ function LogCard({ log, compact = false }: LogCardProps) {
                   {isOwnLog && (
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete log?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          {t('logs.delete.confirm.title', 'Delete this log?')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete your log. This action cannot be undone.
+                          {logPreview
+                            ? t('logs.delete.confirm.descriptionWithType', {
+                                type: logTypeLabel,
+                                preview: logPreview,
+                                defaultValue:
+                                  'Delete your "{{type}}" log: "{{preview}}"? This action cannot be undone.',
+                              })
+                            : t('logs.delete.confirm.descriptionNoText', {
+                                type: logTypeLabel,
+                                defaultValue:
+                                  'Delete your "{{type}}" log? This action cannot be undone.',
+                              })}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>
+                          {t('logs.delete.confirm.cancel', 'Cancel')}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={handleDeleteLog}
                           className="bg-red-600 hover:bg-red-700"
                           disabled={isDeleting}
                         >
-                          {isDeleting ? "Deleting..." : "Delete"}
+                          {isDeleting
+                            ? t('logs.delete.confirm.deleting', 'Deleting...')
+                            : t('logs.delete.confirm.confirm', 'Delete')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

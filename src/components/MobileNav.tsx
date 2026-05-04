@@ -491,7 +491,7 @@ export function MobileHeader() {
                       href="https://ditto.pub"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground min-h-[40px]"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground min-h-[44px]"
                       onClick={closeSheet}
                     >
                       <img src="https://ditto.pub/favicon.ico" alt="" className="h-4 w-4 shrink-0" />
@@ -542,7 +542,7 @@ export function MobileHeader() {
                     {t('theme.toggle')}
                   </label>
                   <Select value={theme} onValueChange={setTheme}>
-                    <SelectTrigger className="w-full h-8 text-xs">
+                    <SelectTrigger className="w-full min-h-11 text-xs" aria-label={t('theme.toggle')}>
                       <SelectValue>
                         <div className="flex items-center gap-2">
                           {theme === 'light' && <Sun className="h-3.5 w-3.5" />}
@@ -633,12 +633,12 @@ export function MobileHeader() {
             <Button
               size="sm"
               onClick={() => setSignupDialogOpen(true)}
-              className="rounded-full px-3 h-8 text-xs font-semibold"
+              className="rounded-full px-3 min-h-11 text-xs font-semibold"
             >
               {t('auth.join', 'Join')}
             </Button>
           ) : (
-            <div className="w-8" />
+            <div className="w-11" />
           )}
         </div>
       </header>
@@ -684,7 +684,7 @@ function BottomNavItem({
     <Link
       to={to}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] transition-colors min-h-[40px]",
+        "flex flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] transition-colors min-h-[44px]",
         isActive
           ? themeClasses.textActive
           : cn(themeClasses.textMuted, "hover:text-gray-900 dark:hover:text-foreground")
@@ -716,6 +716,9 @@ export function MobileBottomNav() {
   const { open: openRadar } = useRadarOverlay();
   const isAdventureTheme = theme === 'adventure';
   const isDittoTheme = theme === 'ditto';
+  // `mojave` is a pre-existing theme handled via `getThemeClasses`; the
+  // Theme union in useTheme.ts does not include it yet, hence the cast.
+  const isMojaveTheme = (theme as string) === 'mojave';
   const themeClasses = getThemeClasses(theme);
   const isHomePage = location.pathname === '/';
   const [pastHero, setPastHero] = useState(!isHomePage);
@@ -776,25 +779,30 @@ export function MobileBottomNav() {
           </BottomNavItem>
         ))}
 
-        {/* Center compass button — notched into the bar, peeks slightly */}
-        <div className="flex flex-col items-center justify-end h-full pb-1.5">
-          <div className="absolute -top-4 flex items-center justify-center">
+        {/* Center compass button — notched into the bar, peeks slightly.
+            The whole cell (label + FAB) is a single button for a large tap target. */}
+        <button
+          type="button"
+          onClick={openRadar}
+          aria-label={t('navigation.radar', 'Radar')}
+          className="relative flex flex-col items-center justify-end h-full pb-1.5 min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+        >
+          <span className="absolute left-1/2 -translate-x-1/2 -top-4 flex items-center justify-center pointer-events-none">
             {/* Background ring that matches the nav surface — creates the notch */}
-            <div className={cn(
+            <span className={cn(
               "absolute w-[52px] h-[52px] rounded-full",
-              isAdventureTheme ? "bg-adventure-nav" : isDittoTheme ? "bg-card" : "bg-white dark:bg-background"
+              isAdventureTheme ? "bg-adventure-nav" : isDittoTheme || isMojaveTheme ? "bg-card" : "bg-white dark:bg-background"
             )} />
-            <button
-              onClick={openRadar}
-              className="relative flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-md active:scale-95 transition-transform"
+            <span
+              className="relative flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-md"
             >
-              <Compass className="h-5 w-5" />
-            </button>
-          </div>
-          <span className={cn("text-[10px] leading-tight", themeClasses.textMuted)}>
-            {t('navigation.compass')}
+              <Compass className="h-5 w-5" aria-hidden="true" />
+            </span>
           </span>
-        </div>
+          <span className={cn("text-[10px] leading-tight", themeClasses.textMuted)}>
+            {t('navigation.radar', 'Radar')}
+          </span>
+        </button>
 
         {/* Right two items */}
         {rightNav.map((item) => (

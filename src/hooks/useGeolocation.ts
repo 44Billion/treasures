@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/useToast';
 import { getIPLocation } from '../utils/ipGeolocation';
 
@@ -61,6 +62,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     coords: null,
   });
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const getLocation = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -131,8 +133,11 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
             coords: null,
           });
           toast({
-            title: "Location access denied",
-            description: "Please enable location access in your browser settings",
+            title: t('map.nearMe.denied.title', 'Location access blocked'),
+            description: t(
+              'map.nearMe.denied.description',
+              'Enable location in your browser settings to use Near Me.'
+            ),
             variant: "destructive",
           });
           return;
@@ -190,14 +195,17 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
           });
           
           toast({
-            title: "Location unavailable",
-            description: "Please check your location settings and try again",
+            title: t('map.nearMe.unavailable.title', 'Location unavailable'),
+            description: t(
+              'map.nearMe.unavailable.description',
+              "We couldn't determine your location. Check your GPS or try again in a moment."
+            ),
             variant: "destructive",
           });
         }
       }
     }
-  }, [options.enableHighAccuracy, options.timeout, options.maximumAge, toast]);
+  }, [options.enableHighAccuracy, options.timeout, options.maximumAge, toast, t]);
 
   return {
     ...state,

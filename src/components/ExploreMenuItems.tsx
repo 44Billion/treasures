@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTheme } from '@/hooks/useTheme';
+import { TEXAS_REN_FEST_NADDR } from '@/lib/constants';
 
 interface ExploreMenuItemsProps {
   /** Whether to include the "Explore Map" link (omit when already on the map) */
@@ -57,20 +58,20 @@ export function ExploreMenuItems({ showMapLink = true }: ExploreMenuItemsProps) 
       <DropdownMenuItem asChild>
         <Link to="/adventures">
           <Compass className="h-4 w-4 mr-2" />
-          Adventures
+          {t('navigation.adventures')}
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
-        <Link to="/adventure/naddr1qvzqqqyj35pzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qq0xzerkv4h8gatjv5knzdehxcuryve4xuerjv3h94nrsmn2w3msduh0ez">
+        <Link to={`/adventure/${TEXAS_REN_FEST_NADDR}`}>
           <Sparkles className="h-4 w-4 mr-2" />
           {t('navigation.texasRenFest')}
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
-        <a href="/blog">
+        <Link to="/blog">
           <BookOpen className="h-4 w-4 mr-2" />
           {t('navigation.blog')}
-        </a>
+        </Link>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild>

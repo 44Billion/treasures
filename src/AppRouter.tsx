@@ -1,10 +1,12 @@
 import { lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RadarOverlayProvider } from "@/hooks/useRadarOverlay";
 import { GlobalRadarCompass } from "@/components/GlobalRadarCompass";
 import { CompassSpinner } from "@/components/ui/loading";
+import { TEXAS_REN_FEST_NADDR } from "@/lib/constants";
 
 // Import only the most critical page eagerly for instant navigation
 import Home from "./pages/Home";
@@ -40,18 +42,39 @@ function PageFallback() {
   );
 }
 
+/**
+ * Skip-to-content link for keyboard / screen-reader users (WCAG 2.4.1).
+ * Visually hidden until focused; jumps focus past nav into <main>.
+ */
+function SkipToContent() {
+  const { t } = useTranslation();
+  return (
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100000] focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+    >
+      {t('navigation.skipToContent', 'Skip to main content')}
+    </a>
+  );
+}
+
 export function AppRouter() {
   return (
     <BrowserRouter>
       <RadarOverlayProvider>
+      <SkipToContent />
       {/* Scroll to top on route changes */}
       <ScrollToTop />
 
       {/* Mobile Header */}
       <MobileHeader />
 
-      {/* Main Content Area - with bottom padding for mobile nav */}
-      <main className="flex-1 flex flex-col pb-12 md:pb-0 bg-background overflow-x-hidden">
+      {/* Main Content Area - with bottom padding accounting for bottom nav + FAB notch + safe area */}
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 flex flex-col pb-[calc(3rem+env(safe-area-inset-bottom,0px)+1rem)] md:pb-0 bg-background overflow-x-hidden focus:outline-none"
+      >
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -68,7 +91,7 @@ export function AppRouter() {
             <Route path="/install" element={<Install />} />
             <Route path="/claim" element={<Claim />} />
             <Route path="/about" element={<About />} />
-            <Route path="/texas-ren-fest" element={<Navigate to="/adventure/naddr1qvzqqqyj35pzppscgyy746fhmrt0nq955z6xmf80pkvrat0yq0hpknqtd00z8z68qq0xzerkv4h8gatjv5knzdehxcuryve4xuerjv3h94nrsmn2w3msduh0ez" replace />} />
+            <Route path="/texas-ren-fest" element={<Navigate to={`/adventure/${TEXAS_REN_FEST_NADDR}`} replace />} />
             <Route path="/adventures" element={<Adventures />} />
             <Route path="/adventure/:naddr" element={<AdventureDetail />} />
             <Route path="/create-adventure" element={<CreateAdventure />} />

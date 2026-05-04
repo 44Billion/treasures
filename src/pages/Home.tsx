@@ -112,26 +112,14 @@ export default function Home() {
 
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // Add a state to track initial page load for skeleton display
+  // Brief initial-load flag used to avoid skeleton flicker when data is
+  // already cached. Turns off after one tick; the real loading state
+  // (isLoading || !geocaches) is what actually controls the skeleton.
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  // Set initial load to false after a short delay to show skeletons
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoad(false);
-    }, 1500); // Show skeletons for at least 1.5 seconds
-
+    const timer = setTimeout(() => setIsInitialLoad(false), 200);
     return () => clearTimeout(timer);
   }, []);
-
-  // Debug skeleton state
-  console.log('🏠 Home page loading state:', {
-    isInitialLoad,
-    isLoading,
-    hasGeocaches: !!geocaches,
-    geocacheCount: geocaches?.length || 0,
-    shouldShowSkeletons: (isLoading || isInitialLoad) && !geocaches
-  });
 
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);

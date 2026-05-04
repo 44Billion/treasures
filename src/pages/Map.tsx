@@ -111,29 +111,15 @@ export default function Map() {
   // Use the same geocaches hook as Home page to ensure consistent stats
   const baseGeocaches = useGeocaches();
 
-  // Add state for skeleton loading
+  // Add state for skeleton loading. Keep a brief (~200ms) minimum to avoid
+  // flicker when data is already cached, but don't artificially delay beyond
+  // that — real loading state is the source of truth.
   const [showMapSkeletons, setShowMapSkeletons] = useState(true);
 
-  // Hide skeletons after data loads or timeout
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowMapSkeletons(false);
-    }, 2000); // Show skeletons for at least 2 seconds
-
+    const timer = setTimeout(() => setShowMapSkeletons(false), 200);
     return () => clearTimeout(timer);
   }, []);
-
-  // Hide skeletons immediately if we have data and it's not the initial load
-  useEffect(() => {
-    if (baseGeocaches.data && baseGeocaches.data.length > 0) {
-      const timer = setTimeout(() => {
-        setShowMapSkeletons(false);
-      }, 1000); // Keep skeletons for at least 1 second even with data
-
-      return () => clearTimeout(timer);
-    }
-    return;
-  }, [baseGeocaches.data]);
 
   const [isRetrying, setIsRetrying] = useState(false);
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);

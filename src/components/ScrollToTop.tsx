@@ -1,51 +1,86 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { useLocation, useNavigationType, NavigationType } from 'react-router-dom';
 
 /**
- * Component that scrolls to top on route changes.
- * Should be placed inside BrowserRouter but outside Routes.
- * 
- * Features:
- * - Scrolls to top on pathname changes (major navigation)
- * - Preserves scroll position for hash changes (same page navigation)
- * - Uses smooth scrolling behavior when available
- * - Handles both window and main content scrolling
+ * Scroll management component.
+ *
+ * Behaviour:
+ * - On PUSH/REPLACE navigation (forward / new page): scroll to top.
+ * - On POP (browser back/forward): restore the scroll position that was
+ *   recorded when the user left that location.
+ * - Hash-only changes are left to the browser.
+ *
+ * Positions are keyed by `location.key` in sessionStorage so they survive
+ * soft reloads within the same tab.
  */
 export function ScrollToTop() {
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, key } = useLocation();
+  const navigationType = useNavigationType();
+  const previousKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Don't scroll to top if we're navigating to a hash on the same page
+    // Before navigating away from the previous location, record its scroll.
+    const prevKey = previousKeyRef.current;
+    if (prevKey) {
+      try {
+        sessionStorage.setItem(
+          `scroll:${prevKey}`,
+          String(window.scrollY || 0)
+        );
+      } catch {
+        // sessionStorage may be unavailable (private mode, etc.) — ignore.
+      }
+    }
+    previousKeyRef.current = key ?? null;
+
+    // Let the browser handle same-page hash navigation.
     if (hash) {
-      // Let the browser handle hash navigation
       return;
     }
 
-    // Scroll to top for major page navigation
-    // Use smooth scrolling if supported, instant otherwise
+    const isPop = navigationType === NavigationType.Pop;
+
+    if (isPop) {
+      // Restore previous scroll position on back/forward navigation.
+      let savedY = 0;
+      try {
+        const raw = sessionStorage.getItem(`scroll:${key}`);
+        if (raw) savedY = parseInt(raw, 10) || 0;
+      } catch {
+        // ignore
+      }
+      // Defer to allow the page to render before scrolling.
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedY, left: 0, behavior: 'instant' });
+        const mainElement = document.querySelector('main');
+        if (mainElement && typeof mainElement.scrollTo === 'function') {
+          mainElement.scrollTo({ top: savedY, left: 0, behavior: 'instant' });
+        }
+      });
+      return;
+    }
+
+    // Forward navigation: reset scroll.
     const scrollOptions: ScrollToOptions = {
       top: 0,
       left: 0,
-      behavior: 'instant' // Use instant for page changes to feel snappy
+      behavior: 'instant',
     };
 
-    // Scroll the main window
     window.scrollTo(scrollOptions);
 
-    // Also scroll any main content areas that might be independently scrollable
     const mainElement = document.querySelector('main');
     if (mainElement && typeof mainElement.scrollTo === 'function') {
       mainElement.scrollTo(scrollOptions);
     }
 
-    // Handle any other scrollable containers that might need reset
     const scrollableContainers = document.querySelectorAll('[data-scroll-reset]');
     scrollableContainers.forEach(container => {
       if (container instanceof HTMLElement && typeof container.scrollTo === 'function') {
         container.scrollTo(scrollOptions);
       }
     });
-  }, [hash, pathname]); // Only trigger on pathname changes, not hash changes
+  }, [hash, pathname, key, navigationType]);
 
   return null;
 }
