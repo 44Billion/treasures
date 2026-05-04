@@ -10,7 +10,7 @@ import { parseVerificationFromHash } from '@/utils/verification';
 import { decodeCompactUrl, compactToNaddr } from '@/utils/compactUrl';
 import { DesktopHeader } from '@/components/DesktopHeader';
 import { PageHero } from '@/components/PageHero';
-import { QrScanner, isBarcodeDetectorSupported } from '@/components/QrScanner';
+import { QrScanner } from '@/components/QrScanner';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 export default function Claim() {
