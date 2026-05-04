@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import './index.css'
 import './styles/mobile.css'
 import './styles/adventure.css'
+import './styles/mojave.css'
 
 // Validate React is properly loaded before proceeding
 validateReactAvailability();

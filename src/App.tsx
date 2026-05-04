@@ -61,7 +61,7 @@ export function App() {
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
-        themes={['light', 'dark', 'system', 'adventure', 'ditto']}
+        themes={['light', 'dark', 'system', 'adventure', 'mojave', 'ditto']}
       >
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>

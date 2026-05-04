@@ -1,0 +1,90 @@
+/* ===== MOJAVE (NEW VEGAS) THEME ===== */
+/* Cowpoke western typography — Rye for display/UI, default body font for prose */
+
+.mojave h1,
+.mojave h2,
+.mojave h3,
+.mojave h4,
+.mojave h5,
+.mojave h6,
+.mojave .font-heading,
+.mojave nav,
+.mojave .nav,
+.mojave .menu,
+.mojave .title,
+.mojave .label,
+.mojave .badge,
+.mojave .tag,
+.mojave .card-title,
+.mojave .dialog-title,
+.mojave .alert-title,
+.mojave .sidebar-title,
+.mojave .breadcrumb,
+.mojave .tab,
+.mojave .dropdown,
+.mojave .select,
+.mojave .input[type="submit"],
+.mojave .input[type="button"],
+.mojave button,
+.mojave .btn,
+.mojave .link,
+.mojave a:not(.text-content a),
+.mojave .text-lg,
+.mojave .text-xl,
+.mojave .text-2xl,
+.mojave .text-3xl,
+.mojave .text-4xl,
+.mojave .text-5xl,
+.mojave .text-6xl {
+  font-family: 'Rye', 'Times New Roman', serif;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+/* Keep body text with default font */
+.mojave p,
+.mojave .text-content,
+.mojave .prose,
+.mojave .description,
+.mojave .content,
+.mojave p.text-sm,
+.mojave p.text-xs,
+.mojave p.text-base,
+.mojave .text-content .text-sm,
+.mojave .text-content .text-xs,
+.mojave .text-content .text-base,
+.mojave .prose .text-sm,
+.mojave .prose .text-xs,
+.mojave .prose .text-base {
+  font-family: inherit;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.font-mojave {
+  font-family: 'Rye', 'Times New Roman', serif;
+  letter-spacing: 0.01em;
+}
+
+/* Logo/brand-imagery retint — parallels .ditto-logo.
+   The source logo (icon.svg) is predominantly saturated green. To shift
+   it to Pip-Boy amber, rotate the hue directly from green to amber —
+   no sepia or inversion needed, which were producing washed-out mud.
+   280deg rotates green → amber/orange; slight saturation boost keeps
+   the phosphor glow; slight brightness dip keeps it from blowing out
+   on the dark CRT backgrounds.                                           */
+.mojave .mojave-logo {
+  filter: hue-rotate(280deg) saturate(1.1) brightness(0.95);
+}
+
+/* Step illustrations on the Home page — printed-poster-style assets.
+   Same hue-rotate trick. Override the dark:invert / mix-blend-multiply
+   defaults that fight on a dark Mojave theme. */
+.mojave .mojave-step-tint {
+  filter: hue-rotate(280deg) saturate(1.15) brightness(0.9);
+  mix-blend-mode: normal !important;
+}
+
+/* Mojave cache icon hover (UI cards) — matches the map marker hover style */
+.mojave-cache-icon:hover {
+  transform: scale(1.05);
+}

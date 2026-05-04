@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/hooks/useAppContext";
+import { useTheme } from "@/hooks/useTheme";
 import { useSearchParams, Link } from "react-router-dom";
 import { RefreshCw, Sparkles, Compass, ChevronDown, Earth, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -45,6 +46,14 @@ export default function Map() {
   const { t } = useTranslation();
   const { config } = useAppContext();
   const { user } = useCurrentUser();
+  const { resolvedTheme } = useTheme();
+  // Pick the right logo filter class for the active theme.
+  // Each theme defines its own scoped filter (.ditto-logo, .mojave-logo, Adventure uses raw `sepia`).
+  const logoThemeClass =
+    resolvedTheme === 'ditto' ? 'ditto-logo' :
+    resolvedTheme === 'mojave' ? 'mojave-logo' :
+    resolvedTheme === 'adventure' ? 'sepia' :
+    '';
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<number | undefined>(undefined);
@@ -780,7 +789,7 @@ export default function Map() {
           {/* Logo + collapse button */}
           <div className="px-4 pt-3 pb-1 flex-shrink-0 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2 min-w-0">
-              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo flex-shrink-0" />
+              <img src="/icon.svg" alt="Treasures" className={`h-9 w-9 flex-shrink-0 ${logoThemeClass}`} />
               <span className="text-xl font-bold text-foreground truncate">{t('navigation.appName')}</span>
             </Link>
             <Button
@@ -931,7 +940,7 @@ export default function Map() {
         {sidebarCollapsed && (
           <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
             <Link to="/">
-              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
+              <img src="/icon.svg" alt="Treasures" className={`h-9 w-9 ${logoThemeClass}`} />
             </Link>
             <Button
               variant="outline"

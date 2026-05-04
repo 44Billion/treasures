@@ -54,3 +54,25 @@ export const adventureIconStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
 };
+
+// Mojave (Pip-Boy CRT) theme styling — dark terminal panel with amber glow.
+// Uses Pip-Boy amber (#e8a838) for icon strokes and border; background is
+// near-black like a CRT off-state, with a subtle amber phosphor glow.
+export const MOJAVE_AMBER = '#e8a838';
+export const MOJAVE_AMBER_GLOW = 'rgba(232, 168, 56, 0.45)';
+export const MOJAVE_TERMINAL_BG = '#0f0a05';
+export const MOJAVE_AMBER_BORDER = '#c48f2a';
+
+export const mojaveIconStyle: React.CSSProperties = {
+  background: MOJAVE_TERMINAL_BG,
+  border: `2px solid ${MOJAVE_AMBER_BORDER}`,
+  borderRadius: '4px',
+  width: '100%',
+  height: '100%',
+  color: MOJAVE_AMBER,
+  boxShadow: `0 0 8px ${MOJAVE_AMBER_GLOW}, 0 2px 4px rgba(0, 0, 0, 0.5)`,
+  transition: 'all 0.2s ease',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};

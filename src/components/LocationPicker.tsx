@@ -445,6 +445,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       return "original";
     } else if (theme === "adventure") {
       return "adventure";
+    } else if (theme === "mojave") {
+      return "mojave";
     } else if (theme === "system") {
       return systemTheme === "dark" ? "dark" : "original";
     }
@@ -480,6 +482,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         return "original";
       } else if (theme === "adventure") {
         return "adventure";
+      } else if (theme === "mojave") {
+        return "mojave";
       } else if (theme === "system") {
         return systemTheme === "dark" ? "dark" : "original";
       }

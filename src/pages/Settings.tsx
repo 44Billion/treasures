@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Sun, Moon, Monitor, Wifi, Search, Compass, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown, ShieldCheck } from "lucide-react";
+import { Palette, Sun, Moon, Monitor, Wifi, Search, Compass, Mountain, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown, ShieldCheck } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -76,7 +76,7 @@ export default function Settings() {
                   {t('settings.appearance.themeDescription')}
                 </p>
                 {mounted ? (
-                  <div className={`grid grid-cols-2 ${hasDittoTheme ? 'sm:grid-cols-5' : 'sm:grid-cols-4'} gap-3`}>
+                  <div className={`grid grid-cols-2 ${hasDittoTheme ? 'sm:grid-cols-6' : 'sm:grid-cols-5'} gap-3`}>
                     <Button
                       variant={theme === "light" ? "default" : "outline"}
                       onClick={() => setTheme("light")}
@@ -101,6 +101,14 @@ export default function Settings() {
                       <Compass className="h-4 w-4" />
                       <span className="text-sm">{t('settings.appearance.adventure')}</span>
                     </Button>
+                    <Button
+                      variant={theme === "mojave" ? "default" : "outline"}
+                      onClick={() => setTheme("mojave")}
+                      className="flex items-center gap-2 h-10 px-4"
+                    >
+                      <Mountain className="h-4 w-4" />
+                      <span className="text-sm">{t('settings.appearance.mojave')}</span>
+                    </Button>
                     {hasDittoTheme && (
                       <Button
                         variant={theme === "ditto" ? "default" : "outline"}
@@ -121,11 +129,12 @@ export default function Settings() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     {[
                       { icon: Sun, label: t('settings.appearance.light') },
                       { icon: Moon, label: t('settings.appearance.dark') },
                       { icon: Compass, label: t('settings.appearance.adventure') },
+                      { icon: Mountain, label: t('settings.appearance.mojave') },
                       { icon: Monitor, label: t('settings.appearance.system') }
                     ].map(({ icon: Icon, label }) => (
                       <Button

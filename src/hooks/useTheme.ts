@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type Theme = 'light' | 'dark' | 'adventure' | 'ditto' | 'system';
-type ResolvedTheme = 'light' | 'dark' | 'adventure' | 'ditto';
+type Theme = 'light' | 'dark' | 'adventure' | 'mojave' | 'ditto' | 'system';
+type ResolvedTheme = 'light' | 'dark' | 'adventure' | 'mojave' | 'ditto';
 type ThemeContextType = {
   theme: Theme | undefined;
   setTheme: (theme: Theme) => void;
@@ -35,7 +35,7 @@ export function ThemeProvider({
   defaultTheme = 'system',
   enableSystem = true,
   disableTransitionOnChange = true,
-  themes = ['light', 'dark', 'system', 'adventure'],
+  themes = ['light', 'dark', 'system', 'adventure', 'mojave'],
   storageKey = 'ui-theme',
 }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -124,7 +124,7 @@ export function ThemeProvider({
 
       if (attribute === 'class') {
         // Remove old theme classes
-        ['light', 'dark', 'adventure'].forEach(t => {
+        ['light', 'dark', 'adventure', 'mojave'].forEach(t => {
           root.classList.remove(t);
         });
         root.classList.add(themeToApply);

@@ -6,7 +6,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import { useTheme } from "@/hooks/useTheme";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import type { Geocache } from "@/types/geocache";
-import { getCacheIconSvg, getCacheColor } from "@/utils/cacheIconUtils";
+import { getCachedCacheIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
 
 // Import Leaflet CSS, overrides, and adventure theme
@@ -14,102 +14,8 @@ import "leaflet/dist/leaflet.css";
 import "@/styles/leaflet-overrides.css";
 import "@/styles/map-features.css";
 
-// Cached icon instances: 3 types x 2 themes = 6 icons total.
-// Icons are created once and reused across all markers.
-const iconCache = new Map<string, L.DivIcon>();
-
-function getCachedCacheIcon(type: string, isAdventureTheme: boolean): L.DivIcon {
-  const key = `${type}-${isAdventureTheme}`;
-  const cached = iconCache.get(key);
-  if (cached) return cached;
-
-  const iconSvg = getCacheIconSvg(type);
-  const color = getCacheColor(type);
-
-  let icon: L.DivIcon;
-
-  if (isAdventureTheme) {
-    const adventureColors = {
-      background: '#6495ED',
-      border: '#4169E1',
-      icon: '#FFFFFF',
-    };
-
-    icon = L.divIcon({
-      html: `
-        <div style="
-          background: ${adventureColors.background};
-          border: 2px solid ${adventureColors.border};
-          border-radius: 4px;
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 4px rgba(65, 105, 225, 0.3);
-          position: relative;
-          cursor: pointer;
-          color: ${adventureColors.icon};
-        ">
-          ${iconSvg.replace(/stroke="currentColor"/g, `stroke="${adventureColors.icon}"`).replace(/fill="currentColor"/g, `fill="${adventureColors.icon}"`)}
-        </div>
-        <div style="
-          position: absolute;
-          bottom: -6px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 0;
-          height: 0;
-          border-left: 6px solid transparent;
-          border-right: 6px solid transparent;
-          border-top: 6px solid ${adventureColors.background};
-        "></div>
-      `,
-      className: "custom-cache-icon adventure-cache-icon adventure-quest-marker",
-      iconSize: [36, 42],
-      iconAnchor: [18, 42],
-      popupAnchor: [0, -42],
-    });
-  } else {
-    icon = L.divIcon({
-      html: `
-        <div style="
-          background: ${color};
-          border: 3px solid white;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-          position: relative;
-          cursor: pointer;
-        ">
-          ${iconSvg}
-        </div>
-        <div style="
-          position: absolute;
-          bottom: -8px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 0;
-          height: 0;
-          border-left: 8px solid transparent;
-          border-right: 8px solid transparent;
-          border-top: 8px solid ${color};
-        "></div>
-      `,
-      className: "custom-cache-icon",
-      iconSize: [40, 48],
-      iconAnchor: [20, 48],
-      popupAnchor: [0, -48],
-    });
-  }
-
-  iconCache.set(key, icon);
-  return icon;
-}
+// Map marker icons come from the shared helper in `@/utils/cacheMapIcons`
+// so ProfileMap and GeocacheMap stay in sync.
 
 interface ProfileMapProps {
   geocaches: Geocache[];
@@ -133,13 +39,15 @@ function ThemeController({
     const container = map.getContainer();
 
     // Remove all theme classes
-    container.classList.remove('dark-theme', 'adventure-theme', 'system-dark-theme');
+    container.classList.remove('dark-theme', 'adventure-theme', 'mojave-theme', 'system-dark-theme');
 
     // Add current theme class
     if (currentStyle === 'dark') {
       container.classList.add('dark-theme');
     } else if (currentStyle === 'adventure') {
       container.classList.add('adventure-theme');
+    } else if (currentStyle === 'mojave') {
+      container.classList.add('mojave-theme');
     } else if (currentStyle === 'original') {
       // For original style, check if we should apply system dark theme
       if (appTheme === 'system' && systemTheme === 'dark') {
@@ -221,6 +129,8 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
       return "original";
     } else if (theme === "adventure") {
       return "adventure";
+    } else if (theme === "mojave") {
+      return "mojave";
     } else if (theme === "system") {
       // Use system preference if theme is set to system
       return systemTheme === "dark" ? "dark" : "original";
@@ -245,6 +155,8 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         return "original";
       } else if (theme === "adventure") {
         return "adventure";
+      } else if (theme === "mojave") {
+        return "mojave";
       } else if (theme === "system") {
         return systemTheme === "dark" ? "dark" : "original";
       }
@@ -506,7 +418,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
             <Marker
               key={geocache.dTag}
               position={[geocache.location.lat, geocache.location.lng]}
-              icon={getCachedCacheIcon(geocache.type, currentMapStyle === 'adventure')}
+              icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle))}
               eventHandlers={{
                 click: (e) => {
                   const marker = e.target;

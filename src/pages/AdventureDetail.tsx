@@ -42,6 +42,12 @@ export default function AdventureDetail() {
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const { theme, resolvedTheme, setTheme } = useTheme();
+  // Pick the right logo filter class for the active theme.
+  const logoThemeClass =
+    resolvedTheme === 'ditto' ? 'ditto-logo' :
+    resolvedTheme === 'mojave' ? 'mojave-logo' :
+    resolvedTheme === 'adventure' ? 'sepia' :
+    '';
 
   const [selectedGeocache, setSelectedGeocache] = useState<Geocache | null>(null);
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
@@ -370,7 +376,7 @@ export default function AdventureDetail() {
         {sidebarCollapsed && (
           <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
             <Link to="/">
-              <img src="/icon.svg" alt="Treasures" className="h-9 w-9 ditto-logo" />
+              <img src="/icon.svg" alt="Treasures" className={`h-9 w-9 ${logoThemeClass}`} />
             </Link>
             <Button
               variant="outline"

@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Map, Plus, Menu, Settings, Bookmark, LogOut, User, UserPlus, QrCode,
   ScanQrCode, Info, BookOpen, Sparkles, List, Compass, ChevronDown, ChevronUp,
-  Search, Sun, Moon, Sword, Monitor, Scroll,
+  Search, Sun, Moon, Sword, Mountain, Monitor, Scroll,
 } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { DittoIcon } from '@/components/icons/DittoIcon';
@@ -48,6 +48,16 @@ function getThemeClasses(theme: string | undefined) {
       textActive: 'text-primary',
       button: 'text-foreground hover:bg-accent hover:text-accent-foreground',
       icon: 'ditto-logo',
+    };
+  }
+  if (theme === 'mojave') {
+    return {
+      header: 'bg-card',
+      text: 'text-foreground',
+      textMuted: 'text-muted-foreground',
+      textActive: 'text-primary',
+      button: 'text-foreground hover:bg-accent hover:text-accent-foreground',
+      icon: 'mojave-logo',
     };
   }
   return {
@@ -550,12 +560,14 @@ export function MobileHeader() {
                           {theme === 'light' && <Sun className="h-3.5 w-3.5" />}
                           {theme === 'dark' && <Moon className="h-3.5 w-3.5" />}
                           {theme === 'adventure' && <Sword className="h-3.5 w-3.5" />}
+                          {theme === 'mojave' && <Mountain className="h-3.5 w-3.5" />}
                           {theme === 'ditto' && <DittoIcon className="h-3.5 w-3.5" />}
                           {theme === 'system' && <Monitor className="h-3.5 w-3.5" />}
                           <span>
                             {theme === 'light' && t('theme.light')}
                             {theme === 'dark' && t('theme.dark')}
                             {theme === 'adventure' && t('theme.adventure')}
+                            {theme === 'mojave' && t('theme.mojave')}
                             {theme === 'ditto' && t('theme.ditto')}
                             {theme === 'system' && t('theme.system')}
                           </span>
@@ -579,6 +591,12 @@ export function MobileHeader() {
                         <div className="flex items-center gap-2">
                           <Sword className="h-4 w-4" />
                           {t('theme.adventure')}
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="mojave">
+                        <div className="flex items-center gap-2">
+                          <Mountain className="h-4 w-4" />
+                          {t('theme.mojave')}
                         </div>
                       </SelectItem>
                       {hasDittoTheme && (
@@ -718,9 +736,7 @@ export function MobileBottomNav() {
   const { open: openRadar } = useRadarOverlay();
   const isAdventureTheme = theme === 'adventure';
   const isDittoTheme = theme === 'ditto';
-  // `mojave` is a pre-existing theme handled via `getThemeClasses`; the
-  // Theme union in useTheme.ts does not include it yet, hence the cast.
-  const isMojaveTheme = (theme as string) === 'mojave';
+  const isMojaveTheme = theme === 'mojave';
   const themeClasses = getThemeClasses(theme);
   const isHomePage = location.pathname === '/';
   const [pastHero, setPastHero] = useState(!isHomePage);

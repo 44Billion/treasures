@@ -1,7 +1,7 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Sun, Moon, Sword, Monitor } from 'lucide-react';
+import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Sun, Moon, Sword, Mountain, Monitor } from 'lucide-react';
 import { DittoIcon } from '@/components/icons/DittoIcon';
 import { useActiveProfileTheme } from '@/hooks/useActiveProfileTheme';
 import { useTranslation } from 'react-i18next';
@@ -139,19 +139,21 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
                   {theme === 'light' && <Sun className="h-4 w-4" />}
                   {theme === 'dark' && <Moon className="h-4 w-4" />}
                   {theme === 'adventure' && <Sword className="h-4 w-4" />}
+                  {theme === 'mojave' && <Mountain className="h-4 w-4" />}
                   {theme === 'ditto' && <DittoIcon className="h-4 w-4" />}
                   {theme === 'system' && <Monitor className="h-4 w-4" />}
                   <span>
                     {theme === 'light' && t('theme.light')}
                     {theme === 'dark' && t('theme.dark')}
                     {theme === 'adventure' && t('theme.adventure')}
+                    {theme === 'mojave' && t('theme.mojave')}
                     {theme === 'ditto' && t('theme.ditto')}
                     {theme === 'system' && t('theme.system')}
                   </span>
                 </div>
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[10000]">
               <SelectItem value="light">
                 <div className="flex items-center gap-2">
                   <Sun className="h-4 w-4" />
@@ -168,6 +170,12 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
                 <div className="flex items-center gap-2">
                   <Sword className="h-4 w-4" />
                   {t('theme.adventure')}
+                </div>
+              </SelectItem>
+              <SelectItem value="mojave">
+                <div className="flex items-center gap-2">
+                  <Mountain className="h-4 w-4" />
+                  {t('theme.mojave')}
                 </div>
               </SelectItem>
               {hasDittoTheme && (

@@ -71,6 +71,49 @@
   --badge-outline-text: #2d1810;
 }
 
+/* Mojave theme colors — Pip-Boy CRT aesthetic: dark panels, amber glow, rust accents */
+.leaflet-container.mojave-theme {
+  --map-bg: #0f0a05;                  /* Near-black base, shows during tile load */
+  --popup-bg: #1a1108;                 /* Dark terminal panel */
+  --popup-border: #e8a838;             /* Amber CRT border */
+  --popup-text: #f4c876;               /* Amber-glow text */
+  --popup-muted: #a87820;              /* Dimmer amber */
+  --control-bg: #1a1108;
+  --control-border: #e8a838;           /* Amber-framed controls */
+  --control-text: #f4c876;
+  --control-hover-bg: #2a1a0c;
+  --control-hover-text: #ffd98a;       /* Brighter amber on hover */
+  --button-primary-bg: #e8a838;        /* Amber press-button */
+  --button-primary-border: #a87820;
+  --button-primary-text: #1a0f08;      /* Dark text on amber, like CRT lit signage */
+  --button-outline-bg: rgba(26, 17, 8, 0.92);
+  --button-outline-border: #e8a838;
+  --button-outline-text: #f4c876;
+  --badge-bg: #8b2a1f;                 /* Legion red accent */
+  --badge-text: #f2e5cc;
+  --badge-border: #5a1a14;
+  --badge-outline-bg: rgba(26, 17, 8, 0.92);
+  --badge-outline-text: #f4c876;
+}
+
+/* Mojave map tile tint — Pip-Boy CRT on CARTO dark_all tiles.
+
+   The insight: dark_all is already structurally a Pip-Boy — dark ground
+   with near-white glowing features. I don't need to flip anything.
+   I just need to recolor the glow from white to amber, while keeping
+   the dark ground dark.
+
+   sepia(1) does exactly this: every pixel becomes (brown × original luminance).
+     - Dark ground pixels (low luminance) stay dark, now faintly warm-brown.
+     - Road/label pixels (high luminance) become bright brown.
+   hue-rotate(-25deg) shifts the brown cast toward amber-orange (Pip-Boy hue).
+   saturate(3) cranks the amber — without this, sepia's brown is too muted.
+
+   NO invert. NO brightness dimming. NO contrast. The source is already CRT.  */
+.leaflet-container.mojave-theme .leaflet-tile-pane {
+  filter: sepia(1) hue-rotate(-25deg) saturate(3);
+}
+
 /* ===== BASE MAP CONTAINER ===== */
 .leaflet-container {
   background: var(--map-bg);
@@ -79,7 +122,7 @@
 }
 
 /* Enhanced gradient for light theme only */
-.leaflet-container:not(.adventure-theme):not(.dark-theme):not(.system-dark-theme) {
+.leaflet-container:not(.adventure-theme):not(.mojave-theme):not(.dark-theme):not(.system-dark-theme) {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
 }
 
@@ -587,6 +630,12 @@
   box-shadow: 0 3px 6px rgba(65, 105, 225, 0.4);
 }
 
+/* Mojave (Pip-Boy) marker hover — amber phosphor glow intensifies */
+.mojave-cache-icon:hover > div:first-child {
+  transform: scale(1.05);
+  box-shadow: 0 0 14px rgba(232, 168, 56, 0.75), 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
 .user-location-icon {
   z-index: 999;
   background: none;
@@ -665,6 +714,26 @@
 
 .leaflet-container.adventure-theme .cluster-large {
   background: #4a7c1a;
+}
+
+/* Mojave cluster styling — glowing amber Pip-Boy waypoints against the dark wasteland */
+.leaflet-container.mojave-theme .cluster-marker {
+  border-color: #1a0f08;
+  text-shadow: 0 0 4px rgba(232, 168, 56, 0.8);
+  color: #1a0f08;
+  box-shadow: 0 0 8px rgba(232, 168, 56, 0.5);
+}
+
+.leaflet-container.mojave-theme .cluster-small {
+  background: #f4c876;   /* Bright amber — small waypoint */
+}
+
+.leaflet-container.mojave-theme .cluster-medium {
+  background: #e8a838;   /* Core Pip-Boy amber */
+}
+
+.leaflet-container.mojave-theme .cluster-large {
+  background: #c4691c;   /* Burnt amber — dense signal */
 }
 
 /* Dark theme cluster styling */

@@ -101,6 +101,8 @@ export default {
 			fontFamily: {
 				'pirata': ['Pirata One', 'cursive'],
 				'adventure': ['Pirata One', 'cursive'],
+				'rye': ['Rye', 'Times New Roman', 'serif'],
+				'mojave': ['Rye', 'Times New Roman', 'serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -177,6 +179,10 @@ export default {
 		// Add adventure theme selector support
 		function({ addVariant }: any) {
 			addVariant('adventure', '.adventure &')
+		},
+		// Add mojave theme selector support
+		function({ addVariant }: any) {
+			addVariant('mojave', '.mojave &')
 		},
 		// Add safe area utilities
 		function({ addUtilities }: any) {

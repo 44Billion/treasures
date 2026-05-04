@@ -1,4 +1,5 @@
 @import '@fontsource/pirata-one/index.css';
+@import '@fontsource/rye/index.css';
 
 @tailwind base;
 @tailwind components;
@@ -139,6 +140,62 @@
     --gradient-from: 35 30% 93%;
     --gradient-via: 40 25% 91%;
     --gradient-to: 30 20% 92%;
+  }
+
+  .mojave {
+    /* Mojave (New Vegas) theme — Pip-Boy CRT display.
+       Philosophy: you are INSIDE the Pip-Boy, looking at its amber monochrome
+       screen. Dark near-black ground everywhere. Amber phosphor foreground.
+       Near-mono palette — no greens, no blues; only deep oxblood as warning. */
+
+    /* Surfaces: CRT off-state with faint warm-glass bias */
+    --background: 30 30% 6%;          /* Near-black, warm bias (CRT glass) */
+    --foreground: 34 82% 62%;         /* Amber phosphor — signature text color */
+
+    --card: 28 28% 9%;                /* Slight step up from background */
+    --card-foreground: 34 82% 62%;
+
+    --popover: 26 26% 8%;
+    --popover-foreground: 34 82% 62%;
+
+    /* Primary: bright CRT amber — the dominant signal */
+    --primary: 34 88% 55%;            /* Pip-Boy amber */
+    --primary-foreground: 28 40% 6%;  /* Near-black on amber buttons */
+    --primary-50:  30 30% 10%;        /* Dark surface tints (inverted for dark base) */
+    --primary-100: 30 32% 13%;
+    --primary-200: 30 34% 18%;
+    --primary-700: 34 85% 70%;        /* Light variants on dark bg */
+    --primary-800: 34 88% 78%;
+
+    /* Secondary/muted: dim amber — surfaces within the CRT */
+    --secondary: 32 40% 18%;          /* Dark amber surface */
+    --secondary-foreground: 34 75% 68%;
+
+    --muted: 30 22% 14%;              /* Slightly off-ground surface */
+    --muted-foreground: 32 45% 48%;   /* Dimmed amber for secondary text */
+
+    /* Accent: deep glow amber — slightly dimmer than primary, like a sub-menu */
+    --accent: 32 60% 36%;             /* Warm rust-amber accent */
+    --accent-foreground: 34 82% 80%;
+
+    /* Destructive: the ONLY non-amber color — deep Legion oxblood for warnings */
+    --destructive: 4 72% 42%;         /* Legion / warning red */
+    --destructive-foreground: 34 50% 92%;
+
+    /* Success: still amber — on a Pip-Boy, "good" is the same color as everything else,
+       just brighter/clearer. No green. */
+    --success: 34 90% 58%;
+    --success-foreground: 28 40% 6%;
+
+    /* Borders: amber hairlines — visible structure against near-black */
+    --border: 32 40% 22%;
+    --input: 30 28% 12%;
+    --ring: 34 90% 60%;               /* Bright amber focus glow */
+
+    /* Gradient: dusky CRT bezel — near-black with a warm lift at the edges */
+    --gradient-from: 30 32% 8%;
+    --gradient-via:  28 28% 6%;
+    --gradient-to:   32 34% 10%;
   }
 }
 
