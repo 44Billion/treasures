@@ -223,22 +223,45 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
     }
   ], [t]);
 
+  const typeGroupId = 'cache-type-group';
+
+  const handleRadioKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIdx: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const delta = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    const next = (currentIdx + delta + typeOptions.length) % typeOptions.length;
+    onChange(typeOptions[next].value);
+    const nextEl = document.querySelector<HTMLButtonElement>(`#${typeGroupId} [data-radio-idx="${next}"]`);
+    nextEl?.focus();
+  };
+
   return (
     <div className="space-y-3 text-foreground">
-      <Label>
+      <Label id={`${typeGroupId}-label`}>
         What type of cache?
         <span className="text-xs text-muted-foreground block mt-1">Choose the cache style</span>
       </Label>
 
-      <div className="grid grid-cols-3 gap-2">
-        {typeOptions.map((type) => {
+      <div
+        id={typeGroupId}
+        role="radiogroup"
+        aria-labelledby={`${typeGroupId}-label`}
+        className="grid grid-cols-3 gap-2"
+      >
+        {typeOptions.map((type, idx) => {
+          const selected = value === type.value;
           return (
             <button
               key={type.value}
               type="button"
+              role="radio"
+              aria-checked={selected}
+              data-radio-idx={idx}
+              tabIndex={selected || (!value && idx === 0) ? 0 : -1}
               onClick={() => onChange(type.value)}
+              onKeyDown={(e) => handleRadioKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
-                value === type.value
+                selected
                   ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
@@ -302,23 +325,45 @@ export function CacheSizeField({ value, onChange }: Omit<CacheSelectFieldProps, 
     }
   ];
 
+  const sizeGroupId = 'cache-size-group';
+  const handleSizeKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIdx: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const delta = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    const next = (currentIdx + delta + sizeOptions.length) % sizeOptions.length;
+    onChange(sizeOptions[next].value);
+    const nextEl = document.querySelector<HTMLButtonElement>(`#${sizeGroupId} [data-radio-idx="${next}"]`);
+    nextEl?.focus();
+  };
+
   return (
     <div className="space-y-3 text-foreground">
-      <Label>
+      <Label id={`${sizeGroupId}-label`}>
         Container size
         <span className="text-xs text-muted-foreground block mt-1">Choose the container size</span>
       </Label>
 
-      <div className="grid grid-cols-5 gap-2">
-        {sizeOptions.map((size) => {
+      <div
+        id={sizeGroupId}
+        role="radiogroup"
+        aria-labelledby={`${sizeGroupId}-label`}
+        className="grid grid-cols-5 gap-2"
+      >
+        {sizeOptions.map((size, idx) => {
           const IconComponent = size.icon;
+          const selected = value === size.value;
           return (
             <button
               key={size.value}
               type="button"
+              role="radio"
+              aria-checked={selected}
+              data-radio-idx={idx}
+              tabIndex={selected || (!value && idx === 0) ? 0 : -1}
               onClick={() => onChange(size.value)}
+              onKeyDown={(e) => handleSizeKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
-                value === size.value
+                selected
                   ? 'border-purple-500 bg-purple-50 dark:bg-purple-950'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
@@ -388,24 +433,51 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
     }
   ];
 
+  const difficultyGroupId = 'cache-difficulty-group';
+  const handleDifficultyKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIdx: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const delta = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    const next = (currentIdx + delta + difficultyLevels.length) % difficultyLevels.length;
+    onChange(difficultyLevels[next].level.toString());
+    // Focus the matching visible button (desktop or mobile)
+    const candidates = document.querySelectorAll<HTMLButtonElement>(
+      `[data-group="${difficultyGroupId}"][data-radio-idx="${next}"]`
+    );
+    for (const el of Array.from(candidates)) {
+      if (el.offsetParent !== null) { el.focus(); break; }
+    }
+  };
+
   return (
-    <div className="space-y-3 text-foreground">
-      <Label>
+    <div
+      className="space-y-3 text-foreground"
+      role="radiogroup"
+      aria-labelledby={`${difficultyGroupId}-label`}
+    >
+      <Label id={`${difficultyGroupId}-label`}>
         How hard is it to solve?
         <span className="text-xs text-muted-foreground block mt-1">Mental challenge level</span>
       </Label>
 
       {/* Desktop: 5 options in a single row */}
       <div className="hidden lg:grid lg:grid-cols-5 gap-2">
-        {difficultyLevels.map((level) => {
+        {difficultyLevels.map((level, idx) => {
           const IconComponent = level.icon;
+          const selected = numericValue === level.level;
           return (
             <button
               key={level.level}
               type="button"
+              role="radio"
+              aria-checked={selected}
+              data-group={difficultyGroupId}
+              data-radio-idx={idx}
+              tabIndex={selected || (numericValue === 0 && idx === 0) ? 0 : -1}
               onClick={() => onChange(level.level.toString())}
+              onKeyDown={(e) => handleDifficultyKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
-                numericValue === level.level
+                selected
                   ? 'border-primary bg-primary-50 dark:bg-primary-50'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
@@ -431,15 +503,22 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
       <div className="lg:hidden space-y-2">
         {/* First row: 3 options */}
         <div className="grid grid-cols-3 gap-2">
-          {difficultyLevels.slice(0, 3).map((level) => {
+          {difficultyLevels.slice(0, 3).map((level, idx) => {
             const IconComponent = level.icon;
+            const selected = numericValue === level.level;
             return (
               <button
                 key={level.level}
                 type="button"
+                role="radio"
+                aria-checked={selected}
+                data-group={difficultyGroupId}
+                data-radio-idx={idx}
+                tabIndex={selected || (numericValue === 0 && idx === 0) ? 0 : -1}
                 onClick={() => onChange(level.level.toString())}
+                onKeyDown={(e) => handleDifficultyKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all ${
-                  numericValue === level.level
+                  selected
                     ? 'border-primary bg-primary-50 dark:bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
@@ -463,15 +542,23 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
 
         {/* Second row: 2 options centered, matching top row cell width */}
         <div className="flex gap-2 justify-center">
-          {difficultyLevels.slice(3).map((level) => {
+          {difficultyLevels.slice(3).map((level, offset) => {
             const IconComponent = level.icon;
+            const idx = offset + 3;
+            const selected = numericValue === level.level;
             return (
               <button
                 key={level.level}
                 type="button"
+                role="radio"
+                aria-checked={selected}
+                data-group={difficultyGroupId}
+                data-radio-idx={idx}
+                tabIndex={selected ? 0 : -1}
                 onClick={() => onChange(level.level.toString())}
+                onKeyDown={(e) => handleDifficultyKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all w-[calc((100%-1rem)/3)] ${
-                  numericValue === level.level
+                  selected
                     ? 'border-primary bg-primary-50 dark:bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
@@ -546,24 +633,50 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
     }
   ];
 
+  const terrainGroupId = 'cache-terrain-group';
+  const handleTerrainKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIdx: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const delta = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    const next = (currentIdx + delta + terrainLevels.length) % terrainLevels.length;
+    onChange(terrainLevels[next].level.toString());
+    const candidates = document.querySelectorAll<HTMLButtonElement>(
+      `[data-group="${terrainGroupId}"][data-radio-idx="${next}"]`
+    );
+    for (const el of Array.from(candidates)) {
+      if (el.offsetParent !== null) { el.focus(); break; }
+    }
+  };
+
   return (
-    <div className="space-y-3 text-foreground">
-      <Label>
+    <div
+      className="space-y-3 text-foreground"
+      role="radiogroup"
+      aria-labelledby={`${terrainGroupId}-label`}
+    >
+      <Label id={`${terrainGroupId}-label`}>
         How hard is it to reach?
         <span className="text-xs text-muted-foreground block mt-1">Physical challenge level</span>
       </Label>
 
       {/* Desktop: 5 options in a single row */}
       <div className="hidden lg:grid lg:grid-cols-5 gap-2">
-        {terrainLevels.map((level) => {
+        {terrainLevels.map((level, idx) => {
           const IconComponent = level.icon;
+          const selected = numericValue === level.level;
           return (
             <button
               key={level.level}
               type="button"
+              role="radio"
+              aria-checked={selected}
+              data-group={terrainGroupId}
+              data-radio-idx={idx}
+              tabIndex={selected || (numericValue === 0 && idx === 0) ? 0 : -1}
               onClick={() => onChange(level.level.toString())}
+              onKeyDown={(e) => handleTerrainKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
-                numericValue === level.level
+                selected
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                   : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
               }`}
@@ -589,15 +702,22 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
       <div className="lg:hidden space-y-2">
         {/* First row: 3 options */}
         <div className="grid grid-cols-3 gap-2">
-          {terrainLevels.slice(0, 3).map((level) => {
+          {terrainLevels.slice(0, 3).map((level, idx) => {
             const IconComponent = level.icon;
+            const selected = numericValue === level.level;
             return (
               <button
                 key={level.level}
                 type="button"
+                role="radio"
+                aria-checked={selected}
+                data-group={terrainGroupId}
+                data-radio-idx={idx}
+                tabIndex={selected || (numericValue === 0 && idx === 0) ? 0 : -1}
                 onClick={() => onChange(level.level.toString())}
+                onKeyDown={(e) => handleTerrainKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all ${
-                  numericValue === level.level
+                  selected
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}
@@ -621,15 +741,23 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
 
         {/* Second row: 2 options centered, matching top row cell width */}
         <div className="flex gap-2 justify-center">
-          {terrainLevels.slice(3).map((level) => {
+          {terrainLevels.slice(3).map((level, offset) => {
             const IconComponent = level.icon;
+            const idx = offset + 3;
+            const selected = numericValue === level.level;
             return (
               <button
                 key={level.level}
                 type="button"
+                role="radio"
+                aria-checked={selected}
+                data-group={terrainGroupId}
+                data-radio-idx={idx}
+                tabIndex={selected ? 0 : -1}
                 onClick={() => onChange(level.level.toString())}
+                onKeyDown={(e) => handleTerrainKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all w-[calc((100%-1rem)/3)] ${
-                  numericValue === level.level
+                  selected
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                     : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
                 }`}

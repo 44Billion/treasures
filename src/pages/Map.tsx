@@ -584,6 +584,53 @@ export default function Map() {
     }
   };
 
+  /** Clear text + D/T/type filters but keep map location. */
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setDifficulty(undefined);
+    setDifficultyOperator("all");
+    setTerrain(undefined);
+    setTerrainOperator("all");
+    setCacheType(undefined);
+  };
+
+  /** True when any text / D / T / type filter is active. */
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() ||
+    difficulty !== undefined ||
+    terrain !== undefined ||
+    cacheType
+  );
+
+  /** Shared filter-aware empty state. */
+  const renderEmptyState = () => (
+    <div className="text-center py-8 px-4">
+      <Earth className="h-8 w-8 text-muted-foreground mx-auto mb-3" aria-hidden="true" />
+      <h4 className="font-semibold text-foreground mb-2">
+        {hasActiveFilters
+          ? t('map.empty.filteredTitle', 'No matches for your filters')
+          : t('map.empty.title', 'No Geocaches Found')}
+      </h4>
+      <p className="text-sm text-muted-foreground mb-4">
+        {hasActiveFilters
+          ? t('map.empty.filteredDescription', 'Try widening your search, clearing filters, or moving the map.')
+          : t('map.empty.description', 'No geocaches matched your current search or filters.')}
+      </p>
+      <div className="flex flex-wrap gap-2 justify-center">
+        {hasActiveFilters && (
+          <Button variant="default" size="sm" onClick={handleClearFilters}>
+            <X className="h-3 w-3 mr-2" aria-hidden="true" />
+            {t('map.empty.clearFilters', 'Clear filters')}
+          </Button>
+        )}
+        <Button variant="outline" size="sm" onClick={handleShowEarth}>
+          <Earth className="h-3 w-3 mr-2" aria-hidden="true" />
+          {t('map.empty.showAll', 'Show All Caches')}
+        </Button>
+      </div>
+    </div>
+  );
+
   const handleRetry = async () => {
     setIsRetrying(true);
     try {
@@ -832,17 +879,7 @@ export default function Map() {
                 compact={true}
                 showRelayFallback={true}
                 className="h-full"
-                emptyState={
-                  <div className="text-center py-8 px-4">
-                    <Earth className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                    <h4 className="font-semibold text-foreground mb-2">{t('map.empty.title', 'No Geocaches Found')}</h4>
-                    <p className="text-sm text-muted-foreground mb-4">{t('map.empty.description', 'No geocaches matched your current search or filters.')}</p>
-                    <Button variant="outline" size="sm" onClick={handleShowEarth}>
-                      <Earth className="h-3 w-3 mr-2" />
-                      {t('map.empty.showAll', 'Show All Caches')}
-                    </Button>
-                  </div>
-                }
+                emptyState={renderEmptyState()}
               >
                  <div className="px-4 pt-2 pb-4">
                  <ResultsCountRow className="mb-2" />
@@ -1099,17 +1136,7 @@ export default function Map() {
                   compact={true}
                   showRelayFallback={true}
                   className="h-full"
-                  emptyState={
-                    <div className="text-center py-8 px-4">
-                      <Earth className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">{t('map.empty.title', 'No Geocaches Found')}</h4>
-                      <p className="text-sm text-muted-foreground mb-4">{t('map.empty.description', 'No geocaches matched your current search or filters.')}</p>
-                      <Button variant="outline" size="sm" onClick={handleShowEarth}>
-                        <Earth className="h-3 w-3 mr-2" />
-                        {t('map.empty.showAll', 'Show All Caches')}
-                      </Button>
-                    </div>
-                  }
+                  emptyState={renderEmptyState()}
                 >
                 <div className="space-y-3">
                   <ResultsCountRow showInView />

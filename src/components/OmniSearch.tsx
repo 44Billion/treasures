@@ -82,6 +82,20 @@ export function OmniSearch({
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const listboxId = useRef(`omnisearch-listbox-${Math.random().toString(36).slice(2, 9)}`).current;
+
+  // Reset keyboard highlight whenever the result set changes
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [results]);
+
+  // Scroll the active option into view when keyboard navigation moves it
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    const el = document.getElementById(`${listboxId}-opt-${activeIndex}`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex, listboxId]);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholder);
   const searchTimeout = useRef<NodeJS.Timeout>(undefined);
   const abortController = useRef<AbortController>(undefined);
@@ -426,12 +440,62 @@ export function OmniSearch({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Escape closes the dropdown
+    if (e.key === 'Escape') {
+      if (showResults) {
+        e.preventDefault();
+        setShowResults(false);
+        setActiveIndex(-1);
+      }
+      return;
+    }
+
+    // Arrow navigation through results
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (results.length === 0) return;
+      e.preventDefault();
+      const delta = e.key === 'ArrowDown' ? 1 : -1;
+      setActiveIndex((prev) => {
+        const next = prev + delta;
+        if (next < 0) return results.length - 1;
+        if (next >= results.length) return 0;
+        return next;
+      });
+      if (!showResults) setShowResults(true);
+      return;
+    }
+
+    if (e.key === 'Home') {
+      if (results.length > 0) {
+        e.preventDefault();
+        setActiveIndex(0);
+      }
+      return;
+    }
+
+    if (e.key === 'End') {
+      if (results.length > 0) {
+        e.preventDefault();
+        setActiveIndex(results.length - 1);
+      }
+      return;
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault();
 
       // Clear timeout to prevent double search
       if (searchTimeout.current) {
         clearTimeout(searchTimeout.current);
+      }
+
+      // If a result is highlighted via keyboard, select it
+      if (activeIndex >= 0 && activeIndex < results.length) {
+        const chosen = results[activeIndex];
+        if (chosen) {
+          handleResultClick(chosen);
+          return;
+        }
       }
 
       // If we have results, select the first one
@@ -523,12 +587,24 @@ export function OmniSearch({
               zIndex: 10000,
             }}
           >
-            <div className="p-1">
-              {results.map((result, index) => (
+            <div className="p-1" role="listbox" id={listboxId}>
+              {results.map((result, index) => {
+                const optId = `${listboxId}-opt-${index}`;
+                const isActive = index === activeIndex;
+                return (
                 <button
                   key={index}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-start gap-2 transition-colors"
+                  id={optId}
+                  role="option"
+                  aria-selected={isActive}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded flex items-start gap-2 transition-colors",
+                    isActive
+                      ? "bg-primary/10 dark:bg-primary/20"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  )}
                   onClick={() => handleResultClick(result)}
+                  onMouseEnter={() => setActiveIndex(index)}
                 >
                   <span className="text-lg mt-0.5 shrink-0">
                     {typeof getResultIcon(result) === 'string' ? (
@@ -577,7 +653,8 @@ export function OmniSearch({
                     </Badge>
                   ) : null}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </Card>
         )}
@@ -619,6 +696,12 @@ export function OmniSearch({
           placeholder={currentPlaceholder}
           className={cn("h-10 lg:h-9 pl-8", query ? "pr-8" : "pr-3")}
           onFocus={() => query && handleSearch(query)}
+          role="combobox"
+          aria-expanded={showResults && results.length > 0}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-activedescendant={activeIndex >= 0 ? `${listboxId}-opt-${activeIndex}` : undefined}
+          aria-label={placeholder}
         />
         {isSearching && (
           <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
