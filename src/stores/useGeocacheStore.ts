@@ -324,6 +324,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         relays: relayPreferences,
         verificationPubkey: verificationKeyPair.publicKey,
         hidden: geocacheData.hidden,
+        status: geocacheData.status,
         kind: geocacheData.kind, // Pass the kind to determine tag format
       });
 
@@ -404,6 +405,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         images: updates.images !== undefined ? updates.images : originalGeocache.images,
         contentWarning: updates.contentWarning !== undefined ? updates.contentWarning : originalGeocache.contentWarning,
         hidden: updates.hidden !== undefined ? updates.hidden : originalGeocache.hidden,
+        status: updates.status !== undefined ? updates.status : originalGeocache.status,
       };
 
       // Build tags using consolidated utility
@@ -421,6 +423,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         relays: originalGeocache.relays,
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key
         hidden: updatedData.hidden,
+        status: updatedData.status,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 

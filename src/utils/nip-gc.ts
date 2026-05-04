@@ -27,10 +27,17 @@ export const NIP_GC_KINDS = {
 const VALID_CACHE_TYPES = ['traditional', 'multi', 'mystery'] as const;
 const VALID_CACHE_SIZES = ['micro', 'small', 'regular', 'large', 'other'] as const;
 const VALID_COMMENT_LOG_TYPES = ['dnf', 'note', 'maintenance', 'archived'] as const;
+// Reserved `t` tag values that are NOT cache types but rather lifecycle/visibility flags.
+// Used to disambiguate when parsing the `t` tag for cache type.
+const RESERVED_T_TAG_VALUES = ['hidden', 'archived', 'maintenance'] as const;
+// Valid cache status values (owner-controlled lifecycle state of the listing itself,
+// distinct from the per-log `archived` / `maintenance` comment log types).
+export const VALID_CACHE_STATUSES = ['archived', 'maintenance'] as const;
 
 export type ValidCacheType = typeof VALID_CACHE_TYPES[number];
 export type ValidCacheSize = typeof VALID_CACHE_SIZES[number];
 export type ValidCommentLogType = typeof VALID_COMMENT_LOG_TYPES[number];
+export type ValidCacheStatus = typeof VALID_CACHE_STATUSES[number];
 
 // ===== GEOHASH UTILITIES =====
 
@@ -177,9 +184,12 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       size = event.tags.find(t => t[0] === 'size')?.[1];
     }
 
-    // Type tag is 't' according to NIP-GC, defaults to 'traditional' if not specified
-    // Look for cache type in 't' tags, excluding 'hidden'
-    const cacheType = event.tags.find(t => t[0] === 't' && t[1] !== 'hidden')?.[1] || 'traditional';
+    // Type tag is 't' according to NIP-GC, defaults to 'traditional' if not specified.
+    // Exclude reserved values (hidden, archived, maintenance) that repurpose the `t` tag
+    // as lifecycle/visibility flags rather than cache type.
+    const cacheType = event.tags.find(
+      t => t[0] === 't' && t[1] !== undefined && !RESERVED_T_TAG_VALUES.includes(t[1] as typeof RESERVED_T_TAG_VALUES[number])
+    )?.[1] || 'traditional';
 
     // Validate required fields
     if (!name || !geohash || !difficulty || !terrain || !size) {
@@ -219,6 +229,15 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     // Check if cache is hidden (has 't' tag with 'hidden' value)
     const hidden = event.tags.some(t => t[0] === 't' && t[1] === 'hidden');
 
+    // Owner-set lifecycle status (archived | maintenance). Exposed via reserved `t` tag values.
+    // If both are present for some reason, `archived` takes precedence (it's the stronger signal).
+    let status: ValidCacheStatus | undefined;
+    if (event.tags.some(t => t[0] === 't' && t[1] === 'archived')) {
+      status = 'archived';
+    } else if (event.tags.some(t => t[0] === 't' && t[1] === 'maintenance')) {
+      status = 'maintenance';
+    }
+
     const naddr = nip19.naddrEncode({
       identifier: dTag,
       pubkey: event.pubkey,
@@ -247,6 +266,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       client,
       verificationPubkey,
       hidden,
+      status,
     };
   } catch (error) {
     return null;
@@ -392,6 +412,7 @@ export function buildGeocacheTags(data: {
   relays?: string[];
   verificationPubkey?: string;
   hidden?: boolean;
+  status?: ValidCacheStatus;
   kind?: number; // Original kind to preserve for updates
 }): string[][] {
   // Validate inputs
@@ -474,6 +495,11 @@ export function buildGeocacheTags(data: {
   // Add hidden tag if the cache is hidden
   if (data.hidden) {
     tags.push(['t', 'hidden']);
+  }
+
+  // Add lifecycle status tag (archived | maintenance) if set by the owner
+  if (data.status && VALID_CACHE_STATUSES.includes(data.status)) {
+    tags.push(['t', data.status]);
   }
 
   return tags;

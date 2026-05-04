@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
 import { useZapStore } from '@/stores/useZapStore';
-import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, Zap, MapPin, Trash2 } from 'lucide-react';
+import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, Zap, MapPin, Trash2, Archive, Wrench } from 'lucide-react';
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTheme } from "@/hooks/useTheme";
 import { getSizeLabel } from '@/utils/geocache-utils';
 import { offlineGeocode } from '@/utils/offlineGeocode';
+import { cn } from '@/utils/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Geocache } from '@/types/geocache';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
@@ -43,6 +44,7 @@ interface BaseGeocacheCardProps {
     kind?: number;
     relays?: string[];
     hidden?: boolean;
+    status?: 'archived' | 'maintenance';
     images?: string[];
     contentWarning?: string;
     city?: string;
@@ -171,6 +173,11 @@ export function GeocacheCard({
   // Check if this cache is hidden and the current user is the creator
   const isHiddenByCreator = cache.hidden && cache.pubkey === user?.pubkey;
 
+  // Owner-set lifecycle status. Archived and maintenance caches are de-emphasized
+  // (dimmed) in lists and carry a status badge so seekers immediately see the state.
+  const status = cache.status;
+  const hasStatus = status === 'archived' || status === 'maintenance';
+
   // Check if adventure theme is active
   const isAdventureTheme = theme === 'adventure';
 
@@ -261,9 +268,34 @@ export function GeocacheCard({
     );
   };
 
+  const renderStatusBadge = (isCompact = false) => {
+    if (!hasStatus) return null;
+    const isArchived = status === 'archived';
+    const Icon = isArchived ? Archive : Wrench;
+    const label = isArchived
+      ? t('geocache.status.archived', 'Archived')
+      : t('geocache.status.maintenance', 'Maintenance');
+    return (
+      <Badge
+        variant="outline"
+        className={cn(
+          'flex items-center gap-1 shrink-0',
+          isCompact ? 'text-[10px] sm:text-xs py-0 px-1 sm:px-1.5' : 'text-xs px-2 py-0.5 sm:px-2',
+          isArchived
+            ? 'border-muted-foreground/40 bg-muted text-muted-foreground'
+            : 'border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+        )}
+      >
+        <Icon className={isCompact ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
+        {label}
+      </Badge>
+    );
+  };
+
   const renderBadgesAndStats = (isCompact = false) => (
     <div className="flex items-center justify-between gap-2 mt-auto">
       <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
+        {renderStatusBadge(isCompact)}
         <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
           D{cache.difficulty}
         </Badge>
@@ -357,7 +389,10 @@ export function GeocacheCard({
     return (
       <InteractiveCard
         onClick={() => handleNavigate()}
-        className="group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col overflow-hidden"
+        className={cn(
+          "group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col overflow-hidden",
+          hasStatus && "opacity-70 hover:opacity-90"
+        )}
       >
         <CardContent className="p-0 flex-1 flex flex-col">
           <div className="flex relative flex-1">
@@ -464,7 +499,7 @@ export function GeocacheCard({
     const hasSpoiler = !!cache.contentWarning;
 
     return (
-      <InteractiveCard onClick={() => handleNavigate()} compact={true} className={`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`}>
+      <InteractiveCard onClick={() => handleNavigate()} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
             {/* Image container - always shown with pastel green background if no image */}
@@ -543,6 +578,7 @@ export function GeocacheCard({
               {/* Bottom row with badges and stats */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-wrap gap-0.5 sm:gap-1 min-w-0">
+                  {renderStatusBadge(true)}
                   <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
                     D{cache.difficulty}
                   </Badge>

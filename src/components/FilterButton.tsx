@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle, Sparkles } from "lucide-react";
+import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle, Sparkles, Archive, Wrench, CheckCircle2 } from "lucide-react";
 import { sneaker, treesForest, chest } from '@lucide/lab';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 export type ComparisonOperator = "all" | "eq" | "gt" | "gte" | "lt" | "lte";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +92,14 @@ interface FilterButtonProps {
   cacheType?: string;
   onCacheTypeChange: (value: string | undefined) => void;
 
+  /** Status filter flags. When an omitted prop is undefined, treat as default (active=true, others=false). */
+  showActive?: boolean;
+  showArchived?: boolean;
+  showMaintenance?: boolean;
+  onShowActiveChange?: (value: boolean) => void;
+  onShowArchivedChange?: (value: boolean) => void;
+  onShowMaintenanceChange?: (value: boolean) => void;
+
   className?: string;
   compact?: boolean;
 }
@@ -106,6 +115,12 @@ export function FilterButton({
   onTerrainOperatorChange,
   cacheType,
   onCacheTypeChange,
+  showActive = true,
+  showArchived = false,
+  showMaintenance = false,
+  onShowActiveChange,
+  onShowArchivedChange,
+  onShowMaintenanceChange,
   className,
   compact = false,
 }: FilterButtonProps) {
@@ -170,11 +185,14 @@ export function FilterButton({
     onCacheTypeChange(value === "all" ? undefined : value);
   };
 
-  // Count active filters
+  // Count active filters (status section counts as active when it differs from defaults:
+  // default is showActive=true, showArchived=false, showMaintenance=false).
+  const statusFilterActive = !showActive || showArchived || showMaintenance;
   const activeFilterCount = [
     difficulty !== undefined,
     terrain !== undefined,
     cacheType !== undefined,
+    statusFilterActive,
   ].filter(Boolean).length;
 
   // Clear all filters
@@ -184,6 +202,9 @@ export function FilterButton({
     onTerrainChange(undefined);
     onTerrainOperatorChange("all");
     onCacheTypeChange(undefined);
+    onShowActiveChange?.(true);
+    onShowArchivedChange?.(false);
+    onShowMaintenanceChange?.(false);
   };
 
   return (
@@ -397,6 +418,50 @@ export function FilterButton({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Status Filter (archived / maintenance listings are hidden by default) */}
+            {(onShowActiveChange || onShowArchivedChange || onShowMaintenanceChange) && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground">
+                  {t('filters.status', 'Listing status')}
+                </Label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={showActive}
+                      onCheckedChange={(checked) => onShowActiveChange?.(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <span className="flex items-center gap-1.5 text-sm">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                      {t('filters.statusActive', 'Active')}
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={showMaintenance}
+                      onCheckedChange={(checked) => onShowMaintenanceChange?.(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <span className="flex items-center gap-1.5 text-sm">
+                      <Wrench className="h-3.5 w-3.5 text-amber-600" />
+                      {t('filters.statusMaintenance', 'Needs maintenance')}
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={showArchived}
+                      onCheckedChange={(checked) => onShowArchivedChange?.(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <span className="flex items-center gap-1.5 text-sm">
+                      <Archive className="h-3.5 w-3.5 text-muted-foreground" />
+                      {t('filters.statusArchived', 'Archived')}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </PopoverContent>

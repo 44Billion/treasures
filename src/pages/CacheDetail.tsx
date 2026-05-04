@@ -9,7 +9,7 @@ import { ZapButton } from "@/components/ZapButton";
 import { GeocacheLoading } from "@/components/GeocacheLoading";
 import { useDirectNavigation } from '@/hooks/useDirectNavigation';
 
-import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus } from "lucide-react";
+import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus, Archive, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,6 +142,7 @@ export default function CacheDetail() {
     size: defaults.size,
     type: defaults.type,
     hidden: false,
+    status: undefined,
     contentWarning: "",
   });
   const [editImages, setEditImages] = useState<string[]>([]);
@@ -181,6 +182,7 @@ export default function CacheDetail() {
         size: geocache.size,
         type: geocache.type,
         hidden: geocache.hidden || false,
+        status: geocache.status,
         contentWarning: geocache.contentWarning || "",
       });
       setEditImages(geocache.images || []);
@@ -337,6 +339,7 @@ export default function CacheDetail() {
         size: geocache.size,
         type: geocache.type,
         hidden: geocache.hidden || false,
+        status: geocache.status,
       });
       setEditImages(geocache.images || []);
       setEditLocation(geocache.location);
@@ -376,6 +379,7 @@ export default function CacheDetail() {
       ...editFormData,
       images: editImages,
       hidden: editFormData.hidden,
+      status: editFormData.status,
       location: editLocation,
       difficulty: parseFloat(editFormData.difficulty),
       terrain: parseFloat(editFormData.terrain),
@@ -665,7 +669,28 @@ export default function CacheDetail() {
 
               <div className="pt-6 sm:pt-0 lg:p-6 p-4 lg:pt-6">
                 <div className="flex items-start gap-2 sm:gap-4">
-                  <h1 className="text-2xl break-words flex-1 font-bold text-foreground select-text">{geocache.name}</h1>
+                  <div className="flex-1 min-w-0 flex flex-col gap-2">
+                    <h1 className="text-2xl break-words font-bold text-foreground select-text">{geocache.name}</h1>
+                    {(geocache.status === 'archived' || geocache.status === 'maintenance') && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          geocache.status === 'maintenance'
+                            ? 'w-fit gap-1.5 border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            : 'w-fit gap-1.5 border-muted-foreground/40 bg-muted text-muted-foreground'
+                        }
+                      >
+                        {geocache.status === 'archived' ? (
+                          <Archive className="h-3.5 w-3.5" />
+                        ) : (
+                          <Wrench className="h-3.5 w-3.5" />
+                        )}
+                        {geocache.status === 'archived'
+                          ? t('geocache.status.archived', 'Archived')
+                          : t('geocache.status.maintenance', 'Needs maintenance')}
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex gap-1 sm:gap-2 flex-shrink-0 ml-2">
                     <ZapButton target={geocache} />
                     {!isOwner && <SaveButton geocache={geocache} />}

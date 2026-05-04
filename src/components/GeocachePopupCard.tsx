@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from 'zustand';
-import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, MapPin, Trophy, X as XIcon, MessageSquare } from "lucide-react";
+import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, MapPin, Trophy, X as XIcon, MessageSquare, Archive, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
 import { useZapStore } from "@/stores/useZapStore";
@@ -131,6 +131,26 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
           >
             {geocache.name}
           </h3>
+          {(geocache.status === 'archived' || geocache.status === 'maintenance') && (
+            <div className="mt-1">
+              <span
+                className={
+                  geocache.status === 'archived'
+                    ? 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground border border-muted-foreground/30'
+                    : 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                }
+              >
+                {geocache.status === 'archived' ? (
+                  <Archive className="h-3 w-3" />
+                ) : (
+                  <Wrench className="h-3 w-3" />
+                )}
+                {geocache.status === 'archived'
+                  ? t('geocache.status.archived', 'Archived')
+                  : t('geocache.status.maintenance', 'Maintenance')}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-1 mt-1 text-[10px] sm:text-[11px] text-muted-foreground">
             <span className="font-medium bg-muted rounded px-1 py-px">D{geocache.difficulty}</span>
             <span className="font-medium bg-muted rounded px-1 py-px">T{geocache.terrain}</span>

@@ -22,6 +22,7 @@ interface EditGeocacheData {
   type: "traditional" | "multi" | "mystery";
   images?: string[];
   hidden?: boolean;
+  status?: 'archived' | 'maintenance';
   location?: { lat: number; lng: number };
 }
 
@@ -78,6 +79,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         relays: originalGeocache.relays,
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key!
         hidden: data.hidden,
+        status: data.status,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind!
       });
 
@@ -126,6 +128,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         type: data.type,
         images: data.images || [],
         hidden: data.hidden,
+        status: data.status,
         location: data.location || originalGeocache.location,
         // Keep the same IDs and metadata
         id: originalGeocache.id,

@@ -61,6 +61,11 @@ export default function Map() {
   const [terrain, setTerrain] = useState<number | undefined>(undefined);
   const [terrainOperator, setTerrainOperator] = useState<ComparisonOperator>("all");
   const [cacheType, setCacheType] = useState<string | undefined>(undefined);
+  // Listing-status filter. Archived / maintenance caches are hidden from the map by default.
+  // Seekers can explicitly opt in via the FilterButton popover.
+  const [showActive, setShowActive] = useState<boolean>(true);
+  const [showArchived, setShowArchived] = useState<boolean>(false);
+  const [showMaintenance, setShowMaintenance] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>({ lat: 25, lng: -40 });
   const [mapZoom, setMapZoom] = useState(window.innerWidth >= 1024 ? 3 : 2);
@@ -298,12 +303,20 @@ export default function Map() {
     // 'adventure' type filter hides all geocaches regardless of search mode
     if (cacheType === 'adventure') return [];
 
+    // Helper that filters by listing status. Applied in every branch so that
+    // archived/maintenance caches never appear on the map unless opted in.
+    const byStatus = (g: Geocache) => {
+      if (g.status === 'archived') return showArchived;
+      if (g.status === 'maintenance') return showMaintenance;
+      return showActive;
+    };
+
     if (isProximitySearchActive) {
-      return geocaches || [];
+      return (geocaches || []).filter(byStatus);
     }
 
     const caches = baseGeocaches.data || [];
-    let filtered = [...caches];
+    let filtered = caches.filter(byStatus);
 
     // Text search filter
     if (searchQuery) {
@@ -337,7 +350,7 @@ export default function Map() {
     filtered.sort((a, b) => b.created_at - a.created_at);
 
     return filtered;
-  }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType]);
+  }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType, showActive, showArchived, showMaintenance]);
 
   // Virtualizers for desktop sidebar and mobile list.
   // They share the same data but each has its own scroll container.
@@ -842,6 +855,12 @@ export default function Map() {
                 onTerrainOperatorChange={setTerrainOperator}
                 cacheType={cacheType}
                 onCacheTypeChange={setCacheType}
+                showActive={showActive}
+                showArchived={showArchived}
+                showMaintenance={showMaintenance}
+                onShowActiveChange={setShowActive}
+                onShowArchivedChange={setShowArchived}
+                onShowMaintenanceChange={setShowMaintenance}
               />
             </div>
           </div>
@@ -1093,6 +1112,12 @@ export default function Map() {
                       onTerrainOperatorChange={setTerrainOperator}
                       cacheType={cacheType}
                       onCacheTypeChange={setCacheType}
+                      showActive={showActive}
+                      showArchived={showArchived}
+                      showMaintenance={showMaintenance}
+                      onShowActiveChange={setShowActive}
+                      onShowArchivedChange={setShowArchived}
+                      onShowMaintenanceChange={setShowMaintenance}
                       compact
                     />
                   </div>
@@ -1231,6 +1256,12 @@ export default function Map() {
                     onTerrainOperatorChange={setTerrainOperator}
                     cacheType={cacheType}
                     onCacheTypeChange={setCacheType}
+                    showActive={showActive}
+                    showArchived={showArchived}
+                    showMaintenance={showMaintenance}
+                    onShowActiveChange={setShowActive}
+                    onShowArchivedChange={setShowArchived}
+                    onShowMaintenanceChange={setShowMaintenance}
                     compact
                   />
                 </div>

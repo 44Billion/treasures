@@ -851,6 +851,76 @@ export function CacheHiddenField({ checked, onChange, fieldId = "hidden" }: Cach
   );
 }
 
+// === CACHE STATUS FIELD (lifecycle: active / maintenance / archived) ===
+
+interface CacheStatusFieldProps {
+  value: 'archived' | 'maintenance' | undefined;
+  onChange: (value: 'archived' | 'maintenance' | undefined) => void;
+  fieldId?: string;
+}
+
+export function CacheStatusField({ value, onChange, fieldId = "status" }: CacheStatusFieldProps) {
+  const options: Array<{
+    id: 'active' | 'maintenance' | 'archived';
+    label: string;
+    description: string;
+  }> = [
+    {
+      id: 'active',
+      label: 'Active',
+      description: 'Healthy and findable. Shown on the map by default.',
+    },
+    {
+      id: 'maintenance',
+      label: 'Needs maintenance',
+      description: 'Temporarily disabled. Hidden from the map unless seekers opt in.',
+    },
+    {
+      id: 'archived',
+      label: 'Archived',
+      description: 'Officially retired. Hidden from the map unless seekers opt in.',
+    },
+  ];
+
+  const currentId: 'active' | 'maintenance' | 'archived' = value ?? 'active';
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={fieldId} className="text-sm font-medium text-foreground">
+        Listing status
+      </Label>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Listing status">
+        {options.map((opt) => {
+          const active = currentId === opt.id;
+          return (
+            <button
+              key={opt.id}
+              id={opt.id === currentId ? fieldId : undefined}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(opt.id === 'active' ? undefined : opt.id)}
+              className={cn(
+                "text-left rounded-md border p-3 transition-colors",
+                active
+                  ? opt.id === 'archived'
+                    ? "border-muted-foreground/50 bg-muted ring-1 ring-muted-foreground/30"
+                    : opt.id === 'maintenance'
+                      ? "border-amber-500/60 bg-amber-500/5 ring-1 ring-amber-500/40"
+                      : "border-primary bg-primary/5 ring-1 ring-primary/40"
+                  : "border-border bg-background hover:bg-muted/40"
+              )}
+            >
+              <div className="text-sm font-medium text-foreground">{opt.label}</div>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{opt.description}</p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // === IMAGE MANAGEMENT COMPONENT ===
 
 interface CacheImageManagerProps {
@@ -1115,7 +1185,7 @@ export function GeocacheForm({
   className
 }: GeocacheFormProps) {
 
-  const updateField = (field: keyof GeocacheFormData, value: string | boolean) => {
+  const updateField = <K extends keyof GeocacheFormData>(field: K, value: GeocacheFormData[K]) => {
     onFormDataChange({
       ...formData,
       [field]: value
@@ -1214,11 +1284,28 @@ export function GeocacheForm({
         />
       </div>
 
-      {/* Visibility Settings — only shown for caches already marked hidden */}
+      {/* Listing Status — always visible to the owner */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="text-lg font-medium text-foreground">Listing Status</h3>
+          <p className="text-sm text-muted-foreground">Signal the current state of your cache to seekers</p>
+        </div>
+
+        <CacheStatusField
+          value={formData.status}
+          onChange={(value) => updateField('status', value)}
+          fieldId={fieldPrefix ? `${fieldPrefix}-status` : 'status'}
+        />
+      </div>
+
+      {/* Legacy Hidden toggle — only shown when the cache is already marked hidden.
+          `hidden` is a deprecated visibility flag retained for backward compatibility
+          with existing listings that opted into it. New caches should use the
+          Listing Status above (archived / maintenance) instead. */}
       {formData.hidden && (
         <div className="space-y-4">
           <div className="border-b pb-2">
-            <h3 className="text-lg font-medium text-foreground">Visibility</h3>
+            <h3 className="text-lg font-medium text-foreground">Visibility (Legacy)</h3>
             <p className="text-sm text-muted-foreground">Control who can find your cache</p>
           </div>
 

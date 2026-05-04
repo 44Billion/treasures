@@ -26,6 +26,13 @@ export interface Geocache {
   client?: string; // The client that created this event
   verificationPubkey?: string; // Public key for verification
   hidden?: boolean; // Whether the cache is hidden from public listings
+  /**
+   * Owner-set lifecycle status of the listing.
+   *  - `archived`:   cache is officially retired. Excluded from the map by default.
+   *  - `maintenance`: cache needs owner attention. Excluded from the map by default.
+   *  - `undefined`:  active / healthy cache.
+   */
+  status?: 'archived' | 'maintenance';
   city?: string; // Cached city/location name for display
   // Additional metadata from OSM verification
   accessibility?: {
@@ -85,6 +92,7 @@ export interface CreateGeocacheData {
   images?: string[];
   contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
   hidden?: boolean;
+  status?: 'archived' | 'maintenance';
   dTag?: string; // Optional pre-generated dTag for matching QR codes
   verificationKeyPair?: any; // Optional pre-generated verification keypair
   kind?: number; // Optional kind to preserve from claim URLs (37515 for legacy, 37516 for new)
