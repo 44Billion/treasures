@@ -93,6 +93,7 @@ export default function AdventureDetail() {
       setTheme(savedResolvedTheme ?? 'system');
       // Let MobileHeader take over status bar management again
       const wasItDark = savedResolvedTheme === 'dark' || savedResolvedTheme === 'adventure'
+        || savedResolvedTheme === 'mojave'
         || (savedResolvedTheme === 'ditto' && document.documentElement.classList.contains('ditto-dark'));
       document.documentElement.setAttribute('data-status-bar', wasItDark ? 'dark' : 'light');
       // Restore localStorage again on cleanup (setTheme overwrites it)

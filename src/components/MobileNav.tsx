@@ -166,6 +166,7 @@ export function MobileHeader() {
   }, [isHero]);
 
   const isDarkTheme = resolvedTheme === 'dark' || resolvedTheme === 'adventure'
+    || resolvedTheme === 'mojave'
     || (resolvedTheme === 'ditto' && isDittoDark);
 
   useEffect(() => {
