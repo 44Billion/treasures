@@ -12,12 +12,27 @@ interface NearMeButtonProps {
 export function NearMeButton({ onNearMe, isActive, isLocating, isAdventureTheme = false }: NearMeButtonProps) {
   const { t } = useTranslation();
 
+  const label = isLocating
+    ? t('map.nearMe.locating')
+    : isActive
+      ? t('map.nearMe.active')
+      : t('map.nearMe.title');
+
+  // Use aria-disabled + pointer-events-none instead of the native `disabled`
+  // attribute so the button stays focusable for screen-reader users while
+  // locating is in progress.
+  const handleClick = () => {
+    if (isLocating) return;
+    onNearMe();
+  };
+
   return (
     <Button
-      variant={isActive ? "default" : "secondary"}
+      variant={isActive ? 'default' : 'secondary'}
       size="lg"
       className={`
         !p-0 h-10 w-10 min-w-10 rounded-full transition-all duration-200 flex items-center justify-center border
+        ${isLocating ? 'opacity-80 cursor-not-allowed' : ''}
         ${isAdventureTheme
           ? isActive
             ? 'bg-primary hover:bg-primary/90 text-primary-foreground border-primary'
@@ -27,11 +42,14 @@ export function NearMeButton({ onNearMe, isActive, isLocating, isAdventureTheme 
             : 'bg-background/95 backdrop-blur-sm hover:bg-background'
         }
       `}
-      onClick={onNearMe}
-      disabled={isLocating}
-      title={isLocating ? t('map.nearMe.locating') : isActive ? t('map.nearMe.active') : t('map.nearMe.title')}
+      onClick={handleClick}
+      aria-label={label}
+      aria-pressed={isActive}
+      aria-busy={isLocating}
+      aria-disabled={isLocating}
+      title={label}
     >
-      <Locate className={`h-4 w-4 ${isLocating ? 'animate-spin' : ''}`} />
+      <Locate className={`h-4 w-4 ${isLocating ? 'animate-spin' : ''}`} aria-hidden="true" />
     </Button>
   );
 }

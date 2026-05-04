@@ -300,6 +300,8 @@ export function MobileHeader() {
                     {/* User row with expand toggle */}
                     <button
                       onClick={() => setAccountExpanded((v) => !v)}
+                      aria-expanded={accountExpanded}
+                      aria-controls="account-expanded-panel"
                       className="flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 transition-colors w-full text-left"
                     >
                       <Avatar className="w-9 h-9 shrink-0">
@@ -332,7 +334,7 @@ export function MobileHeader() {
 
                     {/* Expanded account actions */}
                     {accountExpanded && (
-                      <div className="border-b">
+                      <div id="account-expanded-panel" className="border-b">
                         {/* Other accounts */}
                         {otherUsers.map((account) => (
                           <button

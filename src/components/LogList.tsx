@@ -127,32 +127,13 @@ function LogCard({ log, compact = false }: LogCardProps) {
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      
+
       toast({
         title: t('logs.eventIdCopied.title'),
         description: t('logs.eventIdCopied.description'),
       });
     }
-    
-    // Remove focus from the trigger button after copying
-    setTimeout(() => {
-      const activeElement = document.activeElement as HTMLElement;
-      if (activeElement && activeElement.blur) {
-        activeElement.blur();
-        // Force remove any lingering focus styles
-        activeElement.style.outline = 'none';
-        activeElement.style.boxShadow = 'none';
-      }
-      // Also blur any button elements in the area
-      const buttons = document.querySelectorAll('button[data-state]');
-      buttons.forEach((button) => {
-        if (button instanceof HTMLElement) {
-          button.blur();
-          button.style.outline = 'none';
-          button.style.boxShadow = 'none';
-        }
-      });
-    }, 100);
+    // Radix DropdownMenu handles focus via onCloseAutoFocus; no manual blur needed.
   };
 
   const dittoUrl = useMemo(() => {
@@ -210,6 +191,15 @@ function LogCard({ log, compact = false }: LogCardProps) {
         return "outline" as const;
     }
   };
+
+  // Values used by the delete-confirmation dialog so the user can see
+  // exactly which log they're about to delete.
+  const logTypeLabel = getLogTypeLabel();
+  const logPreview = (() => {
+    const text = (log.text || '').trim();
+    if (!text) return '';
+    return text.length > 80 ? `${text.slice(0, 77)}…` : text;
+  })();
 
   return (
     <Card className="mobile-card-spacing">

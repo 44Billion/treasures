@@ -47,12 +47,26 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
   }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const nsecInputRef = useRef<HTMLInputElement>(null);
   const login = useLoginActions();
 
   // Check if extension is available
   const hasExtension = typeof window !== 'undefined' && 'nostr' in window;
   // Check if on mobile device
   const isMobile = useIsMobile();
+
+  // Focus the nsec input when it becomes available:
+  // - When there's no extension it's shown inline on dialog open
+  // - When there IS an extension it's hidden behind the "use secret key"
+  //   toggle; focus it when the user expands the section.
+  useEffect(() => {
+    if (!isOpen) return;
+    if (hasExtension && !showKeySection) return;
+    const timer = setTimeout(() => {
+      nsecInputRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isOpen, hasExtension, showKeySection]);
   // Generate nostrconnect params (sync) - just creates the QR code data
   const generateConnectSession = useCallback(() => {
     const relayUrls = login.getRelayUrls();
@@ -228,7 +242,24 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       if (content) {
         const trimmedContent = content.trim();
         if (validateNsec(trimmedContent)) {
+          // File contained a valid nsec — auto-login so the user isn't
+          // forced to click "Log in" for a key they already verified.
           setNsec(trimmedContent);
+          setErrors(prev => ({ ...prev, nsec: undefined }));
+          setIsFileLoading(false);
+          setIsLoading(true);
+          try {
+            login.nsec(trimmedContent);
+            onLogin();
+            onClose();
+            // Clear the key from memory after login
+            setNsec('');
+          } catch {
+            setErrors(prev => ({ ...prev, nsec: t('login.key.failed') }));
+          } finally {
+            setIsLoading(false);
+          }
+          return;
         } else {
           setErrors(prev => ({ ...prev, file: t('login.key.fileInvalid') }));
         }
@@ -326,7 +357,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                 {isLoading && !showConnectSection ? t('login.extension.loggingIn') : t('login.extension.button')}
               </Button>
               {errors.extension && (
-                <p className='text-sm text-red-500 text-center'>{errors.extension}</p>
+                <p className='text-sm text-red-500 text-center' role='alert'>{errors.extension}</p>
               )}
             </>
           )}
@@ -352,7 +383,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               <div className='flex flex-col items-center space-y-4'>
                 {connectError ? (
                   <div className='flex flex-col items-center space-y-3 py-4'>
-                    <p className='text-sm text-red-500 text-center'>{connectError}</p>
+                    <p className='text-sm text-red-500 text-center' role='alert'>{connectError}</p>
                     <Button variant='outline' onClick={handleRetry} className='rounded-full'>
                       {t('login.connect.retry')}
                     </Button>
@@ -463,6 +494,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                 <div className='space-y-2'>
                   <Input
                     id='nsec'
+                    ref={nsecInputRef}
                     type='password'
                     value={nsec}
                     onChange={(e) => {
@@ -474,7 +506,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     autoComplete='off'
                   />
                   {errors.nsec && (
-                    <p className='text-sm text-red-500 text-center'>{errors.nsec}</p>
+                    <p className='text-sm text-red-500 text-center' role='alert'>{errors.nsec}</p>
                   )}
                 </div>
 
@@ -499,12 +531,13 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isLoading || isFileLoading}
                     className='rounded-full'
+                    aria-label={t('login.key.uploadFile', 'Upload nsec from .txt file')}
                   >
-                    <Upload className='w-4 h-4' />
+                    <Upload className='w-4 h-4' aria-hidden='true' />
                   </Button>
                 </div>
                 {errors.file && (
-                  <p className='text-sm text-red-500 text-center'>{errors.file}</p>
+                  <p className='text-sm text-red-500 text-center' role='alert'>{errors.file}</p>
                 )}
               </CollapsibleContent>
             </Collapsible>
@@ -513,6 +546,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
               <div className='space-y-2'>
                 <Input
                   id='nsec'
+                  ref={nsecInputRef}
                   type='password'
                   value={nsec}
                   onChange={(e) => {
@@ -524,7 +558,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   autoComplete='off'
                 />
                 {errors.nsec && (
-                  <p className='text-sm text-red-500 text-center'>{errors.nsec}</p>
+                  <p className='text-sm text-red-500 text-center' role='alert'>{errors.nsec}</p>
                 )}
               </div>
 
@@ -549,12 +583,13 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading || isFileLoading}
                   className='rounded-full'
+                  aria-label={t('login.key.uploadFile', 'Upload nsec from .txt file')}
                 >
-                  <Upload className='w-4 h-4' />
+                  <Upload className='w-4 h-4' aria-hidden='true' />
                 </Button>
               </div>
               {errors.file && (
-                <p className='text-sm text-red-500 text-center'>{errors.file}</p>
+                <p className='text-sm text-red-500 text-center' role='alert'>{errors.file}</p>
               )}
             </div>
           )}

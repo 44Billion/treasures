@@ -59,6 +59,10 @@ interface TextFieldProps<TFieldValues extends FieldValues, TName extends FieldPa
   placeholder?: string;
   description?: string;
   type?: 'text' | 'email' | 'url' | 'password';
+  inputMode?: 'text' | 'email' | 'decimal' | 'numeric' | 'tel' | 'url' | 'search';
+  autoComplete?: string;
+  autoCapitalize?: 'off' | 'none' | 'on' | 'sentences' | 'words' | 'characters';
+  spellCheck?: boolean;
 }
 
 export function TextField<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
@@ -68,14 +72,22 @@ export function TextField<TFieldValues extends FieldValues, TName extends FieldP
   placeholder,
   description,
   type = 'text',
+  inputMode,
+  autoComplete,
+  autoCapitalize,
+  spellCheck,
 }: TextFieldProps<TFieldValues, TName>) {
   return (
     <BaseFormField control={control} name={name} label={label} description={description}>
       {(field: any) => (
-        <Input 
+        <Input
           type={type}
-          placeholder={placeholder} 
-          {...field} 
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          autoCapitalize={autoCapitalize}
+          spellCheck={spellCheck}
+          placeholder={placeholder}
+          {...field}
         />
       )}
     </BaseFormField>
@@ -261,11 +273,12 @@ export function CoordinateInputField<TFieldValues extends FieldValues>({
             <FormItem>
               <FormControl>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  enterKeyHint="next"
                   placeholder="Latitude"
-                  step="0.000001"
-                  min="-90"
-                  max="90"
+                  pattern="-?[0-9]*\.?[0-9]*"
+                  autoComplete="off"
                   {...field}
                 />
               </FormControl>
@@ -280,11 +293,12 @@ export function CoordinateInputField<TFieldValues extends FieldValues>({
             <FormItem>
               <FormControl>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  enterKeyHint="done"
                   placeholder="Longitude"
-                  step="0.000001"
-                  min="-180"
-                  max="180"
+                  pattern="-?[0-9]*\.?[0-9]*"
+                  autoComplete="off"
                   {...field}
                 />
               </FormControl>

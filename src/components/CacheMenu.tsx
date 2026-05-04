@@ -114,8 +114,11 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
   const handleToggleSave = async () => {
     if (!isNostrEnabled) {
       toast({
-        title: 'Login required',
-        description: 'Please log in with your Nostr account to save caches.',
+        title: t('saveButton.loginRequired.title', 'Login required'),
+        description: t(
+          'saveButton.loginRequired.description',
+          'Please log in with your Nostr account to save caches.'
+        ),
         variant: 'destructive',
       });
       setDropdownOpen(false);
@@ -129,21 +132,31 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
 
       toast({
         title: isSaved
-          ? 'Treasure removed from saved list'
-          : 'Treasure saved for later',
+          ? t('saveButton.removed.title', 'Treasure removed from saved list')
+          : t('saveButton.saved.title', 'Treasure saved for later'),
         description: isOffline
-          ? `"${geocache.name}" has been saved to your device and will be synced when you're back online.`
+          ? t('saveButton.savedOffline.description', {
+              name: geocache.name,
+              defaultValue:
+                "\"{{name}}\" was saved locally and will sync when you're back online.",
+            })
           : isSaved
-          ? `"${geocache.name}" has been removed from your saved treasures.`
-          : `"${geocache.name}" has been saved to your Nostr profile.`,
+          ? t('saveButton.removed.description', {
+              name: geocache.name,
+              defaultValue: '"{{name}}" has been removed from your saved treasures.',
+            })
+          : t('saveButton.saved.description', {
+              name: geocache.name,
+              defaultValue: '"{{name}}" has been saved to your Nostr profile.',
+            }),
       });
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Failed to save treasure. Please try again.';
+          : t('saveButton.error.description', 'Failed to save treasure. Please try again.');
       toast({
-        title: 'Error saving treasure',
+        title: t('saveButton.error.title', 'Error saving treasure'),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -168,15 +181,15 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
 
   const getSaveLabel = () => {
     if (isSaving) {
-      return 'Saving...';
+      return t('saveButton.saving', 'Saving...');
     }
     if (isOffline) {
-      return 'Saved Offline';
+      return t('saveButton.savedOffline', 'Saved offline');
     }
     if (isSaved) {
-      return 'Remove from Saved';
+      return t('saveButton.remove', 'Remove from saved');
     }
-    return 'Save for Later';
+    return t('saveButton.save', 'Save for later');
   };
 
   const buttonSize = variant === 'compact' ? 'sm' : 'icon';

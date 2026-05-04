@@ -37,6 +37,19 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
   const { mutateAsync: publishEvent, isPending: isPublishing } = useNostrPublish();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
+  const profileNameRef = useRef<HTMLInputElement>(null);
+
+  // Autofocus the display-name input when the profile step opens, so mobile
+  // users don't need an extra tap to start typing.
+  useEffect(() => {
+    if (step === 'profile') {
+      const timer = setTimeout(() => {
+        profileNameRef.current?.focus();
+      }, 100); // let the step transition finish
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [step]);
 
   // Generate a proper nsec key using nostr-tools
   const generateKey = () => {
@@ -561,11 +574,13 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                 </label>
                 <Input
                   id='profile-name'
+                  ref={profileNameRef}
                   value={profileData.name}
                   onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder={t('signup.dialog.profile.displayNamePlaceholder')}
                   className='rounded-lg'
                   disabled={isPublishing}
+                  autoComplete='username'
                 />
               </div>
 

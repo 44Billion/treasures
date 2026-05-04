@@ -1,5 +1,6 @@
 import React from 'react';
 import { LucideIcon, MapPin, Compass, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/utils/utils';
@@ -13,13 +14,21 @@ interface CompassSpinnerProps {
   size?: number | 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'page' | 'component' | 'button';
   className?: string;
+  /**
+   * Optional label for screen readers. When omitted a default "Loading..."
+   * translation is used. Set to `''` explicitly to suppress (when the
+   * spinner is purely decorative next to its own visible label).
+   */
+  srLabel?: string;
 }
 
 export function CompassSpinner({
   size = 'md',
   variant = 'component',
-  className = ''
+  className = '',
+  srLabel,
 }: CompassSpinnerProps) {
+  const { t } = useTranslation();
   // Size mapping
   const sizeClasses = typeof size === 'number'
     ? { width: `${size}px`, height: `${size}px` }
@@ -39,11 +48,17 @@ export function CompassSpinner({
       ? 'text-current'
       : 'text-muted-foreground';
 
+  const label = srLabel === undefined ? t('common.loading', 'Loading...') : srLabel;
+
   return (
-    <Compass
-      className={cn('animate-spin', colorClass, typeof size === 'string' ? sizeClasses : '', className)}
-      style={typeof size === 'number' ? sizeClasses as React.CSSProperties : undefined}
-    />
+    <>
+      <Compass
+        className={cn('animate-spin', colorClass, typeof size === 'string' ? sizeClasses : '', className)}
+        style={typeof size === 'number' ? sizeClasses as React.CSSProperties : undefined}
+        aria-hidden="true"
+      />
+      {label && <span className="sr-only">{label}</span>}
+    </>
   );
 }
 
@@ -81,15 +96,16 @@ export function LoadingState({
   const sizes = sizeMap[size];
 
   const content = (
-    <div className={cn('text-center', className)}>
+    <div className={cn('text-center', className)} role="status" aria-live="polite">
       {showSpinner ? (
         <CompassSpinner
           size={sizes.spinner as 'md' | 'lg' | 'xl'}
           variant={variant}
           className="mx-auto mb-4"
+          srLabel=""
         />
       ) : Icon ? (
-        <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
       ) : null}
 
       <p className={cn('text-foreground font-medium', sizes.text)}>{title}</p>

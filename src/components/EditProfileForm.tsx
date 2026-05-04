@@ -261,7 +261,11 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
                       label={t('editProfile.advanced.nip05.label')}
                       placeholder={t('editProfile.advanced.nip05.placeholder')}
                       description={t('editProfile.advanced.nip05.description')}
-                      type="email"
+                      type="text"
+                      inputMode="email"
+                      autoComplete="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
                     />
 
                     <TextField
@@ -270,7 +274,11 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess }) =
                       label={t('editProfile.advanced.lud16.label')}
                       placeholder={t('editProfile.advanced.lud16.placeholder')}
                       description={t('editProfile.advanced.lud16.description')}
-                      type="email"
+                      type="text"
+                      inputMode="email"
+                      autoComplete="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
                     />
                   </div>
 

@@ -687,12 +687,9 @@ export default function Map() {
     if (!searchQuery && difficulty === undefined && terrain === undefined && !cacheType && !isProximitySearchActive) return null;
     return (
       <div className={`flex items-center justify-between gap-2 ${className}`}>
-        <div className="text-sm text-muted-foreground min-w-0">
+        <div className="text-sm text-muted-foreground min-w-0" role="status" aria-live="polite">
           <span>
-            {filteredGeocaches.length === 1
-              ? t('map.results.count', { count: filteredGeocaches.length })
-              : t('map.results.countPlural', { count: filteredGeocaches.length })
-            }
+            {t('map.results.count', { count: filteredGeocaches.length })}
             {isProximitySearchActive && ` • ${t('map.results.radius', { radius: searchRadius })}`}
             {showInView && searchInView && ` • ${t('map.results.inView')}`}
           </span>

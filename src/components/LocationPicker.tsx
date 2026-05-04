@@ -720,6 +720,8 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             {/* Single coordinate input */}
             <Input
               type="text"
+              inputMode="decimal"
+              enterKeyHint="done"
               placeholder={t("locationPicker.inputPlaceholder")}
               value={coordInput}
               onChange={(e) => handleCoordInputChange(e.target.value)}
@@ -728,11 +730,12 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
               className="text-sm font-mono"
               autoComplete="off"
               spellCheck={false}
+              aria-label={t("locationPicker.inputPlaceholder")}
             />
 
             {/* Live parse feedback */}
             {coordParseResult && (
-              <div className="text-xs space-y-1">
+              <div className="text-xs space-y-1" role="status" aria-live="polite">
                 {isParseError(coordParseResult) ? (
                   /* Error message */
                   <p className="text-destructive">{t(coordParseResult.errorKey)}</p>
