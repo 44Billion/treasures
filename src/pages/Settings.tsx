@@ -76,7 +76,7 @@ export default function Settings() {
                   {t('settings.appearance.themeDescription')}
                 </p>
                 {mounted ? (
-                  <div className={`grid grid-cols-2 ${hasDittoTheme ? 'sm:grid-cols-6' : 'sm:grid-cols-5'} gap-3`}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <Button
                       variant={theme === "light" ? "default" : "outline"}
                       onClick={() => setTheme("light")}
@@ -129,7 +129,7 @@ export default function Settings() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
                       { icon: Sun, label: t('settings.appearance.light') },
                       { icon: Moon, label: t('settings.appearance.dark') },

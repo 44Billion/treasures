@@ -49,11 +49,16 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img
-              src="/icon.svg"
-              alt={t('navigation.appName')}
-              className={`h-12 w-12 transition-all duration-200 ${isHero ? 'drop-shadow-lg brightness-110' : isAdventureTheme ? 'sepia' : isMojaveTheme ? 'mojave-logo' : isDittoTheme ? 'ditto-logo' : ''}`}
-            />
+            {/* Brand icon hidden on the hero variant (Home) — the page renders
+                a large centered logo just below the header, so repeating a
+                small mark in the upper-left is noise. Keep the wordmark. */}
+            {!isHero && (
+              <img
+                src="/icon.svg"
+                alt={t('navigation.appName')}
+                className={`h-12 w-12 transition-all duration-200 ${isAdventureTheme ? 'sepia' : isMojaveTheme ? 'mojave-logo' : isDittoTheme ? 'ditto-logo' : ''}`}
+              />
+            )}
             <h1 className={`text-2xl font-bold m-0 leading-none ${isHero ? 'text-white' : isAdventureTheme ? 'text-stone-200' : 'text-foreground'}`}>{t('navigation.appName')}</h1>
 
           </Link>
