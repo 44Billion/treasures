@@ -83,6 +83,7 @@ export default function CreateCache() {
   const [currentStep, setCurrentStep] = useState(initialDraft?.currentStep || 1);
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   // Hydrate from relay draft once it loads (async)
   useEffect(() => {
@@ -698,6 +699,7 @@ export default function CreateCache() {
                     images={images}
                     onImagesChange={setImages}
                     disabled={isPending || isVerifying}
+                    onUploadingChange={setIsUploadingImages}
                   />
 
                   <ContentWarningField
@@ -791,7 +793,7 @@ export default function CreateCache() {
                       type="button"
                       variant="outline"
                       onClick={handleSaveDraft}
-                      disabled={isSavingDraft || isPending || isVerifying}
+                      disabled={isSavingDraft || isPending || isVerifying || isUploadingImages}
                       className="flex-1"
                     >
                       {isSavingDraft ? (
@@ -812,10 +814,16 @@ export default function CreateCache() {
                   <Button
                     type="button"
                     onClick={handleCreateGeocache}
-                    disabled={isPending || isVerifying}
+                    disabled={isPending || isVerifying || isUploadingImages}
                     className="w-full"
+                    title={isUploadingImages ? t('createCache.waitingForUploads', 'Waiting for image uploads to finish') : undefined}
                   >
-                    {isVerifying ? (
+                    {isUploadingImages ? (
+                      <>
+                        <CompassSpinner size={16} variant="button" className="mr-2" />
+                        {t('createCache.waitingForUploads', 'Waiting for image uploads…')}
+                      </>
+                    ) : isVerifying ? (
                       <>
                         <CompassSpinner size={16} variant="button" className="mr-2" />
                         {t('createCache.verifyingLocation')}

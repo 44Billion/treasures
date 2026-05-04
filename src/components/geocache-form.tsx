@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera } from 'lucide-react';
 import { sneaker, treesForest } from '@lucide/lab';
@@ -698,13 +698,36 @@ interface CacheImageManagerProps {
   onImagesChange: (images: string[]) => void;
   disabled?: boolean;
   className?: string;
+  /**
+   * Called whenever the component starts or stops uploading an image.
+   * Parents can use this to gate a Publish/Save button so users don't
+   * submit while image uploads are still in flight.
+   */
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
-export function CacheImageManager({ images, onImagesChange, disabled = false, className }: CacheImageManagerProps) {
+export function CacheImageManager({ images, onImagesChange, disabled = false, className, onUploadingChange }: CacheImageManagerProps) {
   const { t } = useTranslation();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const { toast } = useToast();
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  // Max upload size: 10 MB. Larger files make Blossom uploads slow and can
+  // silently fail on flaky networks.
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+  // Track the latest images array in a ref so async callbacks (upload
+  // success/failure) can update based on the *current* state, not the
+  // snapshot captured when the handler fired. This fixes a stale-closure
+  // bug where a second upload could overwrite the first.
+  const imagesRef = useRef(images);
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
+
+  // Notify parent whenever upload activity changes so it can gate Publish.
+  useEffect(() => {
+    onUploadingChange?.(isUploading || uploadingIndex !== null);
+  }, [isUploading, uploadingIndex, onUploadingChange]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -716,6 +739,20 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
         description: t('createCache.form.image.invalidFileType.description'),
         variant: "destructive",
       });
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast({
+        title: t('createCache.form.image.tooLarge.title', 'Image too large'),
+        description: t('createCache.form.image.tooLarge.description', {
+          mb: Math.round(MAX_IMAGE_BYTES / (1024 * 1024)),
+          defaultValue: 'Pick an image under {{mb}} MB.',
+        }),
+        variant: 'destructive',
+      });
+      e.target.value = '';
       return;
     }
 
@@ -725,26 +762,24 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
       description: `Uploading ${file.name}...`,
     });
 
-    // Add a temporary placeholder
-    const tempIndex = images.length;
-    setUploadingIndex(tempIndex);
-    onImagesChange([...images, '']); // Add empty string as placeholder
+    // Unique placeholder marker so we can locate and replace/remove this
+    // specific upload's slot even if other uploads complete in the meantime.
+    const placeholder = `__uploading__${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    setUploadingIndex(imagesRef.current.length);
+    onImagesChange([...imagesRef.current, placeholder]);
 
     try {
       const [[_, url]] = await uploadFile(file);
-      // Replace the placeholder with the actual URL
-      const newImages = [...images];
-      newImages[tempIndex] = url;
-      onImagesChange(newImages);
-
+      // Replace only our placeholder; concurrent changes are preserved.
+      onImagesChange(imagesRef.current.map((v) => (v === placeholder ? url : v)));
       toast({
         title: "Success",
         description: "Image uploaded successfully",
       });
     } catch (error) {
       const errorObj = error as { message?: string };
-      // Remove the placeholder on error
-      onImagesChange(images);
+      // Remove only our placeholder on error.
+      onImagesChange(imagesRef.current.filter((v) => v !== placeholder));
 
       toast({
         title: t('createCache.form.image.uploadFailed.title'),
