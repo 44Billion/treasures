@@ -64,22 +64,43 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const geocachesQuery = useQuery({
     queryKey: createQueryKey('geocache', 'list'),
     queryFn: async () => {
-      // Query for kind 37516 geocaches
-      const { data: newGeocacheEvents } = await baseStore.batchQuery([{
-        kinds: [NIP_GC_KINDS.GEOCACHE],
-        limit: QUERY_LIMITS.GEOCACHES,
-      }], 'fetchGeocaches');
-
       // Query for specific legacy kind 37515 geocaches by ID
       const { data: legacyGeocacheEvents } = await baseStore.batchQuery([{
         kinds: [NIP_GC_KINDS.GEOCACHE_LEGACY],
         ids: [...LEGACY_GEOCACHE_IDS],
       }], 'fetchLegacyGeocaches');
 
-      // Combine both result sets
-      const events = [...(newGeocacheEvents || []), ...(legacyGeocacheEvents || [])];
+      // Paginate kind 37516 geocaches until GEOCACHES_MAX total are fetched
+      const allNewEvents: typeof legacyGeocacheEvents = [];
+      let until: number | undefined = undefined;
 
-      const geocaches = (events || [])
+      while (allNewEvents.length < QUERY_LIMITS.GEOCACHES_MAX) {
+        const filter: Record<string, unknown> = {
+          kinds: [NIP_GC_KINDS.GEOCACHE],
+          limit: QUERY_LIMITS.GEOCACHES,
+        };
+        if (until !== undefined) filter['until'] = until;
+
+        const { data: page } = await baseStore.batchQuery([filter], 'fetchGeocaches');
+        const pageEvents = page || [];
+
+        allNewEvents.push(...pageEvents);
+
+        // Stop if we got fewer than a full page (no more results)
+        if (pageEvents.length < QUERY_LIMITS.GEOCACHES) break;
+
+        // Advance cursor to oldest event in this page
+        const oldestInPage = pageEvents.reduce(
+          (min: number, e: { created_at: number }) => Math.min(min, e.created_at),
+          Infinity
+        );
+        until = oldestInPage - 1;
+      }
+
+      // Combine both result sets
+      const events = [...allNewEvents, ...(legacyGeocacheEvents || [])];
+
+      const geocaches = events
         .map(parseGeocacheEvent)
         .filter((g: Geocache | null): g is Geocache => {
           if (!g) return false;
@@ -93,8 +114,8 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       if (geocaches.length > 0) {
         const oldest = geocaches[geocaches.length - 1]!.created_at;
         setOldestTimestamp(oldest);
-        // If we got fewer results than the limit, we've reached the end
-        setHasMore(events.length >= QUERY_LIMITS.GEOCACHES);
+        // Has more only if we hit the total cap exactly
+        setHasMore(allNewEvents.length >= QUERY_LIMITS.GEOCACHES_MAX);
       } else {
         setHasMore(false);
       }
@@ -177,7 +198,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       if (newGeocaches.length > 0) {
         const oldest = newGeocaches[newGeocaches.length - 1]!.created_at;
         setOldestTimestamp(oldest);
-        // If we got fewer results than the limit, we've reached the end
+        // If we got fewer results than the per-page limit, we've reached the end
         setHasMore(events.length >= QUERY_LIMITS.GEOCACHES);
       } else {
         setHasMore(false);

@@ -5,7 +5,8 @@
 
 // Query limits
 export const QUERY_LIMITS = {
-  GEOCACHES: 150,
+  GEOCACHES: 200,        // Per-page query limit
+  GEOCACHES_MAX: 500,    // Total paginated limit
   LOGS: 100, // Reasonable limit per geocache
   ZAPS: 50, // Reasonable limit per target
   BATCH_SIZE: 3,
