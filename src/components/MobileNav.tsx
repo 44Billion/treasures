@@ -653,7 +653,7 @@ export function MobileHeader() {
           {!user ? (
             <Button
               size="sm"
-              onClick={() => setSignupDialogOpen(true)}
+              onClick={() => setLoginDialogOpen(true)}
               className="rounded-full px-3 min-h-11 text-xs font-semibold"
             >
               {t('auth.join', 'Join')}

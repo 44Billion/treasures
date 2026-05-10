@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { sneaker, treesForest } from '@lucide/lab';
 
 // Create React components from Lucide Lab icons
@@ -959,17 +961,13 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
     onUploadingChange?.(isUploading || uploadingIndex !== null);
   }, [isUploading, uploadingIndex, onUploadingChange]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast({
         title: t('createCache.form.image.invalidFileType.title'),
         description: t('createCache.form.image.invalidFileType.description'),
         variant: "destructive",
       });
-      e.target.value = '';
       return;
     }
 
@@ -982,7 +980,6 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
         }),
         variant: 'destructive',
       });
-      e.target.value = '';
       return;
     }
 
@@ -1018,8 +1015,52 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
       });
     } finally {
       setUploadingIndex(null);
-      // Reset the file input
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await processFile(file);
+    } finally {
       e.target.value = '';
+    }
+  };
+
+  // On native (Capacitor) the WebView's file chooser ignores the `capture`
+  // attribute, so tapping "Camera" goes straight to the gallery. Use the
+  // Capacitor Camera plugin to launch the native camera intent directly.
+  const handleCameraCapture = async () => {
+    try {
+      const photo = await CapCamera.getPhoto({
+        source: CameraSource.Camera,
+        resultType: CameraResultType.Uri,
+        quality: 85,
+        // Allow user to crop/rotate before returning. Set to false for raw shot.
+        allowEditing: false,
+        // Avoid saving to gallery; cache image goes straight to upload.
+        saveToGallery: false,
+      });
+
+      if (!photo.webPath) return;
+
+      const response = await fetch(photo.webPath);
+      const blob = await response.blob();
+      const ext = (photo.format || 'jpg').toLowerCase();
+      const file = new File([blob], `cache-photo-${Date.now()}.${ext}`, {
+        type: blob.type || `image/${ext}`,
+      });
+      await processFile(file);
+    } catch (error) {
+      const errorObj = error as { message?: string };
+      // User cancelled — silently ignore.
+      if (errorObj.message?.toLowerCase().includes('cancel')) return;
+      toast({
+        title: t('createCache.form.image.uploadFailed.title'),
+        description: errorObj.message || t('createCache.form.image.uploadFailed.description'),
+        variant: "destructive",
+      });
     }
   };
 
@@ -1103,7 +1144,7 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
                 touchIndex === index && "ring-2 ring-primary",
               )}
             >
-              {url ? (
+              {url && !url.startsWith('__uploading__') ? (
                 <img
                   src={url}
                   alt={`Cache image ${index + 1}`}
@@ -1114,11 +1155,6 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
                   <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
                 </div>
               )}
-              {uploadingIndex === index && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 text-white animate-spin" />
-                </div>
-              )}
               {/* Overlay controls */}
               <div className="absolute inset-0">
                 {/* Remove button */}
@@ -1126,9 +1162,10 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
                   type="button"
                   onClick={(e) => { e.stopPropagation(); removeImage(index); }}
                   disabled={disabled || uploadingIndex === index}
-                  className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                  aria-label={`Remove cache image ${index + 1}`}
+                  className="absolute top-1 right-1 h-6 w-6 inline-flex items-center justify-center bg-black/60 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                 </button>
               </div>
             </div>
@@ -1136,38 +1173,75 @@ export function CacheImageManager({ images, onImagesChange, disabled = false, cl
         </div>
       )}
 
-      {/* Upload area — native <input> required for reliable camera prompt on mobile */}
+      {/* Upload area — on native (Capacitor) we use the Camera plugin for the
+          camera button so it launches the native camera intent directly; the
+          WebView's file chooser ignores `capture` and would otherwise route
+          to the gallery. The library button always uses a standard file input. */}
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleImageUpload}
+        disabled={disabled || isUploading}
+        className="hidden"
+        id="cache-image-upload-camera"
+      />
       <input
         type="file"
         accept="image/*"
         onChange={handleImageUpload}
         disabled={disabled || isUploading}
         className="hidden"
-        id="cache-image-upload"
+        id="cache-image-upload-library"
       />
-      <Label
-        htmlFor="cache-image-upload"
-        className={cn(
-          "cursor-pointer flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 bg-muted/30 hover:bg-muted/50 transition-colors py-6 px-4",
-          (disabled || isUploading) && "pointer-events-none opacity-50"
-        )}
-      >
-        {isUploading ? (
-          <>
-            <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
-            <span className="text-sm text-muted-foreground">Uploading...</span>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <Camera className="h-5 w-5" />
-              <span className="text-muted-foreground/30">|</span>
+      {isUploading ? (
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 py-6 px-4 opacity-50"
+          )}
+        >
+          <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+          <span className="text-sm text-muted-foreground">Uploading...</span>
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 py-6 px-4",
+            disabled && "pointer-events-none opacity-50"
+          )}
+        >
+          <div className="flex items-stretch gap-3 text-muted-foreground">
+            {Capacitor.isNativePlatform() ? (
+              <button
+                type="button"
+                onClick={handleCameraCapture}
+                disabled={disabled}
+                className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                <Camera className="h-5 w-5" />
+                <span className="text-sm">Camera</span>
+              </button>
+            ) : (
+              <Label
+                htmlFor="cache-image-upload-camera"
+                className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <Camera className="h-5 w-5" />
+                <span className="text-sm">Camera</span>
+              </Label>
+            )}
+            <span className="self-center text-muted-foreground/30">|</span>
+            <Label
+              htmlFor="cache-image-upload-library"
+              className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted hover:text-foreground transition-colors"
+            >
               <ImagePlus className="h-5 w-5" />
-            </div>
-            <span className="text-sm text-muted-foreground">Take a photo or choose from library</span>
-          </>
-        )}
-      </Label>
+              <span className="text-sm">Library</span>
+            </Label>
+          </div>
+          <span className="text-xs text-muted-foreground">Take a photo or choose from your library</span>
+        </div>
+      )}
     </div>
   );
 }
