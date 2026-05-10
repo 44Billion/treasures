@@ -23,7 +23,7 @@ export function HintDisplay({ hint, className = "" }: HintDisplayProps) {
       <AlertDescription className="break-words">
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1">
-            <strong className="text-foreground-muted">{t('cacheDetail.hint.label')}</strong>{' '}
+            <strong className="text-foreground">{t('cacheDetail.hint.label')}</strong>{' '}
             <span
               className={`transition-all duration-200 ${
                 isHintVisible ? '' : 'blur-sm'
@@ -34,14 +34,14 @@ export function HintDisplay({ hint, className = "" }: HintDisplayProps) {
           </div>
           <button
             onClick={() => setIsHintVisible(!isHintVisible)}
-            className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-gray-100 transition-colors"
+            className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-muted transition-colors"
             title={isHintVisible ? t('cacheDetail.hint.hide') : t('cacheDetail.hint.reveal')}
             type="button"
           >
             {isHintVisible ? (
-              <EyeOff className="h-3.5 w-3.5 text-gray-600" />
+              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
             ) : (
-              <Eye className="h-3.5 w-3.5 text-gray-600" />
+              <Eye className="h-3.5 w-3.5 text-muted-foreground" />
             )}
           </button>
         </div>
