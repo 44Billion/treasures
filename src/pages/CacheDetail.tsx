@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, HelpCircle } from "lucide-react";
 
 import { useStore } from 'zustand';
 import { useZapStore } from '@/stores/useZapStore';
@@ -13,6 +13,7 @@ import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Q
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { HintDisplay } from "@/components/ui/hint-display";
@@ -978,6 +979,68 @@ export default function CacheDetail() {
                       )}
                     </button>
                   </div>
+                  {/* Short link — public URL keyed by the cache's d-tag.
+                      Clickable so users can navigate / right-click → copy. */}
+                  {geocache.dTag && (
+                    <>
+                      <p className="text-xs font-medium text-muted-foreground mt-3 flex items-center gap-1">
+                        {t('cacheDetail.details.shortLink', 'Short link')}
+                        {/* Brief explanation of what the d-tag is and why
+                            collisions are possible. NIP-01 only guarantees
+                            d-tag uniqueness per author. */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={t(
+                                'cacheDetail.details.shortLinkInfoLabel',
+                                'About short links',
+                              )}
+                            >
+                              <HelpCircle className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            align="start"
+                            collisionPadding={16}
+                            className="max-w-xs"
+                          >
+                            {t(
+                              'cacheDetail.details.shortLinkTooltip',
+                              "A short, shareable web address for this treasure. Anyone with the link can open it. If two people happen to use the same identifier, the link will show all matching treasures so you can pick the right one.",
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </p>
+                      <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">
+                        <Link
+                          to={`/d/${geocache.dTag}`}
+                          className="flex-1 text-xs md:text-sm font-mono break-all text-primary hover:underline select-text"
+                        >
+                          {`${window.location.origin}/d/${geocache.dTag}`}
+                        </Link>
+                        <button
+                          onClick={() => {
+                            handleCopyToClipboard(
+                              `${window.location.origin}/d/${geocache.dTag}`,
+                              t('cacheDetail.details.shortLink', 'Short link'),
+                            );
+                          }}
+                          className="flex-shrink-0 p-1 rounded hover:bg-muted transition-colors"
+                          title={t('cacheDetail.details.clickToCopy', { item: t('cacheDetail.details.shortLink', 'Short link') })}
+                          type="button"
+                        >
+                          {copiedItem === t('cacheDetail.details.shortLink', 'Short link') ? (
+                            <Check className="h-3 w-3 text-primary" />
+                          ) : (
+                            <Copy className="h-3 w-3 text-muted-foreground" />
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"

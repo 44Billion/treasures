@@ -30,6 +30,7 @@ import {
   type ValidCacheSize
 } from '@/utils/nip-gc';
 import { generateVerificationKeyPair } from '@/utils/verification';
+import { generateCompactDTag } from '@/utils/dTag';
 import { getGeocachingRelays } from '@/utils/naddrrelays';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { QUERY_LIMITS, TIMEOUTS, LEGACY_GEOCACHE_IDS } from '@/config';
@@ -323,8 +324,9 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       }
 
       // Create the geocache event according to NIP-GC
-      // Use provided dTag if available (for claim URLs), otherwise generate new one
-      const dTag = geocacheData.dTag || `cache-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+      // Use provided dTag if available (for claim URLs), otherwise generate a new
+      // 6-char random hex d-tag (compact and URL-friendly).
+      const dTag = geocacheData.dTag || generateCompactDTag();
       const relayPreferences = getGeocachingRelays();
 
       // Generate verification key pair or use provided one

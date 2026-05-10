@@ -32,6 +32,7 @@ const AdventureDetail = lazy(() => import("./pages/AdventureDetail"));
 const CreateAdventure = lazy(() => import("./pages/CreateAdventure"));
 const CompactRedirect = lazy(() => import("./pages/CompactRedirect"));
 const RemoteLoginSuccess = lazy(() => import("./pages/RemoteLoginSuccess"));
+const CacheByDTag = lazy(() => import("./pages/CacheByDTag"));
 
 // Loading fallback for lazy-loaded routes — matches the initial-loading spinner from index.html
 function PageFallback() {
@@ -97,6 +98,7 @@ export function AppRouter() {
             <Route path="/create-adventure" element={<CreateAdventure />} />
             <Route path="/edit-adventure/:naddr" element={<CreateAdventure />} />
             <Route path="/c/:payload" element={<CompactRedirect />} />
+            <Route path="/d/:dTag" element={<CacheByDTag />} />
             <Route path="/remoteloginsuccess" element={<RemoteLoginSuccess />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}

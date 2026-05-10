@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight, Cloud, EyeOff } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight, Cloud, EyeOff, Copy, Link as LinkIcon } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,6 +33,7 @@ import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
 import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
+import { generateCompactDTag } from "@/utils/dTag";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Step configuration for progress indicator
@@ -85,6 +86,7 @@ export default function CreateCache() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string }>({});
+  const [shortLinkCopied, setShortLinkCopied] = useState(false);
 
   // Hydrate from relay draft once it loads (async)
   useEffect(() => {
@@ -164,6 +166,16 @@ export default function CreateCache() {
   const [importedDTag, setImportedDTag] = useState<string | null>(null);
   const [importedVerificationKeyPair, setImportedVerificationKeyPair] = useState<any>(null);
   const [importedKind, setImportedKind] = useState<number | null>(null);
+
+  // Pre-generate a stable d-tag for the new cache (when not claiming a pre-made
+  // QR code). Locking this in early lets us display the public short-URL on the
+  // Finish step BEFORE publishing, and guarantees the URL we show matches the
+  // d-tag the event ultimately uses.
+  const [generatedDTag] = useState<string>(() => generateCompactDTag());
+
+  // The effective d-tag for this draft: the one imported from a claim URL takes
+  // precedence; otherwise we use the freshly-generated one.
+  const effectiveDTag = importedDTag || generatedDTag;
   const hasDraft = !!localDraft;
   const [showDraftNotice, setShowDraftNotice] = useState(hasDraft);
 
@@ -357,7 +369,7 @@ export default function CreateCache() {
         images,
         difficulty: parseInt(formData.difficulty),
         terrain: parseInt(formData.terrain),
-        dTag: importedDTag || undefined,
+        dTag: importedDTag || generatedDTag,
         verificationKeyPair: importedVerificationKeyPair || undefined,
         kind: importedKind || undefined,
       });
@@ -773,6 +785,51 @@ export default function CreateCache() {
                       )}
                     </div>
                   </div>
+
+                  {/* Short link preview — show the public d-tag URL the cache
+                      will live at after publishing. Hidden when claiming a
+                      pre-generated QR code (the user already has that URL on
+                      paper). */}
+                  {!importedDTag && (
+                    <div className="bg-muted/20 border border-muted rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                        <LinkIcon className="h-3.5 w-3.5" />
+                        {t('createCache.preview.shortLinkTitle', 'Short link')}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {t(
+                          'createCache.preview.shortLinkDescription',
+                          'Once published, your treasure will be reachable at this URL.',
+                        )}
+                      </p>
+                      <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">
+                        <span className="flex-1 text-xs md:text-sm font-mono break-all text-foreground select-text">
+                          {`${window.location.origin}/d/${effectiveDTag}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const url = `${window.location.origin}/d/${effectiveDTag}`;
+                            try {
+                              await navigator.clipboard.writeText(url);
+                              setShortLinkCopied(true);
+                              setTimeout(() => setShortLinkCopied(false), 2000);
+                            } catch {
+                              // clipboard may be unavailable (insecure context); fail silently
+                            }
+                          }}
+                          className="flex-shrink-0 p-1 rounded hover:bg-muted transition-colors"
+                          title={t('createCache.preview.copyShortLink', 'Copy short link')}
+                        >
+                          {shortLinkCopied ? (
+                            <Check className="h-3 w-3 text-primary" />
+                          ) : (
+                            <Copy className="h-3 w-3 text-muted-foreground" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
