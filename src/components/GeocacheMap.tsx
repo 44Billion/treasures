@@ -1768,7 +1768,7 @@ export function GeocacheMap({
         chunkedLoading={true}
         chunkInterval={20} // Faster chunk processing for quicker initial load
         chunkDelay={5} // Minimal delay between chunks for instant rendering
-        maxClusterRadius={40} // Smaller cluster radius for better performance
+        maxClusterRadius={22} // Smaller cluster radius keeps nearby caches visually distinct
         spiderfyOnMaxZoom={false} // Disable spiderfy for better performance
         showCoverageOnHover={false}
         zoomToBoundsOnClick={true}
@@ -1776,7 +1776,7 @@ export function GeocacheMap({
         animate={false} // Disable animations for better performance
         animateAddingMarkers={false}
         // Performance optimizations
-        disableClusteringAtZoom={16} // Disable clustering at high zoom levels
+        disableClusteringAtZoom={14} // Show individual markers earlier when zooming in
         maxZoom={21} // Match tile layer max zoom
         // Enhanced clustering options for better popup handling
         spiderfyDistanceMultiplier={1.5} // Better spiderfy behavior

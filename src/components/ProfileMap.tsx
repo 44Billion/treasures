@@ -391,14 +391,14 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
           chunkedLoading={true}
           chunkInterval={50}
           chunkDelay={10}
-          maxClusterRadius={40}
+          maxClusterRadius={22}
           spiderfyOnMaxZoom={false}
           showCoverageOnHover={false}
           zoomToBoundsOnClick={true}
           removeOutsideVisibleBounds={true}
           animate={false}
           animateAddingMarkers={false}
-          disableClusteringAtZoom={16}
+          disableClusteringAtZoom={14}
           maxZoom={18}
           spiderfyDistanceMultiplier={1.5}
           clusterPane="markerPane"
