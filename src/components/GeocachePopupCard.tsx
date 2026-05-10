@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from 'zustand';
-import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, MapPin, Trophy, X as XIcon, MessageSquare, Archive, Wrench } from "lucide-react";
+import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, Trophy, X as XIcon, MessageSquare, Archive, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
 import { useZapStore } from "@/stores/useZapStore";
@@ -101,8 +101,8 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
 
   return (
     <div className="w-[min(280px,calc(100vw-4rem))] sm:w-[min(340px,calc(100vw-4rem))] overflow-hidden">
-      {/* Hero image */}
-      {hasImages ? (
+      {/* Hero image — only rendered when at least one image is available */}
+      {hasImages && (
         <div className="relative w-full h-28 sm:h-36 bg-muted overflow-hidden">
           <img
             src={thumbnail(geocache.images![0], 400)}
@@ -114,10 +114,6 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
               +{geocache.images!.length - 1} more
             </div>
           )}
-        </div>
-      ) : (
-        <div className="h-12 sm:h-16 w-full bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
-          <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground/20" />
         </div>
       )}
 
