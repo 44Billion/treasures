@@ -618,8 +618,8 @@ export function parseAdventureEvent(event: NostrEvent): Adventure | null {
     const image = event.tags.find(t => t[0] === 'image')?.[1];
 
     // Parse optional theme and map style
-    const VALID_THEMES: AdventureTheme[] = ['adventure'];
-    const VALID_MAP_STYLES: AdventureMapStyle[] = ['original', 'dark', 'satellite', 'adventure'];
+    const VALID_THEMES: AdventureTheme[] = ['adventure', 'mojave'];
+    const VALID_MAP_STYLES: AdventureMapStyle[] = ['original', 'dark', 'satellite', 'adventure', 'mojave'];
 
     const rawTheme = event.tags.find(t => t[0] === 'theme')?.[1];
     const theme = rawTheme && VALID_THEMES.includes(rawTheme as AdventureTheme)

@@ -1,7 +1,7 @@
 import type { Geocache } from './geocache';
 
-export type AdventureTheme = 'adventure';
-export type AdventureMapStyle = 'original' | 'dark' | 'satellite' | 'adventure';
+export type AdventureTheme = 'adventure' | 'mojave';
+export type AdventureMapStyle = 'original' | 'dark' | 'satellite' | 'adventure' | 'mojave';
 
 export interface Adventure {
   id: string;

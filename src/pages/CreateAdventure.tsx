@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { MapPinned, FileText, ListChecks, Eye, Check, ChevronLeft, ChevronRight, X, MapPin, Compass, Image as ImageIcon, Sword, Map, Moon, Satellite } from "lucide-react";
+import { MapPinned, FileText, ListChecks, Eye, Check, ChevronLeft, ChevronRight, X, MapPin, Compass, Image as ImageIcon, Sword, Mountain, Map, Moon, Satellite } from "lucide-react";
 import { nip19 } from "nostr-tools";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
@@ -482,7 +482,7 @@ export default function CreateAdventure() {
                   <div>
                     <Label>{t('createAdventure.fieldPageTheme')}</Label>
                     <p className="text-xs text-muted-foreground mb-2">{t('createAdventure.fieldPageThemeHelp')}</p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => setAdventureTheme(undefined)}
@@ -502,6 +502,16 @@ export default function CreateAdventure() {
                         <Sword className="h-4 w-4" />
                         {t('createAdventure.themeAdventure')}
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setAdventureTheme('mojave')}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                          adventureTheme === 'mojave' ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-muted/50'
+                        }`}
+                      >
+                        <Mountain className="h-4 w-4" />
+                        {t('createAdventure.themeMojave')}
+                      </button>
                     </div>
                   </div>
 
@@ -516,6 +526,7 @@ export default function CreateAdventure() {
                         { key: 'dark' as const, label: t('createAdventure.mapStyleDark'), icon: Moon },
                         { key: 'satellite' as const, label: t('createAdventure.mapStyleSatellite'), icon: Satellite },
                         { key: 'adventure' as const, label: t('createAdventure.mapStyleQuest'), icon: Sword },
+                        { key: 'mojave' as const, label: t('createAdventure.mapStyleMojave'), icon: Mountain },
                       ] as const).map(({ key, label, icon: Icon }) => (
                         <button
                           key={label}

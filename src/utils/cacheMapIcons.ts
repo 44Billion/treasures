@@ -127,6 +127,7 @@ export function getCachedCacheIcon(type: string, iconTheme: MapIconTheme): L.Div
           box-shadow: 0 2px 4px rgba(0,0,0,0.25);
           position: relative;
           cursor: pointer;
+          color: white;
         ">
           ${iconSvg}
         </div>

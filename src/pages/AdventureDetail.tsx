@@ -77,9 +77,10 @@ export default function AdventureDetail() {
 
     setTheme(adventure.theme);
 
-    // Explicitly sync the native status bar with the adventure's theme
-    // AdventureTheme is always 'adventure' which uses a dark status bar
-    const isDarkTheme = adventure.theme === 'adventure';
+    // Explicitly sync the native status bar with the adventure's theme.
+    // Both 'adventure' and 'mojave' are dark-styled themes, so the native
+    // status bar should mirror that.
+    const isDarkTheme = adventure.theme === 'adventure' || adventure.theme === 'mojave';
     document.documentElement.setAttribute('data-status-bar', isDarkTheme ? 'dark' : 'light');
 
     // Immediately restore localStorage so the user's preference isn't lost on crash/nav
