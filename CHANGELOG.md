@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.3.0] - 2026-05-10
+
+### Added
+- Short links for every cache — a tidy `/d/<id>` URL shows up on the create flow and the cache detail page with a one-tap copy button, perfect for stickers, signs, and word-of-mouth shares
+- Adventure deletion — adventure owners can now retire an adventure they no longer want listed
+- Settings menu is now reachable from an adventure page so visitors can switch themes and tweak preferences without leaving the trail
+- Auto-decode hints on reveal — old-school ROT13 hints unscramble automatically when you tap to peek, no decoder ring required
+- Middle-click or Ctrl/Cmd-click a cache card to open the listing in a new tab
+- Mojave theme is now an option for adventure styling, so adventure owners can match the Pip-Boy look
+- Logged-out visitors on desktop can now find Settings right next to Explore, making it easy to pick a theme or language before signing in
+
+### Changed
+- Older caches now show up on the map — the initial load pages through up to 500 listings instead of stopping at 150
+- Map clusters break apart sooner and tighter, so individual caches are easier to spot as you zoom in
+- Cache cards without a photo now wear a subtle half-logo backdrop that adapts to your theme, instead of looking blank
+- Map popups skip the photo strip entirely when there's nothing to show, keeping the preview compact
+- Hint label and reveal button now follow your active theme instead of a hard-coded color
+- Pasting on the Android app uses the native clipboard for snappier, more reliable behavior
+- Map zoom controls share a single look across every map in the app
+- The home page grass footer now sits flush with the bottom navigation bar on mobile
+
+### Fixed
+- Tapping a `/d/<id>` short link or `#verify=` claim URL on the Android app now opens the right page on cold and warm starts instead of bouncing through `localhost`
+- QR codes render in flat brand green instead of a washed-out gradient, scanning more reliably from a distance
+- Mojave and other custom themes no longer leak the default background through transparent areas
+- Cache detail page no longer hides the city and state when location metadata is passed in directly
+- Image uploads on the create-cache form give clearer feedback and the Join button now appears in the right place
+- Map icons on the Mojave theme now pick up the correct amber tint
+
 ## [2.2.0] - 2026-05-04
 
 ### Added
