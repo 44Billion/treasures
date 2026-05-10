@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, QrCode, Link as LinkIcon, ClipboardPaste, Camera } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Clipboard } from '@capacitor/clipboard';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -327,7 +329,16 @@ export default function Claim() {
                     className="flex-shrink-0"
                     onClick={async () => {
                       try {
-                        const text = await navigator.clipboard.readText();
+                        // navigator.clipboard.readText() is unimplemented in
+                        // Android's system WebView, so on native (Capacitor)
+                        // we go through the Clipboard plugin instead.
+                        let text = '';
+                        if (Capacitor.isNativePlatform()) {
+                          const result = await Clipboard.read();
+                          text = result.value ?? '';
+                        } else {
+                          text = await navigator.clipboard.readText();
+                        }
                         setManualUrl(text);
                         if (error) setError(null);
                         // Paste -> immediate submit if it looks valid (no debounce needed)
