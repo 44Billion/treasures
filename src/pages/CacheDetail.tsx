@@ -56,6 +56,7 @@ import type { Geocache, GeocacheLog } from "@/types/geocache";
 import { NavigationCompass } from "@/components/NavigationCompass";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 import { Compass } from "lucide-react";
+import { getAppOrigin } from "@/utils/appUrl";
 
 export default function CacheDetail() {
   const { t } = useTranslation();
@@ -295,7 +296,7 @@ export default function CacheDetail() {
         relayAttempts={relayAttempts}
         isMultiRelayLoading={isMultiRelayLoading}
         onSkipToCreate={isOwnNaddr ? () => {
-          const claimUrl = `${window.location.origin}${window.location.pathname}${window.location.hash}`;
+          const claimUrl = `${getAppOrigin()}${window.location.pathname}${window.location.hash}`;
           navigate(`/create-cache?claimUrl=${encodeURIComponent(claimUrl)}`);
         } : undefined}
         skipToCreateLabel={t('cacheDetail.loading.skipToCreate')}
@@ -502,7 +503,7 @@ export default function CacheDetail() {
                     <Button
                       onClick={() => {
                         // Create the full claim URL to pass to the create page
-                        const claimUrl = `${window.location.origin}${window.location.pathname}${window.location.hash}`;
+                        const claimUrl = `${getAppOrigin()}${window.location.pathname}${window.location.hash}`;
                         console.log('🔗 Creating claim URL:', claimUrl);
                         navigate(`/create-cache?claimUrl=${encodeURIComponent(claimUrl)}`);
                       }}
@@ -1019,12 +1020,12 @@ export default function CacheDetail() {
                           to={`/d/${geocache.dTag}`}
                           className="flex-1 text-xs md:text-sm font-mono break-all text-primary hover:underline select-text"
                         >
-                          {`${window.location.origin}/d/${geocache.dTag}`}
+                          {`${getAppOrigin()}/d/${geocache.dTag}`}
                         </Link>
                         <button
                           onClick={() => {
                             handleCopyToClipboard(
-                              `${window.location.origin}/d/${geocache.dTag}`,
+                              `${getAppOrigin()}/d/${geocache.dTag}`,
                               t('cacheDetail.details.shortLink', 'Short link'),
                             );
                           }}

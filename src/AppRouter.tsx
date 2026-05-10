@@ -7,6 +7,7 @@ import { RadarOverlayProvider } from "@/hooks/useRadarOverlay";
 import { GlobalRadarCompass } from "@/components/GlobalRadarCompass";
 import { CompassSpinner } from "@/components/ui/loading";
 import { TEXAS_REN_FEST_NADDR } from "@/lib/constants";
+import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 
 // Import only the most critical page eagerly for instant navigation
 import Home from "./pages/Home";
@@ -44,6 +45,15 @@ function PageFallback() {
 }
 
 /**
+ * Mounts `useNativeDeepLinks` so it lives inside the BrowserRouter
+ * (where `useNavigate` is valid). Renders nothing.
+ */
+function NativeDeepLinkBridge() {
+  useNativeDeepLinks();
+  return null;
+}
+
+/**
  * Skip-to-content link for keyboard / screen-reader users (WCAG 2.4.1).
  * Visually hidden until focused; jumps focus past nav into <main>.
  */
@@ -66,6 +76,8 @@ export function AppRouter() {
       <SkipToContent />
       {/* Scroll to top on route changes */}
       <ScrollToTop />
+      {/* Wire native deep links (Android/iOS) into react-router */}
+      <NativeDeepLinkBridge />
 
       {/* Mobile Header */}
       <MobileHeader />

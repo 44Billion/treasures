@@ -34,6 +34,7 @@ import { parseVerificationFromHash } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
 import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
 import { generateCompactDTag } from "@/utils/dTag";
+import { getAppOrigin } from "@/utils/appUrl";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Step configuration for progress indicator
@@ -804,12 +805,12 @@ export default function CreateCache() {
                       </p>
                       <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">
                         <span className="flex-1 text-xs md:text-sm font-mono break-all text-foreground select-text">
-                          {`${window.location.origin}/d/${effectiveDTag}`}
+                          {`${getAppOrigin()}/d/${effectiveDTag}`}
                         </span>
                         <button
                           type="button"
                           onClick={async () => {
-                            const url = `${window.location.origin}/d/${effectiveDTag}`;
+                            const url = `${getAppOrigin()}/d/${effectiveDTag}`;
                             try {
                               await navigator.clipboard.writeText(url);
                               setShortLinkCopied(true);

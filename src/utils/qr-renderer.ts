@@ -2,7 +2,7 @@
  * Custom QR code renderer with branded styling.
  *
  * Draws QR codes with:
- * - Rounded dot modules using a brand-green gradient
+ * - Rounded dot modules in flat brand green
  * - Custom finder patterns (eyes) with rounded outer borders and circular inner dots
  * - Clean white background
  *
@@ -12,10 +12,8 @@
 
 import QRCode from 'qrcode';
 
-// Brand colors (forest green from CSS --primary)
-const BRAND_GREEN_DARK = '#1a6e3f';   // --primary-700 approx
-const BRAND_GREEN = '#299e5e';        // --primary
-const BRAND_GREEN_LIGHT = '#3cb575';  // lighter variant
+// Brand color (forest green, slightly darker than --primary for QR contrast)
+const BRAND_GREEN = '#22864e';
 
 /**
  * Check if a module at (row, col) is part of a finder pattern (the three 7x7 corners).
@@ -140,21 +138,11 @@ export function drawStyledQR(
   roundRect(ctx, destX, destY, size, size, bgRadius);
   ctx.fill();
 
-  // Create a gradient for the data modules
-  const gradient = ctx.createLinearGradient(
-    destX,
-    destY,
-    destX + size,
-    destY + size,
-  );
-  gradient.addColorStop(0, BRAND_GREEN_DARK);
-  gradient.addColorStop(0.5, BRAND_GREEN);
-  gradient.addColorStop(1, BRAND_GREEN_LIGHT);
-
   // --- Draw data modules (rounded dots) ---
   const dotScale = 0.88; // dot diameter relative to module size (smaller = more gap)
   const dotRadius = (moduleSize * dotScale) / 2;
 
+  ctx.fillStyle = BRAND_GREEN;
   for (let row = 0; row < moduleCount; row++) {
     for (let col = 0; col < moduleCount; col++) {
       // Skip finder pattern regions — we draw those separately
@@ -166,7 +154,6 @@ export function drawStyledQR(
       const cx = destX + (col + margin + 0.5) * moduleSize;
       const cy = destY + (row + margin + 0.5) * moduleSize;
 
-      ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(cx, cy, dotRadius, 0, 2 * Math.PI);
       ctx.fill();
@@ -174,7 +161,7 @@ export function drawStyledQR(
   }
 
   // --- Draw finder patterns (custom eyes) ---
-  const finderColor = BRAND_GREEN_DARK;
+  const finderColor = BRAND_GREEN;
 
   // Top-left
   drawFinderPattern(
