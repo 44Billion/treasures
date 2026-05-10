@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { MouseEvent, ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/utils/utils';
@@ -117,20 +117,32 @@ export function StatsCard({ title, stats, className }: StatsCardProps) {
 
 // Interactive Card - Used for clickable cards with hover effects
 interface InteractiveCardProps {
-  onClick?: () => void;
+  onClick?: (e: MouseEvent<HTMLDivElement>) => void;
+  /**
+   * Fired for non-primary mouse-button clicks (e.g. middle-click). Use this to
+   * implement open-in-new-tab behavior on cards that aren't true anchors.
+   */
+  onAuxClick?: (e: MouseEvent<HTMLDivElement>) => void;
+  /**
+   * Fired on mousedown. Useful for suppressing the browser's default
+   * middle-click autoscroll cursor before an aux-click handler runs.
+   */
+  onMouseDown?: (e: MouseEvent<HTMLDivElement>) => void;
   children: ReactNode;
   className?: string;
   compact?: boolean;
 }
 
-export function InteractiveCard({ 
-  onClick, 
-  children, 
-  className, 
-  compact = false 
+export function InteractiveCard({
+  onClick,
+  onAuxClick,
+  onMouseDown,
+  children,
+  className,
+  compact = false
 }: InteractiveCardProps) {
   return (
-    <Card 
+    <Card
       className={cn(
         "transition-shadow",
         onClick ? "cursor-pointer hover:shadow-lg" : "",
@@ -138,6 +150,8 @@ export function InteractiveCard({
         className
       )}
       onClick={onClick}
+      onAuxClick={onAuxClick}
+      onMouseDown={onMouseDown}
     >
       {children}
     </Card>

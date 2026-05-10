@@ -133,7 +133,7 @@ export function GeocacheCard({
   const { user } = useCurrentUser();
   const { theme } = useTheme();
   const isMobile = useIsMobile();
-  const { navigateToGeocache } = useGeocacheNavigation();
+  const { navigateToGeocache, getGeocacheUrl } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
   const thumbnail = useThumbnailUrl();
   const zapStoreKey = cache.naddr ? `naddr:${cache.naddr}` : `event:${cache.id}`;
@@ -183,13 +183,22 @@ export function GeocacheCard({
 
   const isDraft = cache.kind === NIP_GC_KINDS.DRAFT;
 
+  // Resolve the in-app URL this card should navigate to. Drafts open the
+  // creation wizard; everything else points at the geocache details page.
+  const cardUrl = (fromMap?: boolean): string => {
+    if (isDraft) {
+      return `/create-cache?draft=${encodeURIComponent(cache.dTag)}`;
+    }
+    return getGeocacheUrl(cache as Geocache, { fromMap });
+  };
+
   // Optimized navigation handler
   // On mobile, always navigate directly to the details page
   // On desktop, use the onClick handler if provided (for modal behavior)
   const handleNavigate = (fromMap?: boolean) => {
     // Drafts navigate to the creation wizard to continue editing
     if (isDraft) {
-      nav(`/create-cache?draft=${encodeURIComponent(cache.dTag)}`);
+      nav(cardUrl(fromMap));
       return;
     }
 
@@ -203,6 +212,40 @@ export function GeocacheCard({
       // Desktop fallback: navigate to details page
       navigateToGeocache(cache as Geocache, { fromMap });
     }
+  };
+
+  // True when the click should open the card in a new browser tab. Matches
+  // standard link behavior: middle-click (button 1), Ctrl+click (Win/Linux),
+  // Cmd+click (macOS), or Shift+click for a new window.
+  const isOpenInNewTabClick = (e: { button: number; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) =>
+    e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey;
+
+  // Primary-button click: respect modifier keys to open in a new tab; otherwise
+  // fall through to the existing handleNavigate flow (which honors the
+  // mobile-vs-desktop and onClick branching).
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, fromMap?: boolean) => {
+    if (isOpenInNewTabClick(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open(cardUrl(fromMap), '_blank', 'noopener,noreferrer');
+      return;
+    }
+    handleNavigate(fromMap);
+  };
+
+  // Aux-button click (typically middle-click): always open in a new tab so the
+  // card behaves like a real link even though it's a div.
+  const handleCardAuxClick = (e: React.MouseEvent<HTMLDivElement>, fromMap?: boolean) => {
+    if (e.button !== 1) return;
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(cardUrl(fromMap), '_blank', 'noopener,noreferrer');
+  };
+
+  // Suppress the browser's middle-click autoscroll so users get a clean
+  // open-in-new-tab interaction instead of a scroll cursor.
+  const handleCardMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button === 1) e.preventDefault();
   };
 
 
@@ -388,7 +431,9 @@ export function GeocacheCard({
 
     return (
       <InteractiveCard
-        onClick={() => handleNavigate()}
+        onClick={(e) => handleCardClick(e)}
+        onAuxClick={(e) => handleCardAuxClick(e)}
+        onMouseDown={handleCardMouseDown}
         className={cn(
           "group hover:shadow-md transition-shadow duration-200 bg-card border border-border h-full flex flex-col overflow-hidden",
           hasStatus && "opacity-70 hover:opacity-90"
@@ -499,7 +544,7 @@ export function GeocacheCard({
     const hasSpoiler = !!cache.contentWarning;
 
     return (
-      <InteractiveCard onClick={() => handleNavigate()} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
+      <InteractiveCard onClick={(e) => handleCardClick(e)} onAuxClick={(e) => handleCardAuxClick(e)} onMouseDown={handleCardMouseDown} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
             {/* Image container - always shown with pastel green background if no image */}

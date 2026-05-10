@@ -64,6 +64,7 @@ vi.mock('@/hooks/useAuthor', () => ({
 vi.mock('@/hooks/useGeocacheNavigation', () => ({
   useGeocacheNavigation: () => ({
     navigateToGeocache: vi.fn(),
+    getGeocacheUrl: vi.fn(() => '/test-naddr'),
   }),
 }));
 

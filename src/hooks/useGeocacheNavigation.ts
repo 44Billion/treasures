@@ -14,31 +14,37 @@ export function useGeocacheNavigation() {
   const queryClient = useQueryClient();
 
   /**
+   * Build the in-app URL for a geocache without navigating. Useful for
+   * middle-click / Ctrl+click open-in-new-tab handlers and `<a>` href values.
+   */
+  const getGeocacheUrl = useCallback((geocache: Geocache, options?: { fromMap?: boolean }) => {
+    const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
+    const searchParams = new URLSearchParams();
+    if (options?.fromMap) {
+      searchParams.set('fromMap', 'true');
+    }
+    return `/${naddr}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  }, []);
+
+  /**
    * Navigate to a geocache details page with optimized caching
    * Pre-populates the cache to avoid re-fetching data we already have
    */
   const navigateToGeocache = useCallback((geocache: Geocache, options?: { fromMap?: boolean }) => {
     const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
-    
+
     // Pre-populate the cache with the geocache data we already have
     queryClient.setQueryData(['geocache-by-naddr', naddr], geocache);
-    
+
     // Also set a longer stale time for this specific query to prevent immediate refetch
     queryClient.setQueryDefaults(['geocache-by-naddr', naddr], {
       staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
     console.log('🚀 Pre-populated cache for geocache navigation:', geocache.name);
-    
-    // Navigate with optional query params
-    const searchParams = new URLSearchParams();
-    if (options?.fromMap) {
-      searchParams.set('fromMap', 'true');
-    }
-    
-    const url = `/${naddr}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    navigate(url);
-  }, [navigate, queryClient]);
+
+    navigate(getGeocacheUrl(geocache, options));
+  }, [navigate, queryClient, getGeocacheUrl]);
 
   /**
    * Pre-populate cache for multiple geocaches (useful for prefetching)
@@ -63,6 +69,7 @@ export function useGeocacheNavigation() {
 
   return {
     navigateToGeocache,
+    getGeocacheUrl,
     prePopulateGeocaches,
     isGeocacheCached,
   };
