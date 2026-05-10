@@ -131,7 +131,7 @@ export function GeocacheCard({
   const { t } = useTranslation();
   const nav = useNavigate();
   const { user } = useCurrentUser();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const isMobile = useIsMobile();
   const { navigateToGeocache, getGeocacheUrl } = useGeocacheNavigation();
   const author = useAuthor(cache.pubkey);
@@ -180,6 +180,32 @@ export function GeocacheCard({
 
   // Check if adventure theme is active
   const isAdventureTheme = theme === 'adventure';
+
+  // Theme-aware styling for the empty-image fallback area. Mirrors how the
+  // home page hero handles its background and logo tinting:
+  //   - light: pastel green, multiply blend so the green logo tints the bg
+  //   - dark: muted dark token, no blend (multiply disappears on dark)
+  //   - adventure: amber + sepia logo, multiply works on the warm pastel bg
+  //   - mojave / ditto: theme background, with the logo retinted via the
+  //     scoped `.mojave-logo` / `.ditto-logo` filters; multiply disabled so
+  //     the retinted logo is actually visible against dark theme surfaces.
+  const emptyImageBgClass =
+    resolvedTheme === 'ditto' || resolvedTheme === 'mojave'
+      ? 'bg-background'
+      : 'bg-green-100 dark:bg-primary-50 adventure:bg-amber-100';
+  const emptyImageLogoFilterClass =
+    resolvedTheme === 'ditto' ? 'ditto-logo'
+      : resolvedTheme === 'mojave' ? 'mojave-logo'
+      : resolvedTheme === 'adventure' ? 'sepia'
+      : '';
+  // Use multiply only on light pastel surfaces. On dark / themed surfaces
+  // multiply collapses the logo into the background, so we render normally
+  // and bump opacity slightly to keep the mark legible.
+  const emptyImageLogoBlendClass =
+    resolvedTheme === 'ditto' || resolvedTheme === 'mojave' || resolvedTheme === 'dark'
+      ? 'opacity-30 mix-blend-normal'
+      : 'opacity-20 mix-blend-multiply';
+  const emptyImageLogoClass = cn(emptyImageLogoFilterClass, emptyImageLogoBlendClass);
 
   const isDraft = cache.kind === NIP_GC_KINDS.DRAFT;
 
@@ -441,20 +467,26 @@ export function GeocacheCard({
       >
         <CardContent className="p-0 flex-1 flex flex-col">
           <div className="flex relative flex-1">
-            {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-green-100 dark:bg-primary-50 adventure:bg-amber-100">
+            {/* Image container - always shown with theme-aware background if no image */}
+            <div className={cn("shrink-0 w-24 sm:w-28 aspect-square overflow-hidden", emptyImageBgClass)}>
               <div className="relative w-full h-full">
                 {!previewImage && (
                   // Decorative half-logo bleed when no image is available. The
                   // image is sized to twice the container width and shifted so
                   // its right half spills outside the overflow-hidden parent,
                   // leaving the left half visible. mix-blend-multiply lets the
-                  // logo tint the green background.
+                  // logo tint the background; the per-theme filter class
+                  // matches the Home hero logo so the look is consistent
+                  // across themes (sepia for adventure, ditto/mojave filters
+                  // for those themes).
                   <img
                     src="/icon.svg"
                     alt=""
                     aria-hidden="true"
-                    className="pointer-events-none select-none absolute top-1/2 left-0 h-[120%] w-auto max-w-none -translate-y-1/2 opacity-20 mix-blend-multiply"
+                    className={cn(
+                      "pointer-events-none select-none absolute top-1/2 left-0 h-[120%] w-auto max-w-none -translate-y-1/2",
+                      emptyImageLogoClass,
+                    )}
                   />
                 )}
                 {previewImage && (
@@ -560,8 +592,8 @@ export function GeocacheCard({
       <InteractiveCard onClick={(e) => handleCardClick(e)} onAuxClick={(e) => handleCardAuxClick(e)} onMouseDown={handleCardMouseDown} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
-            {/* Image container - always shown with pastel green background if no image */}
-            <div className="shrink-0 w-16 sm:w-20 h-full overflow-hidden bg-green-100 dark:bg-primary-50 adventure:bg-amber-100">
+            {/* Image container - always shown with theme-aware background if no image */}
+            <div className={cn("shrink-0 w-16 sm:w-20 h-full overflow-hidden", emptyImageBgClass)}>
               <div className="relative w-full h-full">
                 {!previewImage && (
                   // Decorative half-logo bleed for compact cards (see standard
@@ -570,7 +602,10 @@ export function GeocacheCard({
                     src="/icon.svg"
                     alt=""
                     aria-hidden="true"
-                    className="pointer-events-none select-none absolute top-1/2 left-0 h-[120%] w-auto max-w-none -translate-y-1/2 opacity-20 mix-blend-multiply"
+                    className={cn(
+                      "pointer-events-none select-none absolute top-1/2 left-0 h-[120%] w-auto max-w-none -translate-y-1/2",
+                      emptyImageLogoClass,
+                    )}
                   />
                 )}
                 {previewImage && (
