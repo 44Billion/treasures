@@ -9,12 +9,13 @@ import { ZapButton } from "@/components/ZapButton";
 import { GeocacheLoading } from "@/components/GeocacheLoading";
 import { useDirectNavigation } from '@/hooks/useDirectNavigation';
 
-import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, Eye, EyeOff, QrCode, Zap, Plus, Archive, Wrench } from "lucide-react";
+import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, QrCode, Zap, Plus, Archive, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { HintDisplay } from "@/components/ui/hint-display";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { ErrorState } from "@/components/ui/loading";
@@ -153,9 +154,6 @@ export default function CacheDetail() {
   // Image gallery state
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-
-  // Hint visibility state
-  const [isHintVisible, setIsHintVisible] = useState(false);
 
   // Regenerate QR dialog state
   const [regenerateQRDialogOpen, setRegenerateQRDialogOpen] = useState(false);
@@ -866,34 +864,7 @@ export default function CacheDetail() {
                       <p className="text-foreground whitespace-pre-wrap break-words select-text">{geocache.description}</p>
 
                       {geocache.hint && (
-                        <Alert className="mt-4 py-2">
-                          <AlertDescription className="break-words">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex-1">
-                                <strong>{t('cacheDetail.hint.label')}</strong>{' '}
-                                <span
-                                  className={`select-text transition-all duration-200 ${
-                                    isHintVisible ? '' : 'blur-sm'
-                                  }`}
-                                >
-                                  {geocache.hint}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => setIsHintVisible(!isHintVisible)}
-                                className="flex-shrink-0 p-0.5 -mr-4 sm:-mr-0 rounded hover:bg-muted transition-colors"
-                                title={isHintVisible ? t('cacheDetail.hint.hide') : t('cacheDetail.hint.reveal')}
-                                type="button"
-                              >
-                                {isHintVisible ? (
-                                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                                ) : (
-                                  <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                              </button>
-                            </div>
-                          </AlertDescription>
-                        </Alert>
+                        <HintDisplay hint={geocache.hint} className="mt-4" />
                       )}
                     </div>
 
