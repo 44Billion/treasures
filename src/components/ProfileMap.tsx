@@ -4,6 +4,7 @@ import { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { useTheme } from "@/hooks/useTheme";
+import { CustomZoomControl } from "@/components/map/CustomZoomControl";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import type { Geocache } from "@/types/geocache";
 import { getCachedCacheIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
@@ -367,7 +368,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         zoom={mapConfig.zoom}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
-        zoomControl={true}
+        zoomControl={false}
         doubleClickZoom={true}
         touchZoom={true}
         attributionControl={false}
@@ -380,6 +381,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
       >
         <OptimizedTileLayer mapStyle={mapStyle} crossOriginTiles={lockdownFeatures.crossOriginTiles} />
         <MapSizeController />
+        <CustomZoomControl />
         <ThemeController
           currentStyle={currentMapStyle}
           appTheme={theme}

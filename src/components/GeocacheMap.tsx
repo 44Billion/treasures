@@ -9,6 +9,7 @@ import { MapStyleSelector } from "./MapStyleSelector";
 import { NearMeButton } from "./NearMeButton";
 import { CompassMapButton } from "./CompassMapButton";
 import { EarthViewMapButton } from "./EarthViewMapButton";
+import { CustomZoomControl } from "./map/CustomZoomControl";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useMapController } from "@/hooks/useMapController";
@@ -768,131 +769,6 @@ function MapStyleControl({
       );
     }
   }, [currentStyle, onStyleChange]);
-
-  return null;
-}
-
-// Custom component for zoom control - positioned at lower left corner
-function CustomZoomControl() {
-  const map = useMap();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInitializedRef = useRef(false);
-
-  useEffect(() => {
-    if (isInitializedRef.current) return;
-
-    const mapContainer = map.getContainer();
-
-    // Create container div for the zoom control
-    const container = document.createElement('div');
-    container.className = 'custom-zoom-control';
-    container.style.cssText = `
-      position: absolute;
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      left: 10px;
-      z-index: 1000;
-      pointer-events: auto;
-    `;
-
-    // Get background color with opacity from CSS variable
-    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
-    const backgroundColor = bgColor ? `hsl(${bgColor} / 0.9)` : 'rgba(255, 255, 255, 0.9)';
-
-    // Get accent color for hover
-    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    const accentBgColor = accentColor ? `hsl(${accentColor})` : 'rgba(240, 240, 240, 1)';
-
-    // Get foreground color
-    const fgColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
-    const foregroundColor = fgColor ? `hsl(${fgColor})` : '#374151';
-
-    // Create zoom in button
-    const zoomInBtn = document.createElement('button');
-    zoomInBtn.type = 'button';
-    zoomInBtn.innerHTML = '+';
-    zoomInBtn.setAttribute('aria-label', 'Zoom in');
-    zoomInBtn.className = 'zoom-btn zoom-in-btn';
-    zoomInBtn.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: ${backgroundColor};
-      border: 1px solid hsl(var(--border));
-      border-bottom: none;
-      color: ${foregroundColor};
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1;
-      cursor: pointer;
-      border-top-left-radius: 0.375rem;
-      border-top-right-radius: 0.375rem;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-    `;
-    zoomInBtn.onmouseover = () => {
-      zoomInBtn.style.background = accentBgColor;
-    };
-    zoomInBtn.onmouseout = () => {
-      zoomInBtn.style.background = backgroundColor;
-    };
-    zoomInBtn.onclick = () => {
-      map.zoomIn();
-    };
-
-    // Create zoom out button
-    const zoomOutBtn = document.createElement('button');
-    zoomOutBtn.type = 'button';
-    zoomOutBtn.innerHTML = '−';
-    zoomOutBtn.setAttribute('aria-label', 'Zoom out');
-    zoomOutBtn.className = 'zoom-btn zoom-out-btn';
-    zoomOutBtn.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: ${backgroundColor};
-      border: 1px solid hsl(var(--border));
-      color: ${foregroundColor};
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1;
-      cursor: pointer;
-      border-bottom-left-radius: 0.375rem;
-      border-bottom-right-radius: 0.375rem;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-    `;
-    zoomOutBtn.onmouseover = () => {
-      zoomOutBtn.style.background = accentBgColor;
-    };
-    zoomOutBtn.onmouseout = () => {
-      zoomOutBtn.style.background = backgroundColor;
-    };
-    zoomOutBtn.onclick = () => {
-      map.zoomOut();
-    };
-
-    container.appendChild(zoomInBtn);
-    container.appendChild(zoomOutBtn);
-
-    // Add container to map container
-    mapContainer.appendChild(container);
-    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = container;
-    (isInitializedRef as React.MutableRefObject<boolean>).current = true;
-
-    const currentContainer = containerRef.current;
-
-    // Cleanup
-    return () => {
-      if (currentContainer && currentContainer.parentNode) {
-        currentContainer.parentNode.removeChild(currentContainer);
-      }
-      (isInitializedRef as React.MutableRefObject<boolean>).current = false;
-    };
-  }, [map]);
 
   return null;
 }
