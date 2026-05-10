@@ -553,8 +553,11 @@ export function GeocacheCard({
               </p>
             )}
 
-            {/* City name */}
-            {!showMetadata && renderCityName()}
+            {/* City name — shown when no caller-supplied metadata is occupying
+                that slot. The detailed variant otherwise hid this entirely
+                because `showMetadata` was always true, even when no metadata
+                was provided. */}
+            {!metadata && renderCityName()}
 
             {/* Description */}
             {renderDescription()}
