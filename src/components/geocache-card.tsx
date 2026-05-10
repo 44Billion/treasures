@@ -444,6 +444,19 @@ export function GeocacheCard({
             {/* Image container - always shown with pastel green background if no image */}
             <div className="shrink-0 w-24 sm:w-28 aspect-square overflow-hidden bg-green-100 dark:bg-primary-50 adventure:bg-amber-100">
               <div className="relative w-full h-full">
+                {!previewImage && (
+                  // Decorative half-logo bleed when no image is available. The
+                  // image is sized to twice the container width and shifted so
+                  // its right half spills outside the overflow-hidden parent,
+                  // leaving the left half visible. mix-blend-multiply lets the
+                  // logo tint the green background.
+                  <img
+                    src="/icon.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="pointer-events-none select-none absolute top-1/2 left-0 h-[120%] w-auto max-w-none -translate-y-1/2 opacity-20 mix-blend-multiply"
+                  />
+                )}
                 {previewImage && (
                   hasSpoiler ? (
                     <BlurredImage
@@ -550,6 +563,16 @@ export function GeocacheCard({
             {/* Image container - always shown with pastel green background if no image */}
             <div className="shrink-0 w-16 sm:w-20 h-full overflow-hidden bg-green-100 dark:bg-primary-50 adventure:bg-amber-100">
               <div className="relative w-full h-full">
+                {!previewImage && (
+                  // Decorative half-logo bleed for compact cards (see standard
+                  // layout for full rationale).
+                  <img
+                    src="/icon.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="pointer-events-none select-none absolute top-1/2 left-0 h-[120%] w-auto max-w-none -translate-y-1/2 opacity-20 mix-blend-multiply"
+                  />
+                )}
                 {previewImage && (
                   hasSpoiler ? (
                     <BlurredImage
