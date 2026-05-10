@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { Compass, Share2, Pencil, ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Compass, Share2, Pencil, Trash2, ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import L from "leaflet";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
@@ -11,6 +11,7 @@ import { LogText } from "@/components/LogText";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading";
 import { LoginArea } from "@/components/auth/LoginArea";
+import { PublicSettingsMenu } from "@/components/PublicSettingsMenu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { ExploreMenuItems } from "@/components/ExploreMenuItems";
 import { useAdventure } from "@/hooks/useAdventure";
+import { useDeleteAdventure } from "@/hooks/useDeleteAdventure";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAdventureProgress } from "@/hooks/useAdventureProgress";
@@ -31,6 +33,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useToast } from "@/hooks/useToast";
 import { useTheme } from "@/hooks/useTheme";
 import { getAppOrigin } from "@/utils/appUrl";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 import type { Geocache } from "@/types/geocache";
 
@@ -117,6 +120,52 @@ export default function AdventureDetail() {
     : adventure?.location || undefined;
 
   const isOwner = user?.pubkey === adventure?.pubkey;
+
+  // Adventure deletion (NIP-09). Confirmation dialog state lives here so all
+  // three owner-affordance surfaces (top action bar + two image-overlay
+  // headers) share one dialog instance.
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { mutate: deleteAdventure, isPending: isDeletingAdventure } = useDeleteAdventure();
+
+  const handleDeleteRequest = () => {
+    if (!isOwner || !adventure) return;
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!adventure) return;
+    deleteAdventure(
+      { adventure },
+      {
+        onSuccess: () => {
+          setIsDeleteDialogOpen(false);
+          toast({
+            title: t('adventureDetail.deleteSuccessTitle', 'Adventure deleted'),
+            description: t(
+              'adventureDetail.deleteSuccessDescription',
+              'The deletion request has been sent to relays.',
+            ),
+          });
+          navigate('/adventures');
+        },
+        onError: (error) => {
+          const errorObj = error as { message?: string };
+          const isSigningError =
+            errorObj.message?.includes('User rejected') ||
+            errorObj.message?.includes('cancelled') ||
+            errorObj.message?.includes('No signer');
+          // Only close the dialog on non-signing errors so the user can retry
+          // after dismissing their wallet prompt.
+          if (!isSigningError) setIsDeleteDialogOpen(false);
+          toast({
+            title: t('adventureDetail.deleteErrorTitle', 'Could not delete adventure'),
+            description: errorObj.message ?? t('adventureDetail.deleteErrorDescription', 'Please try again.'),
+            variant: 'destructive',
+          });
+        },
+      },
+    );
+  };
 
   const handleMarkerClick = (geocache: Geocache, container?: HTMLDivElement) => {
     if (!geocache && !container) {
@@ -212,8 +261,20 @@ export default function AdventureDetail() {
     );
   }
 
-  const renderActionButtons = (iconSize = "h-4 w-4") => (
+  const renderActionButtons = (iconSize = "h-4 w-4", { includeDelete = true }: { includeDelete?: boolean } = {}) => (
     <>
+      {isOwner && includeDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          onClick={handleDeleteRequest}
+          aria-label={t('adventureDetail.delete', 'Delete adventure')}
+          title={t('adventureDetail.delete', 'Delete adventure')}
+        >
+          <Trash2 className={iconSize} />
+        </Button>
+      )}
       {isOwner && (
         <Button
           variant="ghost"
@@ -324,6 +385,16 @@ export default function AdventureDetail() {
                 <div className="flex items-center gap-1">
                   {isOwner && (
                     <button
+                      onClick={handleDeleteRequest}
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm hover:bg-red-600/70 transition-colors"
+                      aria-label={t('adventureDetail.delete', 'Delete adventure')}
+                      title={t('adventureDetail.delete', 'Delete adventure')}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {isOwner && (
+                    <button
                       onClick={() => navigate(`/edit-adventure/${naddr}`)}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
                     >
@@ -398,18 +469,27 @@ export default function AdventureDetail() {
 
           {/* Floating nav controls — upper-right over the map, matches Map.tsx */}
           <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm shadow-md">
-                  <Compass className="h-4 w-4 mr-1.5" />
-                  {t('adventureDetail.explore')}
-                  <ChevronDown className="ml-1 h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <ExploreMenuItems />
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm shadow-md">
+                    <Compass className="h-4 w-4 mr-1.5" />
+                    {t('adventureDetail.explore')}
+                    <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <ExploreMenuItems />
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {/* Public Settings menu sits next to Explore for logged-out
+                  visitors, mirroring the desktop header and Map page. */}
+              {!user && (
+                <PublicSettingsMenu
+                  triggerClassName="bg-background/90 backdrop-blur-sm shadow-md border border-input"
+                />
+              )}
+            </div>
             <LoginArea compact />
           </div>
         </div>
@@ -442,7 +522,10 @@ export default function AdventureDetail() {
                 onClick={(e) => e.stopPropagation()}
                 className={`flex items-center gap-1 flex-shrink-0 ${adventure.image ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10' : ''}`}
               >
-                {renderActionButtons("h-3.5 w-3.5")}
+                {/* Mobile collapsed top bar omits the destructive Delete
+                    button — that affordance lives in the expanded drawer to
+                    avoid accidental taps near the title/expand control. */}
+                {renderActionButtons("h-3.5 w-3.5", { includeDelete: false })}
               </div>
             </div>
           </div>
@@ -478,6 +561,16 @@ export default function AdventureDetail() {
                   <ChevronUp className="h-4 w-4" />
                 </button>
                 <div className="flex items-center gap-1">
+                  {isOwner && (
+                    <button
+                      onClick={handleDeleteRequest}
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm hover:bg-red-600/70"
+                      aria-label={t('adventureDetail.delete', 'Delete adventure')}
+                      title={t('adventureDetail.delete', 'Delete adventure')}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   {isOwner && (
                     <button
                       onClick={() => navigate(`/edit-adventure/${naddr}`)}
@@ -545,6 +638,23 @@ export default function AdventureDetail() {
           <LogText text={adventure.description} className="text-sm text-muted-foreground" />
         </DialogContent>
       </Dialog>
+
+      {/* Adventure deletion confirmation (NIP-09). Shared by every owner
+          affordance on the page. */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={(open) => !isDeletingAdventure && setIsDeleteDialogOpen(open)}
+        title={t('adventureDetail.deleteConfirmTitle', 'Delete this adventure?')}
+        description={t(
+          'adventureDetail.deleteConfirmDescription',
+          'This sends a deletion request to relays. The adventure will be removed from listings; the underlying treasures are not affected.',
+        )}
+        isDeleting={isDeletingAdventure}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        confirmText={t('common.delete', 'Delete')}
+        cancelText={t('common.cancel', 'Cancel')}
+      />
     </div>
   );
 }

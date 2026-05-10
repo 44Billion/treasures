@@ -1240,6 +1240,13 @@
   "adventureDetail.found": "{{found}}/{{total}} found",
   "adventureDetail.noTreasures": "No treasures in this adventure yet.",
   "adventureDetail.explore": "Explore",
+  "adventureDetail.delete": "Delete adventure",
+  "adventureDetail.deleteConfirmTitle": "Delete this adventure?",
+  "adventureDetail.deleteConfirmDescription": "This sends a deletion request to relays. The adventure will be removed from listings; the underlying treasures are not affected.",
+  "adventureDetail.deleteSuccessTitle": "Adventure deleted",
+  "adventureDetail.deleteSuccessDescription": "The deletion request has been sent to relays.",
+  "adventureDetail.deleteErrorTitle": "Could not delete adventure",
+  "adventureDetail.deleteErrorDescription": "Please try again.",
 
   "createAdventure.stepDetails": "Details",
   "createAdventure.stepLocation": "Location",
