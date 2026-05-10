@@ -4,7 +4,9 @@ import { ChevronDown, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ExploreMenuItems } from '@/components/ExploreMenuItems';
+import { PublicSettingsMenu } from '@/components/PublicSettingsMenu';
 import { useTheme } from "@/hooks/useTheme";
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,7 @@ interface DesktopHeaderProps {
 export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { user } = useCurrentUser();
   const isAdventureTheme = theme === 'adventure';
   const isDittoTheme = theme === 'ditto';
   const isMojaveTheme = theme === 'mojave';
@@ -64,17 +67,32 @@ export function DesktopHeader({ variant = 'default' }: DesktopHeaderProps) {
           </Link>
 
           <nav className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isHero ? "text-white hover:bg-white/15 hover:text-white" : isAdventureTheme ? "text-md text-stone-200" : isDittoTheme ? "text-foreground" : ""}>
-                  <Compass className="h-4 w-4 mr-2" />
-                  {t('navigation.explore')} <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <ExploreMenuItems showMapLink />
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Explore + (logged-out) public settings sit in a tight cluster
+                so the gear reads as a sibling action of Explore rather than
+                a fully separate nav item. */}
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size={isAdventureTheme ? "default" : "sm"} className={isHero ? "text-white hover:bg-white/15 hover:text-white" : isAdventureTheme ? "text-md text-stone-200" : isDittoTheme ? "text-foreground" : ""}>
+                    <Compass className="h-4 w-4 mr-2" />
+                    {t('navigation.explore')} <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <ExploreMenuItems showMapLink />
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* When logged out, expose a public Settings menu (App Settings link
+                  + theme selector). Once logged in, the AccountSwitcher in
+                  LoginArea covers the same ground plus account-specific items. */}
+              {!user && (
+                <PublicSettingsMenu
+                  triggerSize={isAdventureTheme ? 'default' : 'sm'}
+                  triggerClassName={isHero ? 'text-white hover:bg-white/15 hover:text-white' : isAdventureTheme ? 'text-md text-stone-200' : isDittoTheme ? 'text-foreground' : ''}
+                />
+              )}
+            </div>
 
             <LoginArea />
           </nav>

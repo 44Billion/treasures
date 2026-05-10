@@ -10,6 +10,7 @@ import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LoginArea } from "@/components/auth/LoginArea";
+import { PublicSettingsMenu } from "@/components/PublicSettingsMenu";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   DropdownMenu,
@@ -1009,18 +1010,27 @@ export default function Map() {
 
           {/* Floating nav controls — upper-right over the map */}
           <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm shadow-md">
-                  <Compass className="h-4 w-4 mr-1.5" />
-                  {t('navigation.explore')}
-                  <ChevronDown className="ml-1 h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <ExploreMenuItems showMapLink={false} />
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm shadow-md">
+                    <Compass className="h-4 w-4 mr-1.5" />
+                    {t('navigation.explore')}
+                    <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <ExploreMenuItems showMapLink={false} />
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {/* Logged-out visitors see the public Settings menu next to
+                  Explore; logged-in users get the same access via LoginArea. */}
+              {!user && (
+                <PublicSettingsMenu
+                  triggerClassName="bg-background/90 backdrop-blur-sm shadow-md border border-input"
+                />
+              )}
+            </div>
             <LoginArea compact />
           </div>
         </div>
