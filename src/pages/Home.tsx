@@ -499,12 +499,15 @@ export default function Home() {
       </section>
 
       {/* Recent Caches */}
-      <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4 overflow-hidden">
+      <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4">
         {/* Grass footer background - positioned at bottom.
+            On small screens, the grass is pushed down into <main>'s bottom
+            padding (which clears the fixed bottom nav) so its bottom edge
+            sits flush with the top of the nav rather than floating above it.
             Hidden for Ditto (custom bg) and Mojave (no grass in the wasteland). */}
         {!isDitto && !isMojave && (
           <div
-            className="absolute inset-x-0 bottom-0 translate-y-1/3 pointer-events-none opacity-50 dark:brightness-[0.5] 2xl:blur-sm 2xl:opacity-30"
+            className="absolute inset-x-0 bottom-[calc(-3rem-env(safe-area-inset-bottom,0px)-1rem)] lg:bottom-0 pointer-events-none opacity-50 dark:brightness-[0.5] 2xl:blur-sm 2xl:opacity-30"
             style={{
               aspectRatio: '1750 / 656',
               background: `url(/grass-footer.webp) center bottom / cover no-repeat`,
