@@ -78,7 +78,7 @@ export default function CacheByDTag() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 relative">
+    <div className="min-h-screen bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70 mojave:from-background mojave:via-background mojave:to-background relative">
       <div className="absolute inset-0 -z-20 hidden adventure:block" style={{
         backgroundImage: 'url(/parchment-300.jpg)',
         backgroundRepeat: 'repeat',

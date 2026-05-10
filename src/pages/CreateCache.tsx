@@ -524,8 +524,8 @@ export default function CreateCache() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Draft Notice */}
               {showDraftNotice && (
-                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                  <AlertDescription className="flex items-center justify-between">
+                <Alert className="border-blue-500/40 bg-blue-500/10 text-foreground">
+                  <AlertDescription className="flex items-center justify-between text-foreground">
                     <span className="text-sm flex items-center gap-2">
                       <FileEdit className="h-4 w-4" />
                        {editingDraftSlug
@@ -589,8 +589,8 @@ export default function CreateCache() {
 
                   {/* What you'll need hint - only shown on first visit */}
                   {!hasDraft && !location && (
-                    <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-                      <AlertDescription className="text-sm">
+                    <Alert className="border-amber-500/40 bg-amber-500/10 text-foreground">
+                      <AlertDescription className="text-sm text-foreground">
                         <span className="font-medium">{t('createCache.whatYouNeed')}</span> {t('createCache.whatYouNeedDescription')}
                       </AlertDescription>
                     </Alert>
@@ -612,8 +612,8 @@ export default function CreateCache() {
                   {location && locationVerification && !isVerifying && (
                     <div className={`rounded-lg border p-4 ${
                       hasWarnings
-                        ? 'border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20'
-                        : 'border-green-200 bg-green-50 dark:bg-green-950/20'
+                        ? 'border-yellow-500/40 bg-yellow-500/10'
+                        : 'border-green-500/40 bg-green-500/10'
                     }`}>
                       <div className="flex items-start gap-3">
                         {hasWarnings ? (
@@ -631,7 +631,7 @@ export default function CreateCache() {
 
                           {/* Warning reasons */}
                           {hasWarnings && locationVerification.warnings.length > 0 && (
-                            <ul className="text-xs text-yellow-800 dark:text-yellow-300 space-y-1">
+                            <ul className="text-xs text-foreground/90 space-y-1">
                               {locationVerification.warnings.map((w, i) => (
                                 <li key={i} className="flex items-start gap-1.5">
                                   <span className="mt-0.5 shrink-0">•</span>

@@ -637,7 +637,7 @@ export default function CacheDetail() {
             {/* Mobile: No card wrapper, Desktop: Card wrapper */}
             <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:mt-4">
               {/* Map Banner */}
-              <div className="relative h-72 lg:mb-4 lg:rounded-t-lg overflow-hidden bg-gray-100 lg:mt-0">
+              <div className="relative h-72 lg:mb-4 lg:rounded-t-lg overflow-hidden bg-muted lg:mt-0">
                 <GeocacheMap
                   geocaches={[{
                     ...geocache,
@@ -675,7 +675,7 @@ export default function CacheDetail() {
                         variant="outline"
                         className={
                           geocache.status === 'maintenance'
-                            ? 'w-fit gap-1.5 border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            ? 'w-fit gap-1.5 border-amber-500/60 bg-amber-500/10 text-foreground'
                             : 'w-fit gap-1.5 border-muted-foreground/40 bg-muted text-muted-foreground'
                         }
                       >
@@ -919,7 +919,7 @@ export default function CacheDetail() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     {t('cacheDetail.details.coordinates')} {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
-                      <span className="text-orange-600 text-xs">{t('cacheDetail.details.coordinatesModified')}</span>
+                      <span className="text-orange-600 dark:text-orange-400 adventure:text-amber-700 mojave:text-primary text-xs">{t('cacheDetail.details.coordinatesModified')}</span>
                     )}
                   </p>
                   <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">
@@ -950,7 +950,7 @@ export default function CacheDetail() {
                   </div>
                   <p className="text-xs font-medium text-muted-foreground mt-3">
                     {t('cacheDetail.details.geohash')} {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
-                      <span className="text-orange-600 text-xs">{t('cacheDetail.details.geohashModified')}</span>
+                      <span className="text-orange-600 dark:text-orange-400 adventure:text-amber-700 mojave:text-primary text-xs">{t('cacheDetail.details.geohashModified')}</span>
                     )}
                   </p>
                   <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">

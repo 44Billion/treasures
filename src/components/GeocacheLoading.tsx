@@ -74,7 +74,7 @@ export function GeocacheLoading({
             </div>
             
             {relayAttempts.length >= PRESET_RELAYS.length && (
-              <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/20 rounded text-sm text-red-700 dark:text-red-300">
+              <div className="mt-4 p-3 bg-destructive/10 border border-destructive/40 rounded text-sm text-destructive">
                 Cache not found on any relay. It may not exist yet or you might be the owner.
               </div>
             )}

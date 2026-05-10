@@ -97,8 +97,8 @@ export function LocationWarnings({ verification, className, hideCreatorWarnings 
                 key={idx}
                 variant="outline"
                 className={`text-xs h-5 ${
-                  feature.type === 'positive' ? 'bg-primary-50 dark:bg-primary-50 text-primary dark:text-primary border-primary-200 dark:border-primary-100' :
-                  feature.type === 'hindrance' ? 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' :
+                  feature.type === 'positive' ? 'bg-primary/10 text-foreground border-primary/40' :
+                  feature.type === 'hindrance' ? 'bg-yellow-500/10 text-foreground border-yellow-500/40' :
                   'bg-muted text-foreground border'
                 }`}
               >

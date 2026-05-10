@@ -64,7 +64,7 @@ export function RelayErrorFallback({
         <p className="text-sm text-muted-foreground mb-4">{finalDescription}</p>
         
         {error && (
-          <p className="text-xs text-red-600 mb-4 font-mono bg-red-50 dark:bg-red-950/20 p-2 rounded">
+          <p className="text-xs text-destructive mb-4 font-mono bg-destructive/10 p-2 rounded">
             {error.message}
           </p>
         )}
@@ -103,8 +103,8 @@ export function RelayErrorFallback({
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             {isError ? (
-              <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
-                <AlertTriangle className="h-8 w-8 text-orange-500" />
+              <div className="p-3 rounded-full bg-destructive/15">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
               </div>
             ) : (
               <div className="p-3 rounded-full bg-muted">
@@ -121,8 +121,8 @@ export function RelayErrorFallback({
         
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
-              <p className="text-xs text-red-600 dark:text-red-400 font-mono">
+            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/40">
+              <p className="text-xs text-destructive font-mono">
                 {error.message}
               </p>
             </div>

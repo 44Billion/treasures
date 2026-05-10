@@ -133,7 +133,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
                 className={
                   geocache.status === 'archived'
                     ? 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground border border-muted-foreground/30'
-                    : 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                    : 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/15 text-foreground border border-amber-500/40'
                 }
               >
                 {geocache.status === 'archived' ? (
@@ -281,7 +281,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
 
             <ZapButton
               target={geocache}
-              className="h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0 border-amber-200 text-amber-500 hover:bg-amber-50 hover:text-amber-600 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950 dark:hover:text-amber-300"
+              className="h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-500 dark:text-amber-400"
             />
           </div>
         )}

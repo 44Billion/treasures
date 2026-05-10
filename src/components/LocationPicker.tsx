@@ -688,10 +688,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         </MapContainer>
       </div>
 
-      <p className="text-sm text-gray-600 dark:text-muted-foreground text-center">
+      <p className="text-sm text-muted-foreground text-center">
         {beaconLocation ? (
           <>{t("locationPicker.tapToSet")}<br />
-          <span className="text-blue-600">{t("locationPicker.beaconHint")}</span></>
+          <span className="text-primary">{t("locationPicker.beaconHint")}</span></>
         ) : (
           t("locationPicker.tapToSet")
         )}
@@ -714,7 +714,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                   href={`https://www.openstreetmap.org/?mlat=${value.lat}&mlon=${value.lng}#map=15/${value.lat}/${value.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline inline-block mt-1"
+                  className="text-xs text-primary hover:underline inline-block mt-1"
                 >
                   {t("locationPicker.viewOnOSM")}
                 </a>
@@ -745,7 +745,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                   <p className="text-destructive">{t(coordParseResult.errorKey)}</p>
                 ) : coordParseResult.possibleSwap ? (
                   /* Swap suggestion */
-                  <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-md p-2 space-y-1.5">
+                  <div className="bg-yellow-500/10 border border-yellow-500/40 rounded-md p-2 space-y-1.5">
                     <p className="text-yellow-700 dark:text-yellow-400 font-medium">
                       {coordParseResult.warningKey && t(coordParseResult.warningKey)}
                     </p>

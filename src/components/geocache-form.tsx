@@ -296,8 +296,8 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
               onKeyDown={(e) => handleRadioKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
                 selected
-                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
-                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                  ? 'border-orange-500 bg-orange-500/10'
+                  : 'border-border hover:border-muted-foreground/40 bg-card'
               }`}
             >
               <div className="h-5 w-5 mx-auto mb-1">
@@ -311,7 +311,7 @@ export function CacheTypeField({ value, onChange }: Omit<CacheSelectFieldProps, 
 
       {value && (
         <div className="bg-muted/30 p-2 rounded-md">
-          <p className="text-xs text-orange-700 dark:text-orange-300">
+          <p className="text-xs text-orange-700 dark:text-orange-300 adventure:text-amber-800 mojave:text-primary">
             {typeOptions.find(t => t.value === value)?.description}
           </p>
         </div>
@@ -398,8 +398,8 @@ export function CacheSizeField({ value, onChange }: Omit<CacheSelectFieldProps, 
               onKeyDown={(e) => handleSizeKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
                 selected
-                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-950'
-                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                  ? 'border-purple-500 bg-purple-500/10'
+                  : 'border-border hover:border-muted-foreground/40 bg-card'
               }`}
             >
               <IconComponent className={`mx-auto mb-1 text-purple-600 ${
@@ -417,7 +417,7 @@ export function CacheSizeField({ value, onChange }: Omit<CacheSelectFieldProps, 
 
       {value && (
         <div className="bg-muted/30 p-2 rounded-md">
-          <p className="text-xs text-purple-700 dark:text-purple-300">
+          <p className="text-xs text-purple-700 dark:text-purple-300 adventure:text-amber-800 mojave:text-primary">
             {sizeOptions.find(s => s.value === value)?.description}
           </p>
         </div>
@@ -512,8 +512,8 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
               onKeyDown={(e) => handleDifficultyKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
                 selected
-                  ? 'border-primary bg-primary-50 dark:bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-muted-foreground/40 bg-card'
               }`}
             >
               <IconComponent className="h-4 w-4 mx-auto mb-1 text-primary" />
@@ -522,7 +522,7 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                   <div
                     key={i}
                     className={`h-1.5 w-1.5 rounded ${
-                      i <= level.level ? "bg-primary" : "bg-gray-200"
+                      i <= level.level ? "bg-primary" : "bg-muted"
                     }`}
                   />
                 ))}
@@ -553,8 +553,8 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 onKeyDown={(e) => handleDifficultyKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all ${
                   selected
-                    ? 'border-primary bg-primary-50 dark:bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-muted-foreground/40 bg-card'
                 }`}
               >
                 <IconComponent className="h-4 w-4 mx-auto mb-1 text-primary" />
@@ -563,12 +563,12 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                     <div
                       key={i}
                       className={`h-1.5 w-1.5 rounded ${
-                        i <= level.level ? "bg-primary" : "bg-gray-200"
+                        i <= level.level ? "bg-primary" : "bg-muted"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="font-medium text-xs">{level.name}</span>
+                <span className="font-medium text-xs text-foreground">{level.name}</span>
               </button>
             );
           })}
@@ -593,8 +593,8 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                 onKeyDown={(e) => handleDifficultyKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all w-[calc((100%-1rem)/3)] ${
                   selected
-                    ? 'border-primary bg-primary-50 dark:bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-muted-foreground/40 bg-card'
                 }`}
               >
                 <IconComponent className="h-4 w-4 mx-auto mb-1 text-primary" />
@@ -603,12 +603,12 @@ export function CacheDifficultyField({ value, onChange }: Omit<CacheSelectFieldP
                     <div
                       key={i}
                       className={`h-1.5 w-1.5 rounded ${
-                        i <= level.level ? "bg-primary" : "bg-gray-200"
+                        i <= level.level ? "bg-primary" : "bg-muted"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="font-medium text-xs">{level.name}</span>
+                <span className="font-medium text-xs text-foreground">{level.name}</span>
               </button>
             );
           })}
@@ -711,8 +711,8 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
               onKeyDown={(e) => handleTerrainKey(e, idx)}
               className={`p-2 rounded-lg border text-center transition-all ${
                 selected
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-border hover:border-muted-foreground/40 bg-card'
               }`}
             >
               <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
@@ -721,12 +721,12 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
                   <div
                     key={i}
                     className={`h-1.5 w-1.5 rounded ${
-                      i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                      i <= level.level ? "bg-blue-600" : "bg-muted"
                     }`}
                   />
                 ))}
               </div>
-              <span className="font-medium text-xs">{level.name}</span>
+              <span className="font-medium text-xs text-foreground">{level.name}</span>
             </button>
           );
         })}
@@ -752,8 +752,8 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
                 onKeyDown={(e) => handleTerrainKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all ${
                   selected
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-border hover:border-muted-foreground/40 bg-card'
                 }`}
               >
                 <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
@@ -762,12 +762,12 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
                     <div
                       key={i}
                       className={`h-1.5 w-1.5 rounded ${
-                        i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                        i <= level.level ? "bg-blue-600" : "bg-muted"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="font-medium text-xs">{level.name}</span>
+                <span className="font-medium text-xs text-foreground">{level.name}</span>
               </button>
             );
           })}
@@ -792,8 +792,8 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
                 onKeyDown={(e) => handleTerrainKey(e, idx)}
                 className={`p-2 rounded-lg border text-center transition-all w-[calc((100%-1rem)/3)] ${
                   selected
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                    : 'border-gray-200 hover:border-gray-300 bg-white dark:bg-gray-900'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-border hover:border-muted-foreground/40 bg-card'
                 }`}
               >
                 <IconComponent className="h-4 w-4 mx-auto mb-1 text-blue-600" />
@@ -802,12 +802,12 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
                     <div
                       key={i}
                       className={`h-1.5 w-1.5 rounded ${
-                        i <= level.level ? "bg-blue-600" : "bg-gray-200"
+                        i <= level.level ? "bg-blue-600" : "bg-muted"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="font-medium text-xs">{level.name}</span>
+                <span className="font-medium text-xs text-foreground">{level.name}</span>
               </button>
             );
           })}
@@ -816,7 +816,7 @@ export function CacheTerrainField({ value, onChange }: Omit<CacheSelectFieldProp
 
       {numericValue > 0 && (
         <div className="bg-muted/30 p-2 rounded-md">
-          <p className="text-xs text-blue-700 dark:text-blue-300">
+          <p className="text-xs text-blue-700 dark:text-blue-300 adventure:text-amber-800 mojave:text-primary">
             {terrainLevels.find(l => l.level === numericValue)?.description}
           </p>
         </div>

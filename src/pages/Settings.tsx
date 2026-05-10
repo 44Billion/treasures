@@ -341,8 +341,8 @@ export default function Settings() {
                     ) : null}
                   </div>
                   {analyticsChanged ? (
-                    <div className="flex items-center justify-between gap-3 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3">
-                      <p className="text-xs text-amber-900 dark:text-amber-200">
+                    <div className="flex items-center justify-between gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
+                      <p className="text-xs text-foreground">
                         {t('settings.privacy.reloadNotice')}
                       </p>
                       <Button

@@ -71,7 +71,7 @@ export default function Install() {
 
           {/* Manual Installation Instructions */}
           {!installed && (
-            <Card className="mb-6 border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+            <Card className="mb-6 border-blue-500/40 bg-blue-500/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
@@ -172,7 +172,7 @@ export default function Install() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Wifi className="h-5 w-5 text-blue-500" />
+                  <Wifi className="h-5 w-5 text-primary" />
                   {t('install.benefitAvailableTitle')}
                 </CardTitle>
               </CardHeader>
