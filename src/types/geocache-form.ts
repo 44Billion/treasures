@@ -2,6 +2,8 @@ export interface GeocacheFormData {
   name: string;
   description: string;
   hint: string;
+  /** Optional "Quest": a requirement to claim this treasure. */
+  key: string;
   difficulty: string;
   terrain: string;
   size: string;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Notebook, NotebookPen, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
+import { Notebook, NotebookPen, Share2, LogIn, UserPlus, ShieldCheck, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogTypeButtonGroup } from "@/components/ui/mobile-button-patterns";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +34,12 @@ interface LogsSectionProps {
   verificationKey?: string;
   isVerificationValid?: boolean;
   hideForm?: boolean;
+  /**
+   * When true, the cache has a Key Quest and the current visitor lacks a valid
+   * verification (didn't arrive via the verify URL). The submission form is
+   * suppressed and an explanatory notice is shown in its place.
+   */
+  keyQuestLocked?: boolean;
   autoFocusVerifiedForm?: boolean;
 }
 
@@ -46,6 +52,7 @@ export function LogsSection({
   verificationKey,
   isVerificationValid = false,
   hideForm = false,
+  keyQuestLocked = false,
   autoFocusVerifiedForm = false,
 }: LogsSectionProps) {
   // Logs received from parent component
@@ -144,8 +151,30 @@ export function LogsSection({
 
   return (
     <div className={`space-y-4 ${className || ''}`}>
+      {/* Key Quest lock notice — replaces the submission form when the cache
+          requires a Key Quest and the visitor doesn't have a valid verify URL. */}
+      {keyQuestLocked && !hideForm && (
+        <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
+          <div className={compact ? "p-4" : "p-4 sm:p-6"}>
+            <div className="flex items-center gap-3">
+              <div className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <KeyRound className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground">
+                  {t('logs.keyQuestLocked.title')}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t('logs.keyQuestLocked.description')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Show verified form if verification key is valid and user is logged in */}
-      {user && verificationKey && isVerificationValid && !hideForm && (
+      {user && verificationKey && isVerificationValid && !hideForm && !keyQuestLocked && (
         <VerifiedLogForm
           geocache={geocache}
           verificationKey={verificationKey}
@@ -155,7 +184,7 @@ export function LogsSection({
       )}
 
       {/* Show regular form for logged-in users (unless they have verification) */}
-      {user && !(verificationKey && isVerificationValid) && !hideForm && (
+      {user && !(verificationKey && isVerificationValid) && !hideForm && !keyQuestLocked && (
         <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
           {!compact && (
             <div className="lg:p-6 lg:pb-2 px-4 sm:p-4 lg:pt-6 sm:pt-2 pb-2">
@@ -220,7 +249,7 @@ export function LogsSection({
       )}
 
       {/* Login prompt for non-logged in users */}
-      {!user && !hideForm && (
+      {!user && !hideForm && !keyQuestLocked && (
         <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
           {!compact && (
             <div className="lg:p-6 lg:pb-0 px-4 sm:p-4 lg:pt-6 sm:pt-2">

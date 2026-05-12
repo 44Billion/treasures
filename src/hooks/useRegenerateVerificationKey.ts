@@ -65,6 +65,7 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
         size: geocache.size as ValidCacheSize,
         type: geocache.type as ValidCacheType,
         hint: geocache.hint,
+        key: geocache.key,
         images: geocache.images,
         relays: geocache.relays,
         verificationPubkey: newVerificationKeyPair.publicKey, // New verification key

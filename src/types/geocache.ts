@@ -8,6 +8,8 @@ export interface Geocache {
   name: string;
   description: string;
   hint?: string;
+  /** Optional "Quest": a requirement (key, code phrase, etc.) finders need to claim this treasure. Plain visible text. */
+  key?: string;
   location: {
     lat: number;
     lng: number;
@@ -81,6 +83,8 @@ export interface CreateGeocacheData {
   name: string;
   description: string;
   hint?: string;
+  /** Optional "Quest": a requirement (key, code phrase, etc.) finders need to claim this treasure. */
+  key?: string;
   location: {
     lat: number;
     lng: number;

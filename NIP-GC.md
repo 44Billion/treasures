@@ -23,7 +23,9 @@ Geocache listing events are addressable events of kind `37516` with the followin
     ["D", "<1-5>"],
     ["T", "<1-5>"],
     ["S", "<size>"],
-    ["t", "<type>"]
+    ["t", "<type>"],
+    ["hint", "<plaintext hint>"],
+    ["key", "<key quest requirement>"]
   ]
 }
 ```
@@ -50,6 +52,7 @@ The content field contains the cache description and any additional information 
 - `S` (required) - one of: `micro`, `small`, `regular`, `large`, `other` (indexed)
 - `t` (optional) - cache type, with common values including: `traditional`, `multi`, `mystery`. Defaults to `traditional` if not specified
 - `hint` (optional) - plaintext hint to help find the cache
+- `key` (optional) - plaintext "key quest" requirement that finders must satisfy to legitimately claim the cache (e.g. a passphrase, riddle answer, or item to bring). When present, clients SHOULD restrict found-log submission to finders who have proof of physical presence (typically the verification key from the cache location)
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
 - `verification` (optional) - hex-encoded public key for verifying finds at this cache
@@ -255,6 +258,27 @@ For the best Geocaching experience, clients implementing geocaching support shou
     ["S", "small"],
     ["t", "traditional"],
     ["hint", "Look for the secret code"],
+    ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]
+  ]
+}
+```
+
+### Cache with Key Quest
+
+```json
+{
+  "kind": 37516,
+  "content": "Solve the riddle to claim your prize.",
+  "tags": [
+    ["d", "key-quest-treasure-1748619568670"],
+    ["name", "Riddle of the Old Oak"],
+    ["g", "u4xsu6ry"],
+    ["D", "4"],
+    ["T", "2"],
+    ["S", "small"],
+    ["t", "mystery"],
+    ["hint", "Count the rings on the fallen log"],
+    ["key", "Bring a token of nature you found along the way"],
     ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]
   ]
 }

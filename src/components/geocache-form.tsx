@@ -194,6 +194,30 @@ export function CacheHintField({ value, onChange, fieldId = "hint" }: CacheHintF
   );
 }
 
+interface CacheKeyFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  fieldId?: string;
+}
+
+export function CacheKeyField({ value, onChange, fieldId = "key" }: CacheKeyFieldProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="text-foreground">
+      <Label htmlFor={fieldId}>{t('createCache.form.key.label')}</Label>
+      <Input
+        id={fieldId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={t('createCache.form.key.placeholder')}
+      />
+      <p className="text-xs text-muted-foreground mt-1">
+        {t('createCache.form.key.help')}
+      </p>
+    </div>
+  );
+}
+
 interface ContentWarningFieldProps {
   value: string;
   onChange: (value: string) => void;
@@ -1293,6 +1317,12 @@ export function GeocacheForm({
           value={formData.hint}
           onChange={(value) => updateField('hint', value)}
           fieldId={fieldPrefix ? `${fieldPrefix}-hint` : 'hint'}
+        />
+
+        <CacheKeyField
+          value={formData.key}
+          onChange={(value) => updateField('key', value)}
+          fieldId={fieldPrefix ? `${fieldPrefix}-key` : 'key'}
         />
       </div>
 

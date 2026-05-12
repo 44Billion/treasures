@@ -7,6 +7,7 @@ export function createDefaultGeocacheFormData(): GeocacheFormData {
     name: "",
     description: "",
     hint: "",
+    key: "",
     difficulty: defaults.difficulty,
     terrain: defaults.terrain,
     size: defaults.size,

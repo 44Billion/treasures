@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { HintDisplay } from "@/components/ui/hint-display";
+import { KeyDisplay } from "@/components/ui/key-display";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { ErrorState } from "@/components/ui/loading";
@@ -140,6 +141,7 @@ export default function CacheDetail() {
     name: "",
     description: "",
     hint: "",
+    key: "",
     difficulty: defaults.difficulty,
     terrain: defaults.terrain,
     size: defaults.size,
@@ -177,6 +179,7 @@ export default function CacheDetail() {
         name: geocache.name,
         description: geocache.description,
         hint: geocache.hint || "",
+        key: geocache.key || "",
         difficulty: geocache.difficulty.toString(),
         terrain: geocache.terrain.toString(),
         size: geocache.size,
@@ -334,6 +337,7 @@ export default function CacheDetail() {
         name: geocache.name,
         description: geocache.description,
         hint: geocache.hint || "",
+        key: geocache.key || "",
         difficulty: geocache.difficulty.toString(),
         terrain: geocache.terrain.toString(),
         size: geocache.size,
@@ -865,6 +869,10 @@ export default function CacheDetail() {
                     <div className="prose max-w-none">
                       <p className="text-foreground whitespace-pre-wrap break-words select-text">{geocache.description}</p>
 
+                      {geocache.key && (
+                        <KeyDisplay keyText={geocache.key} className="mt-5" />
+                      )}
+
                       {geocache.hint && (
                         <HintDisplay hint={geocache.hint} className="mt-4" />
                       )}
@@ -900,6 +908,7 @@ export default function CacheDetail() {
                 isOwner={isOwner}
                 verificationKey={verificationKey || undefined}
                 isVerificationValid={isVerificationValid}
+                keyQuestLocked={!!geocache.key && !(verificationKey && isVerificationValid)}
                 autoFocusVerifiedForm={isVerificationValid && !showRevealOverlay}
               />
             </div>
