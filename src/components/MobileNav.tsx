@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Map, Plus, Menu, Settings, Bookmark, LogOut, User, UserPlus, QrCode,
-  ScanQrCode, Info, BookOpen, Sparkles, List, Compass, ChevronDown, ChevronUp,
+  ScanQrCode, Info, BookOpen, BookMarked, Sparkles, List, Compass, ChevronDown, ChevronUp,
   Search, Sun, Moon, Sword, Mountain, Monitor, Scroll,
 } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
@@ -500,6 +500,14 @@ export function MobileHeader() {
                     >
                       {t('navigation.about')}
                     </NavLink>
+                    <NavLink
+                      to="/how-to"
+                      icon={BookMarked}
+                      isActive={location.pathname === '/how-to'}
+                      onClick={closeSheet}
+                    >
+                      {t('navigation.howTo', 'How To')}
+                    </NavLink>
                     <a
                       href="https://ditto.pub"
                       target="_blank"
@@ -656,6 +664,7 @@ export function MobileHeader() {
               onClick={() => setLoginDialogOpen(true)}
               className="rounded-full px-3 min-h-11 text-xs font-semibold"
             >
+              <UserPlus className="h-3.5 w-3.5" />
               {t('auth.join', 'Join')}
             </Button>
           ) : (
