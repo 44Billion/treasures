@@ -159,6 +159,15 @@ export default {
 				'50%': { top: '90%' },
 				'100%': { top: '10%' },
 			},
+			'countdownTick': {
+				'0%': { transform: 'translateY(-25%)', opacity: '0' },
+				'60%': { transform: 'translateY(2%)', opacity: '1' },
+				'100%': { transform: 'translateY(0)', opacity: '1' },
+			},
+			'bunting-sway': {
+				'0%, 100%': { transform: 'rotate(-1.5deg)' },
+				'50%': { transform: 'rotate(1.5deg)' },
+			},
 			},
 		animation: {
 			'accordion-down': 'accordion-down 0.2s ease-out',
@@ -169,6 +178,7 @@ export default {
 			'slide-up-delay': 'slide-up 0.6s ease-out 0.2s both',
 			'slide-up-delay-2': 'slide-up 0.6s ease-out 0.4s both',
 			'scan-line': 'scan-line 2s ease-in-out infinite',
+			'bunting-sway': 'bunting-sway 5s ease-in-out infinite',
 		}
 		}
 	},
