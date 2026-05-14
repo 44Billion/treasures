@@ -426,6 +426,10 @@ export default function BOQM() {
                 </a>
               </Button>
             </div>
+            <p className="text-[11px] text-muted-foreground/80 mt-4 max-w-md mx-auto">
+              No purchase necessary. Treasures is free, open to everyone, and
+              available to play anytime, anywhere.
+            </p>
           </div>
 
           {/* ── Event Details + Map ──────────────────────────────── */}
