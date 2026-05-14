@@ -16,7 +16,7 @@ interface EditGeocacheData {
   name: string;
   description: string;
   hint?: string;
-  key?: string;
+  mission?: string;
   difficulty: number;
   terrain: number;
   size: "micro" | "small" | "regular" | "large" | "other";
@@ -76,7 +76,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         size: data.size as ValidCacheSize,
         type: data.type as ValidCacheType,
         hint: data.hint,
-        key: data.key,
+        mission: data.mission,
         images: data.images,
         relays: originalGeocache.relays,
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key!
@@ -124,7 +124,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         name: data.name.trim(),
         description: data.description.trim(),
         hint: data.hint,
-        key: data.key,
+        mission: data.mission,
         difficulty: data.difficulty,
         terrain: data.terrain,
         size: data.size,

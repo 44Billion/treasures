@@ -89,7 +89,7 @@ export function draftToGeocache(draft: TreasureDraft, pubkey: string): Geocache 
     name: draft.formData.name || 'Untitled Draft',
     description: draft.formData.description || '',
     hint: draft.formData.hint || undefined,
-    key: draft.formData.key || undefined,
+    mission: draft.formData.mission || undefined,
     location: draft.location || { lat: 0, lng: 0 },
     difficulty: parseInt(draft.formData.difficulty) || 1,
     terrain: parseInt(draft.formData.terrain) || 1,

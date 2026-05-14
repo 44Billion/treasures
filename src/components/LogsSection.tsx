@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Notebook, NotebookPen, Share2, LogIn, UserPlus, ShieldCheck, KeyRound } from "lucide-react";
+import { Notebook, NotebookPen, Share2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogTypeButtonGroup } from "@/components/ui/mobile-button-patterns";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCreateLog } from "@/hooks/useCreateLog";
 import { useShareLogAsEvent } from "@/hooks/useShareLogAsEvent";
 import { VerifiedLogForm } from "@/components/VerifiedLogForm";
+import { GoodDeedForm } from "@/components/GoodDeedForm";
 import type { GeocacheLog } from "@/types/geocache";
 
 interface LogsSectionProps {
@@ -26,6 +27,13 @@ interface LogsSectionProps {
     pubkey: string;
     relays?: string[];
     kind?: number;
+    /**
+     * The Key Quest mission text (per NIP-GC `mission` tag). When present and
+     * the visitor is `keyQuestLocked`, the lock notice is replaced by a Good
+     * Deed (NIP-GD kind 5777) submission form so the visitor can still claim
+     * the treasure by self-attesting completion of the mission.
+     */
+    mission?: string;
   };
   onProfileClick?: (pubkey: string) => void;
   compact?: boolean;
@@ -36,8 +44,9 @@ interface LogsSectionProps {
   hideForm?: boolean;
   /**
    * When true, the cache has a Key Quest and the current visitor lacks a valid
-   * verification (didn't arrive via the verify URL). The submission form is
-   * suppressed and an explanatory notice is shown in its place.
+   * verification (didn't arrive via the verify URL). The standard log form is
+   * suppressed; if the cache has a `mission`, a Good Deed submission form is
+   * rendered instead, otherwise an explanatory notice is shown.
    */
   keyQuestLocked?: boolean;
   autoFocusVerifiedForm?: boolean;
@@ -151,23 +160,38 @@ export function LogsSection({
 
   return (
     <div className={`space-y-4 ${className || ''}`}>
-      {/* Key Quest lock notice — replaces the submission form when the cache
-          requires a Key Quest and the visitor doesn't have a valid verify URL. */}
-      {keyQuestLocked && !hideForm && (
+      {/* Key Quest lock branch — when the cache requires a Key Quest and the
+          visitor doesn't have a valid verify URL. If logged in, the visitor
+          can claim the treasure via a Good Deed (NIP-GD kind 5777) attesting
+          completion of the mission. Otherwise we prompt them to log in. */}
+      {keyQuestLocked && user && !hideForm && (
+        <GoodDeedForm
+          geocache={geocache}
+          mission={geocache.mission}
+          compact={compact}
+        />
+      )}
+
+      {keyQuestLocked && !user && !hideForm && (
         <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm">
-          <div className={compact ? "p-4" : "p-4 sm:p-6"}>
-            <div className="flex items-center gap-3">
-              <div className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <KeyRound className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-semibold text-foreground">
-                  {t('logs.keyQuestLocked.title')}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t('logs.keyQuestLocked.description')}
-                </p>
-              </div>
+          <div className={compact ? "p-4 space-y-4" : "p-4 sm:p-6 space-y-4"}>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">
+                {t('logs.keyQuestLocked.title')}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t('logs.keyQuestLocked.loginPrompt')}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button onClick={handleNormalSignupClick} variant="default" className="w-full">
+                <UserPlus className="h-4 w-4 mr-2" />
+                {t('logs.logYourFind.createAccount')}
+              </Button>
+              <Button onClick={handleLoginClick} variant="outline" className="w-full">
+                <LogIn className="h-4 w-4 mr-2" />
+                {t('logs.logYourFind.logIn')}
+              </Button>
             </div>
           </div>
         </div>

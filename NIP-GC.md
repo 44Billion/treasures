@@ -25,7 +25,7 @@ Geocache listing events are addressable events of kind `37516` with the followin
     ["S", "<size>"],
     ["t", "<type>"],
     ["hint", "<plaintext hint>"],
-    ["key", "<key quest requirement>"]
+    ["mission", "<key quest mission>"]
   ]
 }
 ```
@@ -52,7 +52,7 @@ The content field contains the cache description and any additional information 
 - `S` (required) - one of: `micro`, `small`, `regular`, `large`, `other` (indexed)
 - `t` (optional) - cache type, with common values including: `traditional`, `multi`, `mystery`. Defaults to `traditional` if not specified
 - `hint` (optional) - plaintext hint to help find the cache
-- `key` (optional) - plaintext "key quest" requirement that finders must satisfy to legitimately claim the cache (e.g. a passphrase, riddle answer, or item to bring). When present, clients SHOULD restrict found-log submission to finders who have proof of physical presence (typically the verification key from the cache location)
+- `mission` (optional) - plaintext "Key Quest" mission that finders are expected to complete to legitimately claim the cache (e.g. a passphrase, riddle answer, or item to bring). A treasure MUST NOT include more than one `mission` tag; if multiple are present, clients SHOULD use the first and ignore the rest. When present, clients SHOULD restrict found-log submission to finders who have proof of physical presence (typically the verification key from the cache location). Completions of the mission MAY be recorded as [NIP-GD](NIP-GD.md) Good Deed events whose `a` tag references the cache
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
 - `verification` (optional) - hex-encoded public key for verifying finds at this cache
@@ -278,7 +278,7 @@ For the best Geocaching experience, clients implementing geocaching support shou
     ["S", "small"],
     ["t", "mystery"],
     ["hint", "Count the rings on the fallen log"],
-    ["key", "Bring a token of nature you found along the way"],
+    ["mission", "Bring a token of nature you found along the way"],
     ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]
   ]
 }

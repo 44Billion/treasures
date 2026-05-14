@@ -18,7 +18,7 @@ import {
   CacheNameField,
   CacheDescriptionField,
   CacheHintField,
-  CacheKeyField,
+  CacheMissionField,
   ContentWarningField,
   CacheDifficultyField,
   CacheTerrainField,
@@ -110,7 +110,7 @@ export default function CreateCache() {
       formData.name !== defaults.name ||
       formData.description !== defaults.description ||
       formData.hint !== defaults.hint ||
-      formData.key !== defaults.key ||
+      formData.mission !== defaults.mission ||
       formData.contentWarning !== defaults.contentWarning;
     const hasCustomInfo = hasCustomFormData || location !== null || images.length > 0;
 
@@ -687,9 +687,9 @@ export default function CreateCache() {
                     onChange={(value) => setFormData({...formData, hint: value})}
                   />
 
-                  <CacheKeyField
-                    value={formData.key}
-                    onChange={(value) => setFormData({...formData, key: value})}
+                  <CacheMissionField
+                    value={formData.mission}
+                    onChange={(value) => setFormData({...formData, mission: value})}
                   />
 
                   {/* Divider */}
@@ -785,8 +785,8 @@ export default function CreateCache() {
                       {formData.hint && (
                         <p className="text-xs text-muted-foreground italic">Hint: {formData.hint}</p>
                       )}
-                      {formData.key && (
-                        <p className="text-xs text-muted-foreground italic">Quest: {formData.key}</p>
+                      {formData.mission && (
+                        <p className="text-xs text-muted-foreground italic">Quest: {formData.mission}</p>
                       )}
                       {location && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">

@@ -8,8 +8,8 @@ export interface Geocache {
   name: string;
   description: string;
   hint?: string;
-  /** Optional "Quest": a requirement (key, code phrase, etc.) finders need to claim this treasure. Plain visible text. */
-  key?: string;
+  /** Optional "Key Quest": a mission (passphrase, riddle answer, item to bring, etc.) finders are expected to complete to claim this treasure. Stored on the event as a `mission` tag. Plain visible text. */
+  mission?: string;
   location: {
     lat: number;
     lng: number;
@@ -83,8 +83,8 @@ export interface CreateGeocacheData {
   name: string;
   description: string;
   hint?: string;
-  /** Optional "Quest": a requirement (key, code phrase, etc.) finders need to claim this treasure. */
-  key?: string;
+  /** Optional "Key Quest" mission to claim this treasure. Stored on the event as a `mission` tag. */
+  mission?: string;
   location: {
     lat: number;
     lng: number;

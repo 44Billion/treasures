@@ -1,23 +1,26 @@
 import { useTranslation } from "react-i18next";
 import { KeyRound } from "lucide-react";
 
-interface KeyDisplayProps {
-  /** The "Key Quest" / claim requirement text (plain visible text, no obfuscation). */
-  keyText: string;
+interface MissionDisplayProps {
+  /** The "Key Quest" mission text (plain visible text, no obfuscation). */
+  mission: string;
   className?: string;
 }
 
 /**
- * Displays the "Key Quest" requirement for a treasure. Unlike {@link HintDisplay},
- * this is shown in plain text and styled prominently because the Key Quest is a
- * mandatory requirement to claim/log the treasure, not a spoiler hint.
+ * Displays the "Key Quest" mission for a treasure. Unlike {@link HintDisplay},
+ * this is shown in plain text and styled prominently because the mission is a
+ * requirement to claim/log the treasure, not a spoiler hint.
+ *
+ * The underlying event data field is named `mission` per NIP-GC; the user-facing
+ * concept is "Key Quest".
  */
-export function KeyDisplay({ keyText, className = "" }: KeyDisplayProps) {
+export function MissionDisplay({ mission, className = "" }: MissionDisplayProps) {
   const { t } = useTranslation();
 
   return (
     <aside
-      aria-label={t('cacheDetail.key.label')}
+      aria-label={t('cacheDetail.mission.label')}
       className={
         `not-prose relative flex gap-4 rounded-xl border border-primary/30 ` +
         `bg-primary/5 dark:bg-primary/10 ` +
@@ -35,13 +38,13 @@ export function KeyDisplay({ keyText, className = "" }: KeyDisplayProps) {
 
       <div className="flex-1 min-w-0">
         <div className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-primary">
-          {t('cacheDetail.key.label')}
+          {t('cacheDetail.mission.label')}
         </div>
         <p className="mt-0.5 text-base font-medium leading-snug text-foreground whitespace-pre-wrap break-words select-text">
-          {keyText}
+          {mission}
         </p>
         <p className="mt-1.5 text-xs text-muted-foreground">
-          {t('cacheDetail.key.help')}
+          {t('cacheDetail.mission.help')}
         </p>
       </div>
     </aside>

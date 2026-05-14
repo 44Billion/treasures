@@ -194,25 +194,25 @@ export function CacheHintField({ value, onChange, fieldId = "hint" }: CacheHintF
   );
 }
 
-interface CacheKeyFieldProps {
+interface CacheMissionFieldProps {
   value: string;
   onChange: (value: string) => void;
   fieldId?: string;
 }
 
-export function CacheKeyField({ value, onChange, fieldId = "key" }: CacheKeyFieldProps) {
+export function CacheMissionField({ value, onChange, fieldId = "mission" }: CacheMissionFieldProps) {
   const { t } = useTranslation();
   return (
     <div className="text-foreground">
-      <Label htmlFor={fieldId}>{t('createCache.form.key.label')}</Label>
+      <Label htmlFor={fieldId}>{t('createCache.form.mission.label')}</Label>
       <Input
         id={fieldId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={t('createCache.form.key.placeholder')}
+        placeholder={t('createCache.form.mission.placeholder')}
       />
       <p className="text-xs text-muted-foreground mt-1">
-        {t('createCache.form.key.help')}
+        {t('createCache.form.mission.help')}
       </p>
     </div>
   );
@@ -1319,10 +1319,10 @@ export function GeocacheForm({
           fieldId={fieldPrefix ? `${fieldPrefix}-hint` : 'hint'}
         />
 
-        <CacheKeyField
-          value={formData.key}
-          onChange={(value) => updateField('key', value)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-key` : 'key'}
+        <CacheMissionField
+          value={formData.mission}
+          onChange={(value) => updateField('mission', value)}
+          fieldId={fieldPrefix ? `${fieldPrefix}-mission` : 'mission'}
         />
       </div>
 

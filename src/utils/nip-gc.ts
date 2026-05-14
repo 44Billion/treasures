@@ -220,7 +220,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
 
     // Parse optional tags
     const hint = event.tags.find(t => t[0] === 'hint')?.[1];
-    const key = event.tags.find(t => t[0] === 'key')?.[1];
+    const mission = event.tags.find(t => t[0] === 'mission')?.[1];
     const images = event.tags.filter(t => t[0] === 'image').map(t => t[1] || '');
     const contentWarning = event.tags.find(t => t[0] === 'content-warning')?.[1];
     const relays = event.tags.filter(t => t[0] === 'r').map(t => t[1] || '');
@@ -256,7 +256,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       name,
       description: event.content, // Description is in content field per NIP-GC
       hint,
-      key,
+      mission,
       location,
       difficulty: parseInt(difficulty) || 1,
       terrain: parseInt(terrain) || 1,
@@ -409,7 +409,7 @@ export function buildGeocacheTags(data: {
   size: ValidCacheSize;
   type: ValidCacheType;
   hint?: string;
-  key?: string;
+  mission?: string;
   images?: string[];
   contentWarning?: string;
   relays?: string[];
@@ -471,8 +471,8 @@ export function buildGeocacheTags(data: {
     tags.push(['hint', data.hint.trim()]);
   }
 
-  if (data.key?.trim()) {
-    tags.push(['key', data.key.trim()]);
+  if (data.mission?.trim()) {
+    tags.push(['mission', data.mission.trim()]);
   }
 
   if (data.images && data.images.length > 0) {
