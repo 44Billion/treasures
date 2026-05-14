@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/useToast";
 import { useTheme } from "@/hooks/useTheme";
 import { getAppOrigin } from "@/utils/appUrl";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { AdventureWelcomeOverlay } from "@/components/AdventureWelcomeOverlay";
 
 import type { Geocache } from "@/types/geocache";
 
@@ -58,6 +59,33 @@ export default function AdventureDetail() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
+
+  // Welcome overlay state. We show a friendly onboarding card to logged-out
+  // visitors landing on an Adventure (typically by scanning an event QR), and
+  // remember dismissal in sessionStorage so it doesn't keep re-popping in the
+  // same browser session. Returning later (new tab, refresh, next day) brings
+  // the overlay back, which is the right behavior for printed QR codes that
+  // get scanned by many newcomers in sequence.
+  const dismissKey = naddr ? `adventureWelcomeDismissed:${naddr}` : '';
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    if (!dismissKey) return false;
+    try {
+      return sessionStorage.getItem(dismissKey) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const handleWelcomeDismiss = () => {
+    if (dismissKey) {
+      try {
+        sessionStorage.setItem(dismissKey, '1');
+      } catch {
+        // Storage may be unavailable in private mode; falling back to memory
+        // is fine — the dismissal still sticks until the user reloads.
+      }
+    }
+    setWelcomeDismissed(true);
+  };
 
   const mapRef = useRef<L.Map | null>(null);
 
@@ -356,6 +384,16 @@ export default function AdventureDetail() {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* Logged-out onboarding overlay. Renders above everything until the
+          visitor signs up, logs in, or dismisses ("look around first"). */}
+      {!user && adventure && !welcomeDismissed && (
+        <AdventureWelcomeOverlay
+          adventure={adventure}
+          onAuthComplete={handleWelcomeDismiss}
+          onDismiss={handleWelcomeDismiss}
+        />
+      )}
+
       {/* Desktop View — no header, full height like Map.tsx */}
       <div className="hidden lg:flex flex-1 overflow-hidden min-h-0 relative">
         {/* Sidebar */}

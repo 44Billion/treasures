@@ -10,20 +10,25 @@ interface PageHeroProps {
   children?: ReactNode;
   /** Reduces vertical padding and hides the icon on mobile */
   compact?: boolean;
+  /**
+   * Lighter visual treatment: softens the photo overlay so the hero feels
+   * airier. Text stays white for readability on the still-tinted photos.
+   */
+  light?: boolean;
 }
 
 /**
  * Full-page background with rotating hero photos, theme-aware color overlay,
  * film grain, and dotted trail SVG.
  */
-export function PageHero({ icon: Icon, title, description, children, compact = false }: PageHeroProps) {
+export function PageHero({ icon: Icon, title, description, children, compact = false, light = false }: PageHeroProps) {
   const { resolvedTheme } = useTheme();
   const isDitto = resolvedTheme === 'ditto';
 
   return (
     <div className="relative">
       {/* Fixed background layers — pinned to viewport, content scrolls over them */}
-      <HeroBackground />
+      <HeroBackground light={light} />
 
       {/* All page content — scrolls over the fixed background */}
       <div className="relative z-10">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,13 +10,15 @@ import {
   ArrowRight,
   Map as MapIcon,
   Bookmark,
+  BookOpen,
   Camera,
   QrCode,
   List,
   ListFilter,
   Locate,
 } from 'lucide-react';
-import { PageLayout } from '@/components/PageLayout';
+import { DesktopHeader } from '@/components/DesktopHeader';
+import { PageHero } from '@/components/PageHero';
 import {
   Accordion,
   AccordionContent,
@@ -24,8 +26,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import LoginDialog from '@/components/auth/LoginDialog';
-import SignupDialog from '@/components/auth/SignupDialog';
+import { SignupFlow } from '@/components/auth/SignupFlow';
+import { LoginFlow } from '@/components/auth/LoginFlow';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useRadarOverlay } from '@/hooks/useRadarOverlay';
 import { useTheme } from '@/hooks/useTheme';
@@ -59,11 +61,25 @@ function NavInline({
   return (
     <Link
       to={to}
-      className="inline-flex items-center gap-1 align-baseline font-semibold text-primary hover:text-primary/80 transition-colors [&_svg]:h-4 [&_svg]:w-4"
+      className="inline-flex items-center gap-1 align-baseline font-semibold text-white underline decoration-white/40 underline-offset-2 decoration-2 hover:decoration-white transition-colors [&_svg]:h-4 [&_svg]:w-4"
     >
       <Icon />
       {children}
     </Link>
+  );
+}
+
+/**
+ * Prose wrapper applied to chapter bodies that contain narrative text. Keeps
+ * the white-on-photo typography in one place so it does NOT cascade into
+ * embedded UI cards (e.g. SignupFlow / LoginFlow) which have their own light
+ * backgrounds and need normal foreground colors.
+ */
+function Prose({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[15px] sm:text-base text-white/90 leading-[1.7] space-y-4 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:space-y-4 [&_ol]:marker:text-white/60 [&_ol]:marker:font-semibold [&_p]:leading-[1.7] [&_strong]:text-white [&_strong]:font-semibold [&_code]:text-[13px] [&_code]:text-white [&_code]:bg-white/15 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded">
+      {children}
+    </div>
   );
 }
 
@@ -74,8 +90,16 @@ type ChapterArt =
   | { type: 'lucide'; icon: React.ComponentType<{ className?: string }> };
 
 interface ChapterContext {
-  /** Open the real Login dialog used everywhere else in the app. */
-  openLogin: () => void;
+  /** Switch the sign-up chapter into inline signup mode. */
+  startSignup: () => void;
+  /** Switch the sign-up chapter into inline login mode. */
+  startLogin: () => void;
+  /** Reset the sign-up chapter back to the prose intro. */
+  cancelAuth: () => void;
+  /** Currently active inline auth flow, if any. */
+  authMode: 'signup' | 'login' | null;
+  /** Fires when the inline signup/login flow finishes successfully. */
+  onAuthComplete: () => void;
   /** Open the global compass/radar overlay. */
   openCompass: () => void;
   /** Whether the visitor is signed in. */
@@ -100,42 +124,101 @@ const chapters: Chapter[] = [
     blurb: 'A free account in about a minute.',
     art: { type: 'lucide', icon: UserPlus },
     palette: 'green',
-    body: ({ openLogin, isLoggedIn }) => (
-      <>
-        <ol>
-          <li>
-            Tap the <Pill><UserPlus />Join</Pill> button. It lives in the top
-            corner of every page, but here's one too:
-            {!isLoggedIn && (
-              <div className="pt-2.5">
+    body: ({ startSignup, startLogin, cancelAuth, authMode, onAuthComplete, isLoggedIn }) => {
+      // Inline signup flow. Keep showing this even after the user is logged
+      // in mid-flow (the flow logs them in before the profile step), so the
+      // optional profile form still gets shown.
+      if (authMode === 'signup') {
+        return (
+          <div className="space-y-3">
+            <SignupFlow onComplete={onAuthComplete} />
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={cancelAuth}
+                className="text-xs text-white/70 hover:text-white underline underline-offset-2"
+              >
+                Cancel and read the chapter
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // Inline login flow (paste nsec / extension / remote signer).
+      if (authMode === 'login') {
+        return (
+          <div className="space-y-3">
+            <LoginFlow
+              onLogin={onAuthComplete}
+              onSignup={startSignup}
+            />
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={cancelAuth}
+                className="text-xs text-white/70 hover:text-white underline underline-offset-2"
+              >
+                Cancel and read the chapter
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // No active inline flow, but the visitor is already signed in: show a
+      // celebratory state instead of the prose.
+      if (isLoggedIn) {
+        return (
+          <div className="rounded-2xl border border-white/15 bg-background/85 backdrop-blur-md p-5 text-center space-y-2">
+            <p className="text-foreground font-semibold">You're signed in. Onward!</p>
+            <p className="text-sm text-muted-foreground">
+              The next chapter shows how to find treasures near you.
+            </p>
+          </div>
+        );
+      }
+
+      // Default: the prose with inline Join + Log in buttons.
+      return (
+        <Prose>
+          <ol>
+            <li>
+              Tap <Pill><UserPlus />Join</Pill> to begin your quest.
+              <div className="pt-2.5 flex flex-wrap gap-2">
                 <Button
                   size="sm"
-                  onClick={openLogin}
+                  onClick={startSignup}
                   className="rounded-full px-3 min-h-11 text-xs font-semibold"
                 >
                   <UserPlus className="h-3.5 w-3.5" />
                   Join
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={startLogin}
+                  className="rounded-full px-3 min-h-11 text-xs font-semibold"
+                >
+                  Already have a key? Log in
+                </Button>
               </div>
-            )}
-          </li>
-          <li>
-            Pick <Pill>Create new account</Pill>. The app generates your keys
-            on your device. (Already on Nostr? Paste your{' '}
-            <code>nsec1…</code> or use a signer extension like Alby.)
-          </li>
-          <li>
-            Pick a name and picture, then you're in. Five screens, takes about
-            a minute.
-          </li>
-          <li>
-            <strong>Save your nsec somewhere safe.</strong> It's your password.
-            Treasures never sees it, which means we can't recover it for you
-            if you lose it. A password manager is perfect.
-          </li>
-        </ol>
-      </>
-    ),
+            </li>
+            <li>
+              We forge your personal <strong>treasure key</strong>. It's yours
+              alone.
+            </li>
+            <li>
+              <strong>Keep this key safe.</strong> It's the only way back into
+              your adventure. A password manager is a perfect place for it.
+            </li>
+            <li>
+              Pick a name and picture, and you're in.
+            </li>
+          </ol>
+        </Prose>
+      );
+    },
   },
   {
     id: 'find-treasure',
@@ -145,27 +228,26 @@ const chapters: Chapter[] = [
     art: { type: 'png', src: '/step_2.png' },
     palette: 'emerald',
     body: () => (
-      <>
+      <Prose>
         <ol>
           <li>
-            Open the <NavInline to="/map" icon={MapIcon}>Map</NavInline>. Allow
-            location so it can center on you.
+            Open the <NavInline to="/map" icon={MapIcon}>Map</NavInline> and let
+            it see your location.
           </li>
           <li>
-            Switch between <Pill><MapIcon />Map</Pill> (pins) and{' '}
-            <Pill><List />List</Pill> (cards sorted by distance). Search by
-            city, zip, or address, or tap <Pill><Locate />Near Me</Pill> to
-            recenter on yourself.
+            Flip between <Pill><MapIcon />Map</Pill> and{' '}
+            <Pill><List />List</Pill>. Search by city or address, or tap{' '}
+            <Pill><Locate />Near Me</Pill> to come back to you.
           </li>
           <li>
-            Use <Pill><ListFilter />Filters</Pill> to narrow by type,{' '}
-            <strong>difficulty</strong> (how hard the hide is), and{' '}
-            <strong>terrain</strong> (how hard to get there).
+            <Pill><ListFilter />Filters</Pill> let you narrow things down by{' '}
+            <strong>difficulty</strong> (how tricky it is to spot) and{' '}
+            <strong>terrain</strong> (how tough the walk is).
           </li>
           <li>
-            Tap any pin or card to open the treasure. You'll see its
-            description, hint, photos, and previous logs. Tap{' '}
-            <Pill><Bookmark />Save</Pill> to bookmark it for later.
+            Tap a treasure to see its story, hint, photos, and what other
+            adventurers said. Tap <Pill><Bookmark />Save</Pill> to keep it for
+            later.
           </li>
         </ol>
         <div className="flex flex-wrap gap-2 pt-2">
@@ -183,7 +265,7 @@ const chapters: Chapter[] = [
             </Link>
           </Button>
         </div>
-      </>
+      </Prose>
     ),
   },
   {
@@ -194,25 +276,24 @@ const chapters: Chapter[] = [
     art: { type: 'lucide', icon: Compass },
     palette: 'teal',
     body: ({ openCompass }) => (
-      <>
+      <Prose>
         <ol>
           <li>
-            Tap <Pill><Compass />Compass</Pill> (the big round button in the
-            middle of the bottom bar on mobile, or the floating button on the
-            map on desktop).
+            Tap <Pill><Compass />Compass</Pill>. You'll find it front and
+            center in the app.
           </li>
           <li>
-            By default, it points to the closest treasure. Open the compass
-            from a specific treasure's page to lock onto that one instead.
+            It points to the closest treasure. Open it from a treasure's page
+            to lock onto that one instead.
           </li>
           <li>
-            The arrow points where to go. The number is the distance. When the
-            ring turns green, you're about ten meters away.
+            Follow the arrow. The number is how far away you are. When the
+            ring glows green, you're right on top of it. Time to look around.
           </li>
           <li>
-            If the arrow spins or drifts, wave your phone in a figure-8 for a
-            few seconds to recalibrate. GPS is only good to about 10 meters,
-            so the last bit is up to your eyes and the hint.
+            If the arrow gets jumpy, wave your phone in a figure-8 for a few
+            seconds. The last few steps are always up to your eyes and the
+            hint.
           </li>
         </ol>
         <div className="flex flex-wrap gap-2 pt-2">
@@ -222,38 +303,42 @@ const chapters: Chapter[] = [
             <ArrowRight />
           </Button>
         </div>
-      </>
+      </Prose>
     ),
   },
   {
     id: 'claim-treasure',
     icon: ScanQrCode,
-    title: 'Claim & log',
-    blurb: 'You found it! Scan the QR and write your story.',
+    title: 'Claim your find',
+    blurb: 'Scan the QR and share your story.',
     art: { type: 'png', src: '/step_3.png' },
     palette: 'green',
     body: () => (
-      <>
+      <Prose>
         <ol>
           <li>
-            <strong>Found it!</strong> Point your phone's camera at the QR
-            code on the container, then tap the link that pops up. The app
-            opens straight to the claim screen.
+            <strong>You found it!</strong> Open the container. Most treasures
+            have a small QR code inside. Point your phone's camera at it and
+            tap the link.
+            <p className="text-sm italic text-white/80 mt-2 mb-0">
+              Some treasures have a <strong>Key Quest</strong>: a small task
+              the hider asks of you. Do it for them, and they'll show you the
+              claim QR.
+            </p>
           </li>
           <li>
-            Or stay in the app: open{' '}
+            Already in the app? Open{' '}
             <NavInline to="/claim" icon={ScanQrCode}>Claim</NavInline> and tap{' '}
             <Pill><Camera />Scan QR</Pill>.
           </li>
           <li>
-            On the treasure page you'll see a green verified banner. Pick a
-            log type (<Pill>Found</Pill>, <Pill>DNF</Pill>, <Pill>Note</Pill>),
-            write a quick comment, add photos if you like, and publish.
+            Share your story. Tell other adventurers how the hunt went, drop
+            in a photo or two, and celebrate your find.
           </li>
           <li>
             <strong>Put the container back exactly as you found it.</strong>{' '}
-            Same spot, same camouflage, same lid. The next hunter is counting
-            on you.
+            Same spot, same camouflage, same lid. The next adventurer is
+            counting on you.
           </li>
         </ol>
         <div className="flex flex-wrap gap-2 pt-2">
@@ -265,7 +350,7 @@ const chapters: Chapter[] = [
             </Link>
           </Button>
         </div>
-      </>
+      </Prose>
     ),
   },
   {
@@ -275,39 +360,38 @@ const chapters: Chapter[] = [
     blurb: 'Make a treasure for other people to find.',
     art: { type: 'png', src: '/step_1.png' },
     palette: 'emerald',
-    body: ({ isLoggedIn, openLogin }) => (
-      <>
+    body: ({ isLoggedIn, startSignup }) => (
+      <Prose>
         <p>
-          Pick one of two paths. <Pill>With a QR Code</Pill> prints a QR
-          first, then you scan it to start the listing. Finders will scan that
-          QR to prove they found it. <Pill>Without a QR Code</Pill> skips the
-          QR; finders log on the honor system. Either way, the wizard has four
-          steps:
+          Two ways to go. <Pill>With a QR Code</Pill> means finders scan a
+          little code inside your container to prove they were there.{' '}
+          <Pill>Without a QR Code</Pill> trusts everyone on their word. Either
+          way, you'll do four short steps:
         </p>
         <ol>
           <li>
-            <strong>Location.</strong> Drag the pin to the hiding spot, type
-            an address, or use GPS. The app warns you if you've landed on
-            private property, in a building, or in water.
+            <strong>The spot.</strong> Drop a pin where the treasure will live.
+            The app will warn you if it looks like private property or water.
           </li>
           <li>
-            <strong>Details.</strong> A name, a description, and a short hint.
-            Keep the hint helpful but obscure (no spoilers).
+            <strong>The story.</strong> Give it a name, a few words about it,
+            and a clever hint. Helpful, but not a giveaway.
           </li>
           <li>
-            <strong>Challenge.</strong> Pick the type (regular, multi-stage,
-            or puzzle), a difficulty and terrain rating from 1 to 5, and the
-            container size.
+            <strong>The challenge.</strong> How tricky is it to find?
+            How tough is the walk? How big is the container? Tell other
+            adventurers what to expect.
           </li>
           <li>
-            <strong>Finish.</strong> Add photos of the area (never of the hide
-            spot!), review, and publish.
+            <strong>The reveal.</strong> Add a photo or two of the area (never
+            of the hiding spot itself!) and send it out into the world.
           </li>
         </ol>
         <p>
-          Then go hide it. Bring a printed QR (use{' '}
+          Then go hide it. Bring a waterproof container, a printed QR if you
+          want one (use{' '}
           <NavInline to="/generate-qr" icon={QrCode}>Generate QR</NavInline>),
-          a waterproof container, and permission if the spot isn't public.
+          and please ask first if the spot isn't somewhere everyone can go.
         </p>
         <div className="flex flex-wrap gap-2 pt-2">
           {isLoggedIn ? (
@@ -329,7 +413,12 @@ const chapters: Chapter[] = [
           ) : (
             <Button
               size="sm"
-              onClick={openLogin}
+              onClick={() => {
+                // Open the sign-up chapter and start the inline signup flow.
+                startSignup();
+                const signUp = document.getElementById('sign-up');
+                signUp?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
               className="rounded-full px-3 min-h-11 text-xs font-semibold"
             >
               <UserPlus className="h-3.5 w-3.5" />
@@ -337,7 +426,7 @@ const chapters: Chapter[] = [
             </Button>
           )}
         </div>
-      </>
+      </Prose>
     ),
   },
 ];
@@ -369,41 +458,68 @@ export default function HowTo() {
   const isDitto = resolvedTheme === 'ditto';
   const isMojave = resolvedTheme === 'mojave';
 
-  // Login/signup dialog plumbing. Same wiring used by MobileNav and LoginArea.
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [signupDialogOpen, setSignupDialogOpen] = useState(false);
+  // Inline auth state. `authMode` controls what's rendered inside the
+  // sign-up chapter body — `null` shows the prose, `'signup'` shows the full
+  // SignupFlow, `'login'` shows the LoginFlow.
+  const [authMode, setAuthMode] = useState<'signup' | 'login' | null>(null);
 
-  const ctx: ChapterContext = {
-    openLogin: () => setLoginDialogOpen(true),
-    openCompass,
-    isLoggedIn: !!user,
+  // Controlled accordion. Start with the sign-up chapter expanded so first-
+  // time visitors see the call to action immediately.
+  const [openChapters, setOpenChapters] = useState<string[]>(['sign-up']);
+
+  // We deliberately do NOT reset `authMode` based on `isLoggedIn`. The signup
+  // flow logs the user in BEFORE the profile step (so the kind 0 metadata can
+  // be signed), and we want the user to see the profile form. Only the flow's
+  // own onComplete (after profile or skip) should end the inline auth.
+  const isLoggedIn = !!user;
+
+  const advanceToNextChapter = () => {
+    setAuthMode(null);
+    setOpenChapters((prev) => {
+      const next = prev.filter((id) => id !== 'sign-up');
+      if (!next.includes('find-treasure')) next.push('find-treasure');
+      return next;
+    });
+    // Smooth scroll to the next chapter so the user sees the transition.
+    setTimeout(() => {
+      const target = document.getElementById('find-treasure');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
   };
 
-  // Dotted trail stroke color. Matches Home page exactly.
-  const trailStroke = isDitto
-    ? 'text-primary/30'
-    : isMojave
-    ? 'text-primary/40'
-    : 'text-green-500/30 dark:text-green-400/20 adventure:text-amber-600/30';
+  const ctx: ChapterContext = {
+    startSignup: () => {
+      setAuthMode('signup');
+      setOpenChapters((prev) => (prev.includes('sign-up') ? prev : [...prev, 'sign-up']));
+    },
+    startLogin: () => {
+      setAuthMode('login');
+      setOpenChapters((prev) => (prev.includes('sign-up') ? prev : [...prev, 'sign-up']));
+    },
+    cancelAuth: () => setAuthMode(null),
+    authMode,
+    onAuthComplete: advanceToNextChapter,
+    openCompass,
+    isLoggedIn,
+  };
+
+  // Dotted trail stroke color. White over the photo background.
+  const trailStroke = 'text-white/30';
 
   return (
-    <PageLayout maxWidth="2xl" background="muted">
-      <div className="max-w-2xl mx-auto px-4 pt-12 pb-16">
-        {/* Header */}
-        <header className="mb-10 text-center">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            {t('navigation.howTo', 'How To')}
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-            Playing Treasures
-          </h1>
-          <p className="text-base md:text-lg text-muted-foreground mt-3 leading-relaxed max-w-md mx-auto">
-            From signing up to hiding your first cache, in five short chapters.
-          </p>
-        </header>
+    <>
+      <DesktopHeader />
 
-        {/* Chapter list with zig-zag dotted trail weaving between rows */}
-        <div className="relative">
+      <PageHero
+        icon={BookOpen}
+        title={t('navigation.howTo', 'How To Join The Adventure')}
+        description="From signing up to hiding your first cache, in five short chapters."
+        compact
+        light
+      >
+        <div className="max-w-2xl mx-auto px-4 pt-2 pb-16">
+          {/* Chapter list with zig-zag dotted trail weaving between rows */}
+          <div className="relative rounded-3xl backdrop-blur-sm px-4 sm:px-6 py-4 sm:py-6">
           <div
             className="absolute inset-0 pointer-events-none hidden sm:block"
             aria-hidden="true"
@@ -416,7 +532,7 @@ export default function HowTo() {
               <path
                 d="M 22,10 C 22,22 78,28 78,40 C 78,52 22,55 22,68 C 22,80 78,82 78,92"
                 stroke="currentColor"
-                strokeWidth="0.3"
+                strokeWidth="0.45"
                 fill="none"
                 strokeDasharray="1.5,1.5"
                 strokeLinecap="round"
@@ -425,7 +541,12 @@ export default function HowTo() {
             </svg>
           </div>
 
-          <Accordion type="multiple" className="w-full relative z-10">
+          <Accordion
+            type="multiple"
+            value={openChapters}
+            onValueChange={setOpenChapters}
+            className="w-full relative z-10"
+          >
             {chapters.map((chapter, idx) => {
               const Icon = chapter.icon;
               // Zig-zag: even rows have image on the left, odd rows on the right.
@@ -435,9 +556,9 @@ export default function HowTo() {
                   key={chapter.id}
                   value={chapter.id}
                   id={chapter.id}
-                  className="border-b border-border/60 scroll-mt-20"
+                  className="border-b border-white/10 last:border-b-0 scroll-mt-20"
                 >
-                  <AccordionTrigger className="py-5 hover:no-underline group">
+                  <AccordionTrigger className="py-5 hover:no-underline group [&>svg]:text-white [&>svg]:ml-3 [&>svg]:mr-1">
                     <div
                       className={`flex items-center gap-4 sm:gap-5 w-full ${
                         imageRight ? 'flex-row-reverse' : 'flex-row'
@@ -495,22 +616,22 @@ export default function HowTo() {
                             imageRight ? 'justify-end' : 'justify-start'
                           }`}
                         >
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-white/70">
                             Ch. {String(idx + 1).padStart(2, '0')}
                           </span>
-                          <Icon className="h-3 w-3 text-muted-foreground/60" />
+                          <Icon className="h-3 w-3 text-white/70" />
                         </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+                        <div className="text-2xl sm:text-3xl font-bold text-white leading-tight">
                           {chapter.title}
                         </div>
-                        <div className="text-[15px] sm:text-base text-muted-foreground mt-1.5 leading-snug">
+                        <div className="text-[15px] sm:text-base text-white/80 mt-1.5 leading-snug">
                           {chapter.blurb}
                         </div>
                       </div>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="px-1 sm:px-2 pb-5 pt-2 text-[15px] sm:text-base text-foreground/80 leading-[1.7] space-y-4 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:space-y-4 [&_ol]:marker:text-muted-foreground/70 [&_ol]:marker:font-semibold [&_p]:leading-[1.7] [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:text-[13px] [&_code]:text-foreground/80 [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded">
+                    <div className="px-1 sm:px-2 pb-5 pt-2 space-y-4">
                       {chapter.body(ctx)}
                     </div>
                   </AccordionContent>
@@ -521,34 +642,19 @@ export default function HowTo() {
         </div>
 
         {/* Quiet footer */}
-        <p className="text-xs text-muted-foreground/70 mt-10 text-center">
+        <p className="text-xs text-white/70 mt-10 text-center">
           Want the deeper dive? See the{' '}
-          <Link to="/about" className="font-semibold text-primary hover:text-primary/80">
+          <Link to="/about" className="font-semibold text-white hover:text-white/80 underline underline-offset-2">
             About page
           </Link>{' '}
           for FAQ, or the{' '}
-          <Link to="/blog" className="font-semibold text-primary hover:text-primary/80">
+          <Link to="/blog" className="font-semibold text-white hover:text-white/80 underline underline-offset-2">
             Blog
           </Link>{' '}
           for new features.
         </p>
       </div>
-
-      {/* Login/Signup dialogs, same components used by the header */}
-      <LoginDialog
-        isOpen={loginDialogOpen}
-        onClose={() => setLoginDialogOpen(false)}
-        onLogin={() => setLoginDialogOpen(false)}
-        onSignup={() => setSignupDialogOpen(true)}
-      />
-      <SignupDialog
-        isOpen={signupDialogOpen}
-        onClose={() => setSignupDialogOpen(false)}
-        onComplete={() => {
-          setSignupDialogOpen(false);
-          setLoginDialogOpen(false);
-        }}
-      />
-    </PageLayout>
+      </PageHero>
+    </>
   );
 }

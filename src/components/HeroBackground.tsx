@@ -9,11 +9,21 @@ import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
  * Used by PageHero for content pages and can be dropped into any page that
  * needs the same treatment (e.g. Profile when the ditto theme is active).
  */
-export function HeroBackground() {
+export function HeroBackground({ light = false }: { light?: boolean } = {}) {
   const { resolvedTheme } = useTheme();
   const { profileTheme } = useActiveProfileTheme();
   const isDitto = resolvedTheme === 'ditto';
   const dittoBg = isDitto ? profileTheme?.background : undefined;
+
+  // Lighter variant: softer color wash so photos read brighter while still
+  // tinted enough to keep white foreground text readable.
+  const overlayClass = light
+    ? (isDitto
+        ? 'bg-background/40'
+        : 'bg-primary/35 dark:bg-[#0a1510]/45 adventure:bg-amber-100/45 adventure:dark:bg-stone-900/55')
+    : (isDitto
+        ? 'bg-background/60'
+        : 'bg-primary/60 dark:bg-[#0a1510]/70 adventure:bg-amber-100/70 adventure:dark:bg-stone-900/80');
 
   return (
     <div className="fixed inset-0 z-0">
@@ -28,7 +38,7 @@ export function HeroBackground() {
       )}
 
       {/* Theme-aware color overlay */}
-      <div className={`absolute inset-0 ${isDitto ? 'bg-background/60' : 'bg-primary/60 dark:bg-[#0a1510]/70 adventure:bg-amber-100/70 adventure:dark:bg-stone-900/80'}`} />
+      <div className={`absolute inset-0 ${overlayClass}`} />
 
       {/* Dotted trail SVG */}
       <svg
