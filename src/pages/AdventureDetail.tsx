@@ -75,6 +75,15 @@ export default function AdventureDetail() {
       return false;
     }
   });
+
+  // Latch so the overlay stays mounted through the full signup flow. The
+  // signup flow logs the user in BEFORE the profile step (so the kind 0
+  // metadata can be signed), which would otherwise flip `!user` to false and
+  // unmount the overlay mid-flow — taking the profile setup with it. Once the
+  // overlay opens we keep it open until it tells us it's done via
+  // onAuthComplete or onDismiss.
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+
   const handleWelcomeDismiss = () => {
     if (dismissKey) {
       try {
@@ -85,6 +94,7 @@ export default function AdventureDetail() {
       }
     }
     setWelcomeDismissed(true);
+    setWelcomeOpen(false);
   };
 
   const mapRef = useRef<L.Map | null>(null);
@@ -92,6 +102,16 @@ export default function AdventureDetail() {
   const { data: adventure, isLoading, isError } = useAdventure(naddr || '');
   const author = useAuthor(adventure?.pubkey);
   const authorName = author.data?.metadata?.name || adventure?.pubkey.slice(0, 8);
+
+  // Open the latch once when a logged-out visitor lands on a loaded
+  // adventure they haven't dismissed. We deliberately do NOT close the latch
+  // when `user` flips truthy mid-flow (signup logs in before the profile
+  // step). The overlay closes itself via onAuthComplete / onDismiss.
+  useEffect(() => {
+    if (!user && adventure && !welcomeDismissed && !welcomeOpen) {
+      setWelcomeOpen(true);
+    }
+  }, [user, adventure, welcomeDismissed, welcomeOpen]);
 
   // Progress tracking
   const geocacheRefs = adventure?.geocacheRefs || [];
@@ -385,8 +405,11 @@ export default function AdventureDetail() {
   return (
     <div className="h-screen flex flex-col">
       {/* Logged-out onboarding overlay. Renders above everything until the
-          visitor signs up, logs in, or dismisses ("look around first"). */}
-      {!user && adventure && !welcomeDismissed && (
+          visitor signs up (and finishes the profile step), logs in, or
+          dismisses ("look around first"). Driven by `welcomeOpen` rather
+          than `!user` so the overlay survives the login that happens
+          mid-flow during signup. */}
+      {welcomeOpen && adventure && (
         <AdventureWelcomeOverlay
           adventure={adventure}
           onAuthComplete={handleWelcomeDismiss}

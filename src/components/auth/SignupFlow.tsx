@@ -456,8 +456,8 @@ export function SignupFlow({ onComplete }: SignupFlowProps) {
               </button>
             </div>
 
-            <div className='p-3 rounded-xl bg-accent/50 dark:bg-accent/30 border border-accent'>
-              <p className='text-xs text-accent-foreground text-center'>
+            <div className='p-4 rounded-xl bg-accent/50 dark:bg-accent/30 border border-accent'>
+              <p className='text-base sm:text-lg italic leading-relaxed text-accent-foreground text-center'>
                 {t('signup.dialog.download.warningText')}
               </p>
             </div>

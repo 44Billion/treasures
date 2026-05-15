@@ -13,10 +13,12 @@ import {
   Ticket,
 } from "lucide-react";
 
+import { BOQMWelcomeOverlay } from "@/components/BOQMWelcomeOverlay";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { MAP_STYLES } from "@/config/mapStyles";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 /** Palmer Event Center, Austin TX */
 const VENUE = {
@@ -31,6 +33,18 @@ const VENUE = {
  * America/Chicago is UTC-5 on that date (CDT), so doors open at 17:00 UTC.
  */
 const EVENT_START_ISO = "2026-06-06T17:00:00Z";
+
+/** Human-readable date line shown in hero + welcome overlay. */
+const EVENT_DATE_LINE = "Saturday, June 6, 2026 · 12:00 PM CT";
+
+/** Eventeny ticket URL. Centralized so the welcome overlay and the inline
+ *  ticket button stay in sync if the listing changes. */
+const TICKET_URL = "https://www.eventeny.com/events/ticket/?id=25617";
+
+/** sessionStorage key for the welcome overlay dismissal flag. Per-tab so
+ *  printed event QRs scanned by sequential visitors each get the overlay,
+ *  but a single visitor browsing around won't see it twice. */
+const WELCOME_DISMISS_KEY = "boqmWelcomeDismissed";
 
 interface Remaining {
   days: number;
@@ -297,6 +311,48 @@ const venuePin = L.divIcon({
 export default function BOQM() {
   const remaining = useCountdown(EVENT_START_ISO);
   const tile = MAP_STYLES.original;
+  const { user } = useCurrentUser();
+
+  // Welcome overlay state. Logged-out visitors landing on this page (often via
+  // a printed event QR or BOQM social link) see a celebratory rainbow welcome
+  // with the live countdown and Join / Log in / Get-ticket CTAs. Dismissal is
+  // remembered in sessionStorage so the same browser tab doesn't keep showing
+  // it, but a fresh tab / refresh / new visitor on the same device will see
+  // it again — which is the right behavior for shared / printed QR codes.
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem(WELCOME_DISMISS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  // Latch so the overlay stays mounted through the full signup flow. Signup
+  // logs the user in BEFORE the profile step (so the kind 0 metadata can be
+  // signed), which would otherwise flip `!user` to false and unmount the
+  // overlay mid-flow — taking the profile setup with it. The overlay closes
+  // itself via onAuthComplete / onDismiss instead.
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+
+  // Open the latch once when a logged-out visitor lands on the page and
+  // hasn't dismissed in this session. Don't close it when `user` becomes
+  // truthy — the overlay's own callbacks own that lifecycle.
+  useEffect(() => {
+    if (!user && !welcomeDismissed && !welcomeOpen) {
+      setWelcomeOpen(true);
+    }
+  }, [user, welcomeDismissed, welcomeOpen]);
+
+  const handleWelcomeDismiss = () => {
+    try {
+      sessionStorage.setItem(WELCOME_DISMISS_KEY, "1");
+    } catch {
+      // sessionStorage may be unavailable in private mode; in-memory state
+      // still keeps the overlay closed for this mount.
+    }
+    setWelcomeDismissed(true);
+    setWelcomeOpen(false);
+  };
 
   const heroTitle = (
     <span className="relative block pt-20 md:pt-24">
@@ -338,6 +394,19 @@ export default function BOQM() {
 
   return (
     <>
+      {/* Logged-out welcome overlay. Driven by the `welcomeOpen` latch
+          rather than `!user` so the overlay survives the login that happens
+          mid-flow during signup, keeping the profile step on screen. */}
+      {welcomeOpen && (
+        <BOQMWelcomeOverlay
+          countdown={remaining}
+          dateLine={EVENT_DATE_LINE}
+          ticketUrl={TICKET_URL}
+          onAuthComplete={handleWelcomeDismiss}
+          onDismiss={handleWelcomeDismiss}
+        />
+      )}
+
       <DesktopHeader />
 
       {/* Rainbow gradient overlays — sit above HeroBackground (z-0) and below PageHero content (z-10).
@@ -389,7 +458,7 @@ export default function BOQM() {
               <CountdownCell value={remaining.seconds} label="Seconds" />
             </div>
             <p className="text-center text-xs text-white/80 mt-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
-              Saturday, June 6, 2026 · 12:00 PM CT
+              {EVENT_DATE_LINE}
             </p>
           </div>
 
@@ -417,7 +486,7 @@ export default function BOQM() {
               </Button>
               <Button variant="outline" asChild>
                 <a
-                  href="https://www.eventeny.com/events/ticket/?id=25617"
+                  href={TICKET_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
