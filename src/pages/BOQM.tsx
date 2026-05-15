@@ -4,16 +4,20 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
+  BadgeCheck,
   Calendar,
   Clock,
   Compass,
   ExternalLink,
+  Gift,
   Heart,
   MapPin,
   Ticket,
+  Trophy,
 } from "lucide-react";
 
 import { BOQMWelcomeOverlay } from "@/components/BOQMWelcomeOverlay";
+import { AustinTreasuresMap } from "@/components/AustinTreasuresMap";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
@@ -354,6 +358,19 @@ export default function BOQM() {
     setWelcomeOpen(false);
   };
 
+  // Re-open the welcome overlay from the inline CTA. Clears the
+  // sessionStorage dismissal so the latch effect can re-trigger naturally,
+  // and also opens the latch immediately for the current render.
+  const handleStartQuest = () => {
+    try {
+      sessionStorage.removeItem(WELCOME_DISMISS_KEY);
+    } catch {
+      // Ignore — in-memory state below still re-opens the overlay.
+    }
+    setWelcomeDismissed(false);
+    setWelcomeOpen(true);
+  };
+
   const heroTitle = (
     <span className="relative block pt-20 md:pt-24">
       {/* Faded emblem behind the hero text */}
@@ -387,6 +404,12 @@ export default function BOQM() {
           }}
         >
           BOQM Austin
+        </span>
+        {/* Tagline sits inside the relative title area so it overlaps the
+            faded emblem image rather than rendering below it. */}
+        <span className="block mt-4 md:mt-5 text-sm md:text-base font-medium text-white max-w-xl mx-auto [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
+          Two days of 100+ LGBTQIA+ artists, makers, and small businesses,
+          plus a real-world treasure hunt scattered throughout the expo.
         </span>
       </span>
     </span>
@@ -433,10 +456,7 @@ export default function BOQM() {
       {/* Gentle confetti rain — sits above bg tints, below page content */}
       <ConfettiRain count={36} />
 
-      <PageHero
-        title={heroTitle}
-        description="Two days of 100+ LGBTQIA+ artists, makers, and small businesses, plus a real-world treasure hunt scattered throughout the expo."
-      >
+      <PageHero title={heroTitle}>
         {/* Top-edge pennant bunting — drapes across the hero, just under the header */}
         <RibbonBunting
           count={16}
@@ -474,31 +494,124 @@ export default function BOQM() {
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Cache list, prizes, and the official hunt map will drop closer to
-              the event. Bookmark this page or install the app so you're ready
-              on day one.
+              the event. Bookmark this page so you're ready on day one.
             </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-5">
-              <Button asChild>
-                <Link to="/install">
-                  <Compass className="h-4 w-4 mr-2" />
-                  Install Treasures
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <a
-                  href={TICKET_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Ticket className="h-4 w-4 mr-2" />
-                  Get BOQM Ticket
-                </a>
-              </Button>
+
+            {/* ── Prizes ───────────────────────────────────────────
+                Vertical stack: a small Grand Prize callout sits on top,
+                then the centerpiece Door Prize "Treasures Bucks" voucher.
+                The voucher is gated on having a Treasures account, so we
+                swap the footer between an "eligible" confirmation badge
+                (logged in) and a soft signup prompt (logged out). */}
+            <div className="mt-6 max-w-xl mx-auto flex flex-col gap-4">
+
+              {/* Grand Prize — small, single line, no card chrome to keep
+                  visual weight on the voucher below. */}
+              <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-foreground">
+                <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="uppercase tracking-widest font-semibold text-amber-700 dark:text-amber-300">
+                  Grand Prizes
+                </span>
+                <span className="text-muted-foreground">
+                  for the weekend's best treasure hunters
+                </span>
+              </div>
+
+              {/* Door Prize voucher — designed as a "Treasures Bucks" coupon:
+                  rainbow-tinted background, dashed border, perforated edge,
+                  Treasures logo, denomination-style headline. Larger and
+                  more decorated than the Grand Prize line so it pulls focus. */}
+              <div className="relative rounded-2xl border-2 border-dashed border-primary/50 bg-gradient-to-br from-amber-50 via-rose-50 to-violet-50 dark:from-amber-500/10 dark:via-rose-500/10 dark:to-violet-500/10 p-5 md:p-6 shadow-md overflow-hidden">
+                {/* Faded Treasures emblem in the background, like a watermark
+                    on a real banknote. */}
+                <img
+                  src="/icon.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none select-none absolute -right-6 -bottom-6 w-40 h-40 opacity-[0.12] rotate-[-12deg]"
+                />
+
+                {/* Perforated coupon edges — left/right serrations. */}
+                <div
+                  aria-hidden="true"
+                  className="absolute left-0 inset-y-3 w-1.5 rounded-r-full bg-[radial-gradient(circle_at_left,_hsl(var(--background))_3px,_transparent_3.5px)] bg-[length:6px_8px] bg-repeat-y"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute right-0 inset-y-3 w-1.5 rounded-l-full bg-[radial-gradient(circle_at_right,_hsl(var(--background))_3px,_transparent_3.5px)] bg-[length:6px_8px] bg-repeat-y"
+                />
+
+                <div className="relative flex items-start gap-4">
+                  {/* Logo medallion */}
+                  <div className="flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-full bg-white shadow-inner border border-primary/30 flex items-center justify-center">
+                    <img
+                      src="/icon.svg"
+                      alt="Treasures"
+                      className="w-10 h-10 md:w-12 md:h-12"
+                    />
+                  </div>
+
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Gift className="h-4 w-4 text-primary" />
+                      <span className="text-base md:text-lg font-extrabold uppercase tracking-[0.18em] text-primary">
+                        Door Prize Voucher
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Every Treasures account gets a door discount and a free
+                      prize.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Eligibility footer */}
+                <div className="relative mt-4 pt-4 border-t border-dashed border-primary/30">
+                  {user ? (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                      <BadgeCheck className="h-4 w-4" />
+                      You're eligible. Claim your prize and discount at the door.
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        Sign up for Treasures
+                      </span>{" "}
+                      to unlock the door prize and door discount.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            <p className="text-[11px] text-muted-foreground/80 mt-4 max-w-md mx-auto">
-              No purchase necessary. Treasures is free, open to everyone, and
-              available to play anytime, anywhere.
-            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-5">
+              {/* Logged-out visitors get the CTA that re-opens the welcome
+                  overlay. Logged-in visitors get an inline Austin treasures
+                  map instead (rendered below this row). The ticket button
+                  lives in the Event Details → Admission block now, since
+                  it's most relevant alongside pricing/parking info. */}
+              {!user && (
+                <Button onClick={handleStartQuest}>
+                  <Compass className="h-4 w-4 mr-2" />
+                  Start your Quest
+                </Button>
+              )}
+            </div>
+
+            {/* Logged-in pre-event teaser: an inline map of existing
+                treasures around Austin so visitors can warm up before the
+                official BOQM hunt drops. The map component carries its own
+                "Ready to adventure now?" copy. */}
+            {user && <AustinTreasuresMap />}
+
+            {/* Logged-out visitors keep the original disclaimer footer on
+                the card. Logged-in visitors see the same copy inside the
+                map component instead, paired with the warm-up invitation. */}
+            {!user && (
+              <p className="text-[11px] text-muted-foreground/80 mt-4 max-w-md mx-auto">
+                No purchase necessary. Treasures is free, open to everyone,
+                and available to play anytime, anywhere.
+              </p>
+            )}
           </div>
 
           {/* ── Event Details + Map ──────────────────────────────── */}
@@ -544,7 +657,18 @@ export default function BOQM() {
                   <ul className="text-sm text-foreground space-y-1">
                     <li>$10 general · <span className="text-muted-foreground">free for 17 & under</span></li>
                     <li className="text-xs text-muted-foreground">Parking in Palmer garage: $12</li>
+                    <li className="text-xs text-muted-foreground">Tickets also available at the door</li>
                   </ul>
+                  <Button variant="outline" size="sm" asChild className="mt-3">
+                    <a
+                      href={TICKET_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Ticket className="h-4 w-4 mr-2" />
+                      Get BOQM Ticket
+                    </a>
+                  </Button>
                 </div>
               </div>
 
