@@ -442,6 +442,12 @@ export default function CreateCacheLanding() {
               open={showCompactDialog}
               onOpenChange={setShowCompactDialog}
               pubkey={getPubkeyForNaddr()}
+              selectedNpub={submittedNpub}
+              onSelectNpub={(npub) => {
+                setCustomNpub(npub);
+                setSubmittedNpub(npub);
+                setNpubError("");
+              }}
             />
           )}
         </div>
