@@ -559,8 +559,11 @@ export default function BOQM() {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Every Treasures account gets a door discount and a free
-                      prize.
+                      Show this Treasures account at the door &amp; receive your
+                      1st treasure. Purchase your BOQM ticket with code{" "}
+                      <span className="font-semibold text-foreground">TREASURES</span>{" "}
+                      for 20% off entrance (or let them know at the door), and
+                      continue the hunt inside!
                     </p>
                   </div>
                 </div>
