@@ -49,6 +49,36 @@ export function deepLinkToRoute(url: string): string | null {
 }
 
 /**
+ * Module-level guard so the cold-start launch URL is only ever
+ * processed once per app process. Without this, anything that causes
+ * the bridge component to remount — a route change, a hot-reload, the
+ * WebView being recreated by Android after backgrounding — would call
+ * `App.getLaunchUrl()` again, which keeps returning the same URL and
+ * yanks the user back to the claim screen they were trying to leave.
+ */
+let launchUrlConsumed = false;
+
+/**
+ * Tracks recently processed warm-start URLs so a single tap that
+ * delivers duplicate `appUrlOpen` events (some Android launchers do
+ * this) only navigates once.
+ */
+let lastWarmStartUrl: string | null = null;
+let lastWarmStartAt = 0;
+
+/**
+ * Compare the route we're about to navigate to against the current
+ * location. If they already match we skip the navigation entirely so
+ * the user's current page state (form input, scroll position, etc.) is
+ * preserved.
+ */
+function isAlreadyAtRoute(route: string): boolean {
+  const current =
+    window.location.pathname + window.location.search + window.location.hash;
+  return current === route;
+}
+
+/**
  * Wires up Capacitor's `appUrlOpen` event so that opening a
  * `https://treasures.to/...` link on Android (or iOS, when configured)
  * navigates to the matching in-app screen.
@@ -71,16 +101,20 @@ export function useNativeDeepLinks(): void {
 
       // 1. Cold-start: the app was launched *because* of the deep link.
       //    Capacitor doesn't fire appUrlOpen for the launch URL on every
-      //    platform, so we explicitly check.
-      try {
-        const launch = await App.getLaunchUrl();
-        const route = launch?.url ? deepLinkToRoute(launch.url) : null;
-        if (route && !cancelled) {
-          navigate(route, { replace: true });
+      //    platform, so we explicitly check. We only do this once per
+      //    process — see `launchUrlConsumed` above for why.
+      if (!launchUrlConsumed) {
+        launchUrlConsumed = true;
+        try {
+          const launch = await App.getLaunchUrl();
+          const route = launch?.url ? deepLinkToRoute(launch.url) : null;
+          if (route && !cancelled && !isAlreadyAtRoute(route)) {
+            navigate(route, { replace: true });
+          }
+        } catch {
+          // getLaunchUrl can throw on platforms where it isn't supported;
+          // a missing launch URL just means we have nothing to do here.
         }
-      } catch {
-        // getLaunchUrl can throw on platforms where it isn't supported;
-        // a missing launch URL just means we have nothing to do here.
       }
 
       if (cancelled) return;
@@ -88,9 +122,22 @@ export function useNativeDeepLinks(): void {
       // 2. Warm-start: app was already running when the link was opened.
       const handle = await App.addListener('appUrlOpen', ({ url }) => {
         const route = deepLinkToRoute(url);
-        if (route) {
-          navigate(route);
+        if (!route) return;
+
+        // Drop obvious duplicate fires (same URL within 1s).
+        const now = Date.now();
+        if (lastWarmStartUrl === url && now - lastWarmStartAt < 1000) {
+          return;
         }
+        lastWarmStartUrl = url;
+        lastWarmStartAt = now;
+
+        // Don't yank the user away from a screen that already matches
+        // the deep link — they may have navigated forward from it
+        // (e.g. from `/<naddr>#verify=…` into `/create-cache?claimUrl=…`).
+        if (isAlreadyAtRoute(route)) return;
+
+        navigate(route);
       });
 
       cleanup = () => {

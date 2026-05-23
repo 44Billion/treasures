@@ -120,7 +120,7 @@ export default function CreateCacheLanding() {
         setQrDataUrl(gridUrl);
       } else if (qrType === 'stamp') {
         const dataPromises: Promise<{name: string, naddr: string, keyPair: VerificationKeyPair}>[] = [];
-        for (let i = 0; i < 42; i++) {
+        for (let i = 0; i < 30; i++) {
           const name = uniqueNamesGenerator(customConfig);
           const dTag = generateCompactDTag();
           const naddr = geocacheToNaddr(targetPubkey, dTag);
@@ -129,7 +129,7 @@ export default function CreateCacheLanding() {
         const data = await Promise.all(dataPromises);
         const stampUrl = await generateQRStampImage(data, {
           line1: t('qrCode.foundTreasure'),
-          line2: t('qrCode.scanToLog')
+          line2: t('qrCode.scanToLogShort')
         });
         setQrDataUrl(stampUrl);
       } else {

@@ -635,7 +635,10 @@ export async function downloadQRCode(dataUrl: string, filename: string = 'geocac
 
 /**
  * Print a QR code image on Android using the native PrintManager.
- * On web, uses a hidden iframe + window.print().
+ * On web, opens the image in a new window and triggers the browser's
+ * print dialog. Falls back to a same-window print on mobile browsers
+ * that block popups, since iframe-based printing is unreliable on
+ * mobile (Chrome/Safari often print the parent document instead).
  */
 export async function printQRCode(dataUrl: string): Promise<void> {
   const { Capacitor, registerPlugin } = await import('@capacitor/core');
@@ -647,51 +650,137 @@ export async function printQRCode(dataUrl: string): Promise<void> {
     return;
   }
 
-  // Web fallback: hidden iframe print
-  return new Promise((resolve) => {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    const iframeDoc = iframe.contentDocument;
-    if (!iframeDoc) { document.body.removeChild(iframe); resolve(); return; }
-    iframeDoc.write(`<!DOCTYPE html><html><head><style>
-      @page{size:auto;margin:0mm;}
-      *{margin:0;padding:0;box-sizing:border-box;}
-      html,body{width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:white;}
-      img{max-width:100%;max-height:100%;object-fit:contain;}
-    </style></head><body>
-      <img src="${dataUrl}" onload="window.print();setTimeout(function(){window.parent.document.body.removeChild(window.frameElement);},500);"/>
-    </body></html>`);
-    iframeDoc.close();
-    resolve();
-  });
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const printHtml = `<!DOCTYPE html><html><head><title>Treasures QR Code</title><style>
+    @page { size: auto; margin: 0; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #fff; }
+    body { display: flex; align-items: center; justify-content: center; }
+    img { max-width: 100%; max-height: 100vh; width: auto; height: auto; object-fit: contain; display: block; }
+    @media print {
+      body { display: block; }
+      img { max-width: 100%; max-height: 100%; width: 100%; height: auto; page-break-inside: avoid; }
+    }
+  </style></head><body>
+    <img id="qr" alt="QR code" src="${dataUrl}"/>
+    <script>
+      (function () {
+        var img = document.getElementById('qr');
+        function doPrint() {
+          // Give the browser a tick to lay out the image before printing.
+          setTimeout(function () {
+            try { window.focus(); } catch (e) {}
+            window.print();
+          }, 100);
+        }
+        if (img.complete) { doPrint(); }
+        else { img.addEventListener('load', doPrint); img.addEventListener('error', doPrint); }
+        // Auto-close after printing on desktop. Mobile browsers ignore
+        // this when the user keeps the share sheet open, which is fine.
+        window.addEventListener('afterprint', function () {
+          setTimeout(function () { try { window.close(); } catch (e) {} }, 200);
+        });
+      })();
+    <\u002fscript>
+  </body></html>`;
+
+  // Desktop / popup-friendly path: open in a new window. This isolates
+  // the print job from the SPA so window.print() can't accidentally
+  // capture the application UI.
+  if (!isMobile) {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      return;
+    }
+  }
+
+  // Mobile (or popup-blocked) path: build a blob URL and open it in a
+  // new tab. The user can then use the browser's native share / print
+  // menu — this is the most reliable cross-mobile approach because
+  // mobile browsers do not consistently honor `window.print()` from
+  // an iframe (they print the parent page instead).
+  const blob = new Blob([printHtml], { type: 'text/html' });
+  const blobUrl = URL.createObjectURL(blob);
+  const opened = window.open(blobUrl, '_blank');
+  if (!opened) {
+    // Popup blocked — navigate the current tab as a last resort.
+    // Stash the document so we can restore it after the user returns.
+    window.location.href = blobUrl;
+  }
+  // Revoke after a delay so the new tab has time to load.
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }
 
 
 /**
+ * Allocate a print-page canvas at the highest DPI the device can
+ * actually back with memory, falling back gracefully when allocation
+ * fails. Mobile WebViews on lower-end Android can't allocate a full
+ * 8.5×11" @ 300dpi canvas (~34 MB RGBA) without OOM, so we step down
+ * through a tier list and report the DPI we actually got back to the
+ * caller. Every downstream measurement (margins, fonts, line widths)
+ * is computed from that DPI so the layout stays consistent regardless
+ * of which tier wins.
+ */
+function allocatePrintCanvas(
+  widthInches: number,
+  heightInches: number,
+  dpiTiers: number[],
+): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; dpi: number } {
+  for (const dpi of dpiTiers) {
+    const width = Math.round(widthInches * dpi);
+    const height = Math.round(heightInches * dpi);
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+      // Force the backing store to actually allocate by writing one
+      // pixel — some browsers defer allocation until first draw, which
+      // means OOM only shows up when we try to use the canvas later.
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 1, 1);
+      return { canvas, ctx, dpi };
+    } catch {
+      // Try the next-lower DPI.
+    }
+  }
+  throw new Error('Could not allocate print canvas at any DPI tier');
+}
+
+/**
  * Generate a printable grid of compact QR codes (stamp).
- * Creates a dense grid (6x7 = 42 codes) with text labels but no log lines.
+ * Creates a 5x6 = 30 sticker layout sized to be cut into ~1.6"
+ * stickers. Renders at print resolution (with a memory-safe fallback
+ * for low-end mobile) so both the QR modules and the labels stay crisp
+ * when sent through the print pipeline.
+ *
+ * The grid used to be 6×7 (42 codes), but each cell was only ~1.4"
+ * wide which forced ~4px-tall fonts even at 300dpi. 5×6 gives ~33%
+ * more area per stamp without dramatically reducing the total count.
  */
 export async function generateQRStampImage(
   stampData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
   textStrings: { line1: string; line2: string }
 ): Promise<string> {
-  // Use lower DPI for mobile devices to prevent print overflow
+  // We previously generated mobile output at 120 DPI to dodge Android's
+  // print bitmap limits, but that produced tiny ~4px-tall fonts and
+  // ~4px-per-module QR codes that printers couldn't recover detail
+  // from. Now that the native print plugin wraps the bitmap into a
+  // PDF, we can safely target much higher source DPIs and step down
+  // only if allocation fails.
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const dpi = isMobile ? 120 : 300;
+  const dpiTiers = isMobile ? [300, 240, 200, 160] : [300];
 
-  const paperWidth = 8.5 * dpi;
-  const paperHeight = 11 * dpi;
-  const margin = isMobile ? 0.4 * dpi : 0.25 * dpi;
+  const { canvas, ctx, dpi } = allocatePrintCanvas(8.5, 11, dpiTiers);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = paperWidth;
-  canvas.height = paperHeight;
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) {
-    throw new Error('Could not get canvas context');
-  }
+  const paperWidth = canvas.width;
+  const paperHeight = canvas.height;
+  const margin = 0.3 * dpi;
 
   // White background
   ctx.fillStyle = 'white';
@@ -700,56 +789,74 @@ export async function generateQRStampImage(
   const contentWidth = paperWidth - 2 * margin;
   const contentHeight = paperHeight - 2 * margin;
 
-  // 6 columns x 7 rows = 42 QR codes
-  const cols = 6;
-  const rows = 7;
+  // 5 columns x 6 rows = 30 QR codes. Each cell is ≈1.6×1.7" on
+  // Letter, which leaves real room for legible labels under each QR.
+  const cols = 5;
+  const rows = 6;
   const cellWidth = contentWidth / cols;
   const cellHeight = contentHeight / rows;
 
-  // Calculate QR code size (leave room for text)
-  const textHeight = dpi * 0.08; // Space for text
-  const qrSize = Math.min(cellWidth * 0.85, (cellHeight - textHeight) * 0.9);
+  // Two-line label fits below each QR. Fonts are sized off cellWidth
+  // (≈1.6" of paper), not qrSize, so they stay readable when the QR
+  // code shrinks to leave room for the labels.
+  const line1FontSize = Math.floor(cellWidth * 0.085);
+  const line2FontSize = Math.floor(cellWidth * 0.068);
+  const lineGap = Math.floor(dpi * 0.025);
+  const textBlockHeight = line1FontSize + lineGap + line2FontSize + lineGap;
 
-  // Build verification URLs for each stamp
-  const verificationUrls = stampData.map(d =>
-    buildStandardVerificationUrl(d.naddr, d.keyPair.nsec)
-  );
+  // Give the QR as much room as we can after reserving the label band.
+  const qrSize = Math.min(cellWidth * 0.92, cellHeight - textBlockHeight) * 0.95;
 
-  // Draw each QR code in the grid using styled renderer
+  // Pre-load the icon overlay once and reuse it for every cell.
+  const iconTargetSize = Math.floor(qrSize * 0.32);
+  let iconCanvas: HTMLCanvasElement | null = null;
+  try {
+    iconCanvas = await loadAndResizeImage('/icon-192x192.png', iconTargetSize);
+  } catch (iconError) {
+    console.warn('Failed to load icon for QR stamp:', iconError);
+  }
+
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const index = row * cols + col;
-      if (index >= verificationUrls.length) break;
+      const entry = stampData[index];
+      if (!entry) break;
 
       const x = margin + col * cellWidth;
       const y = margin + row * cellHeight;
 
-      // Center the QR code horizontally, place at top of cell
+      // Center horizontally, sit QR + text block as a unit vertically.
+      const blockHeight = qrSize + lineGap + textBlockHeight;
       const qrX = x + (cellWidth - qrSize) / 2;
-      const qrY = y + (cellHeight - qrSize - textHeight) / 2;
+      const qrY = y + (cellHeight - blockHeight) / 2;
 
-      // Draw styled QR directly onto the grid canvas
+      // Draw the QR directly onto the page canvas at full DPI.
+      const verificationUrl = buildStandardVerificationUrl(entry.naddr, entry.keyPair.nsec);
       drawStyledQR(ctx, qrX, qrY, {
-        text: verificationUrls[index]!,
+        text: verificationUrl,
         size: qrSize,
         margin: 0,
         errorCorrectionLevel: 'H',
       });
 
-      // Add icon overlay to each QR code
-      try {
-        const iconSize = Math.floor(qrSize * 0.32);
-        const iconCanvas = await loadAndResizeImage('/icon-192x192.png', iconSize);
+      // Icon overlay centered on the QR.
+      if (iconCanvas) {
+        const iconSize = iconTargetSize;
         const centerX = qrX + (qrSize - iconSize) / 2;
         const centerY = qrY + (qrSize - iconSize) / 2;
         const padding = Math.floor(iconSize * 0.06);
         const bgSize = iconSize + padding * 2;
-        const bgX = centerX - padding;
-        const bgY = centerY - padding;
         const bgCornerRadius = bgSize * 0.2;
 
         ctx.fillStyle = '#FFFFFF';
-        roundRect(ctx, bgX, bgY, bgSize, bgSize, bgCornerRadius);
+        roundRect(
+          ctx,
+          centerX - padding,
+          centerY - padding,
+          bgSize,
+          bgSize,
+          bgCornerRadius,
+        );
         ctx.fill();
 
         ctx.imageSmoothingEnabled = true;
@@ -757,27 +864,24 @@ export async function generateQRStampImage(
           (ctx as unknown as Record<string, unknown>).imageSmoothingQuality = 'high';
         }
         ctx.drawImage(iconCanvas, centerX, centerY, iconSize, iconSize);
-      } catch (iconError) {
-        console.warn('Failed to load icon for QR code:', iconError);
       }
 
-      // Add text below QR code
-      const textStartY = qrY + qrSize + textHeight * 0.3;
-      const line1 = textStrings.line1;
-      const line2 = textStrings.line2;
+      // Two-line label below the QR. We deliberately do NOT include
+      // the auto-generated 3-word seed — it's a throwaway handle, not
+      // anything the recipient will recognize.
+      const textCenterX = x + cellWidth / 2;
+      let cursorY = qrY + qrSize + lineGap;
 
       ctx.fillStyle = '#1a1a1a';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textBaseline = 'top';
 
-      const fontSize1 = Math.floor(qrSize * 0.04);
-      ctx.font = `bold ${fontSize1}px "Segoe UI", Arial, sans-serif`;
-      ctx.fillText(line1, x + cellWidth / 2, textStartY, cellWidth * 0.95);
+      ctx.font = `bold ${line1FontSize}px "Segoe UI", Arial, sans-serif`;
+      ctx.fillText(textStrings.line1, textCenterX, cursorY, cellWidth * 0.95);
+      cursorY += line1FontSize + lineGap;
 
-      const fontSize2 = Math.floor(qrSize * 0.035);
-      const lineSpacing = fontSize1 * 0.9;
-      ctx.font = `${fontSize2}px "Segoe UI", Arial, sans-serif`;
-      ctx.fillText(line2, x + cellWidth / 2, textStartY + lineSpacing, cellWidth * 0.95);
+      ctx.font = `${line2FontSize}px "Segoe UI", Arial, sans-serif`;
+      ctx.fillText(textStrings.line2, textCenterX, cursorY, cellWidth * 0.95);
     }
   }
 
@@ -786,31 +890,30 @@ export async function generateQRStampImage(
 
 /**
  * Generate a printable 3x3 grid of QR codes.
- * Uses adaptive DPI based on device capabilities for better mobile support.
+ *
+ * Renders each QR code directly into its grid cell at the final output
+ * DPI (instead of generating a 3.5" card image and downscaling it),
+ * which keeps both the QR modules and the labels sharp at print
+ * resolution. Uses a memory-safe DPI fallback on mobile so the canvas
+ * always allocates without OOM-ing the WebView.
  */
 export async function generateQRGridImage(
   sheetData: {name: string, naddr: string, keyPair: VerificationKeyPair}[],
   textStrings: { line1: string; line2: string }
 ): Promise<string> {
 
-  // Use lower DPI for mobile devices to prevent print overflow
-  // Mobile needs significantly lower DPI (120) to fit within print preview
+  // Target full print resolution. On mobile we step down through
+  // progressively smaller DPIs if the WebView can't allocate the
+  // top-tier canvas — this is the same strategy used for the stamp
+  // sheet so both modes look identical when allocation succeeds.
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const dpi = isMobile ? 120 : 300;
+  const dpiTiers = isMobile ? [300, 240, 200, 160] : [300];
 
-  const paperWidth = 8.5 * dpi;
-  const paperHeight = 11 * dpi;
-  // Increase margins on mobile for better fit
-  const margin = isMobile ? 0.7 * dpi : 0.5 * dpi;
+  const { canvas, ctx, dpi } = allocatePrintCanvas(8.5, 11, dpiTiers);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = paperWidth;
-  canvas.height = paperHeight;
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) {
-    throw new Error('Could not get canvas context');
-  }
+  const paperWidth = canvas.width;
+  const paperHeight = canvas.height;
+  const margin = 0.5 * dpi;
 
   // White background
   ctx.fillStyle = 'white';
@@ -820,55 +923,112 @@ export async function generateQRGridImage(
   const contentHeight = paperHeight - 2 * margin;
   const cellWidth = contentWidth / 3;
   const cellHeight = contentHeight / 3;
-  const qrSize = Math.min(cellWidth, cellHeight) * 0.9;
 
-  // Scale text sizes based on DPI
-  const textHeight = dpi * 0.13; // Proportional to DPI (40px at 300 DPI)
-  const fontSize = dpi * 0.11;    // Proportional to DPI (32px at 300 DPI)
-  const lineWidth = dpi * 0.013;  // Proportional to DPI (4px at 300 DPI)
+  // Two-line label band under each QR — the auto-generated 3-word
+  // seed name is intentionally NOT rendered, since it's a throwaway
+  // internal handle and users find it confusing on the printout.
+  const textBandHeight = 0.45 * dpi;
+  const qrSize = Math.min(cellWidth, cellHeight - textBandHeight) * 0.9;
 
-  ctx.fillStyle = 'black';
-  ctx.textAlign = 'center';
-  ctx.font = `${fontSize}px Arial`;
+  // Dashed cut-line styling scales with DPI so the appearance is
+  // consistent across every DPI tier.
+  const lineWidth = Math.max(1, dpi * 0.012);
+  const dashSize = dpi * 0.05;
+  const cutPadding = dpi * 0.04;
 
-  const qrCodePromises = sheetData.map(d => {
-    const verificationUrl = buildStandardVerificationUrl(d.naddr, d.keyPair.nsec);
-    return generateVerificationQR(verificationUrl, 'full', textStrings);
-  });
-
-  const qrCodes = await Promise.all(qrCodePromises);
+  // Pre-load the icon overlay once and reuse for every cell — this is
+  // both a perf and a correctness win (the previous implementation
+  // re-decoded the icon on every iteration).
+  const iconTargetSize = Math.floor(qrSize * 0.32);
+  let iconCanvas: HTMLCanvasElement | null = null;
+  try {
+    iconCanvas = await loadAndResizeImage('/icon-192x192.png', iconTargetSize);
+  } catch (iconError) {
+    console.warn('Failed to load icon for QR grid:', iconError);
+  }
 
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 3; col++) {
-      const qrImage = new Image();
-      await new Promise((resolve, reject) => {
-        qrImage.onload = resolve;
-        qrImage.onerror = reject;
-        qrImage.src = qrCodes[row * 3 + col] || '';
-      });
+      const entry = sheetData[row * 3 + col];
+      if (!entry) continue;
 
       const x = margin + col * cellWidth;
       const y = margin + row * cellHeight;
 
       const qrX = x + (cellWidth - qrSize) / 2;
-      const qrY = y + (cellHeight - qrSize - textHeight) / 2;
+      const qrY = y + (cellHeight - textBandHeight - qrSize) / 2;
 
+      // Dashed cut-line around the QR code itself.
       ctx.strokeStyle = '#888888';
       ctx.lineWidth = lineWidth;
-      const dashSize = dpi * 0.05; // Proportional to DPI (15px at 300 DPI)
-      const padding = dpi * 0.033; // Proportional to DPI (10px at 300 DPI)
       ctx.setLineDash([dashSize, dashSize]);
-      ctx.strokeRect(qrX - padding, qrY - padding, qrSize + padding * 2, qrSize + padding * 2);
+      ctx.strokeRect(
+        qrX - cutPadding,
+        qrY - cutPadding,
+        qrSize + cutPadding * 2,
+        qrSize + cutPadding * 2,
+      );
       ctx.setLineDash([]);
 
-      ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+      // Draw the QR directly onto the grid canvas at full DPI — this
+      // is what fixes the blur: no intermediate downscale step.
+      const verificationUrl = buildStandardVerificationUrl(entry.naddr, entry.keyPair.nsec);
+      drawStyledQR(ctx, qrX, qrY, {
+        text: verificationUrl,
+        size: qrSize,
+        margin: 1,
+        errorCorrectionLevel: 'H',
+      });
 
-      const textX = x + cellWidth / 2;
-      const textY = qrY + qrSize + textHeight;
-      const nameData = sheetData[row * 3 + col];
-      if (nameData && nameData.name) {
-        ctx.fillText(nameData.name, textX, textY, cellWidth * 0.9);
+      // Icon overlay in the center of the QR code.
+      if (iconCanvas) {
+        const iconSize = iconTargetSize;
+        const centerX = qrX + (qrSize - iconSize) / 2;
+        const centerY = qrY + (qrSize - iconSize) / 2;
+        const iconPadding = Math.floor(iconSize * 0.06);
+        const bgSize = iconSize + iconPadding * 2;
+        const bgCornerRadius = bgSize * 0.2;
+
+        ctx.fillStyle = '#FFFFFF';
+        roundRect(
+          ctx,
+          centerX - iconPadding,
+          centerY - iconPadding,
+          bgSize,
+          bgSize,
+          bgCornerRadius,
+        );
+        ctx.fill();
+
+        ctx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in ctx) {
+          (ctx as unknown as Record<string, unknown>).imageSmoothingQuality = 'high';
+        }
+        ctx.drawImage(iconCanvas, centerX, centerY, iconSize, iconSize);
       }
+
+      // Two-line label below the QR, drawn at the page's native DPI
+      // so it stays crisp regardless of which fallback tier we landed
+      // on. No auto-generated name — see comment above.
+      const textCenterX = x + cellWidth / 2;
+      const textTop = qrY + qrSize + cutPadding + dpi * 0.08;
+
+      const line1FontSize = Math.floor(qrSize * 0.07);
+      const line2FontSize = Math.floor(qrSize * 0.058);
+      const lineGap = dpi * 0.04;
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      let cursorY = textTop;
+
+      ctx.font = `bold ${line1FontSize}px "Segoe UI", Arial, sans-serif`;
+      ctx.fillText(textStrings.line1, textCenterX, cursorY, cellWidth * 0.9);
+      cursorY += line1FontSize + lineGap * 0.6;
+
+      ctx.font = `${line2FontSize}px "Segoe UI", Arial, sans-serif`;
+      ctx.fillText(textStrings.line2, textCenterX, cursorY, cellWidth * 0.9);
     }
   }
 
