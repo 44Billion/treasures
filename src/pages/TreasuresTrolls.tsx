@@ -335,10 +335,10 @@ export default function TreasuresTrolls() {
               animation: "troll-headline-pop 5s ease-in-out infinite",
             }}
           >
-            12 Trolls Hidden Across Oslo
+            10 Trolls Hidden Across Oslo
           </h1>
           <p className="text-lg md:text-2xl font-semibold text-white leading-relaxed [text-shadow:0_2px_6px_rgba(0,0,0,0.55)]">
-            A mythical journey through Oslo, Norway is beginning shortly. Twelve
+            A mythical journey through Oslo, Norway is beginning shortly. Ten
             trolls lie waiting in the city's quiet corners.
             <br />
             <span
