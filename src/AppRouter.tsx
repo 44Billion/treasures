@@ -36,6 +36,7 @@ const CompactRedirect = lazy(() => import("./pages/CompactRedirect"));
 const RemoteLoginSuccess = lazy(() => import("./pages/RemoteLoginSuccess"));
 const CacheByDTag = lazy(() => import("./pages/CacheByDTag"));
 const BOQM = lazy(() => import("./pages/BOQM"));
+const TreasuresTrolls = lazy(() => import("./pages/TreasuresTrolls"));
 
 // Loading fallback for lazy-loaded routes — matches the initial-loading spinner from index.html
 function PageFallback() {
@@ -116,6 +117,7 @@ export function AppRouter() {
             <Route path="/d/:dTag" element={<CacheByDTag />} />
             <Route path="/remoteloginsuccess" element={<RemoteLoginSuccess />} />
             <Route path="/boqm" element={<BOQM />} />
+            <Route path="/treasure-trolls" element={<TreasuresTrolls />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE NADDR CATCH-ALL ROUTE */}
             <Route path="/:naddr" element={<CacheDetail />} />
