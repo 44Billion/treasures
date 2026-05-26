@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera } from 'lucide-react';
+import { X, HelpCircle, Dot, Square, Package, Archive, Footprints, Mountain, Pickaxe, Eye, Search, Brain, Lightbulb, Cpu, Loader2, ImagePlus, Camera, Trophy, Palette, KeyRound, ChevronDown } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { sneaker, treesForest } from '@lucide/lab';
@@ -55,6 +55,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rating';
 import { useUploadFile } from '@/hooks/useUploadFile';
@@ -63,6 +64,7 @@ import { cn } from '@/utils/utils';
 
 
 import type { GeocacheFormData, GeocacheFormProps } from '@/types/geocache-form';
+import type { TreasureModifier } from '@/types/geocache';
 
 // === FORM FIELD COMPONENTS ===
 
@@ -947,6 +949,188 @@ export function CacheStatusField({ value, onChange, fieldId = "status" }: CacheS
   );
 }
 
+// === CACHE MODIFIERS FIELD (treasure type modifiers: Key Quest / FTF / Art) ===
+
+interface CacheModifiersFieldProps {
+  /** Active `n` tag modifiers (`first-to-find`, `art`). */
+  modifiers: TreasureModifier[];
+  onModifiersChange: (modifiers: TreasureModifier[]) => void;
+  /** Mission text (Key Quest payload). Empty string means no Key Quest. */
+  mission: string;
+  onMissionChange: (mission: string) => void;
+  fieldId?: string;
+}
+
+/**
+ * Unified UI for opting into treasure modifiers.
+ *
+ * Surfaces three independent toggles as compact icon+label buttons in a row:
+ *   - Key Quest (carries text payload via `mission` tag)
+ *   - First to Find (`n` tag: claim semantics)
+ *   - Art          (`n` tag: prize nature)
+ *
+ * Matches the visual idiom of `CacheSizeField` / `CacheTypeField`: tight,
+ * icon-forward buttons. Descriptions are deferred until a button is selected,
+ * shown in a single line of helper text below the row.
+ *
+ * Modifiers compose freely (unlike size/type radios), so the buttons toggle
+ * independently rather than acting as a radio group.
+ */
+export function CacheModifiersField({
+  modifiers,
+  onModifiersChange,
+  mission,
+  onMissionChange,
+  fieldId = 'modifiers',
+}: CacheModifiersFieldProps) {
+  const { t } = useTranslation();
+
+  // Key Quest tracks its own local "intent to use" state so the toggle and the
+  // mission-input visibility don't depend purely on the mission text. Without
+  // this, clicking the Key Quest button with an empty mission would have no
+  // visible effect because `mission.trim().length > 0` would still be false.
+  //
+  // Initial state: on iff a mission is already set (e.g. editing an existing
+  // treasure or rehydrating a draft).
+  const [keyQuestOn, setKeyQuestOn] = useState<boolean>(() => mission.trim().length > 0);
+
+  // If the parent updates `mission` (e.g. draft rehydration after mount), keep
+  // the local toggle in sync when a non-empty mission appears.
+  useEffect(() => {
+    if (mission.trim().length > 0 && !keyQuestOn) {
+      setKeyQuestOn(true);
+    }
+  }, [mission, keyQuestOn]);
+
+  const ftfEnabled = modifiers.includes('first-to-find');
+  const artEnabled = modifiers.includes('art');
+
+  const toggleNModifier = (modifier: TreasureModifier, enabled: boolean) => {
+    if (enabled) {
+      if (modifiers.includes(modifier)) return;
+      onModifiersChange([...modifiers, modifier]);
+    } else {
+      onModifiersChange(modifiers.filter((m) => m !== modifier));
+    }
+  };
+
+  const toggleKeyQuest = (enabled: boolean) => {
+    setKeyQuestOn(enabled);
+    // Turning Key Quest off clears any mission text the user had entered.
+    if (!enabled) onMissionChange('');
+  };
+
+  type Option = {
+    id: string;
+    enabled: boolean;
+    onToggle: (next: boolean) => void;
+    label: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+  };
+
+  const options: Option[] = [
+    {
+      id: 'key-quest',
+      enabled: keyQuestOn,
+      onToggle: toggleKeyQuest,
+      label: t('createCache.form.modifiers.keyQuest.label'),
+      description: t('createCache.form.modifiers.keyQuest.description'),
+      icon: KeyRound,
+    },
+    {
+      id: 'first-to-find',
+      enabled: ftfEnabled,
+      onToggle: (next) => toggleNModifier('first-to-find', next),
+      label: t('createCache.form.modifiers.firstToFind.label'),
+      description: t('createCache.form.modifiers.firstToFind.description'),
+      icon: Trophy,
+    },
+    {
+      id: 'art',
+      enabled: artEnabled,
+      onToggle: (next) => toggleNModifier('art', next),
+      label: t('createCache.form.modifiers.art.label'),
+      description: t('createCache.form.modifiers.art.description'),
+      icon: Palette,
+    },
+  ];
+
+  const activeOptions = options.filter((o) => o.enabled);
+  const showLabels = activeOptions.length > 1;
+
+  return (
+    <div className="space-y-3 text-foreground">
+      <Label id={`${fieldId}-label`}>
+        {t('createCache.form.modifiers.heading')}
+        <span className="text-xs text-muted-foreground block mt-1">
+          {t('createCache.form.modifiers.subheading')}
+        </span>
+      </Label>
+
+      <div
+        id={fieldId}
+        role="group"
+        aria-labelledby={`${fieldId}-label`}
+        className="grid grid-cols-3 gap-2"
+      >
+        {options.map((opt) => {
+          const Icon = opt.icon;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              role="switch"
+              aria-checked={opt.enabled}
+              onClick={() => opt.onToggle(!opt.enabled)}
+              className={`p-2 rounded-lg border text-center transition-all ${
+                opt.enabled
+                  ? 'border-purple-500 bg-purple-500/10'
+                  : 'border-border hover:border-muted-foreground/40 bg-card'
+              }`}
+            >
+              <Icon className="mx-auto mb-1 h-5 w-5 text-purple-600" />
+              <div className="font-medium text-xs text-foreground">{opt.label}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {activeOptions.length > 0 && (
+        <div className="bg-muted/30 p-2 rounded-md space-y-1">
+          {activeOptions.map((o) => (
+            <p
+              key={o.id}
+              className="text-xs text-purple-700 dark:text-purple-300 adventure:text-amber-800 mojave:text-primary"
+            >
+              {showLabels && (
+                <span className="font-medium text-foreground/80 mr-1">{o.label}:</span>
+              )}
+              {o.description}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* Mission text input, revealed inline when Key Quest is on. */}
+      {keyQuestOn && (
+        <div>
+          <Label htmlFor={`${fieldId}-mission`}>{t('createCache.form.mission.label')}</Label>
+          <Input
+            id={`${fieldId}-mission`}
+            value={mission}
+            onChange={(e) => onMissionChange(e.target.value)}
+            placeholder={t('createCache.form.mission.placeholder')}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            {t('createCache.form.mission.help')}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // === IMAGE MANAGEMENT COMPONENT ===
 
 interface CacheImageManagerProps {
@@ -1282,6 +1466,7 @@ export function GeocacheForm({
   fieldPrefix = "",
   className
 }: GeocacheFormProps) {
+  const { t } = useTranslation();
 
   const updateField = <K extends keyof GeocacheFormData>(field: K, value: GeocacheFormData[K]) => {
     onFormDataChange({
@@ -1289,6 +1474,13 @@ export function GeocacheForm({
       [field]: value
     });
   };
+
+  // Advanced section is collapsed by default to keep the form's cognitive load
+  // light. Auto-open when editing a treasure that already has modifiers set,
+  // so the owner can see what's configured without hunting.
+  const hasAdvancedContent =
+    (formData.modifiers?.length ?? 0) > 0 || formData.mission.trim().length > 0;
+  const [advancedOpen, setAdvancedOpen] = useState<boolean>(hasAdvancedContent);
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -1318,12 +1510,6 @@ export function GeocacheForm({
           onChange={(value) => updateField('hint', value)}
           fieldId={fieldPrefix ? `${fieldPrefix}-hint` : 'hint'}
         />
-
-        <CacheMissionField
-          value={formData.mission}
-          onChange={(value) => updateField('mission', value)}
-          fieldId={fieldPrefix ? `${fieldPrefix}-mission` : 'mission'}
-        />
       </div>
 
       {/* Cache Properties */}
@@ -1346,6 +1532,26 @@ export function GeocacheForm({
             fieldId={fieldPrefix ? `${fieldPrefix}-size` : 'size'}
           />
         </div>
+
+        {/* Treasure Modifiers — collapsed under Advanced to keep the
+            default form light. Modifiers are optional opt-in behaviors. */}
+        <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+          <CollapsibleTrigger className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground py-2 border-t pt-3 transition-colors">
+            <span className="font-medium">{t('createCache.advanced')}</span>
+            <ChevronDown
+              className={cn('h-4 w-4 transition-transform', advancedOpen && 'rotate-180')}
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <CacheModifiersField
+              modifiers={formData.modifiers ?? []}
+              onModifiersChange={(value) => updateField('modifiers', value)}
+              mission={formData.mission}
+              onMissionChange={(value) => updateField('mission', value)}
+              fieldId={fieldPrefix ? `${fieldPrefix}-modifiers` : 'modifiers'}
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <CacheDifficultyField

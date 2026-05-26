@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight, Cloud, EyeOff, Copy, Link as LinkIcon } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Check, FileEdit, MapPinned, FileText, Gauge, Camera, ChevronLeft, ChevronRight, ChevronDown, Cloud, EyeOff, Copy, Link as LinkIcon } from "lucide-react";
 import { CompassSpinner } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHero } from "@/components/PageHero";
 import { DesktopHeader } from "@/components/DesktopHeader";
@@ -18,7 +19,7 @@ import {
   CacheNameField,
   CacheDescriptionField,
   CacheHintField,
-  CacheMissionField,
+  CacheModifiersField,
   ContentWarningField,
   CacheDifficultyField,
   CacheTerrainField,
@@ -90,6 +91,22 @@ export default function CreateCache() {
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string }>({});
   const [shortLinkCopied, setShortLinkCopied] = useState(false);
 
+  // "Advanced" disclosure for treasure modifiers (Key Quest / FTF / Art).
+  // Defaults open iff the draft already has modifiers or a mission set, so
+  // editing pre-configured drafts surfaces the relevant fields.
+  const [advancedOpen, setAdvancedOpen] = useState<boolean>(false);
+  // Auto-open advanced once when hydrating a draft that has modifiers set.
+  useEffect(() => {
+    const hasAdvanced =
+      (formData.modifiers?.length ?? 0) > 0 || formData.mission.trim().length > 0;
+    if (hasAdvanced) {
+      setAdvancedOpen(true);
+    }
+    // Intentionally only consider mount-time hydration; the user can still
+    // close the panel manually after toggling things off.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Hydrate from relay draft once it loads (async)
   useEffect(() => {
     if (loadedRelayDraft && draftSlugParam) {
@@ -111,7 +128,8 @@ export default function CreateCache() {
       formData.description !== defaults.description ||
       formData.hint !== defaults.hint ||
       formData.mission !== defaults.mission ||
-      formData.contentWarning !== defaults.contentWarning;
+      formData.contentWarning !== defaults.contentWarning ||
+      (formData.modifiers?.length ?? 0) > 0;
     const hasCustomInfo = hasCustomFormData || location !== null || images.length > 0;
 
     if (!hasCustomInfo) {
@@ -687,11 +705,6 @@ export default function CreateCache() {
                     onChange={(value) => setFormData({...formData, hint: value})}
                   />
 
-                  <CacheMissionField
-                    value={formData.mission}
-                    onChange={(value) => setFormData({...formData, mission: value})}
-                  />
-
                   {/* Divider */}
                   <div className="border-t pt-4">
                     <p className="text-xs text-muted-foreground mb-3">{t('createCache.containerQuestion')}</p>
@@ -702,6 +715,24 @@ export default function CreateCache() {
                     value={formData.type}
                     onChange={(value) => setFormData({...formData, type: value})}
                   />
+
+                  {/* Advanced: optional treasure modifiers (Key Quest / FTF / Art) */}
+                  <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                    <CollapsibleTrigger className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground py-2 transition-colors">
+                      <span className="font-medium">{t('createCache.advanced')}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}
+                      />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-3">
+                      <CacheModifiersField
+                        modifiers={formData.modifiers ?? []}
+                        onModifiersChange={(value) => setFormData({...formData, modifiers: value})}
+                        mission={formData.mission}
+                        onMissionChange={(value) => setFormData({...formData, mission: value})}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
 
                   <CacheSizeField
                     fieldId="cache-size"

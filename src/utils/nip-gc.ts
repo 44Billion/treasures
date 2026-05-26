@@ -34,6 +34,26 @@ const RESERVED_T_TAG_VALUES = ['hidden', 'archived', 'maintenance'] as const;
 // distinct from the per-log `archived` / `maintenance` comment log types).
 export const VALID_CACHE_STATUSES = ['archived', 'maintenance'] as const;
 
+/**
+ * Valid `n` tag type modifiers (NIP-GC "Type Modifiers" section).
+ *
+ * Each modifier belongs to a category. A treasure SHOULD include at most one
+ * modifier per category; if duplicates appear in the same category, the first
+ * occurrence is used and the rest are ignored.
+ *
+ * Categories:
+ *  - claim semantics: `first-to-find`
+ *  - prize nature:    `art`
+ */
+export const VALID_N_MODIFIERS = ['first-to-find', 'art'] as const;
+export type ValidNModifier = typeof VALID_N_MODIFIERS[number];
+
+/** Maps each modifier to its category, for one-per-category enforcement. */
+const N_MODIFIER_CATEGORY: Record<ValidNModifier, 'claim-semantics' | 'prize-nature'> = {
+  'first-to-find': 'claim-semantics',
+  'art': 'prize-nature',
+};
+
 export type ValidCacheType = typeof VALID_CACHE_TYPES[number];
 export type ValidCacheSize = typeof VALID_CACHE_SIZES[number];
 export type ValidCommentLogType = typeof VALID_COMMENT_LOG_TYPES[number];
@@ -139,6 +159,33 @@ export function validateCommentLogType(type: string): type is ValidCommentLogTyp
   return VALID_COMMENT_LOG_TYPES.includes(type as ValidCommentLogType);
 }
 
+export function validateNModifier(modifier: string): modifier is ValidNModifier {
+  return VALID_N_MODIFIERS.includes(modifier as ValidNModifier);
+}
+
+/**
+ * Parse, validate, and de-duplicate `n` tag values from a Nostr event.
+ *
+ * Per NIP-GC:
+ *  - Unknown values are ignored (forward compatibility).
+ *  - At most one modifier per category is kept; the first occurrence wins.
+ *  - Output order is the order of first occurrence in the event tags.
+ */
+export function parseNModifiers(tags: string[][]): ValidNModifier[] {
+  const seenCategories = new Set<string>();
+  const result: ValidNModifier[] = [];
+  for (const tag of tags) {
+    if (tag[0] !== 'n' || !tag[1]) continue;
+    const value = tag[1];
+    if (!validateNModifier(value)) continue;
+    const category = N_MODIFIER_CATEGORY[value];
+    if (seenCategories.has(category)) continue;
+    seenCategories.add(category);
+    result.push(value);
+  }
+  return result;
+}
+
 export function validateCoordinates(lat: number, lng: number): boolean {
   return !isNaN(lat) && !isNaN(lng) &&
          lat >= -90 && lat <= 90 &&
@@ -239,6 +286,9 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       status = 'maintenance';
     }
 
+    // Parse `n` tag type modifiers (NIP-GC Type Modifiers section).
+    const modifiers = parseNModifiers(event.tags);
+
     const naddr = nip19.naddrEncode({
       identifier: dTag,
       pubkey: event.pubkey,
@@ -269,6 +319,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       verificationPubkey,
       hidden,
       status,
+      modifiers: modifiers.length > 0 ? modifiers : undefined,
     };
   } catch (error) {
     return null;
@@ -416,6 +467,7 @@ export function buildGeocacheTags(data: {
   verificationPubkey?: string;
   hidden?: boolean;
   status?: ValidCacheStatus;
+  modifiers?: ValidNModifier[];
   kind?: number; // Original kind to preserve for updates
 }): string[][] {
   // Validate inputs
@@ -464,6 +516,19 @@ export function buildGeocacheTags(data: {
   // Add type tag only if not 'traditional' (defaults to traditional per NIP-GC)
   if (data.type !== 'traditional') {
     tags.push(['t', data.type]);
+  }
+
+  // Add `n` tag type modifiers (NIP-GC Type Modifiers section).
+  // Enforce: only valid values, at most one per category, first wins, dedup.
+  if (data.modifiers && data.modifiers.length > 0) {
+    const seenCategories = new Set<string>();
+    for (const modifier of data.modifiers) {
+      if (!validateNModifier(modifier)) continue;
+      const category = N_MODIFIER_CATEGORY[modifier];
+      if (seenCategories.has(category)) continue;
+      seenCategories.add(category);
+      tags.push(['n', modifier]);
+    }
   }
 
   // Add optional tags

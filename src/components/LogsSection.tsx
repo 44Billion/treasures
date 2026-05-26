@@ -34,6 +34,11 @@ interface LogsSectionProps {
      * the treasure by self-attesting completion of the mission.
      */
     mission?: string;
+    /**
+     * NIP-GC `n` tag type modifiers. Needed so the LogList can identify the
+     * FTF winner among verified found logs.
+     */
+    modifiers?: ('first-to-find' | 'art')[];
   };
   onProfileClick?: (pubkey: string) => void;
   compact?: boolean;
@@ -333,7 +338,7 @@ export function LogsSection({
       )}
 
       {logs && logs.length > 0 ? (
-        <LogList logs={logs} compact={compact} />
+        <LogList logs={logs} compact={compact} cache={geocache} />
       ) : (
         <EmptyStateCard
           icon={Notebook}

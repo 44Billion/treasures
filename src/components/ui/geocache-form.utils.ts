@@ -14,5 +14,6 @@ export function createDefaultGeocacheFormData(): GeocacheFormData {
     type: defaults.type,
     hidden: false,
     contentWarning: "",
+    modifiers: [],
   };
 }

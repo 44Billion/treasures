@@ -24,6 +24,7 @@ Geocache listing events are addressable events of kind `37516` with the followin
     ["T", "<1-5>"],
     ["S", "<size>"],
     ["t", "<type>"],
+    ["n", "<type-modifier>"],
     ["hint", "<plaintext hint>"],
     ["mission", "<key quest mission>"]
   ]
@@ -51,6 +52,7 @@ The content field contains the cache description and any additional information 
 - `T` (required) - integer 1-5 indicating physical difficulty (indexed)
 - `S` (required) - one of: `micro`, `small`, `regular`, `large`, `other` (indexed)
 - `t` (optional) - cache type, with common values including: `traditional`, `multi`, `mystery`. Defaults to `traditional` if not specified
+- `n` (optional) - type modifier(s) that affect lifecycle, claim semantics, or prize nature. See [Type Modifiers](#type-modifiers). Multiple `n` tags MAY be present, but at most one per modifier category
 - `hint` (optional) - plaintext hint to help find the cache
 - `mission` (optional) - plaintext "Key Quest" mission that finders are expected to complete to legitimately claim the cache (e.g. a passphrase, riddle answer, or item to bring). A treasure MUST NOT include more than one `mission` tag; if multiple are present, clients SHOULD use the first and ignore the rest. When present, clients SHOULD restrict found-log submission to finders who have proof of physical presence (typically the verification key from the cache location). Completions of the mission MAY be recorded as [NIP-GD](NIP-GD.md) Good Deed events whose `a` tag references the cache
 - `image` (optional) - image URLs related to the cache
@@ -164,6 +166,42 @@ To validate a verified find:
 2. Verify that the finder pubkey in the `a` tag matches the log author
 3. Confirm the geocache naddr in the `a` tag correctly references the target cache
 4. Validate the event signature using standard Nostr verification
+
+## Type Modifiers
+
+Treasures MAY include one or more `n` tags that classify the treasure with additional type modifiers. Unlike the `t` cache-type tag (which describes *how* a cache is found), `n` modifiers describe *how the cache behaves* once published — its lifecycle, claim semantics, or prize nature.
+
+The `mission` tag defined above is also a type modifier in the broader sense — it opts a treasure into Key Quest behavior — but it predates this section and uses its own dedicated tag because it carries a payload (the mission text). Clients implementing modifier-aware UI SHOULD treat `mission` and `n` modifiers consistently for display purposes (badges, filters, etc.) even though they are stored in different tags.
+
+### Rules
+
+1. Each modifier value belongs to exactly one **category** (see below).
+2. A treasure SHOULD include at most one `n` tag per category. If multiple values from the same category are present, clients SHOULD use the first occurrence and ignore the rest.
+3. Modifiers from different categories compose freely. Any combination is valid unless a specific modifier's definition states otherwise.
+4. Clients SHOULD ignore `n` values they do not recognize, allowing forward compatibility as new modifiers are defined.
+
+### Categories and Modifiers
+
+#### Claim semantics
+
+Modifiers that affect how claims on the treasure are interpreted.
+
+- `first-to-find` — Single-claim treasure. The first verified found log (kind 7516 with valid embedded kind 7517) constitutes the exclusive claim. Subsequent verified found logs remain valid records of physical presence at the location but do not constitute additional claims. Clients SHOULD render the treasure as effectively archived once any valid verified found log exists, hiding find-submission affordances and displaying the winning finder prominently. The treasure creator SHOULD publish a kind 1111 archive comment (`["t", "archived"]`) once they have confirmed the claim, making the archived state canonical for clients that do not implement this modifier. Requires a `verification` tag on the treasure.
+
+  Determining the winning log:
+  - The winning log is the verified found log with the earliest `created_at` value.
+  - Ties on `created_at` are broken by ascending lexicographic comparison of the event `id`.
+  - Because `created_at` is author-supplied and forgeable, clients SHOULD treat all verified logs as evidence of physical presence at the cache (QR access was required to produce them) while attributing the exclusive claim only to the earliest one.
+
+#### Prize nature
+
+Modifiers that describe what the physical treasure IS.
+
+- `art` — The cache itself is a physical work of art (a print, sculpture, sticker, zine, painted object, mural, installation, etc.). Whether the work is takeable, viewable in place, photographable only, or otherwise interacted with is determined by other modifiers and by the treasure's `content` description.
+
+### Forward Compatibility
+
+New modifiers MAY be defined in future revisions of this NIP or in supplementary NIPs. New categories MAY also be introduced. Clients implementing this NIP SHOULD ignore unknown `n` values rather than rejecting the event.
 
 ## Geocache Curation List Event (Kind 37517)
 
@@ -279,6 +317,31 @@ For the best Geocaching experience, clients implementing geocaching support shou
     ["t", "mystery"],
     ["hint", "Count the rings on the fallen log"],
     ["mission", "Bring a token of nature you found along the way"],
+    ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]
+  ]
+}
+```
+
+### First-to-Find Art
+
+A single-claim treasure where the cache itself is a physical artwork. The first verified finder is the exclusive claimant; how the work is fulfilled (taken home, photographed, etc.) is described in the cache content.
+
+```json
+{
+  "kind": 37516,
+  "content": "Hand-pulled linocut, edition of 1, signed on the back next to the QR. Whoever finds it keeps it.",
+  "tags": [
+    ["d", "linocut-aftermath-1748619568671"],
+    ["name", "Aftermath (Linocut #1)"],
+    ["g", "u4xsu6ry"],
+    ["D", "2"],
+    ["T", "2"],
+    ["S", "small"],
+    ["t", "traditional"],
+    ["n", "first-to-find"],
+    ["n", "art"],
+    ["hint", "Behind glass, but not in a frame"],
+    ["image", "https://blossom.primal.net/example-linocut.jpg"],
     ["verification", "6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07"]
   ]
 }

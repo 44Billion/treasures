@@ -32,23 +32,56 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { nip19, nip57 } from "nostr-tools";
 
-import type { GeocacheLog } from "@/types/geocache";
+import type { GeocacheLog, Geocache } from "@/types/geocache";
+import { getFtfWinner, hasModifier } from "@/utils/modifiers";
 
 
 interface LogListProps {
   logs: GeocacheLog[];
   compact?: boolean;
   onProfileClick?: (pubkey: string) => void;
+  /**
+   * When provided, the list can identify the first-to-find winning log and
+   * mark subsequent verified found logs as "logged after claim." Without this
+   * the list renders unchanged.
+   */
+  cache?: Pick<Geocache, 'mission' | 'modifiers'>;
 }
 
-export function LogList({ logs, compact = false }: LogListProps) {
-  // Logs received from LogsSection
-  
+export function LogList({ logs, compact = false, cache }: LogListProps) {
+  // The "first verified find" trophy is awarded on every cache that has any
+  // verified finds — it honors whoever was the first verified finder of this
+  // treasure, regardless of whether the cache opts into first-to-find
+  // single-claim semantics. The `first-to-find` modifier only changes whether
+  // SUBSEQUENT verified finds are visually de-emphasized as "logged after
+  // claim", and whether the FTF claim banner appears on the detail page.
+  const firstVerifiedFindId = getFtfWinner(logs)?.id;
+  const isFtfCache = cache ? hasModifier(cache, 'first-to-find') : false;
+
   return (
     <div className="px-2 space-y-3 md:space-y-4">
-      {logs.map((log) => (
-        <LogCard key={log.id} log={log} compact={compact} />
-      ))}
+      {logs.map((log) => {
+        const isWinner = !!firstVerifiedFindId && log.id === firstVerifiedFindId;
+        // "Logged after claim" applies only on first-to-find caches: when a
+        // verified found log comes after the winner, mark it as a record of
+        // physical presence rather than a claim. On non-FTF caches we leave
+        // subsequent verified finds unmarked — they're just regular finds.
+        const isLateVerifiedFind =
+          isFtfCache &&
+          !!firstVerifiedFindId &&
+          log.id !== firstVerifiedFindId &&
+          log.type === 'found' &&
+          !!log.isVerified;
+        return (
+          <LogCard
+            key={log.id}
+            log={log}
+            compact={compact}
+            isFtfWinner={isWinner}
+            isLateVerifiedFind={isLateVerifiedFind}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -56,9 +89,22 @@ export function LogList({ logs, compact = false }: LogListProps) {
 interface LogCardProps {
   log: GeocacheLog;
   compact?: boolean;
+  /**
+   * True iff this log is the first verified found log on its cache — i.e. the
+   * earliest verified find by `created_at` (event id as tiebreaker). Awarded
+   * on every cache, not only first-to-find caches.
+   */
+  isFtfWinner?: boolean;
+  /**
+   * True iff this verified found log came AFTER the first verified find on a
+   * cache that opts into first-to-find single-claim semantics. Subsequent
+   * verified finds remain valid records of physical presence per NIP-GC, but
+   * do not constitute additional claims.
+   */
+  isLateVerifiedFind?: boolean;
 }
 
-function LogCard({ log, compact = false }: LogCardProps) {
+function LogCard({ log, compact = false, isFtfWinner = false, isLateVerifiedFind = false }: LogCardProps) {
   // The log is always signed by the actual user now
   const { t } = useTranslation();
   const author = useAuthor(log.pubkey);
@@ -242,6 +288,27 @@ function LogCard({ log, compact = false }: LogCardProps) {
                       <ShieldCheck className="h-2.5 w-2.5 md:h-3 md:w-3" />
                       <span className="lg:hidden">&#10003;</span>
                       <span className="hidden lg:inline">Verified</span>
+                    </Badge>
+                  )}
+                  {isFtfWinner && (
+                    <Badge
+                      variant="outline"
+                      className="gap-0.5 md:gap-1 border-primary/60 bg-primary/10 text-foreground text-[10px] md:text-xs px-1.5 md:px-2.5 py-0 md:py-0.5"
+                      title={t('ftf.log.winner', 'First to find!')}
+                    >
+                      <Trophy className="h-2.5 w-2.5 md:h-3 md:w-3 text-primary" />
+                      <span className="lg:hidden">FTF</span>
+                      <span className="hidden lg:inline">{t('ftf.log.winner', 'First to find!')}</span>
+                    </Badge>
+                  )}
+                  {isLateVerifiedFind && (
+                    <Badge
+                      variant="outline"
+                      className="gap-0.5 md:gap-1 border-muted-foreground/40 bg-muted/40 text-muted-foreground text-[10px] md:text-xs px-1.5 md:px-2.5 py-0 md:py-0.5"
+                      title={t('ftf.log.lateClaim', 'Logged after claim')}
+                    >
+                      <span className="lg:hidden">·</span>
+                      <span className="hidden lg:inline">{t('ftf.log.lateClaim', 'Logged after claim')}</span>
                     </Badge>
                   )}
                 </div>

@@ -4,6 +4,8 @@ import { useStore } from 'zustand';
 import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, Trophy, X as XIcon, MessageSquare, Archive, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
+import { ModifierBadges } from "@/components/ModifierBadges";
+import { getFtfStatus } from "@/utils/modifiers";
 import { useZapStore } from "@/stores/useZapStore";
 import { ZapButton } from "@/components/ZapButton";
 import { useSavedCaches } from "../hooks/useSavedCaches";
@@ -147,6 +149,12 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
               </span>
             </div>
           )}
+          <ModifierBadges
+            cache={geocache}
+            ftfClaimed={getFtfStatus(geocache, logs).kind === 'claimed'}
+            size="compact"
+            className="mt-1"
+          />
           <div className="flex items-center gap-1 mt-1 text-[10px] sm:text-[11px] text-muted-foreground">
             <span className="font-medium bg-muted rounded px-1 py-px">D{geocache.difficulty}</span>
             <span className="font-medium bg-muted rounded px-1 py-px">T{geocache.terrain}</span>

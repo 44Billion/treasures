@@ -70,6 +70,8 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
         relays: geocache.relays,
         verificationPubkey: newVerificationKeyPair.publicKey, // New verification key
         hidden: geocache.hidden,
+        status: geocache.status,
+        modifiers: geocache.modifiers,
         kind: geocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 

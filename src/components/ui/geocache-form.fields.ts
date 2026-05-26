@@ -12,3 +12,4 @@ export { CacheDifficultyField } from '@/components/geocache-form';
 export { CacheTerrainField } from '@/components/geocache-form';
 export { CacheImageManager } from '@/components/geocache-form';
 export { CacheHiddenField } from '@/components/geocache-form';
+export { CacheModifiersField } from '@/components/geocache-form';

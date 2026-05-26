@@ -8,6 +8,7 @@ import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ModifierBadges } from '@/components/ModifierBadges';
 import { CacheMenu } from '@/components/CacheMenu';
 import { BlurredImage } from '@/components/BlurredImage';
 import { useAuthor } from '@/hooks/useAuthor';
@@ -48,6 +49,10 @@ interface BaseGeocacheCardProps {
     images?: string[];
     contentWarning?: string;
     city?: string;
+    /** Key Quest mission (NIP-GC `mission` tag). Surfaced as a modifier badge. */
+    mission?: string;
+    /** NIP-GC `n` tag modifiers. Surfaced as modifier badges. */
+    modifiers?: ('first-to-find' | 'art')[];
   };
   distance?: number;
   withinRadius?: boolean;
@@ -365,6 +370,7 @@ export function GeocacheCard({
     <div className="flex items-center justify-between gap-2 mt-auto">
       <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
         {renderStatusBadge(isCompact)}
+        <ModifierBadges cache={cache} size="compact" />
         <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
           D{cache.difficulty}
         </Badge>
@@ -685,6 +691,7 @@ export function GeocacheCard({
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-wrap gap-0.5 sm:gap-1 min-w-0">
                   {renderStatusBadge(true)}
+                  <ModifierBadges cache={cache} size="compact" />
                   <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
                     D{cache.difficulty}
                   </Badge>

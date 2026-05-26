@@ -349,6 +349,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         verificationPubkey: verificationKeyPair.publicKey,
         hidden: geocacheData.hidden,
         status: geocacheData.status,
+        modifiers: geocacheData.modifiers,
         kind: geocacheData.kind, // Pass the kind to determine tag format
       });
 
@@ -431,6 +432,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         contentWarning: updates.contentWarning !== undefined ? updates.contentWarning : originalGeocache.contentWarning,
         hidden: updates.hidden !== undefined ? updates.hidden : originalGeocache.hidden,
         status: updates.status !== undefined ? updates.status : originalGeocache.status,
+        modifiers: updates.modifiers !== undefined ? updates.modifiers : originalGeocache.modifiers,
       };
 
       // Build tags using consolidated utility
@@ -450,6 +452,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key
         hidden: updatedData.hidden,
         status: updatedData.status,
+        modifiers: updatedData.modifiers,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 

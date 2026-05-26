@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
-import type { Geocache } from '@/types/geocache';
+import type { Geocache, TreasureModifier } from '@/types/geocache';
 import { 
   NIP_GC_KINDS, 
   buildGeocacheTags, 
@@ -24,6 +24,7 @@ interface EditGeocacheData {
   images?: string[];
   hidden?: boolean;
   status?: 'archived' | 'maintenance';
+  modifiers?: TreasureModifier[];
   location?: { lat: number; lng: number };
 }
 
@@ -82,6 +83,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key!
         hidden: data.hidden,
         status: data.status,
+        modifiers: data.modifiers,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind!
       });
 
@@ -132,6 +134,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         images: data.images || [],
         hidden: data.hidden,
         status: data.status,
+        modifiers: data.modifiers,
         location: data.location || originalGeocache.location,
         // Keep the same IDs and metadata
         id: originalGeocache.id,

@@ -29,6 +29,9 @@ import { useDeleteWithConfirmation } from "@/hooks/useDeleteWithConfirmation";
 import { useEditGeocache } from "@/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { LogsSection } from "@/components/LogsSection";
+import { ModifierBadges } from "@/components/ModifierBadges";
+import { FtfClaimBanner } from "@/components/FtfClaimBanner";
+import { getFtfStatus } from "@/utils/modifiers";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/utils/date";
@@ -149,6 +152,7 @@ export default function CacheDetail() {
     hidden: false,
     status: undefined,
     contentWarning: "",
+    modifiers: [],
   });
   const [editImages, setEditImages] = useState<string[]>([]);
   const [editLocation, setEditLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -675,25 +679,33 @@ export default function CacheDetail() {
                 <div className="flex items-start gap-2 sm:gap-4">
                   <div className="flex-1 min-w-0 flex flex-col gap-2">
                     <h1 className="text-2xl break-words font-bold text-foreground select-text">{geocache.name}</h1>
-                    {(geocache.status === 'archived' || geocache.status === 'maintenance') && (
-                      <Badge
-                        variant="outline"
-                        className={
-                          geocache.status === 'maintenance'
-                            ? 'w-fit gap-1.5 border-amber-500/60 bg-amber-500/10 text-foreground'
-                            : 'w-fit gap-1.5 border-muted-foreground/40 bg-muted text-muted-foreground'
+                    <div className="flex flex-wrap items-center gap-2">
+                      {(geocache.status === 'archived' || geocache.status === 'maintenance') && (
+                        <Badge
+                          variant="outline"
+                          className={
+                            geocache.status === 'maintenance'
+                              ? 'w-fit gap-1.5 border-amber-500/60 bg-amber-500/10 text-foreground'
+                              : 'w-fit gap-1.5 border-muted-foreground/40 bg-muted text-muted-foreground'
+                          }
+                        >
+                          {geocache.status === 'archived' ? (
+                            <Archive className="h-3.5 w-3.5" />
+                          ) : (
+                            <Wrench className="h-3.5 w-3.5" />
+                          )}
+                          {geocache.status === 'archived'
+                            ? t('geocache.status.archived', 'Archived')
+                            : t('geocache.status.maintenance', 'Needs maintenance')}
+                        </Badge>
+                      )}
+                      <ModifierBadges
+                        cache={geocache}
+                        ftfClaimed={
+                          getFtfStatus(geocache, logs as GeocacheLog[]).kind === 'claimed'
                         }
-                      >
-                        {geocache.status === 'archived' ? (
-                          <Archive className="h-3.5 w-3.5" />
-                        ) : (
-                          <Wrench className="h-3.5 w-3.5" />
-                        )}
-                        {geocache.status === 'archived'
-                          ? t('geocache.status.archived', 'Archived')
-                          : t('geocache.status.maintenance', 'Needs maintenance')}
-                      </Badge>
-                    )}
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-1 sm:gap-2 flex-shrink-0 ml-2">
                     <ZapButton target={geocache} />
@@ -902,6 +914,19 @@ export default function CacheDetail() {
 
             {/* Logs Section */}
             <div className="space-y-4 lg:mt-0 mt-2" data-logs-section>
+              {(() => {
+                // FTF claim banner — surfaced above the logs when the cache is
+                // a first-to-find treasure that has been claimed. Late verified
+                // logs are still allowed per NIP-GC; this banner is informational.
+                const ftfStatus = getFtfStatus(
+                  geocache,
+                  logs as GeocacheLog[],
+                );
+                if (ftfStatus.kind === 'claimed') {
+                  return <FtfClaimBanner winner={ftfStatus.winner} />;
+                }
+                return null;
+              })()}
               <LogsSection
                 logs={logs as GeocacheLog[]}
                 geocache={geocache as Geocache}

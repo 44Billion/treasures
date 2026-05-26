@@ -1,3 +1,5 @@
+import type { TreasureModifier } from './geocache';
+
 export interface GeocacheFormData {
   name: string;
   description: string;
@@ -11,6 +13,11 @@ export interface GeocacheFormData {
   hidden?: boolean;
   status?: 'archived' | 'maintenance';
   contentWarning?: string;
+  /**
+   * Optional NIP-GC Type Modifiers. The form treats each modifier as an
+   * independent toggle; persistence and validation handle category dedup.
+   */
+  modifiers?: TreasureModifier[];
 }
 
 export interface GeocacheFormProps {

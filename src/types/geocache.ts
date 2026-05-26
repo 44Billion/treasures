@@ -1,3 +1,11 @@
+import type { ValidNModifier } from '@/utils/nip-gc';
+
+/**
+ * NIP-GC Type Modifiers. Re-exported here as `TreasureModifier` so consumers
+ * can import the user-facing concept without depending on the parser module.
+ */
+export type TreasureModifier = ValidNModifier;
+
 export interface Geocache {
   id: string;
   pubkey: string;
@@ -18,6 +26,17 @@ export interface Geocache {
   terrain: number; // 1-5
   size: "micro" | "small" | "regular" | "large" | "other";
   type: "traditional" | "multi" | "mystery";
+  /**
+   * Optional NIP-GC Type Modifiers (`n` tag values). Each modifier belongs to a
+   * category; at most one modifier per category is present.
+   *  - `first-to-find` (claim semantics): single-claim treasure; the first
+   *    verified found log is the exclusive claim.
+   *  - `art` (prize nature): the cache itself is a physical work of art.
+   *
+   * The `mission` field above is a behavior modifier in its own right (Key
+   * Quest) but predates the `n` tag and lives in its own dedicated tag.
+   */
+  modifiers?: TreasureModifier[];
   images?: string[];
   contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
   foundCount?: number;
@@ -97,6 +116,8 @@ export interface CreateGeocacheData {
   contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
   hidden?: boolean;
   status?: 'archived' | 'maintenance';
+  /** Optional NIP-GC `n` tag type modifiers. See `Geocache.modifiers`. */
+  modifiers?: TreasureModifier[];
   dTag?: string; // Optional pre-generated dTag for matching QR codes
   verificationKeyPair?: any; // Optional pre-generated verification keypair
   kind?: number; // Optional kind to preserve from claim URLs (37515 for legacy, 37516 for new)
