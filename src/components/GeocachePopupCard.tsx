@@ -151,7 +151,10 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
           )}
           <ModifierBadges
             cache={geocache}
-            ftfClaimed={getFtfStatus(geocache, logs).kind === 'claimed'}
+            ftfClaimed={(() => {
+              const s = getFtfStatus(geocache, logs);
+              return s.kind === 'claimed' || s.kind === 'locked';
+            })()}
             size="compact"
             className="mt-1"
           />

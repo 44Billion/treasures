@@ -69,11 +69,22 @@ export function hasModifier(
  * Note: this function assumes `isVerified` has already been populated by the
  * verification flow (`useGeocacheLogs` / `verifyEmbeddedVerification`). It does
  * NOT perform signature validation itself.
+ *
+ * @param logs   Logs known for the treasure.
+ * @param lockedWinner Optional locked-in winner pubkey from the treasure's
+ *                     `F` tag. When provided, the winning log is the earliest
+ *                     verified found log authored by that pubkey — this
+ *                     protects against later-published logs with forged
+ *                     earlier `created_at` values displacing a locked claim.
  */
-export function getFtfWinner(logs: GeocacheLog[]): GeocacheLog | undefined {
+export function getFtfWinner(
+  logs: GeocacheLog[],
+  lockedWinner?: string,
+): GeocacheLog | undefined {
   let winner: GeocacheLog | undefined;
   for (const log of logs) {
     if (log.type !== 'found' || !log.isVerified) continue;
+    if (lockedWinner && log.pubkey !== lockedWinner) continue;
     if (!winner) {
       winner = log;
       continue;
@@ -92,30 +103,49 @@ export function getFtfWinner(logs: GeocacheLog[]): GeocacheLog | undefined {
  *
  * For caches that do not carry `first-to-find`, callers SHOULD NOT consult
  * this; `getFtfStatus` returns `{ kind: 'n/a' }` in that case.
+ *
+ * `claimed` is reported in two situations:
+ *  1. A verified found log exists (provisional claim, computed by
+ *     `getFtfWinner`).
+ *  2. The treasure carries a locked-in `F` tag — even if the matching
+ *     verified found log isn't currently in `logs`, the claim is canonical
+ *     and we report `kind: 'locked'` with the winner pubkey so callers can
+ *     still display attribution.
  */
 export type FtfStatus =
   | { kind: 'n/a' }
   | { kind: 'unclaimed' }
-  | { kind: 'claimed'; winner: GeocacheLog };
+  | { kind: 'claimed'; winner: GeocacheLog; locked: boolean }
+  | { kind: 'locked'; winnerPubkey: string };
 
 export function getFtfStatus(
-  cache: Pick<Geocache, 'mission' | 'modifiers'>,
+  cache: Pick<Geocache, 'mission' | 'modifiers' | 'ftfWinner'>,
   logs: GeocacheLog[],
 ): FtfStatus {
   if (!hasModifier(cache, 'first-to-find')) return { kind: 'n/a' };
-  const winner = getFtfWinner(logs);
-  return winner ? { kind: 'claimed', winner } : { kind: 'unclaimed' };
+  const lockedWinner = cache.ftfWinner;
+  const winner = getFtfWinner(logs, lockedWinner);
+  if (winner) {
+    return { kind: 'claimed', winner, locked: !!lockedWinner };
+  }
+  // The `F` tag is present but we can't (yet) see the matching verified
+  // found log locally. Surface the locked attribution anyway so the UI
+  // doesn't flap between "claimed" and "unclaimed" while logs are loading.
+  if (lockedWinner) {
+    return { kind: 'locked', winnerPubkey: lockedWinner };
+  }
+  return { kind: 'unclaimed' };
 }
 
 /** Returns true iff a verified found log is the FTF winner. */
 export function isFtfWinningLog(
   log: GeocacheLog,
-  cache: Pick<Geocache, 'mission' | 'modifiers'>,
+  cache: Pick<Geocache, 'mission' | 'modifiers' | 'ftfWinner'>,
   logs: GeocacheLog[],
 ): boolean {
   if (!hasModifier(cache, 'first-to-find')) return false;
   if (log.type !== 'found' || !log.isVerified) return false;
-  const winner = getFtfWinner(logs);
+  const winner = getFtfWinner(logs, cache.ftfWinner);
   return winner?.id === log.id;
 }
 

@@ -37,6 +37,18 @@ export interface Geocache {
    * Quest) but predates the `n` tag and lives in its own dedicated tag.
    */
   modifiers?: TreasureModifier[];
+  /**
+   * Locked-in first-to-find winner pubkey (lowercase hex), parsed from the
+   * indexable `F` tag.
+   *
+   * Only meaningful when `modifiers` contains `first-to-find`. When present,
+   * this attribution is canonical and supersedes the provisional
+   * earliest-verified-log calculation, protecting the claim from being
+   * displaced by a later-published verified log with a forged earlier
+   * `created_at`. The specific winning verified found log can be recovered
+   * by matching this pubkey against the cache's verified found logs.
+   */
+  ftfWinner?: string;
   images?: string[];
   contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
   foundCount?: number;
@@ -118,6 +130,8 @@ export interface CreateGeocacheData {
   status?: 'archived' | 'maintenance';
   /** Optional NIP-GC `n` tag type modifiers. See `Geocache.modifiers`. */
   modifiers?: TreasureModifier[];
+  /** Optional locked-in first-to-find winner pubkey. See `Geocache.ftfWinner`. */
+  ftfWinner?: string;
   dTag?: string; // Optional pre-generated dTag for matching QR codes
   verificationKeyPair?: any; // Optional pre-generated verification keypair
   kind?: number; // Optional kind to preserve from claim URLs (37515 for legacy, 37516 for new)

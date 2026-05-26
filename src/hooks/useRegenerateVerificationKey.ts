@@ -72,6 +72,7 @@ export function useRegenerateVerificationKey({ pubkey, dTag, relays }: Regenerat
         hidden: geocache.hidden,
         status: geocache.status,
         modifiers: geocache.modifiers,
+        ftfWinner: geocache.ftfWinner,
         kind: geocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
 

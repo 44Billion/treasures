@@ -39,6 +39,11 @@ interface LogsSectionProps {
      * FTF winner among verified found logs.
      */
     modifiers?: ('first-to-find' | 'art')[];
+    /**
+     * Locked-in FTF winner pubkey (from the `F` tag). Forwarded to LogList so
+     * a forged earlier verified log can't displace the canonical winner badge.
+     */
+    ftfWinner?: string;
   };
   onProfileClick?: (pubkey: string) => void;
   compact?: boolean;

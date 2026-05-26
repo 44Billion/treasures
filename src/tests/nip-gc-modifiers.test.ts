@@ -12,6 +12,7 @@ import {
   parseGeocacheEvent,
   buildGeocacheTags,
   parseNModifiers,
+  parseFtfWinner,
   validateNModifier,
   NIP_GC_KINDS,
 } from '@/utils/nip-gc';
@@ -225,5 +226,152 @@ describe('buildGeocacheTags — n tag modifiers', () => {
     };
     const cache = parseGeocacheEvent(event);
     expect(cache?.modifiers).toEqual(['first-to-find', 'art']);
+  });
+});
+
+describe('parseFtfWinner — F tag', () => {
+  const PUBKEY = 'c'.repeat(64);
+
+  it('returns undefined when no F tag present', () => {
+    expect(parseFtfWinner([['t', 'archived']])).toBeUndefined();
+  });
+
+  it('parses a valid F tag', () => {
+    expect(parseFtfWinner([['F', PUBKEY]])).toBe(PUBKEY);
+  });
+
+  it('rejects F tags with malformed pubkey values', () => {
+    expect(parseFtfWinner([['F', 'not-hex']])).toBeUndefined();
+    expect(parseFtfWinner([['F', PUBKEY.slice(0, 63)]])).toBeUndefined(); // too short
+    expect(parseFtfWinner([['F', PUBKEY.toUpperCase()]])).toBeUndefined(); // uppercase
+    expect(parseFtfWinner([['F', '']])).toBeUndefined();
+    expect(parseFtfWinner([['F']])).toBeUndefined();
+  });
+
+  it('returns the first valid F tag when multiple are present', () => {
+    const second = 'd'.repeat(64);
+    expect(parseFtfWinner([
+      ['F', PUBKEY],
+      ['F', second],
+    ])).toBe(PUBKEY);
+  });
+
+  it('skips malformed F tags and uses the first valid one', () => {
+    const valid = 'd'.repeat(64);
+    expect(parseFtfWinner([
+      ['F', 'bad'],
+      ['F', valid],
+    ])).toBe(valid);
+  });
+
+  it('ignores non-F tags', () => {
+    expect(parseFtfWinner([['f', PUBKEY]])).toBeUndefined(); // lowercase
+    expect(parseFtfWinner([['p', PUBKEY]])).toBeUndefined();
+  });
+});
+
+describe('parseGeocacheEvent — F tag', () => {
+  const WINNER = 'c'.repeat(64);
+
+  it('returns ftfWinner: undefined when no F tag present', () => {
+    const event = makeGeocacheEvent([['n', 'first-to-find']]);
+    const cache = parseGeocacheEvent(event);
+    expect(cache?.ftfWinner).toBeUndefined();
+  });
+
+  it('parses ftfWinner from a valid F tag', () => {
+    const event = makeGeocacheEvent([
+      ['n', 'first-to-find'],
+      ['F', WINNER],
+    ]);
+    const cache = parseGeocacheEvent(event);
+    expect(cache?.ftfWinner).toBe(WINNER);
+  });
+
+  it('parses F tag independently of the n modifier (consumers gate use)', () => {
+    // Parser doesn't require the modifier — semantic gating is the consumer's
+    // job. This keeps parsing decoupled from validation policy.
+    const event = makeGeocacheEvent([['F', WINNER]]);
+    const cache = parseGeocacheEvent(event);
+    expect(cache?.ftfWinner).toBe(WINNER);
+  });
+});
+
+describe('buildGeocacheTags — F tag', () => {
+  const baseData = {
+    dTag: 'test-treasure',
+    name: 'Test Treasure',
+    location: { lat: 59.91, lng: 10.75 },
+    difficulty: 2,
+    terrain: 2,
+    size: 'small' as const,
+    type: 'traditional' as const,
+  };
+  const WINNER = 'c'.repeat(64);
+
+  it('emits no F tag when ftfWinner is unset', () => {
+    const tags = buildGeocacheTags({
+      ...baseData,
+      modifiers: ['first-to-find'],
+    });
+    expect(tags.filter(t => t[0] === 'F')).toEqual([]);
+  });
+
+  it('emits an F tag when both modifier and winner are set', () => {
+    const tags = buildGeocacheTags({
+      ...baseData,
+      modifiers: ['first-to-find'],
+      ftfWinner: WINNER,
+    });
+    const fTags = tags.filter(t => t[0] === 'F');
+    expect(fTags).toEqual([['F', WINNER]]);
+  });
+
+  it('does NOT emit an F tag when the first-to-find modifier is missing', () => {
+    // Guard: prevents publishing a misleading lock on a non-FTF treasure.
+    const tags = buildGeocacheTags({
+      ...baseData,
+      modifiers: ['art'],
+      ftfWinner: WINNER,
+    });
+    expect(tags.filter(t => t[0] === 'F')).toEqual([]);
+  });
+
+  it('drops malformed winner pubkeys silently', () => {
+    const tags = buildGeocacheTags({
+      ...baseData,
+      modifiers: ['first-to-find'],
+      ftfWinner: 'not-hex',
+    });
+    expect(tags.filter(t => t[0] === 'F')).toEqual([]);
+  });
+
+  it('normalises winner pubkey to lowercase', () => {
+    const tags = buildGeocacheTags({
+      ...baseData,
+      modifiers: ['first-to-find'],
+      ftfWinner: WINNER.toUpperCase(),
+    });
+    expect(tags.filter(t => t[0] === 'F')).toEqual([['F', WINNER]]);
+  });
+
+  it('round-trips through parseGeocacheEvent', () => {
+    const tags = buildGeocacheTags({
+      ...baseData,
+      modifiers: ['first-to-find'],
+      ftfWinner: WINNER,
+    });
+    const event: NostrEvent = {
+      id: 'a'.repeat(64),
+      pubkey: 'b'.repeat(64),
+      created_at: 1700000000,
+      kind: NIP_GC_KINDS.GEOCACHE,
+      content: 'test',
+      sig: '0'.repeat(128),
+      tags,
+    };
+    const cache = parseGeocacheEvent(event);
+    expect(cache?.ftfWinner).toBe(WINNER);
+    expect(cache?.modifiers).toEqual(['first-to-find']);
   });
 });

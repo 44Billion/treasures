@@ -26,7 +26,8 @@ Geocache listing events are addressable events of kind `37516` with the followin
     ["t", "<type>"],
     ["n", "<type-modifier>"],
     ["hint", "<plaintext hint>"],
-    ["mission", "<key quest mission>"]
+    ["mission", "<key quest mission>"],
+    ["F", "<winner-pubkey-hex>"]
   ]
 }
 ```
@@ -58,6 +59,7 @@ The content field contains the cache description and any additional information 
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
 - `verification` (optional) - hex-encoded public key for verifying finds at this cache
+- `F` (optional, indexable) - locks in the first-to-find winner. Only valid when the treasure carries the `first-to-find` `n` modifier. Format: `["F", "<winner-pubkey-hex>"]`. See [Type Modifiers › `first-to-find`](#claim-semantics). At most one `F` tag SHOULD be present
 
 ## Found Log Event (Kind 7516)
 
@@ -186,12 +188,21 @@ The `mission` tag defined above is also a type modifier in the broader sense —
 
 Modifiers that affect how claims on the treasure are interpreted.
 
-- `first-to-find` — Single-claim treasure. The first verified found log (kind 7516 with valid embedded kind 7517) constitutes the exclusive claim. Subsequent verified found logs remain valid records of physical presence at the location but do not constitute additional claims. Clients SHOULD render the treasure as effectively archived once any valid verified found log exists, hiding find-submission affordances and displaying the winning finder prominently. The treasure creator SHOULD publish a kind 1111 archive comment (`["t", "archived"]`) once they have confirmed the claim, making the archived state canonical for clients that do not implement this modifier. Requires a `verification` tag on the treasure.
+- `first-to-find` — Single-claim treasure. The first verified found log (kind 7516 with valid embedded kind 7517) constitutes the exclusive claim. Subsequent verified found logs remain valid records of physical presence at the location but do not constitute additional claims. Clients SHOULD render the treasure as effectively archived once any valid verified found log exists, hiding find-submission affordances and displaying the winning finder prominently. Requires a `verification` tag on the treasure.
 
-  Determining the winning log:
+  Determining the winning log (provisional, before lock-in):
   - The winning log is the verified found log with the earliest `created_at` value.
   - Ties on `created_at` are broken by ascending lexicographic comparison of the event `id`.
   - Because `created_at` is author-supplied and forgeable, clients SHOULD treat all verified logs as evidence of physical presence at the cache (QR access was required to produce them) while attributing the exclusive claim only to the earliest one.
+
+  Locking in the winner (`F` tag):
+  - Once the treasure creator has confirmed the claim, the creator SHOULD publish a new revision of the treasure event that BOTH archives the listing (adds `["t", "archived"]`) AND locks the winner in by appending an `F` tag:
+    `["F", "<winner-pubkey-hex>"]`
+  - `F` is a single-letter uppercase tag and is therefore indexable by relays per [NIP-01](01.md), enabling efficient queries such as "all FTF treasures won by `<pubkey>`."
+  - The value is the winning finder's pubkey (lowercase hex). The specific winning verified found log is recoverable by querying for verified found logs whose `a` tag references this treasure and whose author matches the `F` pubkey.
+  - At most one `F` tag SHOULD be present. If multiple are present, clients SHOULD use the first.
+  - When an `F` tag is present, clients MUST attribute the exclusive claim to the pubkey in the `F` tag, regardless of which verified found log currently appears earliest. This protects the locked-in claim from being displaced by a forged earlier `created_at` on a subsequently published verified found log.
+  - The `F` tag SHOULD only be added by the treasure creator (the event author) and only when a valid verified found log from that pubkey exists at the time of locking.
 
 #### Prize nature
 

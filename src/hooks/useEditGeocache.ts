@@ -25,6 +25,8 @@ interface EditGeocacheData {
   hidden?: boolean;
   status?: 'archived' | 'maintenance';
   modifiers?: TreasureModifier[];
+  /** Optional first-to-find lock-in winner pubkey (hex). */
+  ftfWinner?: string;
   location?: { lat: number; lng: number };
 }
 
@@ -84,6 +86,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         hidden: data.hidden,
         status: data.status,
         modifiers: data.modifiers,
+        ftfWinner: data.ftfWinner ?? originalGeocache.ftfWinner,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind!
       });
 
@@ -135,6 +138,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         hidden: data.hidden,
         status: data.status,
         modifiers: data.modifiers,
+        ftfWinner: data.ftfWinner ?? originalGeocache.ftfWinner,
         location: data.location || originalGeocache.location,
         // Keep the same IDs and metadata
         id: originalGeocache.id,

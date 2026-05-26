@@ -186,6 +186,27 @@ export function parseNModifiers(tags: string[][]): ValidNModifier[] {
   return result;
 }
 
+/**
+ * Parse the first-to-find lock-in `F` tag.
+ *
+ * Format: `["F", "<winner-pubkey-hex>"]`. The pubkey must be a 64-char
+ * lowercase hex string; malformed `F` tags are ignored. At most one `F` tag
+ * is recognised — if multiple are present, the first valid one wins.
+ *
+ * Returns `undefined` if no valid `F` tag is present. Callers SHOULD only
+ * consult the result when the treasure carries the `first-to-find` modifier.
+ */
+export function parseFtfWinner(tags: string[][]): string | undefined {
+  const HEX64 = /^[0-9a-f]{64}$/;
+  for (const tag of tags) {
+    if (tag[0] !== 'F') continue;
+    const pubkey = tag[1];
+    if (!pubkey || !HEX64.test(pubkey)) continue;
+    return pubkey;
+  }
+  return undefined;
+}
+
 export function validateCoordinates(lat: number, lng: number): boolean {
   return !isNaN(lat) && !isNaN(lng) &&
          lat >= -90 && lat <= 90 &&
@@ -289,6 +310,11 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     // Parse `n` tag type modifiers (NIP-GC Type Modifiers section).
     const modifiers = parseNModifiers(event.tags);
 
+    // Parse the `F` first-to-find lock-in tag. Only meaningful when the
+    // `first-to-find` modifier is present; we still parse unconditionally
+    // (cheap) and let consumers decide when to consult it.
+    const ftfWinner = parseFtfWinner(event.tags);
+
     const naddr = nip19.naddrEncode({
       identifier: dTag,
       pubkey: event.pubkey,
@@ -320,6 +346,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       hidden,
       status,
       modifiers: modifiers.length > 0 ? modifiers : undefined,
+      ftfWinner,
     };
   } catch (error) {
     return null;
@@ -468,6 +495,12 @@ export function buildGeocacheTags(data: {
   hidden?: boolean;
   status?: ValidCacheStatus;
   modifiers?: ValidNModifier[];
+  /**
+   * Optional first-to-find lock-in. Only emitted when set AND the `modifiers`
+   * array contains `first-to-find` (we silently drop it otherwise to avoid
+   * publishing a misleading lock on a non-FTF treasure). Lowercase hex pubkey.
+   */
+  ftfWinner?: string;
   kind?: number; // Original kind to preserve for updates
 }): string[][] {
   // Validate inputs
@@ -520,6 +553,7 @@ export function buildGeocacheTags(data: {
 
   // Add `n` tag type modifiers (NIP-GC Type Modifiers section).
   // Enforce: only valid values, at most one per category, first wins, dedup.
+  const emittedModifiers = new Set<ValidNModifier>();
   if (data.modifiers && data.modifiers.length > 0) {
     const seenCategories = new Set<string>();
     for (const modifier of data.modifiers) {
@@ -527,7 +561,18 @@ export function buildGeocacheTags(data: {
       const category = N_MODIFIER_CATEGORY[modifier];
       if (seenCategories.has(category)) continue;
       seenCategories.add(category);
+      emittedModifiers.add(modifier);
       tags.push(['n', modifier]);
+    }
+  }
+
+  // Emit the `F` first-to-find lock-in tag only when both the modifier is
+  // active and a winner pubkey has been supplied. Silently drop otherwise so
+  // we never publish a lock on a non-FTF treasure or with a malformed pubkey.
+  if (data.ftfWinner && emittedModifiers.has('first-to-find')) {
+    const winner = data.ftfWinner.toLowerCase();
+    if (/^[0-9a-f]{64}$/.test(winner)) {
+      tags.push(['F', winner]);
     }
   }
 

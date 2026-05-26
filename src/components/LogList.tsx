@@ -45,7 +45,7 @@ interface LogListProps {
    * mark subsequent verified found logs as "logged after claim." Without this
    * the list renders unchanged.
    */
-  cache?: Pick<Geocache, 'mission' | 'modifiers'>;
+  cache?: Pick<Geocache, 'mission' | 'modifiers' | 'ftfWinner'>;
 }
 
 export function LogList({ logs, compact = false, cache }: LogListProps) {
@@ -55,7 +55,11 @@ export function LogList({ logs, compact = false, cache }: LogListProps) {
   // single-claim semantics. The `first-to-find` modifier only changes whether
   // SUBSEQUENT verified finds are visually de-emphasized as "logged after
   // claim", and whether the FTF claim banner appears on the detail page.
-  const firstVerifiedFindId = getFtfWinner(logs)?.id;
+  //
+  // When the cache has a locked-in `F` tag winner, we restrict the trophy to
+  // verified logs authored by that pubkey so a later-published log with a
+  // forged earlier `created_at` cannot steal the visual win.
+  const firstVerifiedFindId = getFtfWinner(logs, cache?.ftfWinner)?.id;
   const isFtfCache = cache ? hasModifier(cache, 'first-to-find') : false;
 
   return (

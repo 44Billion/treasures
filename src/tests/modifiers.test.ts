@@ -157,6 +157,35 @@ describe('getFtfWinner', () => {
     const alice = log({ id: 'alice', type: 'found', isVerified: true, created_at: 100 });
     expect(getFtfWinner([bob, alice])?.id).toBe('alice');
   });
+
+  it('restricts winner selection to the locked-in pubkey when provided', () => {
+    // Bob's verified log is earlier but Alice is the locked winner.
+    const bob = log({
+      id: 'bob-log',
+      pubkey: 'bob',
+      type: 'found',
+      isVerified: true,
+      created_at: 50,
+    });
+    const alice = log({
+      id: 'alice-log',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: true,
+      created_at: 100,
+    });
+    expect(getFtfWinner([bob, alice], 'alice')?.id).toBe('alice-log');
+  });
+
+  it('returns undefined when the locked-in pubkey has no verified log present', () => {
+    const bob = log({
+      id: 'bob-log',
+      pubkey: 'bob',
+      type: 'found',
+      isVerified: true,
+    });
+    expect(getFtfWinner([bob], 'alice')).toBeUndefined();
+  });
 });
 
 describe('getFtfStatus', () => {
@@ -182,7 +211,64 @@ describe('getFtfStatus', () => {
     expect(status.kind).toBe('claimed');
     if (status.kind === 'claimed') {
       expect(status.winner.id).toBe('winner');
+      expect(status.locked).toBe(false);
     }
+  });
+
+  it('reports locked=true when the cache has an F tag and the winning log is loaded', () => {
+    const winner = log({
+      id: 'winner',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: true,
+      created_at: 100,
+    });
+    const status = getFtfStatus(
+      { modifiers: ['first-to-find'], ftfWinner: 'alice' },
+      [winner],
+    );
+    expect(status.kind).toBe('claimed');
+    if (status.kind === 'claimed') {
+      expect(status.locked).toBe(true);
+      expect(status.winner.pubkey).toBe('alice');
+    }
+  });
+
+  it('locks attribution to the F-tag winner even when a forged earlier log exists', () => {
+    // Bob publishes a verified log with a forged earlier `created_at` AFTER
+    // the owner has locked in Alice via the F tag. Alice must remain the
+    // canonical winner.
+    const aliceWin = log({
+      id: 'awin',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: true,
+      created_at: 100,
+    });
+    const bobForged = log({
+      id: 'bforge',
+      pubkey: 'bob',
+      type: 'found',
+      isVerified: true,
+      created_at: 50, // earlier than alice, but published later & not the locked winner
+    });
+    const status = getFtfStatus(
+      { modifiers: ['first-to-find'], ftfWinner: 'alice' },
+      [bobForged, aliceWin],
+    );
+    expect(status.kind).toBe('claimed');
+    if (status.kind === 'claimed') {
+      expect(status.winner.pubkey).toBe('alice');
+      expect(status.locked).toBe(true);
+    }
+  });
+
+  it('returns kind=locked when F tag is set but no matching verified log is loaded', () => {
+    const status = getFtfStatus(
+      { modifiers: ['first-to-find'], ftfWinner: 'alice' },
+      [],
+    );
+    expect(status).toEqual({ kind: 'locked', winnerPubkey: 'alice' });
   });
 });
 

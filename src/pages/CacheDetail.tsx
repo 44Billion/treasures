@@ -701,9 +701,10 @@ export default function CacheDetail() {
                       )}
                       <ModifierBadges
                         cache={geocache}
-                        ftfClaimed={
-                          getFtfStatus(geocache, logs as GeocacheLog[]).kind === 'claimed'
-                        }
+                        ftfClaimed={(() => {
+                          const s = getFtfStatus(geocache, logs as GeocacheLog[]);
+                          return s.kind === 'claimed' || s.kind === 'locked';
+                        })()}
                       />
                     </div>
                   </div>
@@ -917,15 +918,55 @@ export default function CacheDetail() {
               {(() => {
                 // FTF claim banner — surfaced above the logs when the cache is
                 // a first-to-find treasure that has been claimed. Late verified
-                // logs are still allowed per NIP-GC; this banner is informational.
-                const ftfStatus = getFtfStatus(
-                  geocache,
-                  logs as GeocacheLog[],
-                );
-                if (ftfStatus.kind === 'claimed') {
-                  return <FtfClaimBanner winner={ftfStatus.winner} />;
+                // logs are still allowed per NIP-GC; this banner is informational
+                // but also exposes the owner-only "Archive & lock in winner"
+                // action when the claim hasn't been locked via an `F` tag yet.
+                const ftfStatus = getFtfStatus(geocache, logs as GeocacheLog[]);
+                if (ftfStatus.kind !== 'claimed' && ftfStatus.kind !== 'locked') {
+                  return null;
                 }
-                return null;
+                const winnerPubkey =
+                  ftfStatus.kind === 'claimed'
+                    ? ftfStatus.winner.pubkey
+                    : ftfStatus.winnerPubkey;
+                const claimedAt =
+                  ftfStatus.kind === 'claimed' ? ftfStatus.winner.created_at : undefined;
+                const locked =
+                  ftfStatus.kind === 'locked' ||
+                  (ftfStatus.kind === 'claimed' && ftfStatus.locked);
+                const handleLockClaim = () => {
+                  if (locked || !isOwner) return;
+                  // Republish the treasure with status=archived + F tag set to
+                  // the winner's pubkey. This is the canonical lock-in: per
+                  // NIP-GC, subsequent verified logs can no longer displace
+                  // this attribution.
+                  editGeocache({
+                    name: geocache.name,
+                    description: geocache.description,
+                    hint: geocache.hint,
+                    mission: geocache.mission,
+                    difficulty: geocache.difficulty,
+                    terrain: geocache.terrain,
+                    size: geocache.size,
+                    type: geocache.type,
+                    images: geocache.images,
+                    hidden: geocache.hidden,
+                    status: 'archived',
+                    modifiers: geocache.modifiers,
+                    ftfWinner: winnerPubkey,
+                    location: geocache.location,
+                  });
+                };
+                return (
+                  <FtfClaimBanner
+                    winnerPubkey={winnerPubkey}
+                    claimedAt={claimedAt}
+                    locked={locked}
+                    isOwner={!!isOwner}
+                    onLockClaim={handleLockClaim}
+                    isLocking={isEditingGeocache}
+                  />
+                );
               })()}
               <LogsSection
                 logs={logs as GeocacheLog[]}
