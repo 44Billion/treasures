@@ -1256,7 +1256,17 @@ export function GeocacheMap({
 
 
 
-  const handleMarkerClick = useCallback((geocache: Geocache, popupContainer?: HTMLDivElement) => {
+  const handleMarkerClick = useCallback((geocache: Geocache | null, popupContainer?: HTMLDivElement) => {
+    // The marker's `popupclose` event reuses this handler to signal "popup
+    // dismissed" by passing a null geocache. That's a UI-state signal for
+    // the parent (e.g. to clear an open sidebar card) — never a navigation.
+    // Forward the null only when the parent provided an explicit handler;
+    // otherwise drop it so we don't try to navigate to a null treasure
+    // during map teardown (which fires popupclose synchronously on unmount).
+    if (!geocache) {
+      onMarkerClick?.(geocache as unknown as Geocache, popupContainer);
+      return;
+    }
     if (onMarkerClick) {
       onMarkerClick(geocache, popupContainer);
     } else {
@@ -1384,7 +1394,11 @@ export function GeocacheMap({
                 popupCleanupRef.current();
                 popupCleanupRef.current = null;
               }
-              handleMarkerClickRef.current(null as unknown as Geocache, null as unknown as HTMLDivElement);
+              // Signal popup-dismissed to the parent (null geocache). The
+              // handler short-circuits when no parent onMarkerClick is wired
+              // up, so this is safe during map teardown on pages like the
+              // cache detail view that don't consume this signal.
+              handleMarkerClickRef.current(null, undefined);
             }
           }}
         />

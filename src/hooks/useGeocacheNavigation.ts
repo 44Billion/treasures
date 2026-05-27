@@ -18,6 +18,7 @@ export function useGeocacheNavigation() {
    * middle-click / Ctrl+click open-in-new-tab handlers and `<a>` href values.
    */
   const getGeocacheUrl = useCallback((geocache: Geocache, options?: { fromMap?: boolean }) => {
+    if (!geocache) return '/';
     const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
     const searchParams = new URLSearchParams();
     if (options?.fromMap) {
@@ -31,6 +32,11 @@ export function useGeocacheNavigation() {
    * Pre-populates the cache to avoid re-fetching data we already have
    */
   const navigateToGeocache = useCallback((geocache: Geocache, options?: { fromMap?: boolean }) => {
+    // Defensive: callers (e.g. Leaflet `popupclose` handlers firing during
+    // map teardown on route changes) can hand us a null geocache. Bail out
+    // rather than crash the app trying to read .pubkey off of nothing.
+    if (!geocache) return;
+
     const naddr = geocacheToNaddr(geocache.pubkey, geocache.dTag, geocache.relays, geocache.kind);
 
     // Pre-populate the cache with the geocache data we already have
