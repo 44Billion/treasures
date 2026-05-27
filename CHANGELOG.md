@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.0] - 2026-05-27
+
+### Added
+- Offline draft rescue — start a treasure on a shaky trail connection and Treasures will quietly stash your draft on your device if the relay can't be reached. Your drafts show a "Not synced" badge until they make it to the network, and the next successful save cleans them up automatically
+
+### Fixed
+- Backing out to home from a treasure listing with an open map popup no longer crashes the app
+
 ## [2.4.0] - 2026-05-26
 
 ### Added
