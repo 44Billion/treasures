@@ -26,6 +26,7 @@ import {
   generateQRStampImage,
   type VerificationKeyPair,
 } from "@/utils/verification";
+import { generateBoxInsertImage } from "@/utils/box-insert";
 import { geocacheToNaddr } from "@/utils/naddr-utils";
 import { generateCompactDTag } from "@/utils/dTag";
 import { nip19 } from 'nostr-tools';
@@ -78,6 +79,7 @@ export default function CreateCacheLanding() {
   const [customNpub, setCustomNpub] = useState<string>("");
   const [submittedNpub, setSubmittedNpub] = useState<string>("");
   const [npubError, setNpubError] = useState<string>("");
+  const [isPrintingInsert, setIsPrintingInsert] = useState<boolean>(false);
 
   const isBulkType = qrType === 'sheet' || qrType === 'stamp';
 
@@ -210,6 +212,31 @@ export default function CreateCacheLanding() {
         description: err instanceof Error ? err.message : 'Could not print the QR code.',
         variant: 'destructive',
       });
+    }
+  };
+
+  /**
+   * Render and print the "rules card" box insert — a printable sheet of
+   * 10 business-card-sized cards explaining the geocaching basics
+   * (scan, leave the container, fair trade, put it back). The sheet is
+   * rendered to a canvas on demand and routed through the same native
+   * print pipeline used for QR sheets, so the OS print dialog handles
+   * "Save as PDF" for the user.
+   */
+  const handlePrintBoxInsert = async () => {
+    if (isPrintingInsert) return;
+    setIsPrintingInsert(true);
+    try {
+      const dataUrl = await generateBoxInsertImage();
+      await printQRCode(dataUrl);
+    } catch (err) {
+      toast({
+        title: 'Print Failed',
+        description: err instanceof Error ? err.message : 'Could not print the box insert.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPrintingInsert(false);
     }
   };
 
@@ -351,6 +378,21 @@ export default function CreateCacheLanding() {
                     <Printer className="h-4 w-4 mr-1.5" />
                     {t('createCache.verificationQR.print')}
                   </Button>
+                </div>
+
+                {/* Optional: printable rules card insert for the box */}
+                <div className="-mt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={handlePrintBoxInsert}
+                    disabled={isPrintingInsert}
+                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-wait"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    {isPrintingInsert
+                      ? t('createCache.verificationQR.printingRulesCard', 'Preparing rules card…')
+                      : t('createCache.verificationQR.printRulesCard', 'Also print rules card for the box')}
+                  </button>
                 </div>
 
                 {/* Next steps */}
