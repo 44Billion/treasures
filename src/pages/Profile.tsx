@@ -227,7 +227,7 @@ export default function Profile() {
               pubkey={targetPubkey}
               metadata={metadata}
 
-              hiddenCount={isLoadingUserCaches ? undefined : (userGeocachesWithStats?.length || 0)}
+              hiddenCount={isLoadingUserCaches && draftGeocaches.length === 0 ? undefined : (userGeocachesWithStats?.length || 0)}
               foundCount={isLoadingFoundCaches ? undefined : (foundCaches?.length || 0)}
               savedCount={isOwnProfile ? (isLoadingSavedCaches ? undefined : (savedCaches?.length || 0)) : undefined}
               variant="page"
@@ -299,11 +299,49 @@ export default function Profile() {
               </div>
             )}
 
-            {isLoadingUserCaches ? (
+            {/* Render strategy:
+                - If we have ANY items (drafts and/or published caches),
+                  render the grid immediately so the user sees their work
+                  without waiting for the relay's published-caches query.
+                  Local-only drafts come from localStorage synchronously
+                  via `useTreasureDrafts`' `placeholderData`, so they appear
+                  on the first paint after navigating in from Save Draft.
+                - Show the spinner only when we have nothing yet AND the
+                  published-caches query is still loading.
+                - Otherwise show the empty state. */}
+            {userGeocachesWithStats && userGeocachesWithStats.length > 0 ? (
+              <>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {userCachesWithDistance
+                    .filter(cache => cache.id && cache.dTag && cache.pubkey && cache.name && cache.location)
+                    .map((cache, index) => (
+                      <GeocacheCard
+                        key={`${cache.id}-${index}`}
+                        cache={cache}
+                        distance={cache.distance}
+                        variant="featured"
+                        statsLoading={isStatsLoading}
+                        isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
+                        onDelete={cache.kind === NIP_GC_KINDS.DRAFT ? () => {
+                          setDeletingDraft({ dTag: cache.dTag, name: cache.name, eventId: cache.id });
+                        } : undefined}
+                      />
+                    ))}
+                </div>
+                {/* Subtle inline indicator while published caches are still
+                    arriving in the background — drafts are already visible
+                    above, so we don't block the whole tab. */}
+                {isLoadingUserCaches && (
+                  <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
+                    <ComponentLoading size="sm" title={t('profile.created.loadingTitle')} description={t('profile.created.loadingDescription')} />
+                  </div>
+                )}
+              </>
+            ) : isLoadingUserCaches ? (
               <div className="flex items-center justify-center py-12">
                 <ComponentLoading size="sm" title={t('profile.created.loadingTitle')} description={t('profile.created.loadingDescription')} />
               </div>
-            ) : !userGeocachesWithStats || userGeocachesWithStats.length === 0 ? (
+            ) : (
               <EmptyStateCard
                 icon={Chest}
                 title={isOwnProfile ? t('profile.created.emptyTitleOwn') : t('profile.created.emptyTitleOther')}
@@ -319,24 +357,6 @@ export default function Profile() {
                   ) : undefined
                 }
               />
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {userCachesWithDistance
-                  .filter(cache => cache.id && cache.dTag && cache.pubkey && cache.name && cache.location)
-                  .map((cache, index) => (
-                    <GeocacheCard
-                      key={`${cache.id}-${index}`}
-                      cache={cache}
-                      distance={cache.distance}
-                      variant="featured"
-                      statsLoading={isStatsLoading}
-                      isFound={myFoundCaches.has(`${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`)}
-                      onDelete={cache.kind === NIP_GC_KINDS.DRAFT ? () => {
-                        setDeletingDraft({ dTag: cache.dTag, name: cache.name, eventId: cache.id });
-                      } : undefined}
-                    />
-                  ))}
-              </div>
             )}
           </TabsContent>
 

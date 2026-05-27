@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
 import { useZapStore } from '@/stores/useZapStore';
-import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, Zap, MapPin, Trash2, Archive, Wrench } from 'lucide-react';
+import { Navigation, Trophy, MessageSquare, EyeOff, CheckCircle, Zap, MapPin, Trash2, Archive, Wrench, CloudOff } from 'lucide-react';
 import { InteractiveCard } from '@/components/ui/card-patterns';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,13 @@ interface BaseGeocacheCardProps {
      * the FTF badge in its "claimed" state on the card without needing logs.
      */
     ftfWinner?: string;
+    /**
+     * For draft cards only: whether the draft has been confirmed on the
+     * relay (`'synced'`) or still lives only in this device's localStorage
+     * because a previous Save Draft couldn't reach the relay (`'local'`).
+     * Used to render a "Not synced" badge.
+     */
+    syncStatus?: 'synced' | 'local';
   };
   distance?: number;
   withinRadius?: boolean;
@@ -218,6 +225,24 @@ export function GeocacheCard({
   const emptyImageLogoClass = cn(emptyImageLogoFilterClass, emptyImageLogoBlendClass);
 
   const isDraft = cache.kind === NIP_GC_KINDS.DRAFT;
+  const isUnsyncedDraft = isDraft && cache.syncStatus === 'local';
+
+  // Small "Not synced" pill rendered under the title for drafts whose last
+  // save couldn't reach the relay. Tapping the card still navigates into the
+  // create wizard to continue editing — the next successful Save Draft will
+  // sync and remove the pill.
+  const renderUnsyncedBadge = () => {
+    if (!isUnsyncedDraft) return null;
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 text-[10px] font-medium px-1.5 py-0.5 leading-none border border-amber-300/60 dark:border-amber-700/60"
+        title={t('createCache.draft.notSyncedTooltip')}
+      >
+        <CloudOff className="h-2.5 w-2.5" />
+        {t('createCache.draft.notSyncedBadge')}
+      </span>
+    );
+  };
 
   // Resolve the in-app URL this card should navigate to. Drafts open the
   // creation wizard; everything else points at the geocache details page.
@@ -548,9 +573,12 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col relative z-10 p-3.5 sm:p-4 bg-card">
             {/* Title row with action buttons */}
             <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <h3 className="font-semibold text-[15px] sm:text-base leading-tight truncate group-hover:text-primary adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0 flex-1">
-                {cache.name}
-              </h3>
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <h3 className="font-semibold text-[15px] sm:text-base leading-tight truncate group-hover:text-primary adventure:group-hover:text-red-900 transition-colors duration-150 min-w-0">
+                  {cache.name}
+                </h3>
+                {renderUnsyncedBadge()}
+              </div>
               {variant !== 'detailed' && renderActionButtons(buttonSize)}
             </div>
 
@@ -670,9 +698,12 @@ export function GeocacheCard({
             <div className="flex-1 min-w-0 flex flex-col p-2.5 sm:p-3">
               {/* Title row with action buttons */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight truncate group-hover:text-primary adventure:group-hover:text-red-900 transition-colors min-w-0 flex-1 pr-8 md:pr-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
-                  {cache.name}
-                </h3>
+                <div className="flex items-center gap-1.5 min-w-0 flex-1 pr-8 md:pr-0">
+                  <h3 className="font-semibold leading-tight truncate group-hover:text-primary adventure:group-hover:text-red-900 transition-colors min-w-0" style={{ fontSize: cache.name.length > 20 ? '0.813rem' : '0.875rem' }}>
+                    {cache.name}
+                  </h3>
+                  {renderUnsyncedBadge()}
+                </div>
                 {renderActionButtons("h-4 w-4 sm:h-5 sm:w-5", true, true)}
               </div>
 

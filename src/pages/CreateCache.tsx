@@ -35,6 +35,8 @@ import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";
 import { naddrToGeocache } from "@/utils/naddr-utils";
 import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
+import { getLocalDraft, upsertLocalDraft, newLocalDraftSlug } from "@/lib/localDraftsStore";
+import { isUserCancelledPublishError } from "@/lib/publishErrors";
 import { generateCompactDTag } from "@/utils/dTag";
 import { getAppOrigin } from "@/utils/appUrl";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,17 +67,32 @@ export default function CreateCache() {
   const { saveDraft, deleteDraft, relayDrafts } = useTreasureDrafts();
   const isSavingDraft = saveDraft.isPending;
 
-  // Check if we're loading a specific relay draft via ?draft=<slug>
+  // Check if we're loading a specific relay draft via ?draft=<slug>.
+  // The merged `relayDrafts` list contains both relay-backed AND local-only
+  // drafts, so a local-only draft can be resumed via the same URL pattern.
   const draftSlugParam = searchParams.get('draft');
   const loadedRelayDraft = draftSlugParam && relayDrafts.data
     ? relayDrafts.data.find(d => d.slug === draftSlugParam)
     : null;
 
-  // Load saved draft on mount (localStorage, or relay draft if specified)
+  // Fallback: if the merged query hasn't resolved yet but a local copy of
+  // the requested draft exists, hydrate from it synchronously on first
+  // render so the form doesn't briefly show empty.
+  const loadedLocalOnlyDraft = !loadedRelayDraft && draftSlugParam && user
+    ? getLocalDraft(user.pubkey, draftSlugParam)
+    : null;
+
+  // Load saved draft on mount (localStorage, or relay/local-only draft if specified)
   const localDraft = loadLocalDraft();
-  const initialDraft = loadedRelayDraft || localDraft;
+  const initialDraft = loadedRelayDraft
+    || (loadedLocalOnlyDraft
+        ? { ...loadedLocalOnlyDraft.payload, slug: loadedLocalOnlyDraft.slug }
+        : null)
+    || localDraft;
   const [editingDraftSlug, setEditingDraftSlug] = useState<string | null>(draftSlugParam);
-  const [editingDraftEventId, setEditingDraftEventId] = useState<string | null>(loadedRelayDraft?.eventId ?? null);
+  const [editingDraftEventId, setEditingDraftEventId] = useState<string | null>(
+    loadedRelayDraft?.eventId ?? (loadedLocalOnlyDraft ? `local:${loadedLocalOnlyDraft.slug}` : null),
+  );
 
   const [formData, setFormData] = useState<GeocacheFormData>(
     initialDraft?.formData || createDefaultGeocacheFormData(),
@@ -148,7 +165,12 @@ export default function CreateCache() {
     currentStep,
   }), [formData, location, images, currentStep]);
 
-  // Explicit "Save as Draft" — writes to both localStorage and relay, then navigates to profile
+  // Explicit "Save as Draft". Tries the relay first; on failure the draft
+  // is kept in a multi-slot local store (handled by `useTreasureDrafts`),
+  // surfaced in the profile list as a "Not synced" entry, and the user is
+  // told via toast. We deliberately don't probe the network up front — the
+  // fall-through path is always the same, and gives instant recovery for
+  // both true offline cases and transient relay failures.
   const handleSaveDraft = useCallback(async () => {
     // Basic validation — need at least name + description + location
     if (!formData.name.trim() || !formData.description.trim() || !location) {
@@ -164,6 +186,9 @@ export default function CreateCache() {
       const result = await saveDraft.mutateAsync({ payload: currentPayload(), slug: editingDraftSlug || undefined });
       // Remember the slug so subsequent saves overwrite the same draft
       setEditingDraftSlug(result.slug);
+      if (result.event) {
+        setEditingDraftEventId(result.event.id);
+      }
       clearLocalDraft();
       toast({
         title: t('createCache.draft.saved'),
@@ -171,11 +196,20 @@ export default function CreateCache() {
       });
       navigate('/profile');
     } catch (err) {
-      console.error('[CreateCache] Failed to save relay draft:', err);
+      // Relay round-trip failed — the mutation has already persisted to the
+      // multi-slot local store under the slug we passed, so the draft isn't
+      // lost. Surface a clear "saved on this device only" toast and send the
+      // user to their profile drafts list, where the new entry shows up with
+      // a "Not synced" badge.
+      console.error('[CreateCache] Relay save failed, kept local copy:', err);
+      if (editingDraftSlug) {
+        setEditingDraftEventId(`local:${editingDraftSlug}`);
+      }
       toast({
         title: t('createCache.draft.savedLocally'),
         description: t('createCache.draft.savedLocallyDescription'),
       });
+      navigate('/profile');
     }
   }, [saveDraft, currentPayload, toast, navigate, formData, location, editingDraftSlug, t]);
 
@@ -439,6 +473,61 @@ export default function CreateCache() {
       }
     } catch (error) {
       console.error('Failed to create geocache:', error);
+
+      // Differentiate between an intentional cancel (user dismissed the
+      // signer prompt) and a real failure. A cancel shouldn't trigger
+      // auto-save or scary "couldn't publish" copy — the user is just
+      // backing out.
+      if (isUserCancelledPublishError(error)) {
+        toast({
+          title: t('createCache.publish.cancelled.title'),
+          description: t('createCache.publish.cancelled.description'),
+        });
+        return;
+      }
+
+      // Real failure (relay timeout, network error, etc). Persist the
+      // current form state into the multi-slot local drafts store so the
+      // user's work is recoverable from the profile drafts list as a
+      // "Not synced" entry. Only auto-save when we have the minimum
+      // required fields — otherwise the entry would be unrecoverable noise.
+      const hasMinimumFields =
+        !!user &&
+        formData.name.trim().length > 0 &&
+        formData.description.trim().length > 0 &&
+        !!location;
+
+      if (hasMinimumFields) {
+        try {
+          // Re-use the draft slug if we were editing an existing draft
+          // (so a single failed publish doesn't create a duplicate).
+          // Otherwise mint a fresh one — the form has never been saved
+          // under any slug before.
+          const slug = editingDraftSlug || newLocalDraftSlug();
+          upsertLocalDraft(user!.pubkey, slug, currentPayload(), 'pending');
+          setEditingDraftSlug(slug);
+          setEditingDraftEventId(`local:${slug}`);
+          // Make the new local draft visible in the profile drafts list on
+          // next read.
+          queryClient.invalidateQueries({ queryKey: ['treasure-drafts', user!.pubkey] });
+
+          toast({
+            title: t('createCache.publish.failed.savedAsDraft.title'),
+            description: t('createCache.publish.failed.savedAsDraft.description'),
+          });
+          // Send the user to their profile drafts list so they can see the
+          // recovered "Not synced" entry and retry publishing from there.
+          // Mirrors the Save Draft fallback behavior for consistency.
+          navigate('/profile');
+          return;
+        } catch (saveErr) {
+          // If even the local save fails, fall through to the generic
+          // failure toast below so the user at least gets *some* feedback.
+          console.error('[CreateCache] Local fallback save also failed:', saveErr);
+        }
+      }
+
+      // Generic failure path — incomplete form, or local-save itself failed.
       toast({
         title: t('createCache.publish.failed.title'),
         description: error instanceof Error ? error.message : t('createCache.publish.failed.unknown'),
