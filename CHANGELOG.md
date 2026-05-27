@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.4.0] - 2026-05-26
+
+### Added
+- **First to Find** — a new treasure type for one-shot prizes. The first verified finder gets the claim, with a banner on the listing showing who won and when. Cache owners can lock in the winner with one tap, archiving the treasure and making the claim tamper-proof
+- **Art treasures** — mark a hide as an art piece so seekers know the treasure itself is the prize
+- **Key Quest** — set a mission for your treasure that finders must complete before they can log a find. Verified finders submit their completion as a Good Deed, so the claim doubles as a public record of the deed
+- **How To** — a new walk-through at `/how-to` that takes newcomers through signing up, finding, the compass, claiming, and hiding in five short illustrated chapters with inline sign-up
+- **Adventure welcome overlay** — first-time visitors landing on an adventure get a friendly intro with Join, Log in, and "How does this work?" options without leaving the page
+- **BOQM Austin** — a festive landing page at `/boqm` for the Treasures hunt at the Big Ole Queer Market (June 6-7, 2026), with a live countdown, a preview map of nearby treasures, ticket links, and a door-prize voucher for every Treasures account
+- **Treasure Trolls teaser** — a colorful landing page at `/treasure-trolls` promoting the Treasure Trolls x BitPopArt collaboration with aurora effects and confetti
+- Treasure type badges (First to Find, Art, Key Quest) appear on cards, map popups, and the detail page so you can spot special treasures at a glance
+- User search in the compact URL tool — look up a Nostr profile by name and generate a short link for their npub without copy-pasting a 63-character key
+
+### Changed
+- Sign-up flow now keeps the welcome overlay open through profile setup, so the screen doesn't unmount mid-flow when you create your account from a landing page
+- Mobile header Join button now sports a person-with-plus icon so it matches the inline sign-up calls on the How To page
+- Claim banners on First to Find treasures show the winner's avatar and display name as a single profile link
+
+### Fixed
+- Printing QR sheets and stamps on the Android app now produces a real PDF instead of a blank preview, and prints at the right size with legible text
+- Tapping a claim link while you're already on the claim screen no longer bounces you back when you try to navigate to Create a Treasure
+- QR stamp sheets are now sharp and readable, with bigger cells, properly sized fonts, and direct rendering of every QR code
+
 ## [2.3.0] - 2026-05-10
 
 ### Added
