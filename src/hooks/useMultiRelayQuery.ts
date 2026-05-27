@@ -6,22 +6,72 @@ import type { NostrEvent } from '@nostrify/nostrify';
 interface MultiRelayQueryOptions {
   onRelayAttempt?: (relayUrl: string, attempt: number) => void;
   timeout?: number;
+  /**
+   * Extra relays to iterate over in addition to PRESET_RELAYS.
+   * Typically the viewing user's NIP-65 relays (config.relayMetadata.relays).
+   * Duplicates with PRESET_RELAYS are removed (normalized by URL).
+   */
+  extraRelays?: { url: string; name?: string }[];
+}
+
+/** Normalize a relay URL for deduplication (lowercase, strip trailing slash). */
+function normalizeRelayUrl(url: string): string {
+  return url.toLowerCase().replace(/\/+$/, '');
 }
 
 /**
- * Hook for querying multiple relays with fallback logic
- * Used when primary relay doesn't have the data and user is not the owner
+ * Build the ordered, deduplicated list of relays to attempt:
+ * PRESET_RELAYS first, then any extra (user) relays not already present.
+ */
+export function buildMultiRelayList(
+  extraRelays: { url: string; name?: string }[] = [],
+): { url: string; name: string; source: 'preset' | 'user' }[] {
+  const seen = new Set<string>();
+  const result: { url: string; name: string; source: 'preset' | 'user' }[] = [];
+
+  for (const relay of PRESET_RELAYS) {
+    const norm = normalizeRelayUrl(relay.url);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    result.push({ url: relay.url, name: relay.name, source: 'preset' });
+  }
+
+  for (const relay of extraRelays) {
+    if (!relay?.url) continue;
+    const norm = normalizeRelayUrl(relay.url);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    // Derive a friendly short name from the host if none provided
+    let name = relay.name;
+    if (!name) {
+      try {
+        name = new URL(relay.url).host;
+      } catch {
+        name = relay.url;
+      }
+    }
+    result.push({ url: relay.url, name, source: 'user' });
+  }
+
+  return result;
+}
+
+/**
+ * Hook for querying multiple relays with fallback logic.
+ * Iterates over PRESET_RELAYS and, optionally, the viewing user's own relays
+ * (passed via `extraRelays`). Used when the primary relay doesn't have the data.
  */
 export function useMultiRelayQuery() {
   const queryMultipleRelays = useCallback(async (
     filters: any[],
     options: MultiRelayQueryOptions = {}
   ): Promise<{ events: NostrEvent[], successRelay?: string }> => {
-    const { onRelayAttempt, timeout = TIMEOUTS.QUERY } = options;
+    const { onRelayAttempt, timeout = TIMEOUTS.QUERY, extraRelays = [] } = options;
 
-    // Try each relay in the preset list
-    for (let i = 0; i < PRESET_RELAYS.length; i++) {
-      const relay = PRESET_RELAYS[i]!;
+    const relayList = buildMultiRelayList(extraRelays);
+
+    for (let i = 0; i < relayList.length; i++) {
+      const relay = relayList[i]!;
       const relayUrl = relay.url;
 
       // Notify about relay attempt
@@ -57,7 +107,7 @@ export function useMultiRelayQuery() {
       }
     }
 
-    console.log(`No geocache found on any of the ${PRESET_RELAYS.length} relays`);
+    console.log(`No geocache found on any of the ${relayList.length} relays`);
     return { events: [] };
   }, []);
 

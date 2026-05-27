@@ -9,6 +9,7 @@ import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { nip19, nip57 } from 'nostr-tools';
 import { useZapStore } from '@/stores/useZapStore';
 import { useMultiRelayQuery } from '@/hooks/useMultiRelayQuery';
+import { useAppContext } from '@/hooks/useAppContext';
 import type { Geocache } from '@/types/geocache';
 
 export function useGeocacheByNaddr(naddr: string, options?: {
@@ -21,6 +22,7 @@ export function useGeocacheByNaddr(naddr: string, options?: {
   const { nostr } = useNostr();
   const { setZaps } = useZapStore();
   const { queryMultipleRelays } = useMultiRelayQuery();
+  const { config } = useAppContext();
   const { onRelayAttempt, onMultiRelayStart, onMultiRelayEnd } = options || {};
 
   return useQuery({
@@ -92,6 +94,7 @@ export function useGeocacheByNaddr(naddr: string, options?: {
               '#d': [dTag],
               limit: 1,
             }], {
+              extraRelays: config.relayMetadata.relays.map(r => ({ url: r.url })),
               onRelayAttempt: (relayUrl, attempt) => {
                 // This will be used by the UI to show relay attempts
                 onRelayAttempt?.(relayUrl, attempt);

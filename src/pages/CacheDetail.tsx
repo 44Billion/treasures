@@ -7,6 +7,7 @@ import { useStore } from 'zustand';
 import { useZapStore } from '@/stores/useZapStore';
 import { ZapButton } from "@/components/ZapButton";
 import { GeocacheLoading } from "@/components/GeocacheLoading";
+import { NaddrAuthorCard } from "@/components/NaddrAuthorCard";
 import { useDirectNavigation } from '@/hooks/useDirectNavigation';
 
 import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, QrCode, Zap, Plus, Archive, Wrench } from "lucide-react";
@@ -302,6 +303,7 @@ export default function CacheDetail() {
         description={t('cacheDetail.loading.description')}
         relayAttempts={relayAttempts}
         isMultiRelayLoading={isMultiRelayLoading}
+        naddr={naddr}
         onSkipToCreate={isOwnNaddr ? () => {
           const claimUrl = `${getAppOrigin()}${window.location.pathname}${window.location.hash}`;
           navigate(`/create-cache?claimUrl=${encodeURIComponent(claimUrl)}`);
@@ -433,6 +435,11 @@ export default function CacheDetail() {
       <div className="min-h-screen bg-muted/50 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
+          {!isInvalidCacheLink && (
+            <div className="max-w-md mx-auto mb-6">
+              <NaddrAuthorCard naddr={naddr} />
+            </div>
+          )}
           <ErrorState
             title={
               isInvalidCacheLink ? t('cacheDetail.error.invalidLink.title') :
@@ -541,6 +548,9 @@ export default function CacheDetail() {
       <div className="min-h-screen bg-muted/30 dark:bg-muted">
         <DesktopHeader />
         <div className="container mx-auto px-4 py-16">
+          <div className="max-w-md mx-auto mb-6">
+            <NaddrAuthorCard naddr={naddr} />
+          </div>
           <ErrorState
             title={t('cacheDetail.error.notFound.title')}
             description={t('cacheDetail.error.notFound.description')}
