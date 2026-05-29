@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.5.1] - 2026-05-28
+
+### Added
+- First to Find claims now show up for everyone — adventure progress lists and the map both mark a First to Find treasure as claimed once any seeker locks it in, with a trophy badge on the map pin so the race result is visible at a glance
+- Art treasures wear a paint-palette glyph on the map, keeping the cache color and shape intact so the type still reads clearly
+- Printable rules card insert for treasure boxes — a new option on the Create Treasure landing page prints a US-Letter sheet of ten business-card-sized inserts you can drop inside your containers, each with a four-step TL;DR for finders
+
+### Changed
+- The "near me" indicator on the map is now a soft pulsing dot that picks up your active theme across Forest, Steel, and Mojave, and honors reduced-motion preferences
+- Cache lookup screens now show the listing's author up front, even before the listing finishes loading or when a treasure can't be found, so you always know whose hide you're looking at
+- Cache lookup also reaches out across your own Nostr relays in addition to the defaults, with a tidier progress display that doesn't overflow when you carry a long relay list
+
+### Fixed
+- Compact treasure cards grow to fit multiple modifier badges instead of clipping them off the bottom
+- Map "near me" pin renders correctly in browsers that previously clipped it to just the inner dot
+- Removed the noisy "cache not found on any relay" banner — the not-found screen already says everything that needs saying
+
 ## [2.5.0] - 2026-05-27
 
 ### Added
