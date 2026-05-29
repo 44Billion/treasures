@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3] - 2026-05-29
+
+The Treasure Trolls hunt in Oslo is live, and the Treasure Trolls landing page now says so. A pulsing "Live in Oslo Now" badge sits up top, and a new "Start the Hunt" button drops you straight into the adventure so you can start tracking down all ten trolls.
+
+### Changed
+- The Treasure Trolls landing page now shows a live event badge and a "Start the Hunt" button that links straight to the Oslo adventure
+
 ## [2.5.2] - 2026-05-29
 
 A small polish release. There's a new in-app Changelog page so you can see what's new in Treasures without leaving the app, reachable from the explore menu and the mobile nav. Treasure cards also got a light touch-up: the author avatar now sits next to the name (matching the map preview), and art treasures wear the same paint-palette glyph on cards that they already wear on the map.
