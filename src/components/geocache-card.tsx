@@ -647,10 +647,16 @@ export function GeocacheCard({
     return (
       <InteractiveCard onClick={(e) => handleCardClick(e)} onAuxClick={(e) => handleCardAuxClick(e)} onMouseDown={handleCardMouseDown} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden min-h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
         <CardContent className="p-0 h-full">
-          <div className="flex relative h-full">
-            {/* Image container - always shown with theme-aware background if no image */}
-            <div className={cn("shrink-0 w-16 sm:w-20 h-full overflow-hidden", emptyImageBgClass)}>
-              <div className="relative w-full h-full">
+          <div className="flex relative min-h-[120px]">
+            {/* Image container - always shown with theme-aware background if no
+                 image. The card uses min-h (not a fixed height) so it can grow
+                 with badge wrap. We mirror that min-h on the flex row and make
+                 the image column the positioned ancestor so the absolutely-
+                 positioned image fills the column's full stretched height
+                 (default flex `items-stretch`) regardless of whether the card
+                 grew past the minimum. */}
+            <div className={cn("shrink-0 w-16 sm:w-20 overflow-hidden relative", emptyImageBgClass)}>
+              <div className="absolute inset-0">
                 {!previewImage && (
                   // Decorative half-logo bleed for compact cards (see standard
                   // layout for full rationale).
