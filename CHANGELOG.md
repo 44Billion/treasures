@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.5.2] - 2026-05-29
+
+A small polish release. There's a new in-app Changelog page so you can see what's new in Treasures without leaving the app, reachable from the explore menu and the mobile nav. Treasure cards also got a light touch-up: the author avatar now sits next to the name (matching the map preview), and art treasures wear the same paint-palette glyph on cards that they already wear on the map.
+
+### Added
+- New in-app Changelog page that shows what's new in each release, linked from the explore menu and the mobile nav
+
+### Changed
+- Treasure cards now put the author avatar before the name (matching the map preview) and show the paint-palette glyph for art treasures, keeping cards and map markers consistent
+
 ## [2.5.1] - 2026-05-28
 
 A round of map polish and lookup improvements. First to Find claims now show up for every seeker on the map and adventure lists, art treasures wear a paint-palette glyph on their map markers, the "near me" indicator is a theme-aware pulsing dot, and the treasure lookup screen surfaces the listing's author from the very first frame. There's also a new printable rules-card insert you can drop inside any treasure container.
