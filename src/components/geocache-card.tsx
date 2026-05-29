@@ -77,6 +77,14 @@ interface BaseGeocacheCardProps {
   showStats?: boolean;
   statsLoading?: boolean;
   isFound?: boolean;
+  /**
+   * Override for the FTF "claimed" visual state. When undefined the card
+   * falls back to `!!cache.ftfWinner` (only true once an owner has locked
+   * in the F tag). Adventure views pass in the provisional claim status
+   * computed from verified found logs so the badge flips as soon as the
+   * cache is genuinely won, not only on lock-in.
+   */
+  ftfClaimed?: boolean;
 }
 
 // Compact Card - Used in map sidebar and mobile views
@@ -143,7 +151,8 @@ export function GeocacheCard({
   showAuthor = true,
   showStats = true,
   statsLoading = false,
-  isFound = false
+  isFound = false,
+  ftfClaimed,
 }: GeocacheCardProps) {
   const { t } = useTranslation();
   const nav = useNavigate();
@@ -189,6 +198,11 @@ export function GeocacheCard({
 
   // Check if this cache is hidden and the current user is the creator
   const isHiddenByCreator = cache.hidden && cache.pubkey === user?.pubkey;
+
+  // Resolve the effective FTF claimed flag once. Explicit prop wins (used by
+  // adventure views to surface provisional verified-found claims); otherwise
+  // fall back to the locked-in F tag which every card already had access to.
+  const resolvedFtfClaimed = ftfClaimed ?? !!cache.ftfWinner;
 
   // Owner-set lifecycle status. Archived and maintenance caches are de-emphasized
   // (dimmed) in lists and carry a status badge so seekers immediately see the state.
@@ -400,7 +414,7 @@ export function GeocacheCard({
     <div className="flex items-center justify-between gap-2 mt-auto">
       <div className="flex flex-wrap gap-1 sm:gap-1.5 min-w-0">
         {renderStatusBadge(isCompact)}
-        <ModifierBadges cache={cache} size="compact" ftfClaimed={!!cache.ftfWinner} />
+        <ModifierBadges cache={cache} size="compact" inline ftfClaimed={resolvedFtfClaimed} />
         <Badge variant="outline" className={`text-xs ${isCompact ? 'py-0 px-1.5' : 'px-2 py-0.5 sm:px-2'} shrink-0`}>
           D{cache.difficulty}
         </Badge>
@@ -631,7 +645,7 @@ export function GeocacheCard({
     const hasSpoiler = !!cache.contentWarning;
 
     return (
-      <InteractiveCard onClick={(e) => handleCardClick(e)} onAuxClick={(e) => handleCardAuxClick(e)} onMouseDown={handleCardMouseDown} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
+      <InteractiveCard onClick={(e) => handleCardClick(e)} onAuxClick={(e) => handleCardAuxClick(e)} onMouseDown={handleCardMouseDown} compact={true} className={cn(`group hover:shadow-md transition-all duration-200 overflow-hidden min-h-[120px]${withinRadius === true ? ' bg-primary/10 border-primary/30' : ''}`, hasStatus && 'opacity-70 hover:opacity-90')}>
         <CardContent className="p-0 h-full">
           <div className="flex relative h-full">
             {/* Image container - always shown with theme-aware background if no image */}
@@ -727,7 +741,7 @@ export function GeocacheCard({
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-wrap gap-0.5 sm:gap-1 min-w-0">
                   {renderStatusBadge(true)}
-                  <ModifierBadges cache={cache} size="compact" ftfClaimed={!!cache.ftfWinner} />
+                  <ModifierBadges cache={cache} size="compact" inline ftfClaimed={resolvedFtfClaimed} />
                   <Badge variant="outline" className="text-[10px] sm:text-xs py-0 px-1 sm:px-1.5 shrink-0">
                     D{cache.difficulty}
                   </Badge>

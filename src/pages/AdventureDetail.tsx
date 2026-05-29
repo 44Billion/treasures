@@ -29,6 +29,7 @@ import { useDeleteAdventure } from "@/hooks/useDeleteAdventure";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAdventureProgress } from "@/hooks/useAdventureProgress";
+import { useAdventureFtfStatus } from "@/hooks/useAdventureFtfStatus";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useToast } from "@/hooks/useToast";
 import { useTheme } from "@/hooks/useTheme";
@@ -116,7 +117,6 @@ export default function AdventureDetail() {
   // Progress tracking
   const geocacheRefs = adventure?.geocacheRefs || [];
   const { foundSet, totalFound, totalCaches } = useAdventureProgress(geocacheRefs);
-
   // Temporarily apply the adventure's page theme, revert on unmount.
   // Saves and restores the user's real localStorage preference so it isn't corrupted.
   useEffect(() => {
@@ -158,6 +158,25 @@ export default function AdventureDetail() {
   }, [adventure?.theme]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const geocaches = useMemo(() => adventure?.geocaches || [], [adventure?.geocaches]);
+
+  // Global FTF claim status for every viewer of the adventure. Once any FTF
+  // treasure has a verified found log it gets marked as "Claimed" on both
+  // the progress list and the map regardless of who's viewing — even logged
+  // out — so newcomers immediately see which prizes are still available.
+  const { isFtfClaimed } = useAdventureFtfStatus(geocaches);
+
+  // Pre-compute the Set of cache keys whose FTF prize is taken. The map
+  // marker memo uses this as a dep so changes here re-render the markers
+  // without busting unrelated state.
+  const claimedFtfCacheKeys = useMemo(() => {
+    const s = new Set<string>();
+    for (const cache of geocaches) {
+      if (isFtfClaimed(cache)) {
+        s.add(`${cache.kind ?? 37516}:${cache.pubkey}:${cache.dTag}`);
+      }
+    }
+    return s;
+  }, [geocaches, isFtfClaimed]);
 
   // Map center for initial render — fitBounds handles the actual zoom
   const mapCenter = geocaches.length > 0
@@ -367,6 +386,7 @@ export default function AdventureDetail() {
       {geocaches.map((cache) => {
         const cacheKey = `${cache.kind || 37516}:${cache.pubkey}:${cache.dTag}`;
         const isFound = foundSet.has(cacheKey);
+        const ftfClaimed = isFtfClaimed(cache);
 
         return (
           <CompactGeocacheCard
@@ -374,6 +394,7 @@ export default function AdventureDetail() {
             cache={cache}
             onClick={() => handleCardClick(cache)}
             isFound={isFound}
+            ftfClaimed={ftfClaimed}
           />
         );
       })}
@@ -400,6 +421,7 @@ export default function AdventureDetail() {
     isNearMeActive: false,
     isMapCenterLocked: true,
     initialMapStyle: adventure?.mapStyle,
+    claimedFtfCacheKeys,
   } as const;
 
   return (

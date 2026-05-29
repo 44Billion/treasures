@@ -16,7 +16,7 @@ import { useMapController } from "@/hooks/useMapController";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import type { Geocache } from "@/types/geocache";
 import type { Adventure } from "@/types/adventure";
-import { getCachedCacheIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
+import { getCachedCacheIcon, getCachedClaimedFtfIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
 
 // Import Leaflet CSS, overrides, and adventure theme
@@ -109,6 +109,14 @@ interface GeocacheMapProps {
   adventures?: Adventure[]; // Adventure markers to display alongside geocaches
   onAdventureMarkerClick?: (adventure: Adventure, popupContainer?: HTMLDivElement) => void;
   layoutKey?: string | boolean; // Changes to this value trigger map.invalidateSize() — use when container size changes without a window resize
+  /**
+   * Set of cache keys (`${kind}:${pubkey}:${dTag}`) for first-to-find
+   * treasures that have been claimed (a verified found log exists, or the
+   * F tag is locked). Claimed FTF markers receive a small trophy badge
+   * overlay so every viewer can see at a glance which prizes are still
+   * available. Used by adventure detail views.
+   */
+  claimedFtfCacheKeys?: Set<string>;
 }
 
 
@@ -1138,6 +1146,7 @@ export function GeocacheMap({
   adventures,
   onAdventureMarkerClick,
   layoutKey,
+  claimedFtfCacheKeys,
 }: GeocacheMapProps) {
   const { navigateToGeocache } = useGeocacheNavigation();
   const { theme, systemTheme } = useTheme();
@@ -1337,11 +1346,24 @@ export function GeocacheMap({
       const normalizedLng = ((geocache.location.lng + 180) % 360 + 360) % 360 - 180;
       const normalizedPosition = [geocache.location.lat, normalizedLng];
 
+      // Choose the claimed-FTF marker when the caller has flagged this
+      // treasure as won. Falls back to the standard themed marker so
+      // non-adventure consumers (Map page, etc.) are unaffected.
+      const iconTheme = mapStyleToIconTheme(currentMapStyle);
+      const cacheKey = `${geocache.kind ?? 37516}:${geocache.pubkey}:${geocache.dTag}`;
+      const isClaimed = claimedFtfCacheKeys?.has(cacheKey) ?? false;
+      // Art treasures get a Palette glyph on the marker so they read as
+      // special at a glance — independent of cache type or FTF status.
+      const isArt = geocache.modifiers?.includes('art') ?? false;
+      const markerIcon = isClaimed
+        ? getCachedClaimedFtfIcon(geocache.type, iconTheme, isArt)
+        : getCachedCacheIcon(geocache.type, iconTheme, isArt);
+
       return (
         <Marker
           key={geocache.dTag}
           position={normalizedPosition as LatLngExpression}
-          icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle))}
+          icon={markerIcon}
           keyboard={true}
           title={geocache.name}
           alt={`${geocache.type} treasure: ${geocache.name}`}
@@ -1402,7 +1424,7 @@ export function GeocacheMap({
         />
       );
     }),
-    [geocaches, currentMapStyle]
+    [geocaches, currentMapStyle, claimedFtfCacheKeys]
   );
 
   return (

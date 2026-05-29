@@ -9,6 +9,16 @@
  *  - `default` — comfortable badge for the detail page.
  *  - `compact` — denser, smaller-icon badge for cards and map popups.
  *
+ * Layout modes:
+ *  - default — badges are wrapped in their own `flex flex-wrap` container.
+ *    Use when ModifierBadges is the only badge content in its slot (detail
+ *    page header, popup body).
+ *  - `inline` — renders as a Fragment so each badge becomes a direct child
+ *    of the caller's flex-wrap row. Use inside the card "badges + stats"
+ *    rows so modifier badges share the parent row's gap and wrapping rules
+ *    instead of becoming an oversized atomic flex item that forces the
+ *    surrounding D/T/size badges onto extra lines.
+ *
  * Optional FTF claimed-state: when a `first-to-find` modifier is present AND
  * the consumer passes `ftfClaimed`, the FTF badge swaps its label to "Claimed"
  * and adopts a muted variant so the treasure visibly reads as already won.
@@ -30,6 +40,12 @@ export interface ModifierBadgesProps {
    */
   ftfClaimed?: boolean;
   size?: 'default' | 'compact';
+  /**
+   * When true, renders the badges as a Fragment (no wrapping container) so
+   * they flow into the caller's flex-wrap row. The caller is responsible
+   * for layout and gap. See module doc for rationale.
+   */
+  inline?: boolean;
   className?: string;
 }
 
@@ -37,10 +53,21 @@ export function ModifierBadges({
   cache,
   ftfClaimed = false,
   size = 'default',
+  inline = false,
   className,
 }: ModifierBadgesProps) {
   const active = getActiveModifiers(cache);
   if (active.length === 0) return null;
+
+  if (inline) {
+    return (
+      <>
+        {active.map((m) => (
+          <ModifierBadge key={m.kind} modifier={m} size={size} ftfClaimed={ftfClaimed} />
+        ))}
+      </>
+    );
+  }
 
   return (
     <div className={cn('flex flex-wrap gap-1.5', className)}>
