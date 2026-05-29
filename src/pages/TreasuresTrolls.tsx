@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { DittoIcon } from "@/components/icons/DittoIcon";
+import { TREASURE_TROLLS_NADDR } from "@/lib/constants";
 
 const TROLL_IMAGE_URL = "/treasure-trolls.png";
 
@@ -161,6 +163,14 @@ export default function TreasuresTrolls() {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
+        @keyframes troll-live-pulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.7), 0 6px 14px rgba(0,0,0,0.5); }
+          50%      { transform: scale(1.04); box-shadow: 0 0 0 14px rgba(255, 62, 62, 0), 0 6px 14px rgba(0,0,0,0.5); }
+        }
+        @keyframes troll-live-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%      { opacity: 0.35; transform: scale(0.85); }
+        }
       `}</style>
 
       <div
@@ -238,6 +248,25 @@ export default function TreasuresTrolls() {
 
         {/* Pop-art confetti drifting up across the page */}
         <PopConfetti count={32} />
+
+        {/* Live event indicator — the Oslo hunt is on now */}
+        <div className="relative z-10 mb-4 md:mb-5 flex justify-center">
+          <span
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs md:text-sm font-black uppercase tracking-[0.22em] text-white"
+            style={{
+              background: "linear-gradient(135deg, #ff1a4d 0%, #ff3ea5 100%)",
+              border: "2px solid #000",
+              animation: "troll-live-pulse 2.2s ease-in-out infinite",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-2.5 rounded-full bg-white"
+              style={{ animation: "troll-live-dot 1.2s ease-in-out infinite" }}
+            />
+            Live in Oslo Now
+          </span>
+        </div>
 
         {/* "BitPopArt x Treasures" presenter line at the top */}
         <div
@@ -338,8 +367,8 @@ export default function TreasuresTrolls() {
             10 Trolls Hidden Across Oslo
           </h1>
           <p className="text-lg md:text-2xl font-semibold text-white leading-relaxed [text-shadow:0_2px_6px_rgba(0,0,0,0.55)]">
-            A mythical journey through Oslo, Norway is beginning shortly. Ten
-            trolls lie waiting in the city's quiet corners.
+            A mythical journey through Oslo, Norway is live now. Ten trolls
+            lie waiting in the city's quiet corners.
             <br />
             <span
               className="inline-block font-black uppercase tracking-wider"
@@ -354,8 +383,31 @@ export default function TreasuresTrolls() {
             </span>
           </p>
 
+          {/* Primary CTA — head into the live adventure */}
+          <div className="mt-7 md:mt-9 flex justify-center">
+            <Link
+              to={`/adventure/${TREASURE_TROLLS_NADDR}`}
+              className="group inline-flex items-center gap-2 rounded-full text-white hover:scale-105 active:scale-95 transition-transform px-7 py-3.5 md:px-9 md:py-4 text-base md:text-xl font-black uppercase tracking-wider shadow-xl shadow-black/60"
+              style={{
+                background:
+                  "linear-gradient(135deg, #ffd23f 0%, #ff7a1a 45%, #ff3ea5 100%)",
+                border: "3px solid #000",
+                textShadow:
+                  "-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000",
+              }}
+            >
+              Start the Hunt
+              <span
+                aria-hidden="true"
+                className="inline-block translate-x-0 group-hover:translate-x-1 transition-transform"
+              >
+                →
+              </span>
+            </Link>
+          </div>
+
           {/* Credit buttons */}
-          <div className="mt-8 md:mt-10 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 md:mt-8 flex flex-wrap items-center justify-center gap-3">
             <a
               href="https://www.bitpopart.com/"
               target="_blank"
