@@ -28,6 +28,7 @@ const Install = lazy(() => import("./pages/Install"));
 const Claim = lazy(() => import("./pages/Claim"));
 const About = lazy(() => import("./pages/About"));
 const HowTo = lazy(() => import("./pages/HowTo"));
+const Changelog = lazy(() => import("./pages/Changelog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Adventures = lazy(() => import("./pages/Adventures"));
 const AdventureDetail = lazy(() => import("./pages/AdventureDetail"));
@@ -108,6 +109,7 @@ export function AppRouter() {
             <Route path="/claim" element={<Claim />} />
             <Route path="/about" element={<About />} />
             <Route path="/how-to" element={<HowTo />} />
+            <Route path="/changelog" element={<Changelog />} />
             <Route path="/texas-ren-fest" element={<Navigate to={`/adventure/${TEXAS_REN_FEST_NADDR}`} replace />} />
             <Route path="/adventures" element={<Adventures />} />
             <Route path="/adventure/:naddr" element={<AdventureDetail />} />

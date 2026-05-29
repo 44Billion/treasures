@@ -2,6 +2,8 @@
 
 ## [2.5.1] - 2026-05-28
 
+A round of map polish and lookup improvements. First to Find claims now show up for every seeker on the map and adventure lists, art treasures wear a paint-palette glyph on their map markers, the "near me" indicator is a theme-aware pulsing dot, and the treasure lookup screen surfaces the listing's author from the very first frame. There's also a new printable rules-card insert you can drop inside any treasure container.
+
 ### Added
 - First to Find claims now show up for everyone — adventure progress lists and the map both mark a First to Find treasure as claimed once any seeker locks it in, with a trophy badge on the map pin so the race result is visible at a glance
 - Art treasures wear a paint-palette glyph on the map, keeping the cache color and shape intact so the type still reads clearly
@@ -19,6 +21,8 @@
 
 ## [2.5.0] - 2026-05-27
 
+A small but handy release for hiders working off-grid. If the relay can't be reached while you're creating a treasure, Treasures now quietly stashes your draft on your device and finishes the publish later — no more lost drafts on a shaky trail connection. Also fixes a crash when backing out of a listing with an open map popup.
+
 ### Added
 - Offline draft rescue — start a treasure on a shaky trail connection and Treasures will quietly stash your draft on your device if the relay can't be reached. Your drafts show a "Not synced" badge until they make it to the network, and the next successful save cleans them up automatically
 
@@ -26,6 +30,8 @@
 - Backing out to home from a treasure listing with an open map popup no longer crashes the app
 
 ## [2.4.0] - 2026-05-26
+
+A big feature drop. Three brand-new treasure types — First to Find, Art, and Key Quest — give hiders new ways to design a hunt, with badges showing them off across cards, maps, and detail pages. Newcomers get a five-chapter illustrated walk-through at /how-to, and adventures now welcome first-time visitors with an inline sign-up overlay. Plus festive landing pages for the BOQM Austin hunt and the Treasure Trolls collaboration.
 
 ### Added
 - **First to Find** — a new treasure type for one-shot prizes. The first verified finder gets the claim, with a banner on the listing showing who won and when. Cache owners can lock in the winner with one tap, archiving the treasure and making the claim tamper-proof
@@ -49,6 +55,8 @@
 - QR stamp sheets are now sharp and readable, with bigger cells, properly sized fonts, and direct rendering of every QR code
 
 ## [2.3.0] - 2026-05-10
+
+Short links land — every treasure now has a tidy /d/<id> URL with a one-tap copy button, perfect for stickers and signs. Plus an auto-decoding hint reveal, Mojave theme support for adventures, a longer initial map load, and a basket of mobile and theme polish.
 
 ### Added
 - Short links for every cache — a tidy `/d/<id>` URL shows up on the create flow and the cache detail page with a one-tap copy button, perfect for stickers, signs, and word-of-mouth shares
@@ -79,6 +87,8 @@
 
 ## [2.2.0] - 2026-05-04
 
+Cache owners can now signal a treasure's status — mark a hide as Needs maintenance or Archived right from the edit form, and status badges show up across cards, listings, and the map filter so seekers always know the state of a treasure before they head out.
+
 ### Added
 - Cache owners can now set a listing status — mark a hide as **Needs maintenance** or **Archived** directly from the edit form; the status is stored on the listing so seekers always see the current state
 - Status badges appear on cache cards and the detail page so seekers know at a glance whether a cache needs attention or has been retired
@@ -89,6 +99,8 @@
 - "Compass" label is restored on the mobile bottom navigation bar
 
 ## [2.1.2] - 2026-05-04
+
+Adds the Mojave theme — a Pip-Boy-inspired amber-on-black look with matching map tiles and icons — plus a long list of mobile polish: refined radius search, deeper map zoom, optional log comments, inline create-cache validation, larger tap targets across the app, and friendlier error pages.
 
 ### Added
 - Mojave theme — a new Pip-Boy-inspired look with amber-on-black palette, matching map tiles, and themed cache icons
@@ -116,6 +128,8 @@
 
 ## [2.1.1] - 2026-05-03
 
+Adds an in-app QR scanner on the claim page so you can scan a treasure's QR code without leaving the app, makes long adventure descriptions tappable to read in full, and fixes QR download/print on Android plus a couple of iPad landscape clipping issues.
+
 ### Added
 - In-app QR scanner on the claim page — tap to scan the geocache QR code directly without leaving the app; opens automatically on supported mobile devices
 
@@ -128,6 +142,8 @@
 - Hero logo no longer clips into the navigation bar in iPad landscape mode
 
 ## [2.1.0] - 2026-05-02
+
+Map views get a real glow-up: a collapsible sidebar for a true full-screen map, a one-tap Earth view, animated fly-to when jumping to Near Me or switching views, and a home-page nudge for the Android app on Zapstore. Sharing now uses the system share sheet, and tablets pick up the mobile layout instead of the cramped desktop sidebar.
 
 ### Added
 - Collapsible sidebar on the map and adventure detail pages — collapse it to get a full-screen map view, expand it any time with one tap
@@ -146,6 +162,8 @@
 
 ## [2.0.6] - 2026-04-28
 
+A privacy and polish release. Adds an opt-out for anonymous analytics, makes the key-save confirmation visible during sign-up, fixes notification stacking above modals, and improves compass readability in low contrast.
+
 ### Added
 - Privacy setting to opt out of anonymous analytics collection
 
@@ -156,15 +174,21 @@
 
 ## [2.0.5] - 2026-04-25
 
+A one-fix patch that unsticks the key-save step during account creation on Android.
+
 ### Fixed
 - Key save during account creation no longer hangs on Android
 
 ## [2.0.4] - 2026-04-25
 
+New accounts now save their key straight to your device's password manager — Google Password Manager, iCloud Keychain, or your browser's credential store — instead of downloading a text file. De-Googled devices and unsupported browsers fall back to the old file save.
+
 ### Changed
 - New account key is saved to your device's password manager (Google Password Manager, iCloud Keychain, or browser credential store) instead of downloading a text file; falls back to file save on de-Googled devices and unsupported browsers
 
 ## [2.0.3] - 2026-04-25
+
+Adds haptic feedback to key moments — compass proximity alerts, publish confirmations, save toggles, share actions, map pin drops, and verified reveals — plus brand-coloured splash, theme-aware status bars in system dark mode, and a fix for the white "near me" dot on the map.
 
 ### Added
 - Haptic feedback on key interactions: compass proximity alerts, publish confirmations, save toggles, share actions, map pin drops, and verified reveals
@@ -178,6 +202,8 @@
 
 ## [2.0.2] - 2026-04-25
 
+Status bar icons now adapt dynamically as you scroll past dark hero sections and respect Ditto profile themes. Also fixes Android deep linking for treasures.to URLs and a few small Zapstore listing issues.
+
 ### Changed
 - Status bar icons adapt dynamically when scrolling past the hero section
 - Ditto profile themes correctly trigger light or dark status bar icons
@@ -190,6 +216,8 @@
 
 ## [2.0.1] - 2026-04-24
 
+A safe-area and layout cleanup for the fresh Android app: hero text, drawers, toasts, map, and loading spinner all respect notches and the bottom nav properly.
+
 ### Fixed
 - Hero treasure name sits above bottom safe area on notched devices
 - Left navigation drawer respects bottom safe area
@@ -200,6 +228,8 @@
 - Tapping adventure name bar expands the detail drawer
 
 ## [2.0.0] - 2026-04-24
+
+The Treasures 2.0 launch. A brand-new Android app with native splash, deep links, and themed status bars. A Wind Waker-style compass with radar mode for nearby treasures. Curated Adventures, profile search, full-text relay search, smart coordinate input, encrypted drafts, drag-to-reorder photo uploads, profile theme sync, and 200+ strings in English, German, Japanese, and Thai. Plus a top-to-bottom redesign of the home page, treasure creation, QR codes, the verified-find flow, blog, and About.
 
 ### Added
 - Android app with native splash screen, deep links, and status bar theming

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Map, Plus, Menu, Settings, Bookmark, LogOut, User, UserPlus, QrCode,
-  ScanQrCode, Info, BookOpen, BookMarked, Sparkles, List, Compass, ChevronDown, ChevronUp,
+  ScanQrCode, Info, BookOpen, BookMarked, Sparkles, Sparkle, List, Compass, ChevronDown, ChevronUp,
   Search, Sun, Moon, Sword, Mountain, Monitor, Scroll,
 } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
@@ -507,6 +507,14 @@ export function MobileHeader() {
                       onClick={closeSheet}
                     >
                       {t('navigation.howTo', 'How To')}
+                    </NavLink>
+                    <NavLink
+                      to="/changelog"
+                      icon={Sparkle}
+                      isActive={location.pathname === '/changelog'}
+                      onClick={closeSheet}
+                    >
+                      {t('navigation.changelog', "What's new")}
                     </NavLink>
                     <a
                       href="https://ditto.pub"

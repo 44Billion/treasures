@@ -84,6 +84,8 @@ Prepend a new section to `CHANGELOG.md` directly below the `# Changelog` heading
 ```markdown
 ## [X.Y.Z] - YYYY-MM-DD
 
+A short single-paragraph summary of this release written in plain prose -- max 500 characters. This appears in the GitLab release description, on Zapstore (eventually), and in the in-app `/changelog` page.
+
 ### Added
 - Description of new features
 
@@ -95,6 +97,24 @@ Prepend a new section to `CHANGELOG.md` directly below the `# Changelog` heading
 
 ### Removed
 - Description of removed features
+```
+
+#### The Summary Paragraph
+
+Every release section MUST start with a single plaintext paragraph (not a bullet, not a heading) that summarises the release for casual readers:
+
+- **Single paragraph, plain prose.** No bullets, no headings, no Markdown formatting beyond plain text.
+- **Max ~500 characters.** This keeps the entry usable as "What's new" copy on store fronts in the future. The `extract-release-notes.mjs` script warns when the summary is longer.
+- **Audience: end users discovering the update.** Describe the most noticeable user-visible changes; omit internal cleanups even if they're in the bullets below.
+- **Tone matches the bullets.** Present-tense, no Nostr jargon, no NIP/kind numbers (see Rules below).
+- **Maintenance releases** -- write a one-sentence summary like `A behind-the-scenes maintenance release with no user-facing changes.` Don't leave it blank.
+
+The same paragraph is automatically extracted by CI for downstream uses (the in-app `/changelog` page renders the whole file, so the paragraph is what users see first under each version heading; the release-notes job emits a `release-notes-summary.txt` artifact that future store/Zapstore integrations can consume).
+
+After writing the summary, sanity-check its length:
+
+```bash
+node scripts/extract-release-notes.mjs X.Y.Z --summary | wc -c
 ```
 
 #### Changelog Quality Checklist
@@ -242,8 +262,10 @@ git push origin main vX.Y.Z
 
 This triggers the GitLab CI pipeline which will:
 1. Build a signed Android APK and AAB
-2. Create a GitLab Release with download links
-3. Publish the APK to Zapstore
+2. Extract the matching changelog section into `release-notes.md` and `release-notes-summary.txt`
+3. Create a GitLab Release using `release-notes.md` as the description, with download links
+4. Publish the APK to Zapstore
+5. Upload the AAB to Google Play (production track)
 
 ### Step 11: Confirm
 
@@ -257,16 +279,18 @@ After pushing, inform the user:
 | File | What to update | Notes |
 |------|---------------|-------|
 | `package.json` | `version` field | Source of truth for the version |
-| `CHANGELOG.md` | Prepend new section | User-facing changelog |
+| `CHANGELOG.md` | Prepend new section | User-facing changelog; bundled into the app and rendered at `/changelog` via a Vite `?raw` import (no copy step needed) |
 | `android/app/build.gradle` | `versionName` | `versionCode` is managed by CI |
 
 ## CI Pipeline
 
-The CI pipeline (`.gitlab-ci.yml`) is triggered by tags matching the pattern `/^v\d+\.\d+\.\d+$/` (e.g., `v2.1.0`). It runs three jobs:
+The CI pipeline (`.gitlab-ci.yml`) is triggered by tags matching the pattern `/^v\d+\.\d+\.\d+$/` (e.g., `v2.1.0`). It runs five jobs:
 
 1. **build-apk**: Builds signed Android APK and AAB, stamps `versionName` and `versionCode` into the build
-2. **release**: Creates a GitLab Release with download links
-3. **publish-zapstore**: Publishes the APK to Zapstore
+2. **release-notes**: Runs `scripts/extract-release-notes.mjs` against the matching version in `CHANGELOG.md` and emits two artifacts: `release-notes.md` (the full section) and `release-notes-summary.txt` (the leading paragraph)
+3. **release**: Creates a GitLab Release using `release-notes.md` as the description, with APK/AAB download links
+4. **publish-zapstore**: Publishes the APK to Zapstore
+5. **publish-google-play**: Uploads the AAB to Google Play production track
 
 ## Troubleshooting
 
