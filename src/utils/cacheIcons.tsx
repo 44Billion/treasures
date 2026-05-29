@@ -1,13 +1,19 @@
 import React from 'react';
-import { Compass, HelpCircle } from 'lucide-react';
+import { Compass, HelpCircle, Palette } from 'lucide-react';
 import type { CacheType, CacheIconProps } from './cacheIcons.types';
 import { Chest, sizeClasses, colorClasses, adventureIconStyle, mojaveIconStyle, MOJAVE_AMBER } from '@/config/cacheIconConstants';
 
 /**
  * CacheIcon component for rendering cache type icons
  * This ensures consistency between map markers and UI cards
+ *
+ * When `isArt` is true, the per-type glyph is swapped for a `Palette`
+ * glyph — mirroring the map marker behavior in `cacheMapIcons.ts` — so a
+ * treasure tagged with the `art` modifier reads visibly as "art" wherever
+ * its icon appears (cards, lists, etc.). The cache type's color is
+ * preserved so the type is still legible at a glance.
  */
-export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProps): React.ReactNode {
+export function CacheIcon({ type, size = 'md', className, theme, isArt = false }: CacheIconProps): React.ReactNode {
   const isAdventureTheme = theme === 'adventure';
   const isMojaveTheme = theme === 'mojave';
   const cacheType = type.toLowerCase() as CacheType;
@@ -20,6 +26,7 @@ export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProp
     };
 
     const IconComponent = (() => {
+      if (isArt) return <Palette {...iconProps} />;
       switch (cacheType) {
         case 'traditional':
           return <Chest {...iconProps} />;
@@ -51,6 +58,7 @@ export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProp
     };
 
     const IconComponent = (() => {
+      if (isArt) return <Palette {...iconProps} />;
       switch (cacheType) {
         case 'traditional':
           return <Chest {...iconProps} />;
@@ -79,6 +87,10 @@ export function CacheIcon({ type, size = 'md', className, theme }: CacheIconProp
     className: iconClass,
     strokeWidth: 2.5
   };
+
+  if (isArt) {
+    return <Palette {...iconProps} />;
+  }
 
   switch (cacheType) {
     case 'traditional':

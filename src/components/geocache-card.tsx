@@ -199,6 +199,11 @@ export function GeocacheCard({
   // Check if this cache is hidden and the current user is the creator
   const isHiddenByCreator = cache.hidden && cache.pubkey === user?.pubkey;
 
+  // Treasures carrying the `art` modifier swap their type glyph for a
+  // Palette glyph wherever the icon appears, mirroring the map marker
+  // behavior in `cacheMapIcons.ts` so cards and pins stay in lockstep.
+  const isArt = cache.modifiers?.includes('art') ?? false;
+
   // Resolve the effective FTF claimed flag once. Explicit prop wins (used by
   // adventure views to surface provisional verified-found claims); otherwise
   // fall back to the locked-in F tag which every card already had access to.
@@ -328,18 +333,17 @@ export function GeocacheCard({
   const renderAuthorInfo = () => showAuthor && (
     <div className="text-[13px] sm:text-sm text-muted-foreground mb-1.5">
       <div className="flex items-center gap-1 min-w-0">
-        <span className="shrink-0">{t('geocacheCard.by')}</span>
-        <span className="truncate font-medium">{authorName}</span>
         {profilePicture && !avatarError && (
           <img
             src={thumbnail(profilePicture, 32)}
             alt={authorName}
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full object-cover shrink-0 ml-1"
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full object-cover shrink-0"
             onError={handleAvatarError}
             loading="lazy"
             decoding="async"
           />
         )}
+        <span className="truncate font-medium">{authorName}</span>
       </div>
     </div>
   );
@@ -565,7 +569,7 @@ export function GeocacheCard({
                 <div className="absolute bottom-2 left-2 z-10">
                   <div className="relative">
                     <div className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 ${isAdventureTheme ? '' : 'rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm'} shadow-lg`}>
-                      <CacheIcon type={cache.type} size="sm" className="w-4.5 h-4.5 sm:w-5 sm:h-5" theme={theme} />
+                      <CacheIcon type={cache.type} size="sm" className="w-4.5 h-4.5 sm:w-5 sm:h-5" theme={theme} isArt={isArt} />
                     </div>
                     {isHiddenByCreator && (
                       <div className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] sm:w-6 sm:h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-md ring-2 ring-white dark:ring-slate-800">
@@ -696,7 +700,7 @@ export function GeocacheCard({
                 <div className="absolute bottom-1.5 left-1.5 z-10">
                   <div className="relative">
                     <div className={`flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 ${isAdventureTheme ? '' : 'rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm'} shadow-lg`}>
-                      <CacheIcon type={cache.type} size="sm" className="w-3 h-3 sm:w-3.5 sm:h-3.5" theme={theme} />
+                      <CacheIcon type={cache.type} size="sm" className="w-3 h-3 sm:w-3.5 sm:h-3.5" theme={theme} isArt={isArt} />
                     </div>
                     {isHiddenByCreator && (
                       <div className="absolute -top-1 -right-1 w-[15px] h-[15px] bg-orange-500 rounded-full flex items-center justify-center shadow-md ring-1 ring-white dark:ring-slate-800">
