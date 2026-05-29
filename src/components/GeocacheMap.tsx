@@ -27,22 +27,20 @@ import "@/styles/map-features.css";
 // Map marker icons are provided by the shared helper in `@/utils/cacheMapIcons`
 // so GeocacheMap and ProfileMap don't drift out of sync when new themes land.
 
+// Google Maps-style "you are here" indicator: a solid theme-colored dot with a
+// white halo and a softly expanding pulse ring. Styling lives in
+// `src/styles/map-features.css` so the indicator inherits the active theme's
+// `--primary` token across all themes (forest, steel, Mojave, etc.).
 const userLocationIcon = L.divIcon({
   html: `
-    <div style="position: relative; width: 32px; height: 44px;">
-      <svg width="32" height="44" viewBox="0 0 32 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <filter id="pin-shadow">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-        </filter>
-        <path d="M16 0C9.373 0 4 5.373 4 12c0 9 12 28 12 28s12-19 12-28c0-6.627-5.373-12-12-12z"
-              fill="#3b82f6" filter="url(#pin-shadow)"/>
-        <circle cx="16" cy="12" r="5" fill="white"/>
-      </svg>
+    <div class="user-location-marker">
+      <div class="user-location-marker__pulse" aria-hidden="true"></div>
+      <div class="user-location-marker__dot" aria-hidden="true"></div>
     </div>
   `,
   className: "user-location-icon",
-  iconSize: [32, 44],
-  iconAnchor: [16, 44],
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
 });
 
 // Adventure marker icon — amber/gold sparkles
