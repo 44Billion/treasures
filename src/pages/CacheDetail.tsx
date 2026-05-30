@@ -626,7 +626,7 @@ export default function CacheDetail() {
 
       {/* Sticky footer for edit mode on mobile */}
       {isEditing && (
-        <div className="lg:hidden fixed bottom-12 left-0 right-0 bg-card border-t shadow-lg z-[60] p-4">
+        <div className="lg:hidden fixed bottom-[calc(3rem+env(safe-area-inset-bottom))] left-0 right-0 bg-card border-t shadow-lg z-[60] p-4">
           <div className="flex gap-2">
             <Button
               onClick={handleSaveEdit}
