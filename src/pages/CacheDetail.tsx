@@ -626,7 +626,7 @@ export default function CacheDetail() {
 
       {/* Sticky footer for edit mode on mobile */}
       {isEditing && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg z-50 p-4" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="lg:hidden fixed bottom-12 left-0 right-0 bg-card border-t shadow-lg z-[60] p-4">
           <div className="flex gap-2">
             <Button
               onClick={handleSaveEdit}
@@ -819,6 +819,7 @@ export default function CacheDetail() {
                       onImagesChange={setEditImages}
                       fieldPrefix="edit"
                       isSubmitting={isEditingGeocache}
+                      isEditing={true}
                     />
 
                     {/* Location */}

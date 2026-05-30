@@ -29,4 +29,6 @@ export interface GeocacheFormProps {
   showRequiredMarkers?: boolean;
   className?: string;
   fieldPrefix?: string;
+  /** When true, shows the unlisted (hidden) visibility toggle so owners can set a cache as unlisted from the edit menu. */
+  isEditing?: boolean;
 }

@@ -1464,7 +1464,8 @@ export function GeocacheForm({
   isSubmitting = false,
   showRequiredMarkers = false,
   fieldPrefix = "",
-  className
+  className,
+  isEditing = false
 }: GeocacheFormProps) {
   const { t } = useTranslation();
 
@@ -1608,15 +1609,15 @@ export function GeocacheForm({
         />
       </div>
 
-      {/* Legacy Hidden toggle — only shown when the cache is already marked hidden.
-          `hidden` is a deprecated visibility flag retained for backward compatibility
-          with existing listings that opted into it. New caches should use the
-          Listing Status above (archived / maintenance) instead. */}
-      {formData.hidden && (
+      {/* Unlisted toggle — shown in edit mode so owners can make a cache unlisted at any time.
+          The `hidden` flag stores as a ['t', 'hidden'] tag on the Nostr event and removes
+          the cache from public listings (only people with the direct link can find it).
+          Also shown when already hidden for backward compatibility with existing listings. */}
+      {(isEditing || formData.hidden) && (
         <div className="space-y-4">
           <div className="border-b pb-2">
-            <h3 className="text-lg font-medium text-foreground">Visibility (Legacy)</h3>
-            <p className="text-sm text-muted-foreground">Control who can find your cache</p>
+            <h3 className="text-lg font-medium text-foreground">Visibility</h3>
+            <p className="text-sm text-muted-foreground">Control who can discover your cache</p>
           </div>
 
           <CacheHiddenField
