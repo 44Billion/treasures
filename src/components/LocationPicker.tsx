@@ -603,7 +603,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             {/* Single coordinate input */}
             <Input
               type="text"
-              inputMode="decimal"
+              inputMode="text"
               enterKeyHint="done"
               placeholder={t("locationPicker.inputPlaceholder")}
               value={coordInput}
