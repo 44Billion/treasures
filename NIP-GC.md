@@ -27,7 +27,9 @@ Geocache listing events are addressable events of kind `37516` with the followin
     ["n", "<type-modifier>"],
     ["hint", "<plaintext hint>"],
     ["mission", "<key quest mission>"],
-    ["F", "<winner-pubkey-hex>"]
+    ["image", "<image-url>"],
+    ["r", "<relay-url>"],
+    ["verification", "<verification-pubkey-hex>"]
   ]
 }
 ```
@@ -50,7 +52,7 @@ The content field contains the cache description and any additional information 
 - `name` (required) - human-readable name for the cache  
 - `g` (required) - geohash of cache location. To allow for a proximity search, include multiple geohash tags at different precision levels (3-9 characters)
 - `D` (required) - integer 1-5 indicating puzzle/finding difficulty (indexed)
-- `T` (required) - integer 1-5 indicating physical difficulty (indexed)
+- `T` (required) - integer 1-5 indicating terrain difficulty (indexed)
 - `S` (required) - one of: `micro`, `small`, `regular`, `large`, `other` (indexed)
 - `t` (optional) - cache type, with common values including: `traditional`, `multi`, `mystery`. Defaults to `traditional` if not specified
 - `n` (optional) - type modifier(s) that affect lifecycle, claim semantics, or prize nature. See [Type Modifiers](#type-modifiers). Multiple `n` tags MAY be present, but at most one per modifier category
@@ -109,18 +111,14 @@ Owners of the cache can officially retire caches using an `archived` tag value i
 
 ### Tags
 
-- `A` (required) - root geocache reference (same as `a` for top-level comments)
-- `K` (required) - root kind number (`37516`)
-- `P` (required) - root author (cache owner pubkey)
-- `a` (required) - parent reference (same as `A` for top-level comments)
-- `k` (required) - parent kind number (`37516`)
-- `p` (required) - parent author (cache owner pubkey)
+The `A`/`K`/`P` (root) and `a`/`k`/`p` (parent) tags follow [NIP-22](https://github.com/nostr-protocol/nips/blob/master/22.md). For these top-level comments, the root and parent are identical: they reference the geocache listing (`37516:<pubkey>:<d-tag>`), kind `37516`, and the cache owner's pubkey.
+
 - `t` (optional) - log type: `dnf`, `note`, `maintenance`, `archived`. If omitted, assumed to be `note`
 - `image` (optional) - photos from the visit
 
 ## Geocache Verification Event (Kind 7517)
 
-Verification events provide cryptographic proof that a someone physically located a geocache. These events are signed by the cache's verification private key.
+Verification events provide cryptographic proof that someone physically located a geocache. These events are signed by the cache's verification private key.
 
 ```json
 {
@@ -173,7 +171,7 @@ To validate a verified find:
 
 Treasures MAY include one or more `n` tags that classify the treasure with additional type modifiers. Unlike the `t` cache-type tag (which describes *how* a cache is found), `n` modifiers describe *how the cache behaves* once published — its lifecycle, claim semantics, or prize nature.
 
-The `mission` tag defined above is also a type modifier in the broader sense — it opts a treasure into Key Quest behavior — but it predates this section and uses its own dedicated tag because it carries a payload (the mission text). Clients implementing modifier-aware UI SHOULD treat `mission` and `n` modifiers consistently for display purposes (badges, filters, etc.) even though they are stored in different tags.
+The `mission` tag is also a type modifier in the broader sense — it opts a treasure into Key Quest behavior — but it uses its own dedicated tag because it carries a payload (the mission text). Clients SHOULD treat `mission` and `n` modifiers consistently for display purposes (badges, filters, etc.).
 
 ### Rules
 
@@ -193,15 +191,15 @@ Modifiers that affect how claims on the treasure are interpreted.
   Determining the winning log (provisional, before lock-in):
   - The winning log is the verified found log with the earliest `created_at` value.
   - Ties on `created_at` are broken by ascending lexicographic comparison of the event `id`.
-  - Because `created_at` is author-supplied and forgeable, clients SHOULD treat all verified logs as evidence of physical presence at the cache (QR access was required to produce them) while attributing the exclusive claim only to the earliest one.
+  - All verified logs are evidence of physical presence (QR access was required to produce them); the exclusive claim is attributed only to the earliest one.
 
   Locking in the winner (`F` tag):
   - Once the treasure creator has confirmed the claim, the creator SHOULD publish a new revision of the treasure event that BOTH archives the listing (adds `["t", "archived"]`) AND locks the winner in by appending an `F` tag:
     `["F", "<winner-pubkey-hex>"]`
-  - `F` is a single-letter uppercase tag and is therefore indexable by relays per [NIP-01](01.md), enabling efficient queries such as "all FTF treasures won by `<pubkey>`."
+  - `F` is a single-letter uppercase tag and is therefore indexable by relays per [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md), enabling efficient queries such as "all FTF treasures won by `<pubkey>`."
   - The value is the winning finder's pubkey (lowercase hex). The specific winning verified found log is recoverable by querying for verified found logs whose `a` tag references this treasure and whose author matches the `F` pubkey.
   - At most one `F` tag SHOULD be present. If multiple are present, clients SHOULD use the first.
-  - When an `F` tag is present, clients MUST attribute the exclusive claim to the pubkey in the `F` tag, regardless of which verified found log currently appears earliest. This protects the locked-in claim from being displaced by a forged earlier `created_at` on a subsequently published verified found log.
+  - When an `F` tag is present, clients MUST attribute the exclusive claim to the pubkey in the `F` tag, regardless of which verified found log currently appears earliest. Because `created_at` is author-supplied and forgeable, this protects the locked-in claim from being displaced by a later log carrying a forged earlier timestamp.
   - The `F` tag SHOULD only be added by the treasure creator (the event author) and only when a valid verified found log from that pubkey exists at the time of locking.
 
 #### Prize nature
