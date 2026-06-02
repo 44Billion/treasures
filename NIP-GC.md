@@ -61,7 +61,7 @@ The content field contains the cache description and any additional information 
 - `image` (optional) - image URLs related to the cache
 - `r` (optional) - preferred relay URLs for logs
 - `verification` (optional) - hex-encoded public key for verifying finds at this cache
-- `F` (optional, indexable) - locks in the first-to-find winner. Only valid when the treasure carries the `first-to-find` `n` modifier. Format: `["F", "<winner-pubkey-hex>"]`. See [Type Modifiers › `first-to-find`](#claim-semantics). At most one `F` tag SHOULD be present
+- `F` (optional) - locks in the first-to-find winner. Only valid when the treasure carries the `first-to-find` `n` modifier. Format: `["F", "<winner-pubkey-hex>"]`. See [Type Modifiers › `first-to-find`](#claim-semantics). At most one `F` tag SHOULD be present
 
 ## Found Log Event (Kind 7516)
 
@@ -169,14 +169,14 @@ To validate a verified find:
 
 ## Type Modifiers
 
-Treasures MAY include one or more `n` tags that classify the treasure with additional type modifiers. Unlike the `t` cache-type tag (which describes *how* a cache is found), `n` modifiers describe *how the cache behaves* once published — its lifecycle, claim semantics, or prize nature.
+Geocache listings MAY include one or more `n` tags that classify the geocache with additional type modifiers. Unlike the `t` cache-type tag (which describes *how* a cache is found), `n` modifiers describe *how the cache behaves* once published — its lifecycle, claim semantics, or prize nature.
 
-The `mission` tag is also a type modifier in the broader sense — it opts a treasure into Key Quest behavior — but it uses its own dedicated tag because it carries a payload (the mission text). Clients SHOULD treat `mission` and `n` modifiers consistently for display purposes (badges, filters, etc.).
+The `mission` tag is also a type modifier in the broader sense, but it uses its own dedicated tag because it carries a payload (the mission text). Clients SHOULD treat `mission` and `n` modifiers consistently for display purposes (badges, filters, etc.).
 
 ### Rules
 
 1. Each modifier value belongs to exactly one **category** (see below).
-2. A treasure SHOULD include at most one `n` tag per category. If multiple values from the same category are present, clients SHOULD use the first occurrence and ignore the rest.
+2. A geocache SHOULD include at most one `n` tag per category. If multiple values from the same category are present, clients SHOULD use the first occurrence and ignore the rest.
 3. Modifiers from different categories compose freely. Any combination is valid unless a specific modifier's definition states otherwise.
 4. Clients SHOULD ignore `n` values they do not recognize, allowing forward compatibility as new modifiers are defined.
 
@@ -186,7 +186,7 @@ The `mission` tag is also a type modifier in the broader sense — it opts a tre
 
 Modifiers that affect how claims on the treasure are interpreted.
 
-- `first-to-find` — Single-claim treasure. The first verified found log (kind 7516 with valid embedded kind 7517) constitutes the exclusive claim. Subsequent verified found logs remain valid records of physical presence at the location but do not constitute additional claims. Clients SHOULD render the treasure as effectively archived once any valid verified found log exists, hiding find-submission affordances and displaying the winning finder prominently. Requires a `verification` tag on the treasure.
+- `first-to-find` — Single-claim geocache listing. The first verified found log (kind 7516 with valid embedded kind 7517) constitutes the exclusive claim. Subsequent verified found logs remain valid records of physical presence at the location but do not constitute additional claims. Clients SHOULD render the geocache listing as effectively archived once any valid verified found log exists, hiding find-submission affordances and displaying the winning finder prominently. Requires a `verification` tag on the geocache listing event.
 
   Determining the winning log (provisional, before lock-in):
   - The winning log is the verified found log with the earliest `created_at` value.
@@ -194,19 +194,17 @@ Modifiers that affect how claims on the treasure are interpreted.
   - All verified logs are evidence of physical presence (QR access was required to produce them); the exclusive claim is attributed only to the earliest one.
 
   Locking in the winner (`F` tag):
-  - Once the treasure creator has confirmed the claim, the creator SHOULD publish a new revision of the treasure event that BOTH archives the listing (adds `["t", "archived"]`) AND locks the winner in by appending an `F` tag:
+  - Once the geocache listing creator has confirmed the claim, the creator SHOULD publish a new revision of the geocache listing event that BOTH archives the listing (adds `["t", "archived"]`) AND locks the winner in by appending an `F` tag:
     `["F", "<winner-pubkey-hex>"]`
-  - `F` is a single-letter uppercase tag and is therefore indexable by relays per [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md), enabling efficient queries such as "all FTF treasures won by `<pubkey>`."
   - The value is the winning finder's pubkey (lowercase hex). The specific winning verified found log is recoverable by querying for verified found logs whose `a` tag references this treasure and whose author matches the `F` pubkey.
   - At most one `F` tag SHOULD be present. If multiple are present, clients SHOULD use the first.
   - When an `F` tag is present, clients MUST attribute the exclusive claim to the pubkey in the `F` tag, regardless of which verified found log currently appears earliest. Because `created_at` is author-supplied and forgeable, this protects the locked-in claim from being displaced by a later log carrying a forged earlier timestamp.
-  - The `F` tag SHOULD only be added by the treasure creator (the event author) and only when a valid verified found log from that pubkey exists at the time of locking.
 
 #### Prize nature
 
 Modifiers that describe what the physical treasure IS.
 
-- `art` — The cache itself is a physical work of art (a print, sculpture, sticker, zine, painted object, mural, installation, etc.). Whether the work is takeable, viewable in place, photographable only, or otherwise interacted with is determined by other modifiers and by the treasure's `content` description.
+- `art` — The geocache itself is a physical work of art (a print, sculpture, sticker, zine, painted object, mural, installation, etc.). Whether the work is takeable, viewable in place, photographable only, or otherwise interacted with is determined by other modifiers and by the treasure's `content` description.
 
 ### Forward Compatibility
 
@@ -246,7 +244,7 @@ The content field contains the full description of the curation list — rules, 
 - `description` (optional) - short summary shown in browse/card views
 - `image` (optional) - banner image URL
 - `g` (optional) - geohash of list center location. Include multiple precision levels (3-6 characters) for discovery
-- `theme` (optional) - default page theme for the list. Clients should apply this theme when displaying the list, unless the user has explicitly chosen a different theme. Currently supported value: `adventure`
+- `theme` (optional) - default page theme for the list. Clients should apply this theme when displaying the list, unless the user has explicitly chosen a different theme. Supported values: `adventure`, `mojave`
 - `map` (optional) - default map style for the list. Clients should use this as the initial map style when displaying the list, but allow the user to change it. Supported values: `original`, `dark`, `satellite`, `adventure`
 
 ### Cross-Author References
