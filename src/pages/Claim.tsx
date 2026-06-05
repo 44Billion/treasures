@@ -254,9 +254,9 @@ export default function Claim() {
               {/* Instructional Image */}
               <div className="flex items-center justify-center mb-6">
                 <img
-                  src="/claim-guide.png"
+                  src="/share-your-experience.png"
                   alt="QR Code scanning guide"
-                  className="max-w-[180px] w-full h-auto dark:invert ditto-invert mojave-invert"
+                  className="max-w-[180px] w-full h-auto themed-art"
                 />
               </div>
 

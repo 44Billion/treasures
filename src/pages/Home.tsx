@@ -435,7 +435,7 @@ export default function Home() {
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
                 <div className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border ${isDitto ? 'bg-card border-border' : isMojave ? 'bg-gradient-to-br from-card to-muted border-primary/30' : 'bg-gradient-to-br from-green-100 to-emerald-200 dark:from-primary-200 dark:to-primary-100 adventure:from-amber-100 adventure:to-orange-200 border-green-200/60 dark:border-primary/20 adventure:border-amber-300/60'}`}>
-                  <img src="/step_1.png" alt="Hide a Treasure" className={`w-full h-full object-contain mojave-step-tint ${isDitto ? 'ditto-invert' : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'}`} />
+                  <img src="/hide-a-treasure.png" alt="Hide a Treasure" className="w-full h-full object-contain themed-art" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -452,7 +452,7 @@ export default function Home() {
             <div className="flex flex-row-reverse items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
                 <div className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border ${isDitto ? 'bg-card border-border' : isMojave ? 'bg-gradient-to-br from-card to-muted border-primary/30' : 'bg-gradient-to-br from-emerald-100 to-teal-200 dark:from-primary-100 dark:to-primary-200 adventure:from-yellow-100 adventure:to-amber-200 border-emerald-200/60 dark:border-primary/20 adventure:border-amber-300/60'}`}>
-                  <img src="/step_2.png" alt="Find & Claim" className={`w-full h-full object-contain mojave-step-tint ${isDitto ? 'ditto-invert' : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'}`} />
+                  <img src="/find-a-treasure.png" alt="Find & Claim" className="w-full h-full object-contain themed-art" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -469,7 +469,7 @@ export default function Home() {
             <div className="flex flex-row items-center gap-4 md:gap-10">
               <div className="w-5/12 flex justify-center">
                 <div className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl p-4 sm:p-5 md:p-6 shadow-md border ${isDitto ? 'bg-card border-border' : isMojave ? 'bg-gradient-to-br from-card to-muted border-primary/30' : 'bg-gradient-to-br from-teal-100 to-emerald-200 dark:from-primary-100 dark:to-primary-200 adventure:from-orange-100 adventure:to-stone-200 border-teal-200/60 dark:border-primary/20 adventure:border-amber-300/60'}`}>
-                  <img src="/step_3.png" alt="Share the Adventure" className={`w-full h-full object-contain mojave-step-tint ${isDitto ? 'ditto-invert' : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'}`} />
+                  <img src="/share-your-experience.png" alt="Share the Adventure" className="w-full h-full object-contain themed-art" />
                 </div>
               </div>
               <div className="w-7/12 text-left space-y-2 md:space-y-3">
@@ -495,6 +495,19 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+
+          {/* Artist credit */}
+          <p className="text-xs text-muted-foreground/70 mt-6 text-center">
+            {t("home.howItWorks.artCredit")}{' '}
+            <a
+              href="https://ditto.pub/npub1c2aqg09fk7cnkhgns25psw0hp94v9v9fdywn36nljmdpypa3ajlq0ag2vv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              KrakenM
+            </a>
+          </p>
         </div>
       </section>
 

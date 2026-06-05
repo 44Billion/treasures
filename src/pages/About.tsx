@@ -277,8 +277,25 @@ export default function About() {
 
         {/* Footer links */}
         <div className="text-center pb-10 px-4 space-y-3">
+          <img
+            src="/treasures-little-guy.png"
+            alt=""
+            aria-hidden="true"
+            className="w-28 h-28 mx-auto object-contain themed-art"
+          />
           <p className="text-xs text-muted-foreground">
             {t('about.footer.description')}
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            {t('about.footer.artCredit')}{' '}
+            <a
+              href="https://ditto.pub/npub1c2aqg09fk7cnkhgns25psw0hp94v9v9fdywn36nljmdpypa3ajlq0ag2vv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              KrakenM
+            </a>
           </p>
           <div className="flex justify-center gap-2">
             <Button variant="outline" size="sm" asChild>

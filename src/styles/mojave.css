@@ -89,6 +89,16 @@
   mix-blend-mode: normal !important;
 }
 
+/* Full-color illustration retint (Home "how it works" steps, HowTo art, Claim
+   guide, About mascot). Unlike the greyscale line art handled above, these are
+   saturated green illustrations, so a pure hue-rotate (green → Pip-Boy amber)
+   matches the rest of the Mojave theme — the same approach as .mojave-logo —
+   without the muddy wash that invert+sepia would produce. Defined as a
+   dedicated class so it reliably wins in the cascade. */
+.mojave .themed-art {
+  filter: hue-rotate(280deg) saturate(1.1) brightness(0.95);
+}
+
 /* Mojave cache icon hover (UI cards) — matches the map marker hover style */
 .mojave-cache-icon:hover {
   transform: scale(1.05);

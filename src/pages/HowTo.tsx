@@ -225,7 +225,7 @@ const chapters: Chapter[] = [
     icon: Search,
     title: 'Find a treasure',
     blurb: 'See what is hidden near you.',
-    art: { type: 'png', src: '/step_2.png' },
+    art: { type: 'png', src: '/find-a-treasure.png' },
     palette: 'emerald',
     body: () => (
       <Prose>
@@ -311,7 +311,7 @@ const chapters: Chapter[] = [
     icon: ScanQrCode,
     title: 'Claim your find',
     blurb: 'Scan the QR and share your story.',
-    art: { type: 'png', src: '/step_3.png' },
+    art: { type: 'png', src: '/share-your-experience.png' },
     palette: 'green',
     body: () => (
       <Prose>
@@ -358,7 +358,7 @@ const chapters: Chapter[] = [
     icon: Plus,
     title: 'Hide your own',
     blurb: 'Make a treasure for other people to find.',
-    art: { type: 'png', src: '/step_1.png' },
+    art: { type: 'png', src: '/hide-a-treasure.png' },
     palette: 'emerald',
     body: ({ isLoggedIn, startSignup }) => (
       <Prose>
@@ -576,11 +576,7 @@ export default function HowTo() {
                           <img
                             src={chapter.art.src}
                             alt=""
-                            className={`w-full h-full object-contain mojave-step-tint ${
-                              isDitto
-                                ? 'ditto-invert'
-                                : 'mix-blend-multiply dark:mix-blend-normal dark:invert adventure:sepia'
-                            }`}
+                            className="w-full h-full object-contain themed-art"
                           />
                         )}
                         {chapter.art.type === 'svg' && (
@@ -652,6 +648,19 @@ export default function HowTo() {
             Blog
           </Link>{' '}
           for new features.
+        </p>
+
+        {/* Artist credit */}
+        <p className="text-[11px] text-white/50 mt-3 text-center">
+          Illustrations by{' '}
+          <a
+            href="https://ditto.pub/npub1c2aqg09fk7cnkhgns25psw0hp94v9v9fdywn36nljmdpypa3ajlq0ag2vv"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-white/70 hover:text-white underline underline-offset-2"
+          >
+            KrakenM
+          </a>
         </p>
       </div>
       </PageHero>

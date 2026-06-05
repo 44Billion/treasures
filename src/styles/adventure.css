@@ -201,3 +201,16 @@
     transition: transform 0.3s ease-out;
   }
 }
+/* Themed illustration tint (Home "how it works" steps, HowTo art, Claim guide,
+   About mascot). The source art is full-color green illustrations; in the
+   parchment/pirate Adventure theme a light warm sepia blends them into the
+   aged-map aesthetic without washing out the linework. Defined as a dedicated
+   class (rather than a Tailwind arbitrary-variant utility) so it lands late in
+   the cascade and reliably wins over base utilities, matching .mojave-step-tint. */
+.adventure .themed-art {
+  /* Full sepia + a touch of hue-rotate toward amber and a slight contrast/
+     saturation lift so the green art actually reads as aged parchment art.
+     A light sepia (0.35) on already-green pixels is nearly invisible against
+     the warm parchment background, so the tint has to be assertive here. */
+  filter: sepia(1) hue-rotate(-12deg) saturate(1.15) brightness(0.97);
+}
