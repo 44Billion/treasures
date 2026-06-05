@@ -41,7 +41,43 @@ import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
 import { hapticLight } from "@/utils/haptics";
 
+// Key used to persist the map's last view (center + zoom) across navigation so
+// returning to the map (e.g. after viewing a treasure) restores the user's position.
+const MAP_VIEW_STORAGE_KEY = 'mapLastView';
 
+interface SavedMapView {
+  center: { lat: number; lng: number };
+  zoom: number;
+}
+
+function loadSavedMapView(): SavedMapView | null {
+  try {
+    const raw = sessionStorage.getItem(MAP_VIEW_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<SavedMapView>;
+    const lat = parsed?.center?.lat;
+    const lng = parsed?.center?.lng;
+    const zoom = parsed?.zoom;
+    if (
+      typeof lat === 'number' && Number.isFinite(lat) &&
+      typeof lng === 'number' && Number.isFinite(lng) &&
+      typeof zoom === 'number' && zoom >= 1 && zoom <= 21
+    ) {
+      return { center: { lat, lng }, zoom };
+    }
+  } catch {
+    // Ignore malformed/unavailable storage
+  }
+  return null;
+}
+
+function saveMapView(view: SavedMapView): void {
+  try {
+    sessionStorage.setItem(MAP_VIEW_STORAGE_KEY, JSON.stringify(view));
+  } catch {
+    // Ignore storage errors (e.g. private mode quota)
+  }
+}
 
 export default function Map() {
   const { t } = useTranslation();
@@ -68,8 +104,26 @@ export default function Map() {
   const [showArchived, setShowArchived] = useState<boolean>(false);
   const [showMaintenance, setShowMaintenance] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>({ lat: 25, lng: -40 });
-  const [mapZoom, setMapZoom] = useState(window.innerWidth >= 1024 ? 3 : 2);
+  // Restore the last map view (center + zoom) the user was looking at when they
+  // navigated away (e.g. to a treasure detail page) so that returning to the map
+  // preserves their position. URL coordinates always take priority over this.
+  // Computed once on mount via lazy initializers below.
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(() => {
+    const hasUrlCoords = searchParams.get('lat') && searchParams.get('lng');
+    if (!hasUrlCoords) {
+      const saved = loadSavedMapView();
+      if (saved) return saved.center;
+    }
+    return { lat: 25, lng: -40 };
+  });
+  const [mapZoom, setMapZoom] = useState(() => {
+    const hasUrlCoords = searchParams.get('lat') && searchParams.get('lng');
+    if (!hasUrlCoords) {
+      const saved = loadSavedMapView();
+      if (saved) return saved.zoom;
+    }
+    return window.innerWidth >= 1024 ? 3 : 2;
+  });
   const [isMapCenterLocked, setIsMapCenterLocked] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -751,6 +805,48 @@ export default function Map() {
       }
     }, 100); // just after MapSizeController's 50ms invalidateSize
     return () => clearTimeout(timer);
+  }, [activeTab]);
+
+  // Persist the live map view (center + zoom) whenever the user pans or zooms so
+  // that navigating away and back (e.g. to view a treasure) restores their position.
+  // Leaflet's internal view is the source of truth after a user gesture, so we
+  // read directly from the map instance rather than from React state. The map ref
+  // is populated asynchronously by GeocacheMap's MapRefController, so we retry
+  // briefly until the instance is available, then attach the listeners.
+  useEffect(() => {
+    let map: L.Map | null = null;
+    let cancelled = false;
+
+    const persistView = () => {
+      if (!map) return;
+      const center = map.getCenter();
+      saveMapView({
+        center: { lat: center.lat, lng: center.lng },
+        zoom: map.getZoom(),
+      });
+    };
+
+    const attach = () => {
+      if (cancelled) return;
+      map = desktopMapRef.current ?? mapRef.current;
+      if (map) {
+        map.on('moveend', persistView);
+        map.on('zoomend', persistView);
+      } else {
+        retryTimer = window.setTimeout(attach, 150);
+      }
+    };
+
+    let retryTimer = window.setTimeout(attach, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(retryTimer);
+      if (map) {
+        map.off('moveend', persistView);
+        map.off('zoomend', persistView);
+      }
+    };
   }, [activeTab]);
 
   const dismissNearMe = () => {
