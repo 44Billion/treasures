@@ -6,6 +6,8 @@ import type { NostrSigner } from '@nostrify/types';
 import { useAppContext } from '@/hooks/useAppContext';
 import { getEffectiveRelays } from '@/lib/appRelays';
 import { NostrBatcher } from '@/lib/NostrBatcher';
+import { NIndexedDBStore } from '@/lib/NIndexedDBStore';
+import { EventStoreContext } from '@/contexts/EventStoreContext';
 
 interface NostrProviderProps {
   children: React.ReactNode;
@@ -18,6 +20,14 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
 
   // Create NPool instance only once
   const pool = useRef<NPool | undefined>(undefined);
+
+  // Open the IndexedDB event store once. This is the "local backup relay":
+  // the batcher mirrors every relay result into it (so reads can be served
+  // cache-first / offline), and it's provided through EventStoreContext so
+  // hooks can read it directly. Opening it here lets the batcher and the rest
+  // of the app share a single connection.
+  const eventStore = useRef<Promise<NIndexedDBStore> | undefined>(undefined);
+  eventStore.current ??= NIndexedDBStore.open();
 
   // Use refs so the pool always has the latest data
   const effectiveRelays = useRef(getEffectiveRelays(config.relayMetadata, config.useAppRelays));
@@ -106,7 +116,7 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   // Wrap the pool in a batching proxy
   const batcher = useRef<NostrBatcher | undefined>(undefined);
   if (!batcher.current && pool.current) {
-    batcher.current = new NostrBatcher(pool.current);
+    batcher.current = new NostrBatcher(pool.current, eventStore.current);
   }
 
   // Cleanup: Close all relay connections when the provider unmounts
@@ -120,7 +130,9 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
 
   return (
     <NostrContext.Provider value={{ nostr: (batcher.current ?? pool.current) as unknown as NPool }}>
-      {children}
+      <EventStoreContext.Provider value={eventStore.current}>
+        {children}
+      </EventStoreContext.Provider>
     </NostrContext.Provider>
   );
 };

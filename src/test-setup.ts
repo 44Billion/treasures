@@ -1,31 +1,9 @@
 // Test setup for Vitest
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
-
-// Mock IndexedDB for tests
-Object.defineProperty(global, 'indexedDB', {
-  value: {
-    open: vi.fn().mockReturnValue({
-      onsuccess: null,
-      onerror: null,
-      onupgradeneeded: null,
-      result: {
-        createObjectStore: vi.fn(),
-        transaction: vi.fn().mockReturnValue({
-          objectStore: vi.fn().mockReturnValue({
-            get: vi.fn().mockReturnValue({ result: null }),
-            put: vi.fn(),
-            delete: vi.fn(),
-            getAll: vi.fn().mockReturnValue({ result: [] }),
-          }),
-          complete: Promise.resolve(),
-        }),
-        close: vi.fn(),
-      },
-    }),
-  },
-  writable: true,
-});
+// Provide a real in-memory IndexedDB (and the IDB* global classes) so code
+// using the `idb` library (e.g. NIndexedDBStore) works under jsdom.
+import 'fake-indexeddb/auto';
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
