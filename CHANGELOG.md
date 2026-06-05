@@ -1,6 +1,23 @@
 # Changelog
 
-## [2.5.3] - 2026-05-29
+## [2.6.0] - 2026-06-05
+
+Treasure owners can now crown a First to Find winner straight from a log's menu — handy when someone clearly nabbed the find but never ran the verified-find flow. The map remembers exactly where you left it, so jumping back from a treasure no longer snaps you across the world, and your treasures now ride along in a local backup so they survive reloads and offline trips. KrakenM shows up with fresh artwork across the app, plus mobile fixes for directions, coordinate entry, and the edit bar.
+
+### Added
+- Owners can mark a finder as the First to Find winner from a log's menu, even when the finder never used the verified-find flow — the trophy badge and claim banner update to match
+- Treasures and profiles are now mirrored to a local backup on your device, so they survive reloads and keep showing up when you're offline or the network hiccups
+- Fresh KrakenM artwork across the Home, How To, Claim, and About screens
+
+### Changed
+- The map now remembers your zoom and position, so heading back to it after viewing a treasure keeps you right where you were
+- Location locks are quieter and lean on your device's GPS first when you're offline
+- The unlisted toggle now always appears in the treasure edit form, so you can flip a listing's visibility no matter its current state
+
+### Fixed
+- "Get directions" now prefills the destination correctly when opening OpenStreetMap
+- Coordinate entry on mobile no longer fights your keyboard, making it easier to type and edit positions
+- The edit bar on mobile now clears the safe-area inset instead of hiding behind it
 
 The Treasure Trolls hunt in Oslo is live, and the Treasure Trolls landing page now says so. A pulsing "Live in Oslo Now" badge sits up top, and a new "Start the Hunt" button drops you straight into the adventure so you can start tracking down all ten trolls.
 
