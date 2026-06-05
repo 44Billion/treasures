@@ -267,7 +267,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
               className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
               onClick={() => {
                 window.open(
-                  `https://www.openstreetmap.org/directions?from=&to=${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
+                  `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
                   "_blank"
                 );
               }}

@@ -1151,7 +1151,7 @@ export default function CacheDetail() {
                     onClick={() => {
                       const location = isEditing && editLocation ? editLocation : geocache.location;
                       window.open(
-                        `https://www.openstreetmap.org/directions?from=&to=${location.lat}%2C${location.lng}#map=15/${location.lat}/${location.lng}`,
+                        `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${location.lat}%2C${location.lng}#map=15/${location.lat}/${location.lng}`,
                         "_blank"
                       );
                     }}
