@@ -96,11 +96,12 @@ export function getBearingLabel(bearing: number): string {
   return directions[index] || 'N';
 }
 
-// Multi-strategy geolocation, same approach as the app's existing useGeolocation hook.
-// Try fast network positioning first, then upgrade to high-accuracy GPS.
+// GPS-first geolocation, same approach as the app's useGeolocation hook.
+// Try the device GPS chip first (works offline, most accurate), then fall
+// back to network positioning (cell/wifi) which requires internet.
 const GPS_STRATEGIES = [
-  { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000, name: 'network-fast' },
   { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000, name: 'gps' },
+  { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000, name: 'network-fast' },
   { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000, name: 'network-cached' },
 ] as const;
 
@@ -110,8 +111,8 @@ const GPS_STRATEGIES = [
  * to calculate the direction and distance to the target.
  * 
  * Uses a multi-strategy approach for geolocation:
- * 1. Fast network-based positioning (cell/wifi) for a quick initial fix
- * 2. High-accuracy GPS for precise outdoor positioning
+ * 1. High-accuracy GPS for precise positioning (works offline)
+ * 2. Fast network-based positioning (cell/wifi) as a fallback
  * 3. Cached network fallback as last resort
  * 
  * After the initial fix, starts watchPosition for continuous updates.

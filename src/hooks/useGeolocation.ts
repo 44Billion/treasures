@@ -15,38 +15,31 @@ interface UseGeolocationOptions {
   maximumAge?: number;
 }
 
-// Android-optimized geolocation strategies
-// 
-// ROOT CAUSE ANALYSIS of Android geolocation failures:
-// 1. 30-second timeout was too long - Android often fails fast (3-8 seconds) or hangs indefinitely
-// 2. enableHighAccuracy: true on first attempt causes Android to wait for GPS lock, which often times out
-// 3. maximumAge: 300000 (5 minutes) was too long - Android cached stale/invalid positions
-// 4. No fallback to network-only positioning when GPS fails
-// 5. Nested callback structure made error handling unreliable
-// 6. No distinction between "GPS unavailable" vs "permission denied" vs "timeout"
+// GPS-first geolocation strategies.
 //
-// Android-specific behavior:
-// - GPS cold start can take 30+ seconds outdoors, often fails indoors
-// - Network positioning (cell towers + WiFi) is much faster and more reliable
-// - Android browsers aggressively timeout GPS requests to preserve battery
-// - Different Android versions handle geolocation permissions differently
+// We try the device GPS chip FIRST because it works fully offline (no internet,
+// no cell/wifi connection required) and gives the most accurate fix. Network
+// positioning (cell tower + wifi triangulation) and IP lookup require internet
+// and are only used as fallbacks when GPS is unavailable (e.g. indoors).
 //
+// Note: a high-accuracy GPS cold start can take longer than network positioning,
+// so the GPS timeout is generous before we fall back.
 const GEOLOCATION_STRATEGIES = [
-  // Strategy 1: Network-first approach (most reliable on Android)
+  // Strategy 1: High-accuracy GPS first (works offline, most accurate)
   {
-    enableHighAccuracy: false, // Use network positioning first
+    enableHighAccuracy: true,  // Use the device GPS chip directly
+    timeout: 12000,            // Allow time for a GPS fix (cold start)
+    maximumAge: 30000,         // 30 seconds - prefer a fresh GPS reading
+    name: 'gps-accurate'
+  },
+  // Strategy 2: Fast network positioning (needs internet, quick fallback)
+  {
+    enableHighAccuracy: false,
     timeout: 5000,             // Quick timeout for fast feedback
     maximumAge: 60000,         // 1 minute - fresh enough for most use cases
     name: 'network-fast'
   },
-  // Strategy 2: GPS with reasonable timeout (for outdoor/accurate positioning)
-  {
-    enableHighAccuracy: true,  // Try GPS but with realistic timeout
-    timeout: 12000,            // Longer but not excessive
-    maximumAge: 30000,         // 30 seconds - fresher for GPS
-    name: 'gps-moderate'
-  },
-  // Strategy 3: Network fallback with longer cache (last resort)
+  // Strategy 3: Network with longer cache (needs internet, last resort)
   {
     enableHighAccuracy: false,
     timeout: 8000,
@@ -106,18 +99,11 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
           );
         });
 
-        // Success! Update state and show feedback
+        // Success! Update state silently (no toast on a successful lock)
         setState({
           loading: false,
           error: null,
           coords: position.coords,
-        });
-
-        // Show success toast with accuracy info
-        const accuracy = Math.round(position.coords.accuracy);
-        toast({
-          title: "Location found",
-          description: `±${accuracy}m accuracy (${strategy.name})`,
         });
 
         return; // Exit early on success
@@ -176,11 +162,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
                 error: null,
                 coords: mockCoords,
               });
-              
-              toast({
-                title: "Location found",
-                description: `Using approximate location (~${Math.round(ipLocation.accuracy / 1000)}km accuracy)`,
-              });
+
               return;
             }
           } catch (ipError) {
