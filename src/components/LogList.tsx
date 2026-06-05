@@ -1,6 +1,6 @@
 import { LogText } from "./LogText";
 import { Link } from "react-router-dom";
-import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck, Zap } from "lucide-react";
+import { Trophy, X, FileText, User, Calendar, Trash2, MoreVertical, Copy, ShieldCheck, Zap, Award } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,12 +28,12 @@ import { useToast } from "@/hooks/useToast";
 import { formatDistanceToNow } from "@/utils/date";
 import { useLogStore } from "@/stores/useLogStore";
 import { ZapButton } from "@/components/ZapButton";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { nip19, nip57 } from "nostr-tools";
 
 import type { GeocacheLog, Geocache } from "@/types/geocache";
-import { getFtfWinner, hasModifier } from "@/utils/modifiers";
+import { getFtfWinner, getFtfStatus, hasModifier } from "@/utils/modifiers";
 
 
 interface LogListProps {
@@ -46,9 +46,30 @@ interface LogListProps {
    * the list renders unchanged.
    */
   cache?: Pick<Geocache, 'mission' | 'modifiers' | 'ftfWinner'>;
+  /**
+   * True when the current user owns the treasure listing. Gates the owner-only
+   * "Mark as first-to-find winner" action in the per-log menu.
+   */
+  isOwner?: boolean;
+  /**
+   * Invoked when the owner marks a log's author as the first-to-find winner.
+   * The parent is responsible for locking in the `F` tag (setting
+   * `ftfWinner` and archiving the listing). Only relevant on first-to-find
+   * treasures that have not yet been claimed/locked.
+   */
+  onMarkFtfWinner?: (log: GeocacheLog) => void;
+  /** Disables the mark action while a publish is in flight. */
+  isMarkingFtfWinner?: boolean;
 }
 
-export function LogList({ logs, compact = false, cache }: LogListProps) {
+export function LogList({
+  logs,
+  compact = false,
+  cache,
+  isOwner = false,
+  onMarkFtfWinner,
+  isMarkingFtfWinner = false,
+}: LogListProps) {
   // The "first verified find" trophy is awarded on every cache that has any
   // verified finds — it honors whoever was the first verified finder of this
   // treasure, regardless of whether the cache opts into first-to-find
@@ -61,6 +82,18 @@ export function LogList({ logs, compact = false, cache }: LogListProps) {
   // forged earlier `created_at` cannot steal the visual win.
   const firstVerifiedFindId = getFtfWinner(logs, cache?.ftfWinner)?.id;
   const isFtfCache = cache ? hasModifier(cache, 'first-to-find') : false;
+
+  // The owner can manually designate a finder as the FTF winner — useful when
+  // someone is confirmed by other means but never used the verified-find flow.
+  // This is only offered on first-to-find treasures that aren't already
+  // claimed or locked in. Once a (verified) claim or `F` tag exists, the
+  // winner is settled and the action is hidden.
+  const ftfStatus = cache ? getFtfStatus(cache, logs) : { kind: 'n/a' as const };
+  const canMarkFtfWinner =
+    isOwner &&
+    !!onMarkFtfWinner &&
+    isFtfCache &&
+    ftfStatus.kind === 'unclaimed';
 
   return (
     <div className="px-2 space-y-3 md:space-y-4">
@@ -83,6 +116,9 @@ export function LogList({ logs, compact = false, cache }: LogListProps) {
             compact={compact}
             isFtfWinner={isWinner}
             isLateVerifiedFind={isLateVerifiedFind}
+            canMarkFtfWinner={canMarkFtfWinner && log.type === 'found'}
+            onMarkFtfWinner={onMarkFtfWinner}
+            isMarkingFtfWinner={isMarkingFtfWinner}
           />
         );
       })}
@@ -106,9 +142,26 @@ interface LogCardProps {
    * do not constitute additional claims.
    */
   isLateVerifiedFind?: boolean;
+  /**
+   * True iff the owner is allowed to mark this log's author as the
+   * first-to-find winner (owner of an unclaimed FTF treasure, found log).
+   */
+  canMarkFtfWinner?: boolean;
+  /** Invoked when the owner marks this log's author as the FTF winner. */
+  onMarkFtfWinner?: (log: GeocacheLog) => void;
+  /** Disables the mark action while a publish is in flight. */
+  isMarkingFtfWinner?: boolean;
 }
 
-function LogCard({ log, compact = false, isFtfWinner = false, isLateVerifiedFind = false }: LogCardProps) {
+function LogCard({
+  log,
+  compact = false,
+  isFtfWinner = false,
+  isLateVerifiedFind = false,
+  canMarkFtfWinner = false,
+  onMarkFtfWinner,
+  isMarkingFtfWinner = false,
+}: LogCardProps) {
   // The log is always signed by the actual user now
   const { t } = useTranslation();
   const author = useAuthor(log.pubkey);
@@ -155,11 +208,20 @@ function LogCard({ log, compact = false, isFtfWinner = false, isLateVerifiedFind
   
   // Check if the current user is the author of this log
   const isOwnLog = user?.pubkey === log.pubkey;
-  
+
+  // Controls the "mark as first-to-find winner" confirmation dialog. Kept
+  // separate from the delete dialog so the two never collide.
+  const [showFtfConfirm, setShowFtfConfirm] = useState(false);
+
   // Log card rendering
 
   const handleDeleteLog = () => {
     deleteLog(log.id);
+  };
+
+  const handleConfirmMarkFtfWinner = () => {
+    onMarkFtfWinner?.(log);
+    setShowFtfConfirm(false);
   };
 
   const handleCopyEventId = async () => {
@@ -360,6 +422,18 @@ function LogCard({ log, compact = false, isFtfWinner = false, isLateVerifiedFind
                         <img src="https://ditto.pub/favicon.ico" alt="" className="h-4 w-4 mr-2" />
                         {t('logs.viewOnDitto', 'View on Ditto')}
                       </DropdownMenuItem>
+                      {canMarkFtfWinner && (
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setShowFtfConfirm(true);
+                          }}
+                          disabled={isMarkingFtfWinner}
+                        >
+                          <Award className="h-4 w-4 mr-2 text-primary" />
+                          {t('ftf.markWinner.menuItem', 'Mark as first-to-find winner')}
+                        </DropdownMenuItem>
+                      )}
                       {isOwnLog && (
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem className="text-red-600 focus:text-red-600">
@@ -409,6 +483,45 @@ function LogCard({ log, compact = false, isFtfWinner = false, isLateVerifiedFind
                     </AlertDialogContent>
                   )}
                 </AlertDialog>
+
+                {/* Owner-only: confirm marking this log's author as the
+                    first-to-find winner. This locks in the `F` tag and
+                    archives the listing — used when the finder is confirmed by
+                    other means and never used the verified-find flow. */}
+                {canMarkFtfWinner && (
+                  <AlertDialog open={showFtfConfirm} onOpenChange={setShowFtfConfirm}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {t('ftf.markWinner.confirm.title', 'Mark as first-to-find winner?')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t('ftf.markWinner.confirm.description', {
+                            name: authorName,
+                            defaultValue:
+                              'Confirm {{name}} as the official first-to-find winner. This locks in the winner and archives the listing. This action cannot be undone.',
+                          })}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isMarkingFtfWinner}>
+                          {t('ftf.markWinner.confirm.cancel', 'Cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleConfirmMarkFtfWinner();
+                          }}
+                          disabled={isMarkingFtfWinner}
+                        >
+                          {isMarkingFtfWinner
+                            ? t('ftf.markWinner.confirm.marking', 'Marking...')
+                            : t('ftf.markWinner.confirm.confirm', 'Confirm winner')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
             </div>
 

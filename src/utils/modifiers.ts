@@ -73,9 +73,16 @@ export function hasModifier(
  * @param logs   Logs known for the treasure.
  * @param lockedWinner Optional locked-in winner pubkey from the treasure's
  *                     `F` tag. When provided, the winning log is the earliest
- *                     verified found log authored by that pubkey — this
- *                     protects against later-published logs with forged
- *                     earlier `created_at` values displacing a locked claim.
+ *                     found log authored by that pubkey — this protects
+ *                     against later-published logs with forged earlier
+ *                     `created_at` values displacing a locked claim.
+ *
+ *                     When a winner is locked in, verification is NOT required
+ *                     for that author's logs: the owner has explicitly attested
+ *                     the winner via the `F` tag (e.g. confirming a finder "by
+ *                     other means" who never used the verified-find flow). For
+ *                     unlocked (provisional) claims, only verified found logs
+ *                     are eligible.
  */
 export function getFtfWinner(
   logs: GeocacheLog[],
@@ -83,8 +90,15 @@ export function getFtfWinner(
 ): GeocacheLog | undefined {
   let winner: GeocacheLog | undefined;
   for (const log of logs) {
-    if (log.type !== 'found' || !log.isVerified) continue;
-    if (lockedWinner && log.pubkey !== lockedWinner) continue;
+    if (log.type !== 'found') continue;
+    if (lockedWinner) {
+      // Owner-attested winner: any found log by the locked-in author counts,
+      // verified or not.
+      if (log.pubkey !== lockedWinner) continue;
+    } else if (!log.isVerified) {
+      // Provisional claim: only verified finds are eligible.
+      continue;
+    }
     if (!winner) {
       winner = log;
       continue;

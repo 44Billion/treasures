@@ -186,6 +186,49 @@ describe('getFtfWinner', () => {
     });
     expect(getFtfWinner([bob], 'alice')).toBeUndefined();
   });
+
+  it('counts a locked-in pubkey\'s UNVERIFIED found log as the winner', () => {
+    // Owner manually marks Alice as the winner (confirmed by other means).
+    // Alice never used the verified-find flow, so her found log is not
+    // verified — but because she is the locked-in winner, her log wins.
+    const alice = log({
+      id: 'alice-log',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: false,
+      created_at: 100,
+    });
+    expect(getFtfWinner([alice], 'alice')?.id).toBe('alice-log');
+  });
+
+  it('picks the earliest found log by the locked-in pubkey regardless of verification', () => {
+    const early = log({
+      id: 'early',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: false,
+      created_at: 100,
+    });
+    const late = log({
+      id: 'late',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: true,
+      created_at: 200,
+    });
+    expect(getFtfWinner([late, early], 'alice')?.id).toBe('early');
+  });
+
+  it('still ignores non-found logs by the locked-in pubkey', () => {
+    const note = log({
+      id: 'note',
+      pubkey: 'alice',
+      type: 'note',
+      isVerified: false,
+      created_at: 100,
+    });
+    expect(getFtfWinner([note], 'alice')).toBeUndefined();
+  });
 });
 
 describe('getFtfStatus', () => {
@@ -269,6 +312,27 @@ describe('getFtfStatus', () => {
       [],
     );
     expect(status).toEqual({ kind: 'locked', winnerPubkey: 'alice' });
+  });
+
+  it('reports claimed+locked for a manually-marked winner with an unverified log', () => {
+    // Owner marked Alice as the FTF winner via the per-log menu; her found
+    // log is present but unverified. The status is a locked claim.
+    const aliceUnverified = log({
+      id: 'alice-log',
+      pubkey: 'alice',
+      type: 'found',
+      isVerified: false,
+      created_at: 100,
+    });
+    const status = getFtfStatus(
+      { modifiers: ['first-to-find'], ftfWinner: 'alice' },
+      [aliceUnverified],
+    );
+    expect(status.kind).toBe('claimed');
+    if (status.kind === 'claimed') {
+      expect(status.winner.pubkey).toBe('alice');
+      expect(status.locked).toBe(true);
+    }
   });
 });
 

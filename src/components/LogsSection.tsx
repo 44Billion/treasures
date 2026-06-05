@@ -60,6 +60,14 @@ interface LogsSectionProps {
    */
   keyQuestLocked?: boolean;
   autoFocusVerifiedForm?: boolean;
+  /**
+   * Invoked when the owner marks a log's author as the first-to-find winner
+   * from the per-log menu. The parent locks in the `F` tag and archives the
+   * listing. Only surfaced on unclaimed first-to-find treasures.
+   */
+  onMarkFtfWinner?: (log: GeocacheLog) => void;
+  /** Disables the mark action while the lock-in publish is in flight. */
+  isMarkingFtfWinner?: boolean;
 }
 
 export function LogsSection({
@@ -73,6 +81,8 @@ export function LogsSection({
   hideForm = false,
   keyQuestLocked = false,
   autoFocusVerifiedForm = false,
+  onMarkFtfWinner,
+  isMarkingFtfWinner = false,
 }: LogsSectionProps) {
   // Logs received from parent component
   const { t } = useTranslation();
@@ -343,7 +353,14 @@ export function LogsSection({
       )}
 
       {logs && logs.length > 0 ? (
-        <LogList logs={logs} compact={compact} cache={geocache} />
+        <LogList
+          logs={logs}
+          compact={compact}
+          cache={geocache}
+          isOwner={isOwner}
+          onMarkFtfWinner={onMarkFtfWinner}
+          isMarkingFtfWinner={isMarkingFtfWinner}
+        />
       ) : (
         <EmptyStateCard
           icon={Notebook}

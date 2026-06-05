@@ -408,6 +408,35 @@ export default function CacheDetail() {
     setGalleryOpen(true);
   };
 
+  /**
+   * Lock in a first-to-find winner: republish the treasure with
+   * `status='archived'` and the `F` tag set to the winner's pubkey. Per
+   * NIP-GC this is the canonical lock-in — subsequent verified logs can no
+   * longer displace this attribution. Used both by the FTF claim banner
+   * ("Archive & lock in winner") and by the owner-only "Mark as first-to-find
+   * winner" action on an individual log (for finders confirmed by other means
+   * who never used the verified-find flow).
+   */
+  const lockInFtfWinner = (winnerPubkey: string) => {
+    if (!geocache || !isOwner) return;
+    editGeocache({
+      name: geocache.name,
+      description: geocache.description,
+      hint: geocache.hint,
+      mission: geocache.mission,
+      difficulty: geocache.difficulty,
+      terrain: geocache.terrain,
+      size: geocache.size,
+      type: geocache.type,
+      images: geocache.images,
+      hidden: geocache.hidden,
+      status: 'archived',
+      modifiers: geocache.modifiers,
+      ftfWinner: winnerPubkey,
+      location: geocache.location,
+    });
+  };
+
   const handleCopyToClipboard = async (text: string, itemType: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -951,22 +980,7 @@ export default function CacheDetail() {
                   // the winner's pubkey. This is the canonical lock-in: per
                   // NIP-GC, subsequent verified logs can no longer displace
                   // this attribution.
-                  editGeocache({
-                    name: geocache.name,
-                    description: geocache.description,
-                    hint: geocache.hint,
-                    mission: geocache.mission,
-                    difficulty: geocache.difficulty,
-                    terrain: geocache.terrain,
-                    size: geocache.size,
-                    type: geocache.type,
-                    images: geocache.images,
-                    hidden: geocache.hidden,
-                    status: 'archived',
-                    modifiers: geocache.modifiers,
-                    ftfWinner: winnerPubkey,
-                    location: geocache.location,
-                  });
+                  lockInFtfWinner(winnerPubkey);
                 };
                 return (
                   <FtfClaimBanner
@@ -987,6 +1001,8 @@ export default function CacheDetail() {
                 isVerificationValid={isVerificationValid}
                 keyQuestLocked={!!geocache.mission && !(verificationKey && isVerificationValid)}
                 autoFocusVerifiedForm={isVerificationValid && !showRevealOverlay}
+                onMarkFtfWinner={(log) => lockInFtfWinner(log.pubkey)}
+                isMarkingFtfWinner={isEditingGeocache}
               />
             </div>
           </div>
