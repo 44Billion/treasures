@@ -22,7 +22,7 @@ export default function Changelog() {
             {t('changelog.title', "What's new")}
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
-            {t('changelog.subtitle', 'A running log of every Treasures release, written for finders and hiders — not for developers.')}
+            {t('changelog.subtitle', 'A running log of every Treasures release, written for finders and hiders.')}
           </p>
         </div>
 
