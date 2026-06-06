@@ -4,6 +4,7 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
+  ArrowRight,
   BadgeCheck,
   Calendar,
   Clock,
@@ -22,6 +23,7 @@ import { DesktopHeader } from "@/components/DesktopHeader";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { MAP_STYLES } from "@/config/mapStyles";
+import { BOQM_NADDR } from "@/lib/constants";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 /** Palmer Event Center, Austin TX */
@@ -393,7 +395,7 @@ export default function BOQM() {
               "drop-shadow(0 2px 3px rgba(0,0,0,0.55)) drop-shadow(0 6px 18px rgba(255,170,60,0.45))",
           }}
         >
-          A treasure hunt at
+          A treasure adventure at
         </span>
         <span
           className="block mt-1 md:mt-2 text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight bg-clip-text text-transparent"
@@ -409,7 +411,7 @@ export default function BOQM() {
             faded emblem image rather than rendering below it. */}
         <span className="block mt-4 md:mt-5 text-sm md:text-base font-medium text-white max-w-xl mx-auto [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
           Two days of 100+ LGBTQIA+ artists, makers, and small businesses,
-          plus a real-world treasure hunt scattered throughout the expo.
+          plus a real-world treasure adventure scattered throughout the expo.
         </span>
       </span>
     </span>
@@ -417,6 +419,17 @@ export default function BOQM() {
 
   return (
     <>
+      <style>{`
+        @keyframes boqm-live-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255, 62, 165, 0.55); }
+          50% { box-shadow: 0 0 0 8px rgba(255, 62, 165, 0); }
+        }
+        @keyframes boqm-live-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.7); }
+        }
+      `}</style>
+
       {/* Logged-out welcome overlay. Driven by the `welcomeOpen` latch
           rather than `!user` so the overlay survives the login that happens
           mid-flow during signup, keeping the profile step on screen. */}
@@ -469,7 +482,7 @@ export default function BOQM() {
           <div className="mb-10">
             <div className="flex items-center justify-center gap-2 mb-4 text-xs md:text-sm font-medium uppercase tracking-[0.22em] text-white/85 [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
               <Clock className="h-3.5 w-3.5" />
-              {remaining.done ? "The hunt is on!" : "Adventure begins in"}
+              {remaining.done ? "The adventure is on!" : "Adventure begins in"}
             </div>
             <div className="flex items-center justify-center gap-3 md:gap-6">
               <CountdownCell value={remaining.days} label="Days" />
@@ -484,18 +497,47 @@ export default function BOQM() {
 
           <MiniBunting />
 
-          {/* ── Coming Soon ──────────────────────────────────────── */}
-          <div className="rounded-xl border-2 border-dashed border-primary/40 bg-card/95 backdrop-blur-sm mb-8 p-6 md:p-8 text-center shadow-lg">
+          {/* ── Live Adventure ───────────────────────────────────── */}
+          <div className="rounded-xl border-2 border-primary/50 bg-card/95 backdrop-blur-sm mb-8 p-6 md:p-8 text-center shadow-lg">
+            {/* Live indicator — the BOQM adventure is on now */}
+            <div className="mb-4 flex justify-center">
+              <span
+                className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs md:text-sm font-bold uppercase tracking-[0.22em] text-white"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #ff1a4d 0%, #ff3ea5 100%)",
+                  animation: "boqm-live-pulse 2.2s ease-in-out infinite",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-2.5 rounded-full bg-white"
+                  style={{ animation: "boqm-live-dot 1.2s ease-in-out infinite" }}
+                />
+                Live Now
+              </span>
+            </div>
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/15 mb-3">
               <Compass className="h-6 w-6 text-primary" />
             </div>
             <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">
-              Adventure details coming soon
+              The adventure is on!
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Cache list, prizes, and the official hunt map will drop closer to
-              the event. Bookmark this page so you're ready on day one.
+              Treasures are hidden throughout the expo right now. Open the
+              adventure, grab the official map, and start finding them.
             </p>
+
+            {/* Primary CTA — head into the live adventure */}
+            <div className="flex justify-center mt-5">
+              <Button asChild size="lg">
+                <Link to={`/adventure/${BOQM_NADDR}`}>
+                  <Compass className="h-4 w-4 mr-2" />
+                  Start the Adventure
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
 
             {/* ── Prizes ───────────────────────────────────────────
                 Vertical stack: a small Grand Prize callout sits on top,
@@ -513,7 +555,7 @@ export default function BOQM() {
                   Grand Prizes
                 </span>
                 <span className="text-muted-foreground">
-                  for the weekend's best treasure hunters
+                  for the weekend's best treasure finders
                 </span>
               </div>
 
@@ -563,7 +605,7 @@ export default function BOQM() {
                       1st treasure. Purchase your BOQM ticket with code{" "}
                       <span className="font-semibold text-foreground">TREASURES</span>{" "}
                       for 20% off entrance (or let them know at the door), and
-                      continue the hunt inside!
+                      continue the adventure inside!
                     </p>
                   </div>
                 </div>
@@ -600,9 +642,9 @@ export default function BOQM() {
               )}
             </div>
 
-            {/* Logged-in pre-event teaser: an inline map of existing
-                treasures around Austin so visitors can warm up before the
-                official BOQM hunt drops. The map component carries its own
+            {/* Logged-in warm-up: an inline map of existing treasures around
+                Austin so visitors can explore alongside the official BOQM
+                adventure. The map component carries its own
                 "Ready to adventure now?" copy. */}
             {user && <AustinTreasuresMap />}
 
