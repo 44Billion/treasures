@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from '@/utils/utils';
 import { useRadarOverlay } from '@/hooks/useRadarOverlay';
+import { useAdventureListNav } from '@/hooks/useAdventureListNav';
 import {
   Select,
   SelectContent,
@@ -710,17 +711,20 @@ function BottomNavItem({
   icon: Icon,
   children,
   isActive,
-  themeClasses
+  themeClasses,
+  onClick,
 }: {
   to: string;
   icon: React.ComponentType<{ className?: string }>;
   children: React.ReactNode;
   isActive: boolean;
   themeClasses: ReturnType<typeof getThemeClasses>;
+  onClick?: (e: React.MouseEvent) => void;
 }) {
   return (
     <Link
       to={to}
+      onClick={onClick}
       className={cn(
         "flex flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] transition-colors min-h-[44px]",
         isActive
@@ -752,6 +756,7 @@ export function MobileBottomNav() {
   const location = useLocation();
   const { theme } = useTheme();
   const { open: openRadar } = useRadarOverlay();
+  const { hasHandler: hasAdventureList, openList: openAdventureList } = useAdventureListNav();
   const isAdventureTheme = theme === 'adventure';
   const isDittoTheme = theme === 'ditto';
   const isMojaveTheme = theme === 'mojave';
@@ -803,17 +808,30 @@ export function MobileBottomNav() {
     )}>
       <div className="relative grid grid-cols-5 h-12 items-center">
         {/* Left two items */}
-        {leftNav.map((item) => (
-          <BottomNavItem
-            key={item.href}
-            to={item.href}
-            icon={item.icon}
-            isActive={isItemActive(item.href)}
-            themeClasses={themeClasses}
-          >
-            {item.name}
-          </BottomNavItem>
-        ))}
+        {leftNav.map((item) => {
+          // When viewing an adventure, intercept the "List" tap so it opens
+          // the adventure's own treasure-list drawer instead of navigating to
+          // the global list (which would drop the adventure context).
+          const isListItem = item.href.includes('tab=list');
+          const onClick = isListItem && hasAdventureList
+            ? (e: React.MouseEvent) => {
+                e.preventDefault();
+                openAdventureList();
+              }
+            : undefined;
+          return (
+            <BottomNavItem
+              key={item.href}
+              to={item.href}
+              icon={item.icon}
+              isActive={isItemActive(item.href)}
+              themeClasses={themeClasses}
+              onClick={onClick}
+            >
+              {item.name}
+            </BottomNavItem>
+          );
+        })}
 
         {/* Center compass button — notched into the bar, peeks slightly.
             The whole cell (label + FAB) is a single button for a large tap target. */}

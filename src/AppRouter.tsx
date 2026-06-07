@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RadarOverlayProvider } from "@/hooks/useRadarOverlay";
+import { AdventureListNavProvider } from "@/hooks/useAdventureListNav";
 import { GlobalRadarCompass } from "@/components/GlobalRadarCompass";
 import { CompassSpinner } from "@/components/ui/loading";
 import { TEXAS_REN_FEST_NADDR } from "@/lib/constants";
@@ -77,6 +78,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <RadarOverlayProvider>
+      <AdventureListNavProvider>
       <SkipToContent />
       {/* Scroll to top on route changes */}
       <ScrollToTop />
@@ -134,6 +136,7 @@ export function AppRouter() {
 
       {/* Global Radar Compass overlay — accessible from anywhere */}
       <GlobalRadarCompass />
+      </AdventureListNavProvider>
       </RadarOverlayProvider>
     </BrowserRouter>
   );

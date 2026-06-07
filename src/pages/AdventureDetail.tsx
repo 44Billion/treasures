@@ -33,6 +33,7 @@ import { useAdventureFtfStatus } from "@/hooks/useAdventureFtfStatus";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useToast } from "@/hooks/useToast";
 import { useTheme } from "@/hooks/useTheme";
+import { useAdventureListNav } from "@/hooks/useAdventureListNav";
 import { getAppOrigin } from "@/utils/appUrl";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { AdventureWelcomeOverlay } from "@/components/AdventureWelcomeOverlay";
@@ -47,6 +48,7 @@ export default function AdventureDetail() {
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { registerHandler: registerListNav } = useAdventureListNav();
   // Pick the right logo filter class for the active theme.
   const logoThemeClass =
     resolvedTheme === 'ditto' ? 'ditto-logo' :
@@ -143,6 +145,16 @@ export default function AdventureDetail() {
     didAutoOpenDrawer.current = true;
     setDrawerOpen(true);
   }, [isMobile, adventure, welcomeOpen, welcomeDismissed, user]);
+
+  // Register the mobile bottom-nav "List" handler so tapping it while on an
+  // adventure opens THIS adventure's treasure-list drawer instead of
+  // navigating away to the global list (which would lose the adventure
+  // context). Clears the handler on unmount so the nav falls back to its
+  // normal /map?tab=list navigation everywhere else.
+  useEffect(() => {
+    registerListNav(() => setDrawerOpen(true));
+    return () => registerListNav(null);
+  }, [registerListNav]);
 
   // Progress tracking
   const geocacheRefs = adventure?.geocacheRefs || [];
