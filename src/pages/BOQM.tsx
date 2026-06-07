@@ -428,6 +428,26 @@ export default function BOQM() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.7); }
         }
+        /* Pulsing glow + gentle bob to draw the eye to the primary
+           "Start the Adventure" CTA. */
+        @keyframes boqm-cta-glow {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(255, 62, 165, 0.5),
+                        0 8px 24px -6px rgba(255, 62, 165, 0.45);
+          }
+          50% {
+            box-shadow: 0 0 0 12px rgba(255, 62, 165, 0),
+                        0 12px 30px -6px rgba(255, 62, 165, 0.55);
+          }
+        }
+        @keyframes boqm-cta-arrow {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(4px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .boqm-cta-glow { animation: none !important; }
+          .boqm-cta-arrow { animation: none !important; }
+        }
       `}</style>
 
       {/* Logged-out welcome overlay. Driven by the `welcomeOpen` latch
@@ -528,15 +548,29 @@ export default function BOQM() {
               adventure, grab the official map, and start finding them.
             </p>
 
-            {/* Primary CTA — head into the live adventure */}
-            <div className="flex justify-center mt-5">
-              <Button asChild size="lg">
+            {/* Primary CTA — head into the live adventure. Oversized,
+                full-width on mobile, with a pulsing glow + nudging arrow so
+                it's unmistakably THE thing to tap. */}
+            <div className="flex flex-col items-center mt-6">
+              <Button
+                asChild
+                size="lg"
+                className="boqm-cta-glow w-full sm:w-auto h-14 px-8 text-base md:text-lg font-bold rounded-full"
+                style={{ animation: "boqm-cta-glow 2.4s ease-in-out infinite" }}
+              >
                 <Link to={`/adventure/${BOQM_NADDR}`}>
-                  <Compass className="h-4 w-4 mr-2" />
+                  <Compass className="h-5 w-5 mr-2.5" />
                   Start the Adventure
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="boqm-cta-arrow h-5 w-5 ml-2.5" style={{ animation: "boqm-cta-arrow 1.4s ease-in-out infinite" }} />
                 </Link>
               </Button>
+              <p className="mt-2.5 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
+                Tap to open the live map &amp; treasure list
+              </p>
             </div>
 
             {/* ── Prizes ───────────────────────────────────────────
@@ -601,8 +635,8 @@ export default function BOQM() {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Show this Treasures account at the door &amp; receive your
-                      1st treasure. Purchase your BOQM ticket with code{" "}
+                      Show this at the door &amp; receive your 1st treasure. Use
+                      code{" "}
                       <span className="font-semibold text-foreground">TREASURES</span>{" "}
                       for 20% off entrance (or let them know at the door), and
                       continue the adventure inside!
@@ -629,15 +663,15 @@ export default function BOQM() {
               </div>
             </div>
             <div className="flex flex-wrap justify-center gap-2 mt-5">
-              {/* Logged-out visitors get the CTA that re-opens the welcome
-                  overlay. Logged-in visitors get an inline Austin treasures
-                  map instead (rendered below this row). The ticket button
-                  lives in the Event Details → Admission block now, since
-                  it's most relevant alongside pricing/parking info. */}
+              {/* Logged-out visitors get a quieter secondary link to set up an
+                  account first (re-opens the welcome overlay). The glowing
+                  "Start the Adventure" CTA above is the clear primary action,
+                  so this is intentionally demoted to a text-style button to
+                  avoid competing with it. The ticket button lives in the
+                  Event Details → Admission block. */}
               {!user && (
-                <Button onClick={handleStartQuest}>
-                  <Compass className="h-4 w-4 mr-2" />
-                  Start your Quest
+                <Button variant="link" onClick={handleStartQuest} className="text-sm text-muted-foreground">
+                  New here? Set up your free account first
                 </Button>
               )}
             </div>

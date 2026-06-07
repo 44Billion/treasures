@@ -58,6 +58,9 @@ export default function AdventureDetail() {
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [highlightedGeocache, setHighlightedGeocache] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Tracks whether we've already auto-opened the mobile treasure-list drawer
+  // for this mount, so the user can freely close it without it re-opening.
+  const didAutoOpenDrawer = useRef(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
 
@@ -96,6 +99,12 @@ export default function AdventureDetail() {
     }
     setWelcomeDismissed(true);
     setWelcomeOpen(false);
+    // Once the welcome overlay is out of the way, surface the treasure list
+    // (mobile only — desktop always shows the list in the sidebar).
+    if (isMobile) {
+      didAutoOpenDrawer.current = true;
+      setDrawerOpen(true);
+    }
   };
 
   const mapRef = useRef<L.Map | null>(null);
@@ -113,6 +122,27 @@ export default function AdventureDetail() {
       setWelcomeOpen(true);
     }
   }, [user, adventure, welcomeDismissed, welcomeOpen]);
+
+  // On mobile, surface the treasure list first when a visitor lands on a
+  // loaded adventure. The full-screen map is the default backdrop, but most
+  // people arriving (often via an event QR) want to see *what* there is to
+  // find before exploring the map — so we slide the list drawer down once.
+  // While the logged-out welcome overlay is showing we hold off (its dismiss
+  // handler opens the drawer instead). We auto-open only once per mount
+  // (tracked by a ref) so the user can freely close it.
+  useEffect(() => {
+    if (didAutoOpenDrawer.current) return;
+    if (!isMobile || !adventure) return;
+    // Hold off while the logged-out welcome overlay is (or is about to be)
+    // showing — its dismiss handler opens the drawer instead. `welcomeOpen`
+    // is set by a sibling effect on the same render the adventure first
+    // loads, so we also check the conditions that trigger it to avoid opening
+    // the drawer behind the overlay for one frame.
+    const welcomeWillShow = !user && !welcomeDismissed;
+    if (welcomeOpen || welcomeWillShow) return;
+    didAutoOpenDrawer.current = true;
+    setDrawerOpen(true);
+  }, [isMobile, adventure, welcomeOpen, welcomeDismissed, user]);
 
   // Progress tracking
   const geocacheRefs = adventure?.geocacheRefs || [];
