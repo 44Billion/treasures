@@ -885,6 +885,7 @@
   "signup.dialog.profile.uploadTitle": "Upload avatar image",
   "signup.dialog.profile.createProfile": "Create Profile & Begin Quest!",
   "signup.dialog.profile.skip": "Skip for now - Begin Quest!",
+  "signup.dialog.profile.skipHint": "You can always add your profile details later.",
   "signup.dialog.profile.settingUp": "Setting up account...",
   "signup.dialog.profile.creating": "Creating Profile...",
   "signup.dialog.done.title": "Welcome, Adventurer!",

@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Key, Compass, Sparkles, MapPin, Gem, Star, Crown, Map, Lock, Eye, EyeOff, Upload, Loader2, User, ScrollText, Camera } from 'lucide-react';
+import { Key, Compass, Sparkles, MapPin, Gem, Star, Crown, Map, Lock, Eye, EyeOff, Upload, Loader2, User, ScrollText, Camera, FastForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/useToast';
@@ -616,6 +616,21 @@ export function SignupFlow({ onComplete }: SignupFlowProps) {
                 </>
               )}
             </Button>
+
+            {/* Explicit, obvious skip -- profile info is optional */}
+            <Button
+              type='button'
+              variant='outline'
+              className='w-full rounded-full py-5 text-base font-semibold border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground/70 hover:bg-muted/50'
+              onClick={() => finishSignup(true)}
+              disabled={isPublishing || isUploading}
+            >
+              <FastForward className='w-4 h-4 mr-2' />
+              {t('signup.dialog.profile.skip')}
+            </Button>
+            <p className='text-xs text-muted-foreground text-center'>
+              {t('signup.dialog.profile.skipHint')}
+            </p>
           </div>
         )}
 

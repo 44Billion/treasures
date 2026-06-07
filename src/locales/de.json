@@ -883,6 +883,7 @@
   "signup.dialog.profile.uploadTitle": "Avatarbild hochladen",
   "signup.dialog.profile.createProfile": "Profil erstellen & Quest beginnen!",
   "signup.dialog.profile.skip": "Vorerst überspringen – Quest beginnen!",
+  "signup.dialog.profile.skipHint": "Du kannst deine Profildaten jederzeit später hinzufügen.",
   "signup.dialog.profile.settingUp": "Konto einrichten...",
   "signup.dialog.profile.creating": "Profil wird erstellt...",
   "signup.dialog.done.title": "Willkommen, Abenteurer!",

@@ -882,6 +882,7 @@
   "signup.dialog.profile.uploadTitle": "อัปโหลดรูปภาพอวตาร",
   "signup.dialog.profile.createProfile": "สร้างโปรไฟล์และเริ่มเควสต์!",
   "signup.dialog.profile.skip": "ข้ามไปก่อน - เริ่มเควสต์!",
+  "signup.dialog.profile.skipHint": "คุณสามารถเพิ่มรายละเอียดโปรไฟล์ได้ภายหลังเสมอ",
   "signup.dialog.profile.settingUp": "กำลังตั้งค่าบัญชี...",
   "signup.dialog.profile.creating": "กำลังสร้างโปรไฟล์...",
   "signup.dialog.done.title": "ยินดีต้อนรับ นักผจญภัย!",

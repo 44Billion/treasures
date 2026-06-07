@@ -882,6 +882,7 @@
   "signup.dialog.profile.uploadTitle": "アバター画像をアップロード",
   "signup.dialog.profile.createProfile": "プロフィールを作成してクエストを始める！",
   "signup.dialog.profile.skip": "今はスキップ - クエストを始める！",
+  "signup.dialog.profile.skipHint": "プロフィールの詳細は後からいつでも追加できます。",
   "signup.dialog.profile.settingUp": "アカウントを設定中...",
   "signup.dialog.profile.creating": "プロフィールを作成中...",
   "signup.dialog.done.title": "ようこそ、冒険者！",
