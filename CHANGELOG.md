@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.6.1] - 2026-06-07
+
+The Big Ole Queer Market × Treasures weekend is live in Austin, and the app is dressed for the party. A rainbow banner on the home page points everyone to the event page, which now sports a "Live Now" badge and a glowing "Start the Adventure" button that drops you into the hunt. On mobile, opening an adventure greets you with its treasure list, and the bottom-nav List button keeps you in context. Signing up is friendlier too, with a clear Skip button on the profile step.
+
+### Added
+- A festive Big Ole Queer Market × Treasures banner on the home page, linking to the event page for the live Austin weekend (June 6–7)
+- An obvious Skip button on the sign-up profile step, so you can jump straight into your first quest and add profile details whenever you like
+
+### Changed
+- The Big Ole Queer Market event page is now live, with a "Live Now" badge, a countdown, and a prominent "Start the Adventure" button that opens the official map and treasure list
+- On mobile, opening an adventure now surfaces its treasure list first, so you can see what there is to find before exploring the map
+- The mobile List button now opens the current adventure's treasure list instead of jumping to the global list, keeping you in context
+
 ## [2.6.0] - 2026-06-05
 
 Treasure owners can now crown a First to Find winner straight from a log's menu — handy when someone clearly nabbed the find but never ran the verified-find flow. The map remembers exactly where you left it, so jumping back from a treasure no longer snaps you across the world, and your treasures now ride along in a local backup so they survive reloads and offline trips. KrakenM shows up with fresh artwork across the app, plus mobile fixes for directions, coordinate entry, and the edit bar.
