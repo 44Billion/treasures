@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.6.2] - 2026-06-09
+
+The Big Ole Queer Market weekend has wrapped, so the festive banner and event pages have been retired. This release also squashes a frustrating bug where finding your location could spin forever — locating now always finishes quickly and tells you what happened if it can't get a fix, whether you're on the map or following the compass to a treasure.
+
+### Changed
+- The Big Ole Queer Market and Treasure Trolls event pages now simply note that the events have ended, with a link back home
+
+### Removed
+- The Big Ole Queer Market banner is gone from the home page now that the weekend is over
+
+### Fixed
+- Finding your location no longer spins forever — locating now finishes promptly and gives you a clear message if it can't get a fix, on both the map and the compass
+
 ## [2.6.1] - 2026-06-07
 
 The Big Ole Queer Market × Treasures weekend is live in Austin, and the app is dressed for the party. A rainbow banner on the home page points everyone to the event page, which now sports a "Live Now" badge and a glowing "Start the Adventure" button that drops you into the hunt. On mobile, opening an adventure greets you with its treasure list, and the bottom-nav List button keeps you in context. Signing up is friendlier too, with a clear Skip button on the profile step.
