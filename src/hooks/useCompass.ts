@@ -96,14 +96,20 @@ export function getBearingLabel(bearing: number): string {
   return directions[index] || 'N';
 }
 
-// GPS-first geolocation, same approach as the app's useGeolocation hook.
-// Try the device GPS chip first (works offline, most accurate), then fall
-// back to network positioning (cell/wifi) which requires internet.
+// Geolocation strategies, ordered for reliability on Android (same approach as
+// the app's useGeolocation hook). Do NOT lead with enableHighAccuracy: true --
+// on Android a cold high-accuracy request often hangs/fails and takes the
+// retries down with it. Lead with fast network positioning, then GPS (which is
+// also the offline path), then a longer-cached network fix.
 const GPS_STRATEGIES = [
-  { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000, name: 'gps' },
-  { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000, name: 'network-fast' },
-  { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000, name: 'network-cached' },
+  { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000, name: 'network-fast' },
+  { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000, name: 'gps' },
 ] as const;
+
+// Hard ceiling on the initial-fix phase. No matter what (silent provider, VPN
+// blocking network positioning, etc.), the locating spinner is guaranteed to
+// clear within this window so the compass never spins forever.
+const INITIAL_FIX_DEADLINE_MS = 8000;
 
 /**
  * Hook that provides a compass pointing toward a target geocache.
@@ -111,10 +117,10 @@ const GPS_STRATEGIES = [
  * to calculate the direction and distance to the target.
  * 
  * Uses a multi-strategy approach for geolocation:
- * 1. High-accuracy GPS for precise positioning (works offline)
- * 2. Fast network-based positioning (cell/wifi) as a fallback
- * 3. Cached network fallback as last resort
- * 
+ * 1. Fast network-based positioning (cell/wifi) for a quick, reliable fix
+ * 2. High-accuracy GPS for precise positioning (also works offline)
+ *
+ * A hard deadline guarantees the locating state always clears.
  * After the initial fix, starts watchPosition for continuous updates.
  */
 export function useCompass(target: CompassTarget | null) {
@@ -181,7 +187,19 @@ export function useCompass(target: CompassTarget | null) {
     // fires an error immediately if high-accuracy isn't available.
     let gotInitialFix = false;
 
+    // Hard safety net: if no strategy returns within the deadline (e.g. the
+    // device's location provider is silent behind a full-tunnel VPN), stop the
+    // spinner and surface an error instead of hanging indefinitely.
+    let timedOut = false;
+    const deadline = setTimeout(() => {
+      if (gotInitialFix) return;
+      timedOut = true;
+      setIsLocating(false);
+      setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
+    }, INITIAL_FIX_DEADLINE_MS);
+
     for (const strategy of GPS_STRATEGIES) {
+      if (timedOut) break;
       try {
         const position = await tryGetPosition({
           enableHighAccuracy: strategy.enableHighAccuracy,
@@ -189,6 +207,8 @@ export function useCompass(target: CompassTarget | null) {
           maximumAge: strategy.maximumAge,
         });
 
+        if (timedOut) break;
+        clearTimeout(deadline);
         applyPosition(position.coords);
         gotInitialFix = true;
         break; // Success, move on to watchPosition
@@ -197,6 +217,7 @@ export function useCompass(target: CompassTarget | null) {
 
         // Permission denied = stop immediately, no point trying other strategies
         if ('code' in error && error.code === GeolocationPositionError.PERMISSION_DENIED) {
+          clearTimeout(deadline);
           setIsLocating(false);
           setGpsError('Location access denied. Please enable location in your browser settings.');
           return;
@@ -205,6 +226,13 @@ export function useCompass(target: CompassTarget | null) {
         // Other errors (timeout, unavailable) -- try next strategy
         console.warn(`Compass GPS strategy "${strategy.name}" failed:`, error.message || error);
       }
+    }
+
+    clearTimeout(deadline);
+
+    if (timedOut) {
+      // The deadline guard already set the error/spinner state.
+      return;
     }
 
     if (!gotInitialFix) {

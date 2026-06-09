@@ -46,18 +46,9 @@ const IP_SERVICES = [
       accuracy: 30000,
       source: 'ipwhois.app'
     })
-  },
-  // Backup service with different approach
-  {
-    name: 'ip-api.com',
-    url: 'http://ip-api.com/json/',
-    parser: (data: Record<string, unknown>): IPLocation => ({
-      lat: parseFloat(data.lat as string) || 0,
-      lng: parseFloat(data.lon as string) || 0,
-      accuracy: 35000,
-      source: 'ip-api.com'
-    })
   }
+  // NOTE: http://ip-api.com was removed. It is plain HTTP and is blocked by the
+  // app's Content Security Policy (connect-src https:), so it can never succeed.
 ];
 
 export async function getIPLocation(): Promise<IPLocation | null> {
@@ -65,7 +56,7 @@ export async function getIPLocation(): Promise<IPLocation | null> {
   for (const service of IP_SERVICES) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000); // Slightly longer timeout
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // Keep IP lookups snappy
       
       const response = await fetch(service.url, {
         signal: controller.signal,
