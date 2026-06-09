@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { Search, Compass, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DesktopHeader } from "@/components/DesktopHeader";
-import { MarketBanner } from "@/components/MarketBanner";
 import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -359,9 +358,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* Big Ole Queer Market event banner — full-width, directly under hero */}
-      <MarketBanner />
 
       {/* Shared sky + gradient across How It Works + Recent Caches */}
       <div className="relative">
