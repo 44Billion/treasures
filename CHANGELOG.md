@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.7.0] - 2026-06-12
+
+Treasures that pay out in Lightning now wear a yellow bolt wherever you spot them — on cards, the map, and the treasure details — so a payout is easy to recognize at a glance. Found a treasure while offline? Your log is held safely on your device and sent automatically the moment you reconnect, with a quick heads-up when it goes through. You can also edit a treasure's spoiler warning after publishing, and verified finds are now cryptographically double-checked for real authenticity.
+
+### Added
+- Treasures that pay out over Lightning now show a yellow bolt on cards, the map, and the treasure details, with a tap-to-open explanation of the payout
+- Logs you make while offline are now saved on your device and sent automatically when you're back online, with a confirmation when they go through
+- You can now edit a treasure's spoiler / content warning when editing it, not just when creating it
+
+### Changed
+- Archived treasures no longer clutter the recent treasures list on the home page
+
+### Fixed
+- Finding your location on a fresh start is now reliable on the first try, instead of needing a second attempt to get a fix
+- Verified finds are now genuinely verified — each one's signature is checked, so a verified badge truly means what it says
+
 ## [2.6.2] - 2026-06-09
 
 The Big Ole Queer Market weekend has wrapped, so the festive banner and event pages have been retired. This release also squashes a frustrating bug where finding your location could spin forever — locating now always finishes quickly and tells you what happened if it can't get a fix, whether you're on the map or following the compass to a treasure.
