@@ -1,8 +1,9 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { MobileHeader, MobileBottomNav } from "@/components/MobileNav";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { RadarOverlayProvider } from "@/hooks/useRadarOverlay";
 import { AdventureListNavProvider } from "@/hooks/useAdventureListNav";
 import { GlobalRadarCompass } from "@/components/GlobalRadarCompass";
@@ -50,6 +51,16 @@ function PageFallback() {
 }
 
 /**
+ * Route-level error boundary. Keyed by pathname so a crash in one page
+ * auto-resets when the user navigates away, and the surrounding shell
+ * (header, bottom nav, radar overlay) stays mounted and usable.
+ */
+function RouteBoundary({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  return <ErrorBoundary key={location.pathname}>{children}</ErrorBoundary>;
+}
+
+/**
  * Mounts `useNativeDeepLinks` so it lives inside the BrowserRouter
  * (where `useNavigate` is valid). Renders nothing.
  */
@@ -94,8 +105,9 @@ export function AppRouter() {
         tabIndex={-1}
         className="flex-1 flex flex-col pb-[calc(3rem+env(safe-area-inset-bottom,0px)+1rem)] md:pb-0 bg-background overflow-x-hidden focus:outline-none"
       >
-        <Suspense fallback={<PageFallback />}>
-          <Routes>
+        <RouteBoundary>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/map" element={<Map />} />
             <Route path="/create" element={<CreateCacheLanding />} />
@@ -127,8 +139,9 @@ export function AppRouter() {
             <Route path="/:naddr" element={<CacheDetail />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+            </Routes>
+          </Suspense>
+        </RouteBoundary>
       </main>
 
       {/* Mobile Bottom Navigation - Fixed positioned */}

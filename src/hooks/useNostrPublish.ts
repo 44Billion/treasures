@@ -5,12 +5,24 @@ import { TIMEOUTS, RETRY_CONFIG } from "@/config";
 import { getAdaptiveTimeout } from "@/utils/network";
 import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { ensureClientTag } from "@/lib/clientTag";
+import { enqueueEvent } from "@/lib/offlinePublishQueue";
 
 interface EventTemplate {
   kind: number;
   content?: string;
   tags?: string[][];
   created_at?: number;
+}
+
+/** Errors that indicate the network (not the user/signer) is the problem. */
+function isConnectivityError(message: string): boolean {
+  return (
+    message.includes('no promise in promise.any resolved') ||
+    message.includes('timeout') ||
+    message.includes('WebSocket') ||
+    message.includes('network') ||
+    message.includes('Failed to fetch')
+  );
 }
 
 export function useNostrPublish() {
@@ -45,7 +57,15 @@ export function useNostrPublish() {
         // Send to relays with retry logic and better error handling
         let lastError: Error | null = null;
         let publishSuccess = false;
-        
+
+        // Device is offline: skip the doomed relay attempts, queue the
+        // signed event for delivery when connectivity returns, and treat
+        // the action as successful from the user's point of view.
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          await enqueueEvent(event);
+          return event;
+        }
+
         for (let attempt = 1; attempt <= RETRY_CONFIG.PUBLISH_MAX_RETRIES; attempt++) {
           try {
             // Use shorter, more reasonable timeout for publishing
@@ -84,17 +104,16 @@ export function useNostrPublish() {
         // If all retries failed, throw the last error with better messaging
         if (!publishSuccess && lastError) {
           const errorMessage = lastError.message;
-          
-          if (errorMessage.includes('no promise in promise.any resolved')) {
-            throw new Error("All relay connections failed after multiple attempts. Please check your internet connection and try again.");
-          } else if (errorMessage.includes('timeout')) {
-            throw new Error("Connection timeout after multiple attempts. Your event may have been published successfully.");
-          } else if (errorMessage.includes('WebSocket')) {
-            throw new Error("Relay connection failed after multiple attempts. Please check your internet connection and try again.");
-          } else if (errorMessage.includes('relay')) {
+
+          // Connectivity failure: queue the signed event so it isn't lost,
+          // then surface success — the offline flush will deliver it.
+          if (isConnectivityError(errorMessage)) {
+            await enqueueEvent(event);
+            return event;
+          }
+
+          if (errorMessage.includes('relay')) {
             throw new Error("Relay error occurred after multiple attempts. Your event may have been published successfully.");
-          } else if (errorMessage.includes('network')) {
-            throw new Error("Network error after multiple attempts. Please check your internet connection and try again.");
           } else {
             throw new Error(`Failed to publish event after ${RETRY_CONFIG.PUBLISH_MAX_RETRIES} attempts: ${errorMessage}`);
           }

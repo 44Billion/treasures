@@ -60,7 +60,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { DifficultyTerrainRating } from '@/components/ui/difficulty-terrain-rating';
 import { useUploadFile } from '@/hooks/useUploadFile';
 import { useToast } from '@/hooks/useToast';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 
 import type { GeocacheFormData, GeocacheFormProps } from '@/types/geocache-form';

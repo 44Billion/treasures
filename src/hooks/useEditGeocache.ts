@@ -24,6 +24,8 @@ interface EditGeocacheData {
   images?: string[];
   hidden?: boolean;
   status?: 'archived' | 'maintenance';
+  /** Optional spoiler/content warning reason (NIP-36). Pass "" to clear. */
+  contentWarning?: string;
   modifiers?: TreasureModifier[];
   /** Optional first-to-find lock-in winner pubkey (hex). */
   ftfWinner?: string;
@@ -85,6 +87,9 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         verificationPubkey: originalGeocache.verificationPubkey, // Preserve verification key!
         hidden: data.hidden,
         status: data.status,
+        // Preserve original content warning unless the edit explicitly sets
+        // one (an empty string clears it - buildGeocacheTags skips blanks).
+        contentWarning: data.contentWarning ?? originalGeocache.contentWarning,
         modifiers: data.modifiers,
         ftfWinner: data.ftfWinner ?? originalGeocache.ftfWinner,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind!
@@ -137,6 +142,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         images: data.images || [],
         hidden: data.hidden,
         status: data.status,
+        contentWarning: (data.contentWarning ?? originalGeocache.contentWarning)?.trim() || undefined,
         modifiers: data.modifiers,
         ftfWinner: data.ftfWinner ?? originalGeocache.ftfWinner,
         location: data.location || originalGeocache.location,

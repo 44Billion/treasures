@@ -52,7 +52,7 @@ import { BlurredImage } from "@/components/BlurredImage";
 import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
 import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
-import { naddrToGeocache } from "@/utils/naddr-utils";
+import { parseNaddr } from "@/utils/naddr";
 import { encodeGeohash } from "@/utils/nip-gc";
 import { VerifiedReveal } from "@/components/VerifiedReveal";
 import { LoginDialog } from "@/components/auth";
@@ -192,6 +192,7 @@ export default function CacheDetail() {
         hidden: geocache.hidden || false,
         status: geocache.status,
         contentWarning: geocache.contentWarning || "",
+        modifiers: geocache.modifiers || [],
       });
       setEditImages(geocache.images || []);
       setEditLocation(geocache.location);
@@ -287,12 +288,8 @@ export default function CacheDetail() {
   // Check if this naddr belongs to the current user (can be determined without waiting for relay)
   const isOwnNaddr = (() => {
     if (!user || !naddr) return false;
-    try {
-      const decoded = naddrToGeocache(naddr);
-      return decoded.pubkey === user.pubkey;
-    } catch {
-      return false;
-    }
+    const decoded = parseNaddr(naddr);
+    return decoded?.pubkey === user.pubkey;
   })();
 
   // Show full-page loading animation for direct navigation
@@ -350,6 +347,8 @@ export default function CacheDetail() {
         type: geocache.type,
         hidden: geocache.hidden || false,
         status: geocache.status,
+        contentWarning: geocache.contentWarning || "",
+        modifiers: geocache.modifiers || [],
       });
       setEditImages(geocache.images || []);
       setEditLocation(geocache.location);
@@ -431,6 +430,7 @@ export default function CacheDetail() {
       images: geocache.images,
       hidden: geocache.hidden,
       status: 'archived',
+      contentWarning: geocache.contentWarning,
       modifiers: geocache.modifiers,
       ftfWinner: winnerPubkey,
       location: geocache.location,
@@ -508,12 +508,8 @@ export default function CacheDetail() {
         return false;
       }
 
-      try {
-        const decoded = naddrToGeocache(naddr);
-        return decoded.pubkey === user.pubkey;
-      } catch (error) {
-        return false;
-      }
+      const decoded = parseNaddr(naddr);
+      return decoded?.pubkey === user.pubkey;
     })();
 
     if (canCreateFromNaddr) {

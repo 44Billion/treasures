@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { PRESET_RELAYS } from '@/config/relays';
+import { PRESET_RELAYS } from '@/lib/appRelays';
 import { TIMEOUTS } from '@/config/timeouts';
 import type { NostrEvent } from '@nostrify/nostrify';
 

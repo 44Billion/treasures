@@ -36,7 +36,7 @@ import type { Geocache } from "@/types/geocache";
 import { calculateDistance as calculateDistanceFn } from "@/utils/geo";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
-import { cn } from "@/utils/utils";
+import { cn } from "@/lib/utils";
 import { useRadarOverlay } from "@/hooks/useRadarOverlay";
 import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
 import { hapticLight } from "@/utils/haptics";

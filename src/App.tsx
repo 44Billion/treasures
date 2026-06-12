@@ -20,6 +20,7 @@ import { APP_RELAYS } from '@/lib/appRelays';
 import { APP_BLOSSOM_SERVERS } from '@/lib/appBlossom';
 
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
+import { OfflinePublishFlush } from '@/components/OfflinePublishFlush';
 import './lib/i18n';
 import './styles/print.css';
 
@@ -67,6 +68,7 @@ export function App() {
           <NostrLoginProvider storageKey='nostr:login'>
             <NostrProvider>
               <NostrSync />
+              <OfflinePublishFlush />
               <DittoThemeInjector />
               <NWCProvider>
                 <StoreProvider>

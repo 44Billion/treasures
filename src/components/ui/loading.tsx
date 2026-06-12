@@ -3,7 +3,7 @@ import { LucideIcon, MapPin, Compass, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { useTheme } from "@/hooks/useTheme";
 
 // ============================================================================

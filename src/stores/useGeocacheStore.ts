@@ -3,7 +3,7 @@
  * Consolidates all geocache-related data management
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   useBaseStore,
@@ -13,7 +13,6 @@ import {
 
 import type {
   GeocacheStore,
-  GeocacheStoreState,
   StoreConfig,
   StoreActionResult
 } from './types';
@@ -31,7 +30,8 @@ import {
 } from '@/utils/nip-gc';
 import { generateVerificationKeyPair } from '@/utils/verification';
 import { generateCompactDTag } from '@/utils/dTag';
-import { getGeocachingRelays } from '@/utils/naddrrelays';
+import { useAppContext } from '@/hooks/useAppContext';
+import { getEffectiveRelays } from '@/lib/appRelays';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { QUERY_LIMITS, TIMEOUTS, LEGACY_GEOCACHE_IDS } from '@/config';
 import { calculateDistance } from '@/utils/geo';
@@ -42,24 +42,11 @@ import { calculateDistance } from '@/utils/geo';
 export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheStore {
   const baseStore = useBaseStore('geocache', config);
   const { user } = useCurrentUser();
-
-  // Store state
-  const [state, setState] = useState<GeocacheStoreState>(() => ({
-    ...baseStore.createBaseState(),
-    geocaches: [],
-    userGeocaches: [],
-    nearbyGeocaches: [],
-    selectedGeocache: null,
-    syncStatus: baseStore.getSyncStatus(),
-    cacheStats: baseStore.getCacheStats(),
-  }));
+  const { config: appConfig } = useAppContext();
 
   // Pagination state
   const [hasMore, setHasMore] = useState(true);
   const [oldestTimestamp, setOldestTimestamp] = useState<number | null>(null);
-
-  // Update state helper - use useCallback to make it stable
-
 
   // Main geocaches query with performance optimization and batching
   const geocachesQuery = useQuery({
@@ -128,19 +115,16 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     refetchInterval: false, // No background sync
   });
 
-  // Update state when query data changes
-  useEffect(() => {
-    if (geocachesQuery.data) {
-      setState(prev => ({
-        ...prev,
-        geocaches: geocachesQuery.data,
-        isLoading: geocachesQuery.isLoading,
-        isError: geocachesQuery.isError,
-        error: geocachesQuery.error as Error | null,
-        lastUpdate: geocachesQuery.dataUpdatedAt ? new Date(geocachesQuery.dataUpdatedAt) : null,
-      }));
-    }
-  }, [geocachesQuery.data, geocachesQuery.isLoading, geocachesQuery.isError, geocachesQuery.error, geocachesQuery.dataUpdatedAt]);
+  // Geocache list derived directly from the query cache (single source of truth).
+  // Mutations and pagination write into the cache via setQueryData below.
+  const geocaches = useMemo(() => geocachesQuery.data ?? [], [geocachesQuery.data]);
+
+  /** Write an updated geocache list into the query cache. */
+  const setGeocacheList = useCallback((updater: (prev: Geocache[]) => Geocache[]) => {
+    const key = createQueryKey('geocache', 'list');
+    const prev = baseStore.getQueryData<Geocache[]>(key) ?? [];
+    baseStore.setQueryData(key, updater(prev));
+  }, [baseStore]);
 
   // Optimized data fetching actions
   const fetchGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
@@ -165,7 +149,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const loadMoreGeocaches = useCallback(async (): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
       if (!hasMore || !oldestTimestamp) {
-        return state.geocaches;
+        return geocaches;
       }
 
       // Query for kind 37516 geocaches before the oldest timestamp
@@ -205,18 +189,13 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         setHasMore(false);
       }
 
-      // Combine with existing geocaches
-      const allGeocaches = [...state.geocaches, ...newGeocaches];
-
-      // Update state with combined geocaches
-      setState(prev => ({
-        ...prev,
-        geocaches: allGeocaches,
-      }));
+      // Combine with existing geocaches and write into the query cache
+      const allGeocaches = [...geocaches, ...newGeocaches];
+      setGeocacheList(() => allGeocaches);
 
       return allGeocaches;
     }, 'loadMoreGeocaches');
-  }, [baseStore, hasMore, oldestTimestamp, state.geocaches, user?.pubkey]);
+  }, [baseStore, hasMore, oldestTimestamp, geocaches, setGeocacheList, user?.pubkey]);
 
   const fetchGeocache = useCallback(async (id: string): Promise<StoreActionResult<Geocache>> => {
     return baseStore.safeAsyncOperation(async () => {
@@ -274,9 +253,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     radius: number = 50
   ): Promise<StoreActionResult<Geocache[]>> => {
     return baseStore.safeAsyncOperation(async () => {
-      // Get current geocaches from state
-      const currentGeocaches = state.geocaches;
-      const nearby = currentGeocaches.filter(geocache => {
+      const nearby = geocaches.filter(geocache => {
         if (!geocache.location?.lat || !geocache.location?.lng) return false;
         const distance = calculateDistance(lat, lon, geocache.location.lat, geocache.location.lng);
         return distance <= radius;
@@ -284,7 +261,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
       return nearby;
     }, 'fetchNearbyGeocaches');
-  }, [baseStore, state.geocaches]);
+  }, [baseStore, geocaches]);
 
 
 
@@ -327,7 +304,11 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       // Use provided dTag if available (for claim URLs), otherwise generate a new
       // 6-char random hex d-tag (compact and URL-friendly).
       const dTag = geocacheData.dTag || generateCompactDTag();
-      const relayPreferences = getGeocachingRelays();
+      // Relay hints for the event's `r` tags: the user's effective write relays
+      const relayPreferences = getEffectiveRelays(appConfig.relayMetadata, appConfig.useAppRelays)
+        .relays.filter((r) => r.write)
+        .map((r) => r.url)
+        .slice(0, 4);
 
       // Generate verification key pair or use provided one
       const verificationKeyPair = (geocacheData as any).verificationKeyPair || await generateVerificationKeyPair();
@@ -370,16 +351,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       return { event: signedEvent, verificationKeyPair };
     },
     onSuccess: ({ event }) => {
-      // Parse the new geocache from the event
+      // Parse the new geocache from the event and prepend to the cached list
       const newGeocache = parseGeocacheEvent(event);
       if (newGeocache) {
-        setState(prev => ({
-          ...prev,
-          geocaches: [newGeocache, ...prev.geocaches],
-          userGeocaches: user?.pubkey === newGeocache.pubkey
-            ? [newGeocache, ...prev.userGeocaches]
-            : prev.userGeocaches,
-        }));
+        setGeocacheList(prev => [newGeocache, ...prev]);
       }
     },
   });
@@ -391,7 +366,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       }
 
       // Find the original geocache
-      const originalGeocache = state.geocaches.find(g => g.id === id);
+      const originalGeocache = geocaches.find(g => g.id === id);
       if (!originalGeocache) {
         throw new Error("Geocache not found");
       }
@@ -479,14 +454,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       return {};
     },
     onSuccess: (event, { id }) => {
-      // Parse the updated geocache from the event
+      // Parse the updated geocache from the event and replace it in the cached list
       const updatedGeocache = parseGeocacheEvent(event);
       if (updatedGeocache) {
-        setState(prev => ({
-          ...prev,
-          geocaches: prev.geocaches.map(g => g.id === id ? updatedGeocache : g),
-          userGeocaches: prev.userGeocaches.map(g => g.id === id ? updatedGeocache : g),
-        }));
+        setGeocacheList(prev => prev.map(g => g.id === id ? updatedGeocache : g));
       }
     },
     onError: () => {
@@ -501,7 +472,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       }
 
       // Find the geocache to delete
-      const geocacheToDelete = state.geocaches.find(g => g.id === id);
+      const geocacheToDelete = geocaches.find(g => g.id === id);
       if (!geocacheToDelete) {
         throw new Error("Geocache not found");
       }
@@ -623,11 +594,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     return fetchGeocaches();
   }, [invalidateAll, fetchGeocaches]);
 
-  // Selection and navigation
-  const selectGeocache = useCallback((geocache: Geocache | null) => {
-    setState(prev => ({ ...prev, selectedGeocache: geocache }));
-  }, []);
-
+  // Navigation
   const preloadGeocache = useCallback(async (id: string): Promise<void> => {
     await baseStore.prefetchQuery(
       createQueryKey('geocache', 'single', id),
@@ -661,15 +628,23 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   const getStats = useCallback(() => {
     return {
       ...baseStore.getCacheStats(),
-      totalItems: state.geocaches.length,
+      totalItems: geocaches.length,
     };
-  }, [baseStore, state.geocaches.length]);
+  }, [baseStore, geocaches.length]);
 
   // Background sync removed - no auto-start
 
-  // Memoized store object
+  // Memoized store object — all state is derived from the TanStack Query cache,
+  // so consumers re-render only when the underlying query data changes.
   const store = useMemo((): GeocacheStore => ({
-    ...state,
+    // Base state (derived from the query)
+    geocaches,
+    isLoading: geocachesQuery.isLoading,
+    isError: geocachesQuery.isError,
+    error: (geocachesQuery.error as Error | null) ?? null,
+    lastUpdate: geocachesQuery.dataUpdatedAt ? new Date(geocachesQuery.dataUpdatedAt) : null,
+    syncStatus: baseStore.getSyncStatus(),
+    cacheStats: baseStore.getCacheStats(),
 
     // Data fetching
     fetchGeocaches,
@@ -690,8 +665,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     refreshGeocache,
     refreshAll,
 
-    // Selection and navigation
-    selectGeocache,
+    // Navigation
     preloadGeocache,
 
     // Background sync
@@ -706,7 +680,12 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     // Pagination
     hasMore,
   }), [
-    state,
+    geocaches,
+    geocachesQuery.isLoading,
+    geocachesQuery.isError,
+    geocachesQuery.error,
+    geocachesQuery.dataUpdatedAt,
+    baseStore,
     fetchGeocaches,
     fetchGeocache,
     fetchUserGeocaches,
@@ -721,7 +700,6 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     invalidateAll,
     refreshGeocache,
     refreshAll,
-    selectGeocache,
     preloadGeocache,
     startBackgroundSync,
     stopBackgroundSync,

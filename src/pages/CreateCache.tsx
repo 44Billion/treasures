@@ -33,7 +33,7 @@ import "@/styles/leaflet-overrides.css";
 import { LoginRequiredCard } from "@/components/LoginRequiredCard";
 import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";
-import { naddrToGeocache } from "@/utils/naddr-utils";
+import { parseNaddr } from "@/utils/naddr";
 import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
 import { getLocalDraft, upsertLocalDraft, newLocalDraftSlug } from "@/lib/localDraftsStore";
 import { isUserCancelledPublishError } from "@/lib/publishErrors";
@@ -284,9 +284,9 @@ export default function CreateCache() {
 
         if (naddr && nsec) {
           try {
-            const decodedNaddr = naddrToGeocache(naddr);
+            const decodedNaddr = parseNaddr(naddr);
 
-            if (decodedNaddr.pubkey === user.pubkey) {
+            if (decodedNaddr && decodedNaddr.pubkey === user.pubkey) {
               // Decode the nsec to get the private key bytes
               const { data: privateKeyBytes } = nip19.decode(nsec);
 
@@ -302,8 +302,8 @@ export default function CreateCache() {
                 npub: nip19.npubEncode(publicKeyHex),
               });
 
-              setImportedDTag(decodedNaddr.identifier);
-              setImportedKind(decodedNaddr.kind);
+              setImportedDTag(decodedNaddr.dTag);
+              setImportedKind(decodedNaddr.kind ?? null);
 
               toast({
                 title: t('createCache.claimUrl.imported.title'),
@@ -436,10 +436,10 @@ export default function CreateCache() {
 
       if (dTag && geocache) {
         const relays = event.tags.filter((tag: string[]) => tag[0] === 'relay').map((tag: string[]) => tag[1]);
-        const { geocacheToNaddr } = await import('@/utils/naddr-utils');
+        const { geocacheToNaddr } = await import('@/utils/naddr');
 
         const includeRelays = !importedDTag;
-        const naddr = geocacheToNaddr(event.pubkey, dTag, relays as string[], event.kind, includeRelays);
+        const naddr = geocacheToNaddr(event.pubkey, dTag, includeRelays ? (relays as string[]) : [], event.kind);
 
         toast({
           title: t('createCache.publish.success.title'),

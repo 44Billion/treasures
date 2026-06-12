@@ -231,7 +231,6 @@
   "ftf.banner.viewProfile": "Profil ansehen",
   "ftf.banner.lockIn.button": "Archivieren & Gewinner bestätigen",
   "ftf.banner.lockIn.help": "Bestätigt diesen Finder als offiziellen Gewinner und archiviert den Eintrag.",
-  "ftf.banner.explainer": "Erster Finder: ein Schatz mit einmaliger Beanspruchung, gewonnen vom ersten verifizierten Finder.",
   "ftf.banner.explainer": "Dies ist ein Erster-Finder-Schatz: Nur ein Finder kann den Preis beanspruchen. Andere können weiterhin einen Besuch protokollieren, der Anspruch ist jedoch entschieden.",
   "ftf.log.winner": "Erster Finder!",
   "ftf.log.lateClaim": "Nach der Beanspruchung gemeldet",
@@ -251,7 +250,7 @@
   "createCache.form.image.invalidFileType.description": "Bitte lade eine Bilddatei hoch",
   "createCache.form.image.tooLarge.title": "Bild zu groß",
   "createCache.form.image.tooLarge.description": "Wähle ein Bild unter {{mb}} MB.",
-  "createCache.waitingForUploads": "Warte auf Bild-Uploads\u2026",
+  "createCache.waitingForUploads": "Warte auf Bild-Uploads…",
   "createCache.form.image.uploadFailed.title": "Upload fehlgeschlagen",
   "createCache.form.image.uploadFailed.description": "Bild-Upload fehlgeschlagen. Bitte versuche es erneut.",
   "createCache.description": "Erstelle einen neuen Geocache, den andere entdecken können. Wähle Schwierigkeits- und Geländewertungen sorgfältig – sie helfen Suchenden bei der Vorbereitung.",
@@ -1558,5 +1557,7 @@
   "locationPicker.format.mapsUrl": "Karten-URL",
   "locationPicker.format.dms": "GMS (Grad/Minuten/Sekunden)",
   "locationPicker.format.directionDecimal": "Dezimalgrad mit Himmelsrichtung",
-  "locationPicker.format.decimal": "Dezimalgrad"
+  "locationPicker.format.decimal": "Dezimalgrad",
+  "offlineQueue.flushed.title": "Wieder online",
+  "offlineQueue.flushed.description": "{{count}} offline gespeicherte(s) Ereignis(se) veröffentlicht."
 }

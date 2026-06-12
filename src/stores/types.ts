@@ -51,9 +51,6 @@ export interface StoreConfig {
 // Geocache store specific types
 export interface GeocacheStoreState extends BaseStoreState {
   geocaches: Geocache[];
-  userGeocaches: Geocache[];
-  nearbyGeocaches: Geocache[];
-  selectedGeocache: Geocache | null;
   syncStatus: SyncStatus;
   cacheStats: CacheStats;
 }
@@ -78,8 +75,7 @@ interface GeocacheStoreActions {
   refreshGeocache: (id: string) => Promise<StoreActionResult<Geocache>>;
   refreshAll: () => Promise<StoreActionResult<Geocache[]>>;
 
-  // Selection and navigation
-  selectGeocache: (geocache: Geocache | null) => void;
+  // Navigation
   preloadGeocache: (id: string) => Promise<void>;
 
   // Background sync

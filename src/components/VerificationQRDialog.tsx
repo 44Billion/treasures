@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/useToast';
 import { generateVerificationQR, downloadQRCode, printQRCode, type VerificationKeyPair } from '@/utils/verification';
 import { encodeCompactUrl } from '@/utils/compactUrl';
-import { naddrToGeocache } from '@/utils/naddr-utils';
+import { parseNaddr } from '@/utils/naddr';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { getAppOrigin } from '@/utils/appUrl';
 
@@ -42,14 +42,14 @@ export function VerificationQRDialog({
   const { toast } = useToast();
 
   // Extract d-tag from naddr (use existing d-tag when regenerating)
-  const naddrData = useMemo(() => naddrToGeocache(naddr), [naddr]);
-  const existingDTag = naddrData.identifier; // AddressPointer uses 'identifier' for d-tag
-  
+  const naddrData = useMemo(() => parseNaddr(naddr), [naddr]);
+  const existingDTag = naddrData?.dTag ?? '';
+
   // Use the existing d-tag from the geocache (works for both new and regenerated caches)
   const compactUrl = useMemo(() => {
-    if (!useCompact) return null;
+    if (!useCompact || !naddrData) return null;
     return encodeCompactUrl(naddrData.pubkey, existingDTag, verificationKeyPair.nsec, NIP_GC_KINDS.GEOCACHE);
-  }, [useCompact, naddrData.pubkey, existingDTag, verificationKeyPair.nsec]);
+  }, [useCompact, naddrData, existingDTag, verificationKeyPair.nsec]);
   
   const standardUrl = useMemo(() => {
     return `${getAppOrigin()}/${naddr}#verify=${verificationKeyPair.nsec}`;
@@ -60,7 +60,6 @@ export function VerificationQRDialog({
 
   useEffect(() => {
     if (isOpen && naddr && verificationKeyPair.nsec) {
-      console.log('[VerificationQR] Generating QR', { useCompact, dTag: existingDTag, urlLength: verificationUrl.length });
       setIsGenerating(true);
       setQrDataUrl(''); // Clear previous QR code
       
@@ -70,7 +69,6 @@ export function VerificationQRDialog({
         line2: t('qrCode.scanToLog')
       })
         .then((dataUrl) => {
-          console.log('[VerificationQR] QR generated successfully');
           setQrDataUrl(dataUrl);
         })
         .catch((error) => {

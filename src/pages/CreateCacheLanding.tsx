@@ -27,7 +27,7 @@ import {
   type VerificationKeyPair,
 } from "@/utils/verification";
 import { generateBoxInsertImage } from "@/utils/box-insert";
-import { geocacheToNaddr } from "@/utils/naddr-utils";
+import { geocacheToNaddr } from "@/utils/naddr";
 import { generateCompactDTag } from "@/utils/dTag";
 import { nip19 } from 'nostr-tools';
 import { ComponentLoading } from "@/components/ui/loading";

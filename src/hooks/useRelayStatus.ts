@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { TIMEOUTS } from '@/config';
-import { getGeocachingRelays } from '@/utils/relays';
+import { useAppContext } from '@/hooks/useAppContext';
+import { getEffectiveRelays } from '@/lib/appRelays';
 
 interface RelayStatus {
   url: string;
@@ -12,11 +13,13 @@ interface RelayStatus {
 
 export function useRelayStatus() {
   const { nostr } = useNostr();
-  
+  const { config } = useAppContext();
+  const relays = getEffectiveRelays(config.relayMetadata, config.useAppRelays)
+    .relays.map((r) => r.url);
+
   return useQuery({
-    queryKey: ['relay-status'],
+    queryKey: ['relay-status', relays],
     queryFn: async (): Promise<RelayStatus[]> => {
-      const relays = getGeocachingRelays();
       const results: RelayStatus[] = [];
       
       for (const url of relays) {

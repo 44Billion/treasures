@@ -250,11 +250,9 @@
   "createCache.form.image.invalidFileType.description": "Please upload an image file",
   "createCache.form.image.tooLarge.title": "Image too large",
   "createCache.form.image.tooLarge.description": "Pick an image under {{mb}} MB.",
-  "createCache.waitingForUploads": "Waiting for image uploads\u2026",
+  "createCache.waitingForUploads": "Waiting for image uploads…",
   "createCache.form.image.uploadFailed.title": "Upload failed",
   "createCache.form.image.uploadFailed.description": "Failed to upload image. Please try again.",
-  "createCache.loginRequired": "You need to be logged in to hide a treasure.",
-  "createCache.title": "Hide a New Treasure",
   "createCache.description": "Hide a new treasure for others to discover. Choose your difficulty and terrain ratings carefully - they help finders know what to expect and prepare appropriately.",
   "createCache.overlay.title": "Hide a Treasure",
   "createCache.overlay.description": "Choose how you'd like to get started. Generate a QR code that you can scan to set up your treasure later, or fill out your listing now.",
@@ -291,7 +289,7 @@
   "createCache.publish.failed.savedAsDraft.title": "Couldn't publish — saved as draft",
   "createCache.publish.failed.savedAsDraft.description": "We couldn't reach the relay, so we kept your work as a \"Not synced\" draft on this device. Try publishing again when you have a better connection.",
   "createCache.publish.cancelled.title": "Publish cancelled",
-  "createCache.publish.cancelled.description": "Your work is still here \u2014 publish or save as a draft when you're ready.",
+  "createCache.publish.cancelled.description": "Your work is still here — publish or save as a draft when you're ready.",
   "createCache.draft.notSyncedBadge": "Not synced",
   "createCache.draft.notSyncedTooltip": "This draft is saved on this device only. Save it again while online to sync it to the relay.",
   "createCache.stepValidation.locationRequired.title": "Please select a location",
@@ -606,7 +604,6 @@
   "cacheDetail.details.difficulty": "Difficulty",
   "cacheDetail.details.terrain": "Terrain",
   "cacheDetail.details.size": "Size",
-  "cacheDetail.details.geohash": "Geohash",
   "geocache.difficulty.easy": "Easy",
   "geocache.difficulty.moderate": "Moderate",
   "geocache.difficulty.hard": "Hard",
@@ -720,7 +717,7 @@
   "saveButton.error.title": "Error saving treasure",
   "saveButton.error.description": "Failed to save treasure. Please try again.",
   "saveButton.saving": "Saving...",
-  "saveButton.slowPublish.title": "Still publishing\u2026",
+  "saveButton.slowPublish.title": "Still publishing…",
   "saveButton.slowPublish.description": "Relays are slow to respond. Hang tight.",
   "logs.eventIdCopied.title": "Event ID copied",
   "logs.eventIdCopied.description": "The event ID has been copied to your clipboard.",
@@ -1210,7 +1207,6 @@
   "errorBoundary.reload": "Reload page",
   "errorBoundary.copyDetails": "Copy error details",
   "errorBoundary.copied": "Copied",
-
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",
   "common.retry": "Retry",
@@ -1238,7 +1234,6 @@
   "common.clickToUpload": "Click to upload",
   "common.browseAdventures": "Browse Adventures",
   "common.viewAdventure": "View Adventure",
-
   "install.title": "Install Treasures App",
   "install.description": "Get the full geocaches experience with our Progressive Web App. Loads faster and feels like a native app.",
   "install.alreadyInstalled": "<strong>App already installed!</strong> You can access Treasures from your home screen or app drawer.",
@@ -1280,7 +1275,6 @@
   "install.benefitNativeDescription": "Full-screen experience that feels like a native mobile app.",
   "install.benefitHomeTitle": "Home Screen Access",
   "install.benefitHomeDescription": "Quick access from your device's home screen or app drawer.",
-
   "adventures.nowAccepting": "Now Accepting Challengers",
   "adventures.title": "Adventures",
   "adventures.subtitle": "Choose Your Journey. Find Your Treasures.",
@@ -1294,7 +1288,6 @@
   "adventures.adventureAwaits_one": "{{count}} adventure awaits",
   "adventures.adventureAwaits_other": "{{count}} adventures await",
   "adventures.newAdventure": "New Adventure",
-
   "adventureDetail.linkCopied": "Link copied to clipboard",
   "adventureDetail.loading": "Seeking adventure...",
   "adventureDetail.notFoundTitle": "Adventure not found",
@@ -1310,7 +1303,6 @@
   "adventureDetail.deleteSuccessDescription": "The deletion request has been sent to relays.",
   "adventureDetail.deleteErrorTitle": "Could not delete adventure",
   "adventureDetail.deleteErrorDescription": "Please try again.",
-
   "createAdventure.stepDetails": "Details",
   "createAdventure.stepLocation": "Location",
   "createAdventure.stepTreasures": "Treasures",
@@ -1382,7 +1374,6 @@
   "createAdventure.mapLabel": "Map: {{style}}",
   "createAdventure.saveChanges": "Save Changes",
   "createAdventure.publishAdventure": "Publish Adventure",
-
   "remoteLogin.completing": "Completing Login...",
   "remoteLogin.verifying": "Please wait while we verify your session.",
   "remoteLogin.success": "Login Successful!",
@@ -1390,22 +1381,18 @@
   "remoteLogin.timeout": "Session Not Found",
   "remoteLogin.timeoutDescription": "We couldn't detect an active login session.",
   "remoteLogin.returnHome": "Return to home page",
-
   "relayError.connectionFailed": "Connection Failed",
   "relayError.noTreasures": "No Treasures Found",
   "relayError.connectionDescription": "Unable to connect to your relays. Check your connection or manage your relays in Settings.",
   "relayError.noTreasuresDescription": "No treasures were found on your relays.",
   "relayError.relaySettings": "Relay Settings",
-
   "shareDialog.title": "Share Treasure",
   "shareDialog.description": "Share \"{{name}}\" with others",
   "shareDialog.shareText": "Check out this geocache: {{name}}",
   "shareDialog.link": "Link",
-
   "pwaUpdate.updating": "Updating...",
   "pwaUpdate.available": "Update available — Click to refresh",
   "pwaUpdate.dismiss": "Dismiss update notification",
-
   "searchRelays.appTitle": "App Search Relays",
   "searchRelays.appDescription": "Default relays that support NIP-50 full-text search. Used to find treasures by name.",
   "searchRelays.appEnabled": "App search relays will be used alongside your personal search relays.",
@@ -1424,7 +1411,6 @@
   "searchRelays.publishFailed": "Failed to publish search relay list",
   "searchRelays.publishFailedDescription": "There was an error publishing your search relay list to Nostr.",
   "searchRelays.loginHint": "Log in to sync your search relay list with Nostr",
-
   "blossomServers.appTitle": "App Blossom Servers",
   "blossomServers.appDescription": "Default file upload servers for reliable media hosting. Used alongside your personal servers when enabled.",
   "blossomServers.appEnabled": "App Blossom servers will be used alongside your personal servers.",
@@ -1449,7 +1435,6 @@
   "blossomServers.thumbnailDescription": "Resizes thumbnails in lists for faster scrolling. Detail pages always load full-size images directly.",
   "blossomServers.proxyUrl": "Proxy URL",
   "blossomServers.proxyHelp": "Must support the <1>weserv/images</1> API. Default: <2>wsrv.nl</2>",
-
   "troubleshooter.title": "Publishing Issue Detected",
   "troubleshooter.description": "Let's help you get back to publishing your content.",
   "troubleshooter.quickChecks": "Quick Checks:",
@@ -1486,17 +1471,14 @@
   "troubleshooter.step.disableVPN": "Disable VPN if you're using one",
   "troubleshooter.step.tryLater": "Try again in a few minutes",
   "troubleshooter.step.checkExtension": "Make sure your Nostr extension is working",
-
   "compactUrl.title": "Generate Compact URLs",
   "compactUrl.description": "Create short URLs for pre-generated QR codes",
   "compactUrl.howMany": "How many:",
   "compactUrl.generatedUrls": "Generated URLs ({{count}})",
-
   "settings.searchRelays.title": "Search Relays",
   "settings.searchRelays.description": "NIP-50 relays used for full-text treasure search.",
   "settings.blossom.title": "Blossom Servers",
   "settings.blossom.description": "File upload servers for media hosting. Files are mirrored across all servers for redundancy.",
-
   "settings.privacy.title": "Privacy",
   "settings.privacy.description": "Control whether anonymous usage analytics are collected from your session.",
   "settings.privacy.analyticsTitle": "Anonymous analytics",
@@ -1508,7 +1490,6 @@
   "settings.privacy.reportingToVia": "Reporting to {{domain}} via {{endpoint}}.",
   "settings.privacy.reloadNotice": "Analytics is off for future sessions. If the tracker already loaded in this tab, reload the page to stop reporting entirely.",
   "settings.privacy.reloadNow": "Reload now",
-
   "createCache.steps.location": "Location",
   "createCache.steps.details": "Details",
   "createCache.steps.challenge": "Challenge",
@@ -1535,16 +1516,13 @@
   "createCache.previewDescription": "Your description...",
   "createCache.previewHint": "Hint: ",
   "createCache.checkingLocation": "Checking location…",
-
   "profile.draft.deleteTitle": "Delete draft?",
   "profile.draft.deleteDescription": "\"{{name}}\" will be permanently deleted. This cannot be undone.",
   "profile.draft.deleteFailed": "Failed to delete draft",
   "profile.draft.deleteFailedDescription": "Please try again.",
   "profile.draft.deleted": "Draft deleted",
   "profile.draft.deletedDescription": "\"{{name}}\" has been removed.",
-
   "home.by": "by {{name}}",
-
   "generateQR.styleLabels.full": "Full",
   "generateQR.styleLabels.cutout": "Cutout",
   "generateQR.styleLabels.micro": "Micro",
@@ -1579,5 +1557,7 @@
   "locationPicker.format.mapsUrl": "Maps URL",
   "locationPicker.format.dms": "DMS (degrees/minutes/seconds)",
   "locationPicker.format.directionDecimal": "Decimal degrees with direction",
-  "locationPicker.format.decimal": "Decimal degrees"
+  "locationPicker.format.decimal": "Decimal degrees",
+  "offlineQueue.flushed.title": "Back online",
+  "offlineQueue.flushed.description": "Published {{count}} queued event(s) from offline mode."
 }

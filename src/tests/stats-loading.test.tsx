@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useGeocaches } from '@/hooks/useGeocaches';
+import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock many geocaches to test stats loading beyond 10
@@ -16,7 +17,7 @@ const mockManyGeocaches = Array.from({ length: 15 }, (_, i) => ({
   size: 'small',
   type: 'traditional',
   created_at: 1234567890 + i,
-  zapTotal: 0, // Add zapTotal property
+  zapTotal: 0,
 }));
 
 const mockFetchGeocaches = vi.fn().mockResolvedValue({
@@ -45,37 +46,30 @@ vi.mock('@/stores/useZapStore', () => ({
 }));
 
 vi.mock('@/utils/batchQuery', () => ({
-  batchedQuery: vi.fn().mockImplementation(async (_nostr, filters, batchSize, _signal) => {
-    console.log('Mock batchedQuery called with:', {
-      filterCount: filters.length,
-      batchSize,
-      filters: filters.map((f: { kinds: number[]; limit: number; }) => ({ kinds: f.kinds, limit: f.limit }))
-    });
-    
-    // Mock some log events for first 12 geocaches (to test the limit issue)
+  batchedQuery: vi.fn().mockImplementation(async () => {
+    // Mock log events for the first 12 geocaches (to test the limit issue)
     const mockEvents: { id: string; kind: number; pubkey: string; tags: string[][]; created_at: number }[] = [];
-    
-    // Only add events for first 12 geocaches to simulate the limit issue
+
     for (let i = 0; i < 12; i++) {
-      // Add found log
+      // Found log
       mockEvents.push({
         id: `found-log-${i}`,
-        kind: 7001,
+        kind: 7516,
         pubkey: `user-${i}`,
-        tags: [['a', `30309:0000000000000000000000000000000000000000000000000000000000000001:test-dtag-${i}`]],
+        tags: [['a', `37516:0000000000000000000000000000000000000000000000000000000000000001:test-dtag-${i}`]],
         created_at: 1234567891 + i,
       });
-      
-      // Add comment log
+
+      // Comment log
       mockEvents.push({
         id: `comment-log-${i}`,
-        kind: 7002,
+        kind: 1111,
         pubkey: `user-${i}`,
-        tags: [['a', `30309:0000000000000000000000000000000000000000000000000000000000000001:test-dtag-${i}`]],
+        tags: [['a', `37516:0000000000000000000000000000000000000000000000000000000000000001:test-dtag-${i}`]],
         created_at: 1234567892 + i,
       });
     }
-    
+
     return mockEvents;
   }),
 }));
@@ -93,7 +87,7 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   }),
 }));
 
-describe('Stats Loading Test', () => {
+describe('Stats Loading', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -123,18 +117,6 @@ describe('Stats Loading Test', () => {
 
     const geocachesWithStats = result.current.data;
 
-    // Log the actual stats to see what's happening
-    console.log('📊 Stats loading results:', {
-      totalGeocaches: geocachesWithStats.length,
-      geocachesWithStats: geocachesWithStats.map((g, i) => ({
-        index: i,
-        name: g.name,
-        foundCount: g.foundCount,
-        logCount: g.logCount,
-        zapTotal: g.zapTotal
-      }))
-    });
-
     // First 12 should have stats (since we mocked events for them)
     for (let i = 0; i < 12; i++) {
       expect(geocachesWithStats[i]?.foundCount).toBe(1);
@@ -150,10 +132,14 @@ describe('Stats Loading Test', () => {
     // Verify that batchedQuery was called with consolidated filters
     const { batchedQuery } = await import('@/utils/batchQuery');
     expect(batchedQuery).toHaveBeenCalled();
-    
-    // Check that it was called with 3 filters (found logs, comment logs, zaps) not 45 filters (15 geocaches * 3)
-    const batchedQueryCall = (batchedQuery as any).mock.calls[0];
-    expect(batchedQueryCall[1]).toHaveLength(3); // Should have 3 consolidated filters
+
+    // Should be called with 3 consolidated filters (found logs, comment logs,
+    // zaps), not 45 filters (15 geocaches * 3)
+    const batchedQueryCall = vi.mocked(batchedQuery).mock.calls[0];
+    const filters = batchedQueryCall[1] as Array<{ kinds?: number[] }>;
+    expect(filters).toHaveLength(3);
+    expect(filters[0].kinds).toEqual([NIP_GC_KINDS.FOUND_LOG]);
+    expect(filters[1].kinds).toEqual([NIP_GC_KINDS.COMMENT_LOG]);
   });
 
   it('should handle large numbers of geocaches efficiently', async () => {

@@ -18,7 +18,7 @@ import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { useActiveProfileTheme } from '@/hooks/useActiveProfileTheme';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from "@/hooks/useTheme";
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { useRadarOverlay } from '@/hooks/useRadarOverlay';
 import { useAdventureListNav } from '@/hooks/useAdventureListNav';
 import {

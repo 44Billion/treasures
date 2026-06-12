@@ -10,12 +10,12 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-// Mock naddrToGeocache so invalid test naddr doesn't throw
-vi.mock('@/utils/naddr-utils', () => ({
-  naddrToGeocache: () => ({
-    identifier: 'test-dtag',
+// Mock parseNaddr so invalid test naddr doesn't return null
+vi.mock('@/utils/naddr', () => ({
+  parseNaddr: () => ({
+    dTag: 'test-dtag',
     pubkey: 'test-pubkey',
-    kind: 30333,
+    kind: 37516,
     relays: [],
   }),
 }));

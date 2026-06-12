@@ -24,7 +24,7 @@ import {
   type VerificationKeyPair,
   buildStandardVerificationUrl
 } from "@/utils/verification";
-import { geocacheToNaddr } from "@/utils/naddr-utils";
+import { geocacheToNaddr } from "@/utils/naddr";
 import { generateCompactDTag } from "@/utils/dTag";
 import { ComponentLoading } from "@/components/ui/loading";
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';

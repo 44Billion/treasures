@@ -19,7 +19,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTheme } from "@/hooks/useTheme";
 import { getSizeLabel } from '@/utils/geocache-utils';
 import { offlineGeocode } from '@/utils/offlineGeocode';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Geocache } from '@/types/geocache';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { drawStyledQR } from '@/utils/qr-renderer';
 
 interface QRCodeProps {

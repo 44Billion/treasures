@@ -12,8 +12,18 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     // https: false, // Set to true for production testing
   },
+  // Strip noisy console calls and debugger statements from production builds.
+  // console.warn/console.error are kept for field diagnostics.
+  // (Vite 8 / rolldown ignores the `esbuild` option, so we use terser.)
   build: {
     target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        pure_funcs: ['console.log', 'console.debug', 'console.info', 'console.trace'],
+        drop_debugger: true,
+      },
+    },
     // Enable source maps for better debugging
     sourcemap: false, // Disable in production for smaller builds
     // Optimize dependencies

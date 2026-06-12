@@ -151,7 +151,7 @@ export const mockNostrEvents = {
   logs: [
     {
       id: 'log-1',
-      kind: 3753515, // Found log
+      kind: 7516, // Found log
       pubkey: 'finder-1',
       content: 'Great cache! Enjoyed the hike.',
       tags: [['a', '37516:test-pubkey-1:mountain-adventure']],
@@ -160,7 +160,7 @@ export const mockNostrEvents = {
     },
     {
       id: 'log-2',
-      kind: 3753516, // Comment log
+      kind: 1111, // Comment log
       pubkey: 'finder-2',
       content: 'Thanks for the hint!',
       tags: [['A', '37516:test-pubkey-1:mountain-adventure']],
@@ -222,8 +222,8 @@ export const commonMocks = {
   nipGc: {
     NIP_GC_KINDS: {
       GEOCACHE: 37516,
-      FOUND_LOG: 3753515,
-      COMMENT_LOG: 3753516,
+      FOUND_LOG: 7516,
+      COMMENT_LOG: 1111,
     },
     createGeocacheCoordinate: vi.fn((pubkey: string, dTag: string) => 
       `37516:${pubkey}:${dTag}`
@@ -250,7 +250,7 @@ export const commonMocks = {
     }),
     parseLogEvent: vi.fn((event) => ({
       id: event.id,
-      type: event.kind === 3753515 ? 'found' : 'note',
+      type: event.kind === 7516 ? 'found' : 'note',
       text: event.content,
       pubkey: event.pubkey,
       created_at: event.created_at,
@@ -284,7 +284,7 @@ export function createMockNostr(customBehavior: Record<string, any> = {}) {
         return Promise.resolve(mockNostrEvents.geocaches);
       }
       
-      if (filter.kinds?.includes(3753515) || filter.kinds?.includes(3753516)) {
+      if (filter.kinds?.includes(7516) || filter.kinds?.includes(1111)) {
         return Promise.resolve(mockNostrEvents.logs);
       }
       

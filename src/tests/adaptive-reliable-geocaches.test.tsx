@@ -63,7 +63,7 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   }),
 }));
 
-describe('Debug Stats Test', () => {
+describe('useAdaptiveReliableGeocaches', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -83,8 +83,6 @@ describe('Debug Stats Test', () => {
   );
 
   it('should pass through data unchanged', async () => {
-    console.log('TEST START - Input data:', testGeocaches[0]);
-
     const { result } = renderHook(
       () => useAdaptiveReliableGeocaches({
         baseGeocaches: testGeocaches,
@@ -98,10 +96,6 @@ describe('Debug Stats Test', () => {
     });
 
     const outputData = result.current.data;
-    console.log('TEST END - Output data:', outputData[0]);
-
-    // Check if the data is the same object reference
-    console.log('Same object reference?', testGeocaches[0] === outputData[0]);
 
     // Check all properties
     expect(outputData[0]?.id).toBe(testGeocaches[0]?.id);

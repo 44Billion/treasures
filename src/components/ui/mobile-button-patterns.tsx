@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { LucideIcon, Shield, Trophy, MessageSquare, MapPin, Cloud, KeyRound, SearchX, NotebookText, Wrench, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 // === MOBILE TABS ===
 
