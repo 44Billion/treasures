@@ -41,20 +41,21 @@ const GEOLOCATION_STRATEGIES = [
   }
 ];
 
-// Hard ceiling on the loading spinner. No matter what happens (silent
-// provider, hanging fetch, VPN blocking IP services, etc.), the loading state
-// is guaranteed to clear within this window so the UI never spins forever.
-const OVERALL_DEADLINE_MS = 8000;
-
 // Extra guard beyond the browser-level timeout, in case the provider never
 // invokes either callback (seen behind full-tunnel VPNs).
 const STRATEGY_TIMEOUT_BUFFER_MS = 500;
 
 // Long-running background request used to (a) upgrade a coarse network/IP fix
-// to GPS accuracy and (b) rescue a failed attempt: a cold GPS fix can take
-// longer than the UI deadline, and when it finally lands we still adopt it so
-// the user doesn't have to tap the button a second time.
+// to GPS accuracy and (b) rescue an attempt whose bounded strategies all
+// failed: a cold GPS fix can take longer than the strategy timeouts (TTFF on
+// devices without network positioning, e.g. GrapheneOS, is routinely 8-30s).
 const RESCUE_TIMEOUT_MS = 30000;
+
+// Absolute backstop on the loading spinner. Every phase below is individually
+// bounded (strategies ~6.5s, IP fallback ~6s, rescue ~30.5s), so this should
+// never fire in practice -- it exists purely so a logic bug can't leave the
+// spinner on forever.
+const ABSOLUTE_DEADLINE_MS = 45000;
 
 export function useGeolocation(options: UseGeolocationOptions = {}) {
   const [state, setState] = useState<GeolocationState>({
@@ -103,11 +104,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       toast({ title, description, variant: "destructive" });
     };
 
-    // Hard safety net: whatever happens below, the spinner stops by the
-    // deadline. Without this, a silent geolocation provider (e.g. behind a
-    // full-tunnel VPN with no usable location service) leaves loading=true
-    // forever and the UI spins indefinitely.
-    const deadline = setTimeout(() => {
+    const failUnavailable = () => {
       fail(
         'Unable to determine location',
         t('map.nearMe.unavailable.title', 'Location unavailable'),
@@ -116,7 +113,12 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
           "We couldn't determine your location. Check your GPS or try again in a moment."
         ),
       );
-    }, OVERALL_DEADLINE_MS);
+    };
+
+    // Absolute backstop: every phase below is time-bounded, so this should
+    // never fire. It only exists so a logic bug can't leave the spinner on
+    // forever.
+    const deadline = setTimeout(failUnavailable, ABSOLUTE_DEADLINE_MS);
 
     // When offline, the network-positioning strategy and the IP fallback
     // can't work (they need internet), so skip straight to the GPS chip, which
@@ -152,16 +154,30 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
         );
       });
 
-    // Long-running background GPS request. Adopts its fix only if better than
-    // what we already have (accuracy upgrade), or if nothing landed at all
-    // (late rescue after the deadline error -- the fix still gets applied, so
-    // a second tap isn't needed).
-    const startRescue = () => {
+    // Long-running background GPS request, used in two modes:
+    //
+    // - 'upgrade': we already have a coarse network/IP fix; silently improve
+    //   it. Failures are ignored.
+    // - 'last-chance': every bounded strategy failed and this request is the
+    //   only remaining hope. The spinner stays on and NO error is surfaced
+    //   until this fails too -- a cold GPS fix routinely takes longer than
+    //   the strategy timeouts, and showing a destructive toast right before
+    //   the fix lands just teaches users to "tap it twice".
+    const startRescue = (mode: 'upgrade' | 'last-chance') => {
+      const failFinal = () => {
+        if (mode === 'last-chance') failUnavailable();
+      };
+      // Manual guard in case the provider never invokes either callback.
+      const guard = setTimeout(failFinal, RESCUE_TIMEOUT_MS + STRATEGY_TIMEOUT_BUFFER_MS);
       navigator.geolocation.getCurrentPosition(
-        (pos) => succeed(pos.coords),
+        (pos) => {
+          clearTimeout(guard);
+          succeed(pos.coords);
+        },
         (err) => {
-          // Best-effort; keep whatever state we already surfaced.
+          clearTimeout(guard);
           console.warn('Background GPS rescue failed:', err.message || err);
+          failFinal();
         },
         { enableHighAccuracy: true, timeout: RESCUE_TIMEOUT_MS, maximumAge: 0 }
       );
@@ -202,13 +218,13 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     if (hasFix) {
       // The fix came from network positioning only; upgrade to GPS accuracy
       // in the background without blocking or breaking the existing lock.
-      if (!gpsStrategySucceeded) startRescue();
+      if (!gpsStrategySucceeded) startRescue('upgrade');
       return;
     }
 
     // All device strategies failed. Try a quick IP-based estimate as a last
-    // resort (online only; it needs internet). The overall deadline still caps
-    // the spinner, and a late success can still override the error.
+    // resort (online only; it needs internet). A late GPS success can still
+    // override it with better accuracy.
     if (!isOffline) {
       try {
         const ipLocation = await getIPLocation();
@@ -234,7 +250,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
 
           succeed(mockCoords);
           // IP accuracy is coarse (~25km); keep trying for a real fix.
-          startRescue();
+          startRescue('upgrade');
           return;
         }
       } catch (ipError) {
@@ -242,20 +258,12 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       }
     }
 
-    // Everything failed. Surface the failure now rather than waiting for the
-    // deadline timer...
-    fail(
-      'Unable to determine location',
-      t('map.nearMe.unavailable.title', 'Location unavailable'),
-      t(
-        'map.nearMe.unavailable.description',
-        "We couldn't determine your location. Check your GPS or try again in a moment."
-      ),
-    );
-    // ...but keep one long-running request alive: a cold GPS fix can simply
-    // take longer than the UI deadline. When it lands, the location is
-    // adopted and the error cleared -- no second attempt needed.
-    startRescue();
+    // Every bounded strategy failed, but DON'T surface an error yet: a cold
+    // GPS fix can simply take longer than the strategy timeouts. Keep the
+    // spinner on and hand over to one long-running last-chance request. Only
+    // if that also fails (or its ~30s guard fires) does the user see the
+    // failure toast.
+    startRescue('last-chance');
   }, [options.enableHighAccuracy, options.timeout, options.maximumAge, toast, t]);
 
   return {

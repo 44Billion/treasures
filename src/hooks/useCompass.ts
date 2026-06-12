@@ -107,15 +107,14 @@ const GPS_STRATEGIES = [
   { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000, name: 'gps' },
 ] as const;
 
-// Hard ceiling on the initial-fix phase. No matter what (silent provider, VPN
-// blocking network positioning, etc.), the locating spinner is guaranteed to
-// clear within this window so the compass never spins forever.
-const INITIAL_FIX_DEADLINE_MS = 8000;
-
 // Long-running rescue request: a cold GPS fix can take longer than the
-// deadline. When it finally lands we still adopt it and start tracking, so
-// the user doesn't have to reopen the compass.
+// bounded strategy timeouts. While it runs, the locating spinner stays on and
+// no error is shown; only if the rescue also fails do we surface a failure.
 const RESCUE_TIMEOUT_MS = 30000;
+
+// Extra guard beyond the browser-level timeout, in case the provider never
+// invokes either callback (seen behind full-tunnel VPNs).
+const RESCUE_TIMEOUT_BUFFER_MS = 1000;
 
 /**
  * Hook that provides a compass pointing toward a target geocache.
@@ -126,7 +125,7 @@ const RESCUE_TIMEOUT_MS = 30000;
  * 1. Fast network-based positioning (cell/wifi) for a quick, reliable fix
  * 2. High-accuracy GPS for precise positioning (also works offline)
  *
- * A hard deadline guarantees the locating state always clears.
+ * Every request is time-bounded, so the locating state always clears.
  * After the initial fix, starts watchPosition for continuous updates.
  */
 export function useCompass(target: CompassTarget | null) {
@@ -230,18 +229,11 @@ export function useCompass(target: CompassTarget | null) {
     // first success wins. This is more reliable than watchPosition alone,
     // which on some browsers fires an error immediately if high-accuracy
     // isn't available.
+    //
+    // Every request below is time-bounded (tryGetPosition has a manual guard
+    // beyond the browser timeout, and the rescue request has its own), so the
+    // locating spinner is guaranteed to clear without a separate deadline.
     let gotInitialFix = false;
-
-    // Hard safety net: if no strategy returns within the deadline (e.g. the
-    // device's location provider is silent behind a full-tunnel VPN), stop the
-    // spinner and surface an error instead of hanging indefinitely.
-    let timedOut = false;
-    const deadline = setTimeout(() => {
-      if (gotInitialFix || isStale()) return;
-      timedOut = true;
-      setIsLocating(false);
-      setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
-    }, INITIAL_FIX_DEADLINE_MS);
 
     let permissionDenied = false;
 
@@ -255,7 +247,6 @@ export function useCompass(target: CompassTarget | null) {
 
         if (isStale() || gotInitialFix) return;
         gotInitialFix = true;
-        clearTimeout(deadline);
         applyPosition(position.coords);
         startWatch(); // Begin continuous updates immediately on first fix
       } catch (err: unknown) {
@@ -270,7 +261,6 @@ export function useCompass(target: CompassTarget | null) {
       }
     }));
 
-    clearTimeout(deadline);
     if (isStale() || gotInitialFix) return;
 
     if (permissionDenied) {
@@ -279,22 +269,29 @@ export function useCompass(target: CompassTarget | null) {
       return;
     }
 
-    if (!timedOut) {
+    // Last-chance rescue: a cold GPS fix can take longer than the strategy
+    // timeouts. Keep the locating spinner on and keep one long-running
+    // request alive; only if THIS also fails do we surface an error. Showing
+    // the error earlier (while the rescue was still trying) just trained
+    // users to close and reopen the compass.
+    const surfaceFailure = () => {
+      if (isStale() || hasPosition.current) return;
       setIsLocating(false);
       setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
-    }
-
-    // Late rescue: a cold GPS fix can take longer than the deadline. Keep one
-    // long-running request alive; if it lands, clear the error and start
-    // tracking as normal -- no need to reopen the compass.
+    };
+    // Manual guard in case the provider never invokes either callback.
+    const rescueGuard = setTimeout(surfaceFailure, RESCUE_TIMEOUT_MS + RESCUE_TIMEOUT_BUFFER_MS);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        clearTimeout(rescueGuard);
         if (isStale()) return;
         applyPosition(position.coords);
         startWatch();
       },
       (err) => {
+        clearTimeout(rescueGuard);
         console.warn('Compass GPS rescue failed:', err.message || err);
+        surfaceFailure();
       },
       { enableHighAccuracy: true, timeout: RESCUE_TIMEOUT_MS, maximumAge: 0 }
     );
