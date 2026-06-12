@@ -613,7 +613,7 @@ export default function Home() {
             <>
               {/* Featured Grid Layout */}
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
-                {geocaches.slice(0, 6).map((geocache) => (
+                {geocaches.filter((geocache) => geocache.status !== 'archived').slice(0, 6).map((geocache) => (
                   <GeocacheCard
                     key={geocache.id}
                     cache={geocache}
