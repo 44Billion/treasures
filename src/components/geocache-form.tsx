@@ -1593,6 +1593,12 @@ export function GeocacheForm({
           onImagesChange={onImagesChange}
           disabled={isSubmitting}
         />
+
+        <ContentWarningField
+          value={formData.contentWarning || ""}
+          onChange={(value) => updateField('contentWarning', value)}
+          fieldId={fieldPrefix ? `${fieldPrefix}-contentWarning` : 'contentWarning'}
+        />
       </div>
 
       {/* Listing Status — always visible to the owner */}
