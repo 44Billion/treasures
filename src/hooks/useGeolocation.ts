@@ -15,16 +15,15 @@ interface UseGeolocationOptions {
   maximumAge?: number;
 }
 
-// Geolocation strategies, ordered for reliability on Android.
+// Geolocation strategies, run IN PARALLEL (first usable fix wins).
 //
-// IMPORTANT: do NOT lead with enableHighAccuracy: true. On Android, opening
-// with a cold high-accuracy GPS request frequently hangs or returns
-// POSITION_UNAVAILABLE, and once that first request fails the rapid retries
-// tend to fail too -- so every strategy fails and no location is ever found.
-//
-// Instead we lead with fast network positioning (instant + reliable when
-// online), then attempt high-accuracy GPS (which is also the path that works
-// fully offline), then fall back to a longer-cached network fix.
+// IMPORTANT: the strategies must run concurrently, not sequentially. When run
+// one after the other, a cold/silent network attempt eats its full timeout
+// before the GPS attempt even starts, pushing the GPS attempt past the overall
+// UI deadline -- so the FIRST attempt always failed on a cold cache, while the
+// (aborted) requests warmed the OS location cache and made the SECOND attempt
+// succeed instantly via maximumAge. Running them in parallel keeps the worst
+// case within the deadline.
 const GEOLOCATION_STRATEGIES = [
   // Strategy 1: Fast network positioning (cell/wifi) - quick and reliable online
   {
@@ -42,11 +41,20 @@ const GEOLOCATION_STRATEGIES = [
   }
 ];
 
-// Hard ceiling on the entire getLocation() flow. No matter what happens
-// (silent provider, hanging fetch, VPN blocking IP services, etc.), the
-// loading state is guaranteed to clear within this window so the UI never
-// spins forever.
+// Hard ceiling on the loading spinner. No matter what happens (silent
+// provider, hanging fetch, VPN blocking IP services, etc.), the loading state
+// is guaranteed to clear within this window so the UI never spins forever.
 const OVERALL_DEADLINE_MS = 8000;
+
+// Extra guard beyond the browser-level timeout, in case the provider never
+// invokes either callback (seen behind full-tunnel VPNs).
+const STRATEGY_TIMEOUT_BUFFER_MS = 500;
+
+// Long-running background request used to (a) upgrade a coarse network/IP fix
+// to GPS accuracy and (b) rescue a failed attempt: a cold GPS fix can take
+// longer than the UI deadline, and when it finally lands we still adopt it so
+// the user doesn't have to tap the button a second time.
+const RESCUE_TIMEOUT_MS = 30000;
 
 export function useGeolocation(options: UseGeolocationOptions = {}) {
   const [state, setState] = useState<GeolocationState>({
@@ -71,13 +79,28 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
 
     setState(prev => ({ ...prev, loading: true, error: null }));
 
-    // Track whether we've already produced a terminal result, so the overall
-    // deadline guard and the strategy loop never fight over the final state.
-    let settled = false;
-    const finish = (next: GeolocationState) => {
-      if (settled) return;
-      settled = true;
-      setState(next);
+    // Terminal-state coordination:
+    // - hasFix: coordinates were applied; only better-accuracy fixes replace them.
+    // - failed: an error was surfaced; further errors are ignored, but a late
+    //   success may still override the error (see the rescue request below).
+    let hasFix = false;
+    let failed = false;
+    let bestAccuracy = Infinity;
+
+    const succeed = (coords: GeolocationCoordinates) => {
+      if (hasFix && coords.accuracy > bestAccuracy) return;
+      hasFix = true;
+      bestAccuracy = coords.accuracy;
+      clearTimeout(deadline);
+      setState({ loading: false, error: null, coords });
+    };
+
+    const fail = (error: string, title: string, description: string) => {
+      if (hasFix || failed) return;
+      failed = true;
+      clearTimeout(deadline);
+      setState({ loading: false, error, coords: null });
+      toast({ title, description, variant: "destructive" });
     };
 
     // Hard safety net: whatever happens below, the spinner stops by the
@@ -85,20 +108,17 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     // full-tunnel VPN with no usable location service) leaves loading=true
     // forever and the UI spins indefinitely.
     const deadline = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      setState({ loading: false, error: 'Unable to determine location', coords: null });
-      toast({
-        title: t('map.nearMe.unavailable.title', 'Location unavailable'),
-        description: t(
+      fail(
+        'Unable to determine location',
+        t('map.nearMe.unavailable.title', 'Location unavailable'),
+        t(
           'map.nearMe.unavailable.description',
           "We couldn't determine your location. Check your GPS or try again in a moment."
         ),
-        variant: 'destructive',
-      });
+      );
     }, OVERALL_DEADLINE_MS);
 
-    // When offline, the network-positioning strategies and the IP fallback
+    // When offline, the network-positioning strategy and the IP fallback
     // can't work (they need internet), so skip straight to the GPS chip, which
     // is the only thing that works with no connection.
     const isOffline = navigator.onLine === false;
@@ -106,108 +126,93 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       ? GEOLOCATION_STRATEGIES.filter((s) => s.enableHighAccuracy)
       : GEOLOCATION_STRATEGIES;
 
-    // Background upgrade: request a high-accuracy GPS fix and adopt it only if
-    // it's actually more accurate than the network fix we already have. Runs
-    // fire-and-forget so it never blocks or breaks the initial lock.
-    const upgradeToGps = (currentAccuracy: number) => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          if (pos.coords.accuracy <= currentAccuracy) {
-            setState({ loading: false, error: null, coords: pos.coords });
+    // Single getCurrentPosition attempt with a manual timeout guard slightly
+    // beyond the native one, in case the provider never invokes a callback.
+    const attempt = (strategy: typeof GEOLOCATION_STRATEGIES[number]): Promise<GeolocationPosition> =>
+      new Promise((resolve, reject) => {
+        const timeout = options.timeout ?? strategy.timeout;
+        const timeoutId = setTimeout(() => {
+          reject(new Error(`Timeout after ${timeout}ms`));
+        }, timeout + STRATEGY_TIMEOUT_BUFFER_MS);
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            clearTimeout(timeoutId);
+            resolve(pos);
+          },
+          (err) => {
+            clearTimeout(timeoutId);
+            reject(err);
+          },
+          {
+            enableHighAccuracy: options.enableHighAccuracy ?? strategy.enableHighAccuracy,
+            timeout,
+            maximumAge: options.maximumAge ?? strategy.maximumAge,
           }
-        },
+        );
+      });
+
+    // Long-running background GPS request. Adopts its fix only if better than
+    // what we already have (accuracy upgrade), or if nothing landed at all
+    // (late rescue after the deadline error -- the fix still gets applied, so
+    // a second tap isn't needed).
+    const startRescue = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => succeed(pos.coords),
         (err) => {
-          // GPS upgrade is best-effort; keep the network fix on failure.
-          console.warn('GPS accuracy upgrade failed:', err.message || err);
+          // Best-effort; keep whatever state we already surfaced.
+          console.warn('Background GPS rescue failed:', err.message || err);
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: RESCUE_TIMEOUT_MS, maximumAge: 0 }
       );
     };
 
-    // Try each strategy in sequence
-    for (let i = 0; i < strategies.length; i++) {
-      if (settled) break;
-      const strategy = strategies[i];
-      if (!strategy) break;
-      
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          const timeoutId = setTimeout(() => {
-            reject(new Error(`Timeout after ${strategy.timeout}ms`));
-          }, strategy.timeout);
+    // Run all strategies in parallel; the first usable fix wins and later,
+    // more accurate fixes (GPS after network) upgrade it.
+    let permissionDenied = false;
+    let gpsStrategySucceeded = false;
 
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              clearTimeout(timeoutId);
-              resolve(pos);
-            },
-            (err) => {
-              clearTimeout(timeoutId);
-              reject(err);
-            },
-            {
-              enableHighAccuracy: options.enableHighAccuracy ?? strategy.enableHighAccuracy,
-              timeout: options.timeout ?? strategy.timeout,
-              maximumAge: options.maximumAge ?? strategy.maximumAge,
-            }
-          );
-        });
-
-        // Success! Update state silently (no toast on a successful lock)
-        clearTimeout(deadline);
-        finish({
-          loading: false,
-          error: null,
-          coords: position.coords,
-        });
-
-        // If this was a fast network fix, kick off a high-accuracy GPS request
-        // in the background. Network positioning gives a quick, reliable lock,
-        // but GPS is far more accurate -- so we upgrade once it's available
-        // without blocking the initial result. (Skip if the caller forced
-        // low accuracy via options.)
-        const usedHighAccuracy =
-          options.enableHighAccuracy ?? strategy.enableHighAccuracy;
-        if (!usedHighAccuracy) {
-          upgradeToGps(position.coords.accuracy);
+    await Promise.allSettled(
+      strategies.map(async (strategy) => {
+        try {
+          const position = await attempt(strategy);
+          if (strategy.enableHighAccuracy) gpsStrategySucceeded = true;
+          succeed(position.coords);
+        } catch (error: unknown) {
+          const err = error as GeolocationPositionError | Error;
+          if ('code' in err && err.code === GeolocationPositionError.PERMISSION_DENIED) {
+            permissionDenied = true;
+            fail(
+              'Location access denied',
+              t('map.nearMe.denied.title', 'Location access blocked'),
+              t(
+                'map.nearMe.denied.description',
+                'Enable location in your browser settings to use Near Me.'
+              ),
+            );
+          } else {
+            console.warn(`Geolocation strategy ${strategy.name} failed:`, err.message || err);
+          }
         }
+      })
+    );
 
-        return; // Exit early on success
+    if (permissionDenied) return; // No point making further requests
 
-      } catch (error: unknown) {
-        const err = error as GeolocationPositionError | Error;
-        
-        // Handle permission denied immediately (don't try other strategies)
-        if ('code' in err && err.code === GeolocationPositionError.PERMISSION_DENIED) {
-          clearTimeout(deadline);
-          finish({
-            loading: false,
-            error: "Location access denied",
-            coords: null,
-          });
-          toast({
-            title: t('map.nearMe.denied.title', 'Location access blocked'),
-            description: t(
-              'map.nearMe.denied.description',
-              'Enable location in your browser settings to use Near Me.'
-            ),
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // For other errors, continue to next strategy
-        console.warn(`Geolocation strategy ${strategy.name} failed:`, err.message || err);
-      }
+    if (hasFix) {
+      // The fix came from network positioning only; upgrade to GPS accuracy
+      // in the background without blocking or breaking the existing lock.
+      if (!gpsStrategySucceeded) startRescue();
+      return;
     }
 
     // All device strategies failed. Try a quick IP-based estimate as a last
     // resort (online only; it needs internet). The overall deadline still caps
-    // total time, so this can't cause an infinite spin even if it hangs.
-    if (!settled && !isOffline) {
+    // the spinner, and a late success can still override the error.
+    if (!isOffline) {
       try {
         const ipLocation = await getIPLocation();
-        if (ipLocation && !settled) {
+        if (ipLocation && !hasFix) {
           const mockCoords: GeolocationCoordinates = {
             latitude: ipLocation.lat,
             longitude: ipLocation.lng,
@@ -227,12 +232,9 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
             })
           };
 
-          clearTimeout(deadline);
-          finish({
-            loading: false,
-            error: null,
-            coords: mockCoords,
-          });
+          succeed(mockCoords);
+          // IP accuracy is coarse (~25km); keep trying for a real fix.
+          startRescue();
           return;
         }
       } catch (ipError) {
@@ -240,24 +242,20 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       }
     }
 
-    // Everything failed (and we're still before the deadline). Surface the
-    // failure now rather than waiting for the deadline timer.
-    if (!settled) {
-      clearTimeout(deadline);
-      finish({
-        loading: false,
-        error: 'Unable to determine location',
-        coords: null,
-      });
-      toast({
-        title: t('map.nearMe.unavailable.title', 'Location unavailable'),
-        description: t(
-          'map.nearMe.unavailable.description',
-          "We couldn't determine your location. Check your GPS or try again in a moment."
-        ),
-        variant: "destructive",
-      });
-    }
+    // Everything failed. Surface the failure now rather than waiting for the
+    // deadline timer...
+    fail(
+      'Unable to determine location',
+      t('map.nearMe.unavailable.title', 'Location unavailable'),
+      t(
+        'map.nearMe.unavailable.description',
+        "We couldn't determine your location. Check your GPS or try again in a moment."
+      ),
+    );
+    // ...but keep one long-running request alive: a cold GPS fix can simply
+    // take longer than the UI deadline. When it lands, the location is
+    // adopted and the error cleared -- no second attempt needed.
+    startRescue();
   }, [options.enableHighAccuracy, options.timeout, options.maximumAge, toast, t]);
 
   return {

@@ -96,11 +96,12 @@ export function getBearingLabel(bearing: number): string {
   return directions[index] || 'N';
 }
 
-// Geolocation strategies, ordered for reliability on Android (same approach as
-// the app's useGeolocation hook). Do NOT lead with enableHighAccuracy: true --
-// on Android a cold high-accuracy request often hangs/fails and takes the
-// retries down with it. Lead with fast network positioning, then GPS (which is
-// also the offline path), then a longer-cached network fix.
+// Geolocation strategies, run IN PARALLEL (same approach as the app's
+// useGeolocation hook). The strategies must run concurrently, not
+// sequentially: a cold/silent network attempt would otherwise eat its full
+// timeout before the GPS attempt even starts, pushing the GPS attempt past
+// the initial-fix deadline -- making the first attempt fail while the warmed
+// OS cache makes the second succeed instantly.
 const GPS_STRATEGIES = [
   { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000, name: 'network-fast' },
   { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000, name: 'gps' },
@@ -110,6 +111,11 @@ const GPS_STRATEGIES = [
 // blocking network positioning, etc.), the locating spinner is guaranteed to
 // clear within this window so the compass never spins forever.
 const INITIAL_FIX_DEADLINE_MS = 8000;
+
+// Long-running rescue request: a cold GPS fix can take longer than the
+// deadline. When it finally lands we still adopt it and start tracking, so
+// the user doesn't have to reopen the compass.
+const RESCUE_TIMEOUT_MS = 30000;
 
 /**
  * Hook that provides a compass pointing toward a target geocache.
@@ -130,6 +136,9 @@ export function useCompass(target: CompassTarget | null) {
   const [isLocating, setIsLocating] = useState(false);
   const watchId = useRef<number | null>(null);
   const hasPosition = useRef(false);
+  // Tracking session guard: late async callbacks (slow strategies, the rescue
+  // request) must not mutate state after stopTracking or across a restart.
+  const trackingSession = useRef(0);
 
   // Continuous rotation accumulator. Instead of clamping to 0-360 with modulo,
   // we track total rotation so CSS transitions always take the short path.
@@ -161,89 +170,10 @@ export function useCompass(target: CompassTarget | null) {
     });
   }, []);
 
-  // Start watching GPS position
-  const startTracking = useCallback(async () => {
-    if (!navigator.geolocation) {
-      setGpsError('Geolocation is not supported by your browser');
-      return;
-    }
-
-    // Clear any previous watch
-    if (watchId.current !== null) {
-      navigator.geolocation.clearWatch(watchId.current);
-      watchId.current = null;
-    }
-
-    setIsLocating(true);
-    setGpsError(null);
-    hasPosition.current = false;
-
-    // Request sensor permission (handles iOS requestPermission + Android listener start).
-    // Must happen in user gesture context.
-    await orientation.requestPermission();
-
-    // Phase 1: Get an initial fix using multi-strategy getCurrentPosition.
-    // This is more reliable than watchPosition alone, which on some browsers
-    // fires an error immediately if high-accuracy isn't available.
-    let gotInitialFix = false;
-
-    // Hard safety net: if no strategy returns within the deadline (e.g. the
-    // device's location provider is silent behind a full-tunnel VPN), stop the
-    // spinner and surface an error instead of hanging indefinitely.
-    let timedOut = false;
-    const deadline = setTimeout(() => {
-      if (gotInitialFix) return;
-      timedOut = true;
-      setIsLocating(false);
-      setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
-    }, INITIAL_FIX_DEADLINE_MS);
-
-    for (const strategy of GPS_STRATEGIES) {
-      if (timedOut) break;
-      try {
-        const position = await tryGetPosition({
-          enableHighAccuracy: strategy.enableHighAccuracy,
-          timeout: strategy.timeout,
-          maximumAge: strategy.maximumAge,
-        });
-
-        if (timedOut) break;
-        clearTimeout(deadline);
-        applyPosition(position.coords);
-        gotInitialFix = true;
-        break; // Success, move on to watchPosition
-      } catch (err: unknown) {
-        const error = err as GeolocationPositionError | Error;
-
-        // Permission denied = stop immediately, no point trying other strategies
-        if ('code' in error && error.code === GeolocationPositionError.PERMISSION_DENIED) {
-          clearTimeout(deadline);
-          setIsLocating(false);
-          setGpsError('Location access denied. Please enable location in your browser settings.');
-          return;
-        }
-
-        // Other errors (timeout, unavailable) -- try next strategy
-        console.warn(`Compass GPS strategy "${strategy.name}" failed:`, error.message || error);
-      }
-    }
-
-    clearTimeout(deadline);
-
-    if (timedOut) {
-      // The deadline guard already set the error/spinner state.
-      return;
-    }
-
-    if (!gotInitialFix) {
-      setIsLocating(false);
-      setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
-      return;
-    }
-
-    // Phase 2: Start watchPosition for continuous updates.
-    // Use network positioning first for reliability, then the watch will
-    // upgrade to GPS as it becomes available.
+  // Phase 2: continuous position updates. Guarded so concurrent strategy
+  // successes can't start two watches.
+  const startWatch = useCallback(() => {
+    if (watchId.current !== null) return;
     watchId.current = navigator.geolocation.watchPosition(
       (position) => {
         applyPosition(position.coords);
@@ -269,10 +199,110 @@ export function useCompass(target: CompassTarget | null) {
         maximumAge: 2000, // Keep positions fresh (2s) so compass updates as the user walks
       }
     );
-  }, [orientation, tryGetPosition, applyPosition]);
+  }, [applyPosition]);
+
+  // Start watching GPS position
+  const startTracking = useCallback(async () => {
+    if (!navigator.geolocation) {
+      setGpsError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    // Clear any previous watch
+    if (watchId.current !== null) {
+      navigator.geolocation.clearWatch(watchId.current);
+      watchId.current = null;
+    }
+
+    const session = ++trackingSession.current;
+    const isStale = () => trackingSession.current !== session;
+
+    setIsLocating(true);
+    setGpsError(null);
+    hasPosition.current = false;
+
+    // Request sensor permission (handles iOS requestPermission + Android listener start).
+    // Must happen in user gesture context.
+    await orientation.requestPermission();
+    if (isStale()) return;
+
+    // Phase 1: Get an initial fix by racing the strategies in parallel; the
+    // first success wins. This is more reliable than watchPosition alone,
+    // which on some browsers fires an error immediately if high-accuracy
+    // isn't available.
+    let gotInitialFix = false;
+
+    // Hard safety net: if no strategy returns within the deadline (e.g. the
+    // device's location provider is silent behind a full-tunnel VPN), stop the
+    // spinner and surface an error instead of hanging indefinitely.
+    let timedOut = false;
+    const deadline = setTimeout(() => {
+      if (gotInitialFix || isStale()) return;
+      timedOut = true;
+      setIsLocating(false);
+      setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
+    }, INITIAL_FIX_DEADLINE_MS);
+
+    let permissionDenied = false;
+
+    await Promise.allSettled(GPS_STRATEGIES.map(async (strategy) => {
+      try {
+        const position = await tryGetPosition({
+          enableHighAccuracy: strategy.enableHighAccuracy,
+          timeout: strategy.timeout,
+          maximumAge: strategy.maximumAge,
+        });
+
+        if (isStale() || gotInitialFix) return;
+        gotInitialFix = true;
+        clearTimeout(deadline);
+        applyPosition(position.coords);
+        startWatch(); // Begin continuous updates immediately on first fix
+      } catch (err: unknown) {
+        const error = err as GeolocationPositionError | Error;
+
+        if ('code' in error && error.code === GeolocationPositionError.PERMISSION_DENIED) {
+          permissionDenied = true;
+        } else {
+          // Other errors (timeout, unavailable) -- the parallel sibling may still succeed
+          console.warn(`Compass GPS strategy "${strategy.name}" failed:`, error.message || error);
+        }
+      }
+    }));
+
+    clearTimeout(deadline);
+    if (isStale() || gotInitialFix) return;
+
+    if (permissionDenied) {
+      setIsLocating(false);
+      setGpsError('Location access denied. Please enable location in your browser settings.');
+      return;
+    }
+
+    if (!timedOut) {
+      setIsLocating(false);
+      setGpsError('Unable to determine your location. Make sure location services are enabled and try again.');
+    }
+
+    // Late rescue: a cold GPS fix can take longer than the deadline. Keep one
+    // long-running request alive; if it lands, clear the error and start
+    // tracking as normal -- no need to reopen the compass.
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (isStale()) return;
+        applyPosition(position.coords);
+        startWatch();
+      },
+      (err) => {
+        console.warn('Compass GPS rescue failed:', err.message || err);
+      },
+      { enableHighAccuracy: true, timeout: RESCUE_TIMEOUT_MS, maximumAge: 0 }
+    );
+  }, [orientation, tryGetPosition, applyPosition, startWatch]);
 
   // Stop watching position and orientation sensors
   const stopTracking = useCallback(() => {
+    trackingSession.current++;
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
