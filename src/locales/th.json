@@ -225,6 +225,8 @@
   "modifiers.badge.firstToFind": "ผู้ค้นพบคนแรก",
   "modifiers.badge.firstToFind.claimed": "ถูกอ้างสิทธิ์แล้ว",
   "modifiers.badge.art": "ศิลปะ",
+  "modifiers.badge.lightning": "ไลท์นิ่ง",
+  "modifiers.badge.lightning.tooltip": "จ่ายบิตคอยน์ผ่าน Lightning Network เมื่อค้นพบ",
   "ftf.banner.title": "ถูกอ้างสิทธิ์แล้ว",
   "ftf.banner.body": "ชนะโดย {{name}} เมื่อ {{date}}",
   "ftf.banner.claimedOn": "อ้างสิทธิ์เมื่อ {{date}}",

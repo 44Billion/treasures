@@ -314,9 +314,12 @@ export function GeocacheMap({
       // Art treasures get a Palette glyph on the marker so they read as
       // special at a glance — independent of cache type or FTF status.
       const isArt = geocache.modifiers?.includes('art') ?? false;
+      // Lightning-enabled treasures (payout-lnurl-w label) get a small bolt
+      // badge so finders can spot sat-paying caches directly on the map.
+      const isLightning = geocache.lightningEnabled ?? false;
       const markerIcon = isClaimed
-        ? getCachedClaimedFtfIcon(geocache.type, iconTheme, isArt)
-        : getCachedCacheIcon(geocache.type, iconTheme, isArt);
+        ? getCachedClaimedFtfIcon(geocache.type, iconTheme, isArt, isLightning)
+        : getCachedCacheIcon(geocache.type, iconTheme, isArt, isLightning);
 
       return (
         <Marker

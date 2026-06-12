@@ -24,15 +24,17 @@
  * and adopts a muted variant so the treasure visibly reads as already won.
  */
 
-import { Trophy, Palette, KeyRound } from 'lucide-react';
+import { useState } from 'react';
+import { Trophy, Palette, KeyRound, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Geocache } from '@/types/geocache';
-import { getActiveModifiers, type ActiveModifier } from '@/utils/modifiers';
+import { getActiveModifiers, type ActiveModifier, type ActiveModifierKind } from '@/utils/modifiers';
 import { cn } from '@/lib/utils';
 
 export interface ModifierBadgesProps {
-  cache: Pick<Geocache, 'mission' | 'modifiers'>;
+  cache: Pick<Geocache, 'mission' | 'modifiers' | 'lightningEnabled'>;
   /**
    * If true and the cache has the `first-to-find` modifier, the FTF badge
    * renders in its "claimed" state (muted color, "Claimed" label).
@@ -46,6 +48,12 @@ export interface ModifierBadgesProps {
    * for layout and gap. See module doc for rationale.
    */
   inline?: boolean;
+  /**
+   * Modifier kinds the caller renders elsewhere itself (e.g. the map popup
+   * places the lightning bolt inline in its D/T stats row instead of in the
+   * modifier badge block). Excluded kinds are skipped here.
+   */
+  exclude?: ActiveModifierKind[];
   className?: string;
 }
 
@@ -54,9 +62,13 @@ export function ModifierBadges({
   ftfClaimed = false,
   size = 'default',
   inline = false,
+  exclude,
   className,
 }: ModifierBadgesProps) {
-  const active = getActiveModifiers(cache);
+  let active = getActiveModifiers(cache);
+  if (exclude && exclude.length > 0) {
+    active = active.filter((m) => !exclude.includes(m.kind));
+  }
   if (active.length === 0) return null;
 
   if (inline) {
@@ -130,6 +142,12 @@ function ModifierBadge({ modifier, size, ftfClaimed }: ModifierBadgeProps) {
         </Badge>
       );
 
+    case 'lightning':
+      // Cards/popups (compact) show the bolt glyph only ("tl;dr: lightning");
+      // the detail page (default size) adds the label for a little more
+      // context. The full payout explanation lives in the tooltip.
+      return <LightningBadge size={size} />;
+
     case 'art':
       return (
         <Badge
@@ -141,4 +159,74 @@ function ModifierBadge({ modifier, size, ftfClaimed }: ModifierBadgeProps) {
         </Badge>
       );
   }
+}
+
+export interface LightningBadgeProps {
+  size?: 'default' | 'compact';
+  /**
+   * Whether to render the "Lightning" text next to the bolt. Defaults to
+   * label-on for the `default` size (detail page) and bolt-only for
+   * `compact` (cards, map popup rows).
+   */
+  showLabel?: boolean;
+  className?: string;
+}
+
+/**
+ * Bolt badge for lightning-enabled treasures (payout-lnurl-w label).
+ *
+ * Exported separately so layouts that don't use the modifier badge block can
+ * place the bolt themselves (e.g. the map popup puts it in its D/T row —
+ * pass `exclude={['lightning']}` to ModifierBadges there).
+ *
+ * Tooltip behavior is hover-driven on desktop. Hover doesn't exist on touch
+ * devices, so the badge also opens the tooltip on click/tap: the click
+ * handler calls `preventDefault()` (which suppresses Radix's internal
+ * close-on-click trigger behavior) and `stopPropagation()` (so tapping the
+ * bolt doesn't activate the surrounding card/popup navigation). Tapping
+ * anywhere else dismisses it via Radix's outside-pointer handling.
+ */
+export function LightningBadge({ size = 'default', showLabel, className }: LightningBadgeProps) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const withLabel = showLabel ?? size === 'default';
+
+  const iconSize = size === 'compact' ? 'h-3 w-3' : 'h-3.5 w-3.5';
+  const baseClass = cn(
+    'w-fit gap-1',
+    size === 'compact' && 'text-[10px] px-1.5 py-0',
+  );
+
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        {/* Badge doesn't forward refs, so the trigger wraps it in a span. */}
+        <span
+          className={cn('inline-flex', className)}
+          tabIndex={0}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setOpen(true);
+          }}
+        >
+          <Badge
+            variant="outline"
+            aria-label={t('modifiers.badge.lightning')}
+            className={cn(
+              baseClass,
+              'border-yellow-500/60 bg-yellow-500/10 text-foreground cursor-default',
+            )}
+          >
+            <Zap className={cn(iconSize, 'text-yellow-500 fill-yellow-500')} />
+            {withLabel && t('modifiers.badge.lightning')}
+          </Badge>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[220px]">
+        <p className="font-medium">{t('modifiers.badge.lightning')}</p>
+        <p className="text-xs opacity-80">{t('modifiers.badge.lightning.tooltip')}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 }

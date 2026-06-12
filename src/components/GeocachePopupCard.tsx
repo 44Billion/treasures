@@ -4,7 +4,7 @@ import { useStore } from 'zustand';
 import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, Trophy, X as XIcon, MessageSquare, Archive, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
-import { ModifierBadges } from "@/components/ModifierBadges";
+import { ModifierBadges, LightningBadge } from "@/components/ModifierBadges";
 import { getFtfStatus } from "@/utils/modifiers";
 import { useZapStore } from "@/stores/useZapStore";
 import { ZapButton } from "@/components/ZapButton";
@@ -157,6 +157,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             })()}
             size="compact"
             className="mt-1"
+            exclude={['lightning']}
           />
           <div className="flex items-center gap-1 mt-1 text-[10px] sm:text-[11px] text-muted-foreground">
             <span className="font-medium bg-muted rounded px-1 py-px">D{geocache.difficulty}</span>
@@ -165,6 +166,9 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             <span>{getSizeLabel(geocache.size)}</span>
             <span className="mx-0.5">·</span>
             <span>{getTypeLabel(geocache.type)}</span>
+            {geocache.lightningEnabled && (
+              <LightningBadge size="compact" className="ml-0.5" />
+            )}
           </div>
         </div>
 

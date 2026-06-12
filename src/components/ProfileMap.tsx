@@ -420,7 +420,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
             <Marker
               key={geocache.dTag}
               position={[geocache.location.lat, geocache.location.lng]}
-              icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle))}
+              icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle), false, geocache.lightningEnabled ?? false)}
               eventHandlers={{
                 click: (e) => {
                   const marker = e.target;

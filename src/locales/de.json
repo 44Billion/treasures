@@ -225,6 +225,8 @@
   "modifiers.badge.firstToFind": "Erster Finder",
   "modifiers.badge.firstToFind.claimed": "Beansprucht",
   "modifiers.badge.art": "Kunst",
+  "modifiers.badge.lightning": "Lightning",
+  "modifiers.badge.lightning.tooltip": "Zahlt beim Fund Bitcoin über das Lightning-Netzwerk aus.",
   "ftf.banner.title": "Beansprucht",
   "ftf.banner.body": "Von {{name}} am {{date}} gewonnen",
   "ftf.banner.claimedOn": "Beansprucht am {{date}}",

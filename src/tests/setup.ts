@@ -121,12 +121,14 @@ beforeAll(() => {
   global.setInterval = vi.fn() as any;
   global.clearInterval = vi.fn() as any;
 
-  // Mock ResizeObserver for Radix UI components
-  global.ResizeObserver = vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  }));
+  // Mock ResizeObserver for Radix UI components. Must be a real class —
+  // floating-ui calls `new ResizeObserver(...)`, and a vi.fn() with an arrow
+  // implementation is not constructable.
+  global.ResizeObserver = class ResizeObserverMock {
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+  } as unknown as typeof ResizeObserver;
 });
 
 // Clean up after each test

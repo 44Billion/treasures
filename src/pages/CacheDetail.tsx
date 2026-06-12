@@ -30,7 +30,7 @@ import { useDeleteWithConfirmation } from "@/hooks/useDeleteWithConfirmation";
 import { useEditGeocache } from "@/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { LogsSection } from "@/components/LogsSection";
-import { ModifierBadges } from "@/components/ModifierBadges";
+import { ModifierBadges, LightningBadge } from "@/components/ModifierBadges";
 import { FtfClaimBanner } from "@/components/FtfClaimBanner";
 import { getFtfStatus } from "@/utils/modifiers";
 import { useAuthor } from "@/hooks/useAuthor";
@@ -740,6 +740,7 @@ export default function CacheDetail() {
                           const s = getFtfStatus(geocache, logs as GeocacheLog[]);
                           return s.kind === 'claimed' || s.kind === 'locked';
                         })()}
+                        exclude={['lightning']}
                       />
                     </div>
                   </div>
@@ -913,6 +914,7 @@ export default function CacheDetail() {
                       <Badge variant="outline">T{geocache.terrain}</Badge>
                       <Badge variant="secondary">{getSizeLabel(geocache.size)}</Badge>
                       <Badge variant="secondary">{getTypeLabel(geocache.type)}</Badge>
+                      {geocache.lightningEnabled && <LightningBadge />}
                     </div>
 
                     <div className="prose max-w-none">

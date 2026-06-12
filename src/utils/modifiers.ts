@@ -1,10 +1,12 @@
 /**
  * Treasure type-modifier utilities.
  *
- * Unifies the two kinds of modifier this app supports:
+ * Unifies the kinds of modifier this app supports:
  *   1. NIP-GC `n` tag modifiers (`first-to-find`, `art`) — flag-only.
  *   2. NIP-GC `mission` tag — a behavior modifier (Key Quest) that carries its
  *      own text payload and predates the `n` tag namespace.
+ *   3. The lightning payout label (`["l", "payout-lnurl-w", …]`) set by
+ *      lightning-enabled clients — surfaced as a bolt indicator.
  *
  * Consumers should prefer `getActiveModifiers(cache)` over reaching into
  * individual fields, so badges and filters stay consistent across the UI.
@@ -16,6 +18,7 @@ import type { Geocache, GeocacheLog, TreasureModifier } from '@/types/geocache';
 export type ActiveModifier =
   | { kind: 'key-quest'; mission: string }
   | { kind: 'first-to-find' }
+  | { kind: 'lightning' }
   | { kind: 'art' };
 
 /** Kind string for an `ActiveModifier`. */
@@ -23,16 +26,19 @@ export type ActiveModifierKind = ActiveModifier['kind'];
 
 /**
  * Return all active modifiers on a treasure, in a stable presentation order:
- *   first-to-find, art, key-quest.
+ *   first-to-find, lightning, art, key-quest.
  *
  * Ordering is chosen so that behavioral modifiers (which affect interactions)
  * appear before descriptive ones (which categorize the treasure). Key Quest is
  * last because it carries the most text and visually anchors the modifier row.
  */
-export function getActiveModifiers(cache: Pick<Geocache, 'mission' | 'modifiers'>): ActiveModifier[] {
+export function getActiveModifiers(
+  cache: Pick<Geocache, 'mission' | 'modifiers' | 'lightningEnabled'>,
+): ActiveModifier[] {
   const out: ActiveModifier[] = [];
   const ns = cache.modifiers ?? [];
   if (ns.includes('first-to-find')) out.push({ kind: 'first-to-find' });
+  if (cache.lightningEnabled) out.push({ kind: 'lightning' });
   if (ns.includes('art')) out.push({ kind: 'art' });
   if (cache.mission && cache.mission.trim().length > 0) {
     out.push({ kind: 'key-quest', mission: cache.mission });
@@ -42,12 +48,14 @@ export function getActiveModifiers(cache: Pick<Geocache, 'mission' | 'modifiers'
 
 /** Return true if the cache carries the given modifier. */
 export function hasModifier(
-  cache: Pick<Geocache, 'mission' | 'modifiers'>,
+  cache: Pick<Geocache, 'mission' | 'modifiers' | 'lightningEnabled'>,
   kind: ActiveModifierKind,
 ): boolean {
   switch (kind) {
     case 'first-to-find':
       return cache.modifiers?.includes('first-to-find') ?? false;
+    case 'lightning':
+      return cache.lightningEnabled ?? false;
     case 'art':
       return cache.modifiers?.includes('art') ?? false;
     case 'key-quest':

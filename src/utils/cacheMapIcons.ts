@@ -96,26 +96,28 @@ function getCacheColor(type: string): string {
 export type MapIconTheme = 'default' | 'adventure' | 'mojave';
 
 // Cached Leaflet DivIcon instances: 3 types × 3 themes = 9 icons, plus the
-// claimed-FTF variants. Shared across every map in the app so we don't
-// duplicate the DOM allocations once per map instance.
+// claimed-FTF / art / lightning variants. Shared across every map in the app
+// so we don't duplicate the DOM allocations once per map instance.
 const iconCache = new Map<string, L.DivIcon>();
 
 /**
- * Small trophy-on-tan badge HTML, anchored to the top-right of the marker.
+ * Shared shell for the small 16px corner badges composited onto markers
+ * (claimed-FTF trophy, lightning bolt).
  *
- * Indicates that a first-to-find treasure has already been claimed (a
- * verified found log exists or the F tag is locked). Rendered as a separate
- * absolutely-positioned element so it composes with every theme variant
- * without redrawing the underlying glyph.
+ * All badges anchor to the marker's right edge. `slot` is the vertical
+ * position: slot 0 hugs the top-right corner, slot 1 sits directly below it,
+ * etc. — so when a marker carries more than one badge they stack vertically
+ * instead of fighting over the same corner.
  */
-const claimedBadgeHtml = `
+function buildCornerBadgeHtml(slot: number, background: string, iconSvg: string): string {
+  return `
   <div style="
     position: absolute;
-    top: -4px;
+    top: ${-4 + slot * 18}px;
     right: -4px;
     width: 16px;
     height: 16px;
-    background: #b45309;
+    background: ${background};
     border: 2px solid white;
     border-radius: 50%;
     display: flex;
@@ -125,16 +127,49 @@ const claimedBadgeHtml = `
     z-index: 2;
     pointer-events: none;
   ">
-    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    ${iconSvg}
+  </div>
+`;
+}
+
+/**
+ * Small trophy-on-tan badge HTML.
+ *
+ * Indicates that a first-to-find treasure has already been claimed (a
+ * verified found log exists or the F tag is locked). Rendered as a separate
+ * absolutely-positioned element so it composes with every theme variant
+ * without redrawing the underlying glyph.
+ */
+function buildClaimedBadgeHtml(slot: number = 0): string {
+  return buildCornerBadgeHtml(
+    slot,
+    '#b45309',
+    `<svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
       <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
       <path d="M4 22h16"/>
       <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
       <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
       <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-    </svg>
-  </div>
-`;
+    </svg>`,
+  );
+}
+
+/**
+ * Small white-bolt-on-yellow badge HTML.
+ *
+ * Indicates the treasure is lightning-enabled (carries an
+ * `["l", "payout-lnurl-w", …]` payout label), i.e. finding it pays out sats.
+ */
+function buildLightningBadgeHtml(slot: number = 0): string {
+  return buildCornerBadgeHtml(
+    slot,
+    '#eab308',
+    `<svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="#ffffff" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>`,
+  );
+}
 
 function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolean): string {
   // When the treasure carries the `art` modifier we swap the per-type glyph
@@ -274,22 +309,39 @@ export function getCachedCacheIcon(
   type: string,
   iconTheme: MapIconTheme,
   isArt: boolean = false,
+  isLightning: boolean = false,
 ): L.DivIcon {
-  const key = `${type}-${iconTheme}${isArt ? '-art' : ''}`;
+  const key = `${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}`;
   const cached = iconCache.get(key);
   if (cached) return cached;
 
   const dims = buildIconDimensions(iconTheme);
-  const className =
+  const baseClassName =
     iconTheme === 'adventure'
       ? 'custom-cache-icon adventure-cache-icon adventure-quest-marker'
       : iconTheme === 'mojave'
         ? 'custom-cache-icon mojave-cache-icon'
         : 'custom-cache-icon';
+  let className = isArt ? `${baseClassName} art-cache-icon` : baseClassName;
+  if (isLightning) className = `${className} lightning-cache-icon`;
+
+  // The bolt badge needs a positioning shell so it can be absolutely
+  // positioned relative to the marker as a whole (same approach as the
+  // claimed-FTF trophy badge). It's the only badge here, so it takes
+  // slot 0 (top-right corner).
+  let html = buildCacheIconHtml(type, iconTheme, isArt);
+  if (isLightning) {
+    html = `
+      <div style="position: relative; width: 100%; height: 100%;">
+        ${html}
+        ${buildLightningBadgeHtml(0)}
+      </div>
+    `;
+  }
 
   const icon = L.divIcon({
-    html: buildCacheIconHtml(type, iconTheme, isArt),
-    className: isArt ? `${className} art-cache-icon` : className,
+    html,
+    className,
     ...dims,
   });
 
@@ -305,13 +357,16 @@ export function getCachedCacheIcon(
  *
  * `isArt` propagates the art-modifier glyph swap, so an art treasure
  * remains visibly art-flagged even after its FTF claim is taken.
+ * `isLightning` composes the bolt badge in the upper-left corner so both
+ * indicators can coexist on one marker.
  */
 export function getCachedClaimedFtfIcon(
   type: string,
   iconTheme: MapIconTheme,
   isArt: boolean = false,
+  isLightning: boolean = false,
 ): L.DivIcon {
-  const key = `claimed-ftf-${type}-${iconTheme}${isArt ? '-art' : ''}`;
+  const key = `claimed-ftf-${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}`;
   const cached = iconCache.get(key);
   if (cached) return cached;
 
@@ -322,15 +377,19 @@ export function getCachedClaimedFtfIcon(
       : iconTheme === 'mojave'
         ? 'custom-cache-icon mojave-cache-icon claimed-ftf-marker'
         : 'custom-cache-icon claimed-ftf-marker';
-  const className = isArt ? `${baseClassName} art-cache-icon` : baseClassName;
+  let className = isArt ? `${baseClassName} art-cache-icon` : baseClassName;
+  if (isLightning) className = `${className} lightning-cache-icon`;
 
-  // Wrap the underlying marker HTML in a positioning shell so the trophy
-  // badge can be absolutely positioned relative to the marker as a whole.
+  // Wrap the underlying marker HTML in a positioning shell so the corner
+  // badges can be absolutely positioned relative to the marker as a whole.
+  // The trophy takes slot 0 (top-right); when the treasure is also
+  // lightning-enabled the bolt stacks vertically below it in slot 1.
   const innerHtml = buildCacheIconHtml(type, iconTheme, isArt);
   const html = `
     <div style="position: relative; width: 100%; height: 100%;">
       ${innerHtml}
-      ${claimedBadgeHtml}
+      ${buildClaimedBadgeHtml(0)}
+      ${isLightning ? buildLightningBadgeHtml(1) : ''}
     </div>
   `;
 

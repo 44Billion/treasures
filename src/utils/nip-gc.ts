@@ -295,6 +295,13 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
     const client = event.tags.find(t => t[0] === 'client')?.[1];
     const verificationPubkey = event.tags.find(t => t[0] === 'verification')?.[1];
 
+    // Lightning payout label (NIP-32 style `l` tag, e.g. from Lightning
+    // Piggy). The `payout-lnurl-w` label value is what marks a treasure as
+    // lightning-enabled; the namespace (third element) is not significant.
+    const lightningEnabled = event.tags.some(
+      t => t[0] === 'l' && t[1] === 'payout-lnurl-w'
+    );
+
     // Check if cache is hidden (has 't' tag with 'hidden' value)
     const hidden = event.tags.some(t => t[0] === 't' && t[1] === 'hidden');
 
@@ -340,6 +347,7 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       type: cacheType,
       images,
       contentWarning,
+      lightningEnabled: lightningEnabled || undefined,
       relays,
       client,
       verificationPubkey,

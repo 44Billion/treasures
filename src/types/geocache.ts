@@ -51,6 +51,14 @@ export interface Geocache {
   ftfWinner?: string;
   images?: string[];
   contentWarning?: string; // Optional spoiler/content warning reason (NIP-36)
+  /**
+   * True when the treasure carries a lightning payout label tag
+   * (`["l", "payout-lnurl-w", <namespace>]`, NIP-32 style) published by a
+   * lightning-enabled client (e.g. Lightning Piggy). Detection keys on the
+   * `payout-lnurl-w` label value; the namespace is informational only.
+   * Surfaced as a bolt indicator on cards and map markers.
+   */
+  lightningEnabled?: boolean;
   foundCount?: number;
   logCount?: number;
   zapTotal?: number;

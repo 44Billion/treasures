@@ -225,6 +225,8 @@
   "modifiers.badge.firstToFind": "First to Find",
   "modifiers.badge.firstToFind.claimed": "Claimed",
   "modifiers.badge.art": "Art",
+  "modifiers.badge.lightning": "Lightning",
+  "modifiers.badge.lightning.tooltip": "Pays out bitcoin over the Lightning Network when found.",
   "ftf.banner.title": "Claimed",
   "ftf.banner.body": "Won by {{name}} on {{date}}",
   "ftf.banner.claimedOn": "Claimed on {{date}}",

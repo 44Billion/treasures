@@ -80,9 +80,11 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock ResizeObserver. Must be a real class — floating-ui (Radix tooltips/
+// popovers) calls `new ResizeObserver(...)`, and a vi.fn() with an arrow
+// implementation is not constructable.
+global.ResizeObserver = class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+} as unknown as typeof ResizeObserver;

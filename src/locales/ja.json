@@ -225,6 +225,8 @@
   "modifiers.badge.firstToFind": "ファースト・トゥ・ファインド",
   "modifiers.badge.firstToFind.claimed": "請求済み",
   "modifiers.badge.art": "アート",
+  "modifiers.badge.lightning": "ライトニング",
+  "modifiers.badge.lightning.tooltip": "発見するとライトニングネットワーク経由でビットコインが支払われます。",
   "ftf.banner.title": "請求済み",
   "ftf.banner.body": "{{date}}に{{name}}が獲得",
   "ftf.banner.claimedOn": "{{date}}に請求",
