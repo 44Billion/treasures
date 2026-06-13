@@ -404,8 +404,8 @@ export function MobileHeader() {
                       onClick={() => { closeSheet(); setLoginDialogOpen(true); }}
                       className="flex items-center gap-2 rounded-full bg-primary text-primary-foreground font-medium transition-all hover:bg-primary/90 w-full"
                     >
-                      <User className="w-4 h-4" />
-                      <span>{t('login.button')}</span>
+                      <UserPlus className="w-4 h-4" />
+                      <span>{t('auth.join', 'Join')}</span>
                     </Button>
                   </div>
                 )}
@@ -670,8 +670,9 @@ export function MobileHeader() {
           {!user ? (
             <Button
               size="sm"
+              data-compact
               onClick={() => setLoginDialogOpen(true)}
-              className="rounded-full px-3 min-h-11 text-xs font-semibold"
+              className="rounded-full px-3 h-8 text-xs font-semibold"
             >
               <UserPlus className="h-3.5 w-3.5" />
               {t('auth.join', 'Join')}

@@ -95,7 +95,7 @@
 
 /* ===== TOUCH TARGETS ===== */
 @media (max-width: 768px) {
-  button,
+  button:not([data-compact]),
   .touch-target {
     min-block-size: 2.5rem; /* 40px */
     min-inline-size: 2.5rem; /* 40px */
@@ -115,7 +115,7 @@
     padding-inline: 0.75rem;
   }
   
-  button {
+  button:not([data-compact]) {
     min-block-size: 2.5rem; /* 40px */
     font-size: 0.875rem;
   }
