@@ -33,8 +33,9 @@ import { generateCompactDTag } from '@/utils/dTag';
 import { useAppContext } from '@/hooks/useAppContext';
 import { getEffectiveRelays } from '@/lib/appRelays';
 import { resilientPublish } from '@/lib/resilientPublish';
+import { signEventWithTimeout } from '@/lib/publishErrors';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { QUERY_LIMITS, LEGACY_GEOCACHE_IDS } from '@/config';
+import { QUERY_LIMITS, TIMEOUTS, LEGACY_GEOCACHE_IDS } from '@/config';
 import { calculateDistance } from '@/utils/geo';
 
 /**
@@ -343,7 +344,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         created_at: Math.floor(Date.now() / 1000),
       };
 
-      const signedEvent = await user.signer.signEvent(event);
+      const signedEvent = await signEventWithTimeout(
+        () => user.signer.signEvent(event),
+        TIMEOUTS.SIGNER,
+      );
 
       // Publish with retry + offline queueing (shared primitive). A failed
       // delivery on a flaky connection is queued and re-broadcast when
@@ -443,7 +447,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         created_at: Math.floor(Date.now() / 1000),
       };
 
-      const signedEvent = await user.signer.signEvent(event);
+      const signedEvent = await signEventWithTimeout(
+        () => user.signer.signEvent(event),
+        TIMEOUTS.SIGNER,
+      );
 
       // Publish with retry + offline queueing (shared primitive).
       await resilientPublish(baseStore.nostr, signedEvent);
@@ -499,7 +506,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         created_at: Math.floor(Date.now() / 1000),
       };
 
-      const signedEvent = await user.signer.signEvent(deletionEvent);
+      const signedEvent = await signEventWithTimeout(
+        () => user.signer.signEvent(deletionEvent),
+        TIMEOUTS.SIGNER,
+      );
 
       // Fire-and-forget deletion: publish with retry + offline queueing, but
       // never block the optimistic local removal if relays are unreachable.

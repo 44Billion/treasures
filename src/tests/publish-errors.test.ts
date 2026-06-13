@@ -5,10 +5,13 @@
  * get a neutral toast and don't auto-save, while network/relay failures
  * trigger the local-draft fallback path.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   isUserCancelledPublishError,
   isNetworkPublishError,
+  isSignerTimeoutError,
+  signEventWithTimeout,
+  SIGNER_TIMEOUT_MESSAGE,
 } from "@/lib/publishErrors";
 
 describe("publishErrors", () => {
@@ -84,6 +87,55 @@ describe("publishErrors", () => {
       expect(isNetworkPublishError(null)).toBe(false);
       expect(isNetworkPublishError(undefined)).toBe(false);
       expect(isNetworkPublishError("")).toBe(false);
+    });
+  });
+
+  describe("isSignerTimeoutError", () => {
+    it("matches the signer-timeout marker", () => {
+      expect(isSignerTimeoutError(new Error(SIGNER_TIMEOUT_MESSAGE))).toBe(true);
+    });
+
+    it("does not match relay/network or cancel errors", () => {
+      expect(isSignerTimeoutError(new Error("Connection timeout"))).toBe(false);
+      expect(isSignerTimeoutError(new Error("User rejected"))).toBe(false);
+    });
+
+    it("handles null/undefined", () => {
+      expect(isSignerTimeoutError(null)).toBe(false);
+      expect(isSignerTimeoutError(undefined)).toBe(false);
+    });
+  });
+
+  describe("signEventWithTimeout", () => {
+    it("resolves with the signed event when signing completes in time", async () => {
+      const signed = { id: "abc" };
+      await expect(
+        signEventWithTimeout(() => Promise.resolve(signed), 1000),
+      ).resolves.toBe(signed);
+    });
+
+    it("rejects with the signer-timeout marker when signing hangs", async () => {
+      vi.useFakeTimers();
+      try {
+        const promise = signEventWithTimeout(
+          () => new Promise(() => {}), // never resolves
+          5000,
+        );
+        const assertion = expect(promise).rejects.toThrow(SIGNER_TIMEOUT_MESSAGE);
+        await vi.advanceTimersByTimeAsync(5000);
+        await assertion;
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("propagates a signer's own error (e.g. user cancel) unchanged", async () => {
+      await expect(
+        signEventWithTimeout(
+          () => Promise.reject(new Error("User rejected")),
+          1000,
+        ),
+      ).rejects.toThrow("User rejected");
     });
   });
 

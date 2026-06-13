@@ -34,6 +34,40 @@ export function isUserCancelledPublishError(err: unknown): boolean {
   return CANCEL_PATTERNS.some((p) => lower.includes(p));
 }
 
+/** Marker message used when the signer doesn't respond in time. */
+export const SIGNER_TIMEOUT_MESSAGE = 'signer-timeout';
+
+/**
+ * Sign an event with a timeout so a hung/unreachable signer (commonly a
+ * NIP-46 remote "bunker" on a flaky connection) surfaces as a distinct,
+ * user-actionable error instead of masquerading as a relay failure.
+ */
+export async function signEventWithTimeout<T>(
+  sign: () => Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(SIGNER_TIMEOUT_MESSAGE)), timeoutMs);
+  });
+  try {
+    return await Promise.race([sign(), timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/**
+ * Whether the error is a signer problem (didn't respond / unreachable) as
+ * opposed to a user-initiated cancel or a relay/network failure. Drives the
+ * "open your signer app and try again" copy.
+ */
+export function isSignerTimeoutError(err: unknown): boolean {
+  if (!err) return false;
+  const msg = (err as { message?: string })?.message ?? String(err);
+  return msg.toLowerCase().includes(SIGNER_TIMEOUT_MESSAGE);
+}
+
 /**
  * Best-effort detection of network/relay/timeout failures. Used as a hint
  * for the toast copy — anything not matching either bucket falls through

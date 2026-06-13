@@ -6,6 +6,7 @@ import { CompassSpinner } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ToastAction } from "@/components/ui/toast";
 import { PageHero } from "@/components/PageHero";
 import { DesktopHeader } from "@/components/DesktopHeader";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -36,7 +37,7 @@ import { parseVerificationFromHash } from "@/utils/verification";
 import { parseNaddr } from "@/utils/naddr";
 import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
 import { getLocalDraft, upsertLocalDraft, newLocalDraftSlug } from "@/lib/localDraftsStore";
-import { isUserCancelledPublishError } from "@/lib/publishErrors";
+import { isUserCancelledPublishError, isSignerTimeoutError } from "@/lib/publishErrors";
 import { generateCompactDTag } from "@/utils/dTag";
 import { getAppOrigin } from "@/utils/appUrl";
 import { useQueryClient } from "@tanstack/react-query";
@@ -486,11 +487,22 @@ export default function CreateCache() {
         return;
       }
 
-      // Real failure (relay timeout, network error, etc). Persist the
-      // current form state into the multi-slot local drafts store so the
-      // user's work is recoverable from the profile drafts list as a
-      // "Not synced" entry. Only auto-save when we have the minimum
-      // required fields — otherwise the entry would be unrecoverable noise.
+      // A one-tap retry that re-runs the whole create. Attached to every
+      // non-cancel failure toast so the user never has to hunt for how to
+      // recover — recovery is always right where the error appears.
+      const retryAction = (
+        <ToastAction
+          altText={t('createCache.publish.failed.tryAgain')}
+          onClick={() => { void handleCreateGeocache(); }}
+        >
+          {t('createCache.publish.failed.tryAgain')}
+        </ToastAction>
+      );
+
+      // Save the current form state as a recoverable "Not synced" draft so
+      // the user's work is never lost, regardless of which failure occurred.
+      // Only auto-save when we have the minimum required fields — otherwise
+      // the entry would be unrecoverable noise.
       const hasMinimumFields =
         !!user &&
         formData.name.trim().length > 0 &&
@@ -510,28 +522,37 @@ export default function CreateCache() {
           // Make the new local draft visible in the profile drafts list on
           // next read.
           queryClient.invalidateQueries({ queryKey: ['treasure-drafts', user!.pubkey] });
-
-          toast({
-            title: t('createCache.publish.failed.savedAsDraft.title'),
-            description: t('createCache.publish.failed.savedAsDraft.description'),
-          });
-          // Send the user to their profile drafts list so they can see the
-          // recovered "Not synced" entry and retry publishing from there.
-          // Mirrors the Save Draft fallback behavior for consistency.
-          navigate('/profile');
-          return;
         } catch (saveErr) {
-          // If even the local save fails, fall through to the generic
-          // failure toast below so the user at least gets *some* feedback.
+          // Best-effort — even if the local save fails we still surface a
+          // retryable toast below so the user gets actionable feedback.
           console.error('[CreateCache] Local fallback save also failed:', saveErr);
         }
       }
 
-      // Generic failure path — incomplete form, or local-save itself failed.
+      // A hung/unreachable signer (often a remote NIP-46 "bunker" on a flaky
+      // connection) gets its own copy so the user knows to check their signer
+      // app rather than assuming the relay or app is broken. Their work is
+      // saved; the action lets them retry without leaving the page.
+      if (isSignerTimeoutError(error)) {
+        toast({
+          title: t('createCache.publish.failed.signerTimeout.title'),
+          description: t('createCache.publish.failed.signerTimeout.description'),
+          variant: "destructive",
+          action: retryAction,
+        });
+        return;
+      }
+
+      // Any other failure: tell the user it's saved and let them retry in
+      // place. (Connectivity failures are already auto-queued upstream and
+      // never reach here.)
       toast({
         title: t('createCache.publish.failed.title'),
-        description: error instanceof Error ? error.message : t('createCache.publish.failed.unknown'),
+        description: hasMinimumFields
+          ? t('createCache.publish.failed.savedRetry')
+          : (error instanceof Error ? error.message : t('createCache.publish.failed.unknown')),
         variant: "destructive",
+        action: retryAction,
       });
     }
   };

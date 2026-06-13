@@ -11,6 +11,7 @@ export const TIMEOUTS = {
   FAST_QUERY: 3000, // 3 seconds - faster optimistic loading
   DELETE_OPERATION: 5000, // 5 seconds - a bit more time for deletions
   PUBLISH: 12000, // 12 seconds - reasonable timeout for publishing events
+  SIGNER: 30000, // 30 seconds - how long to wait for a (possibly remote) signer to respond
   OPTIMISTIC_LOAD: 1000, // 1 second - very fast initial load
   STATS_QUERY: 15000, // 15 seconds - longer timeout for stats queries that fetch more data
 } as const;
