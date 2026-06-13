@@ -7,6 +7,12 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAppContext } from '@/hooks/useAppContext';
 import { getEffectiveBlossomServers } from '@/lib/appBlossom';
 import { resizeImage } from '@/lib/resizeImage';
+import { RETRY_CONFIG } from '@/config';
+
+/** Uploads can't be deferred offline (the blob isn't persisted) — fail fast. */
+function isOfflineError(): boolean {
+  return typeof navigator !== 'undefined' && !navigator.onLine;
+}
 
 export function useUploadFile() {
   const { user } = useCurrentUser();
@@ -44,7 +50,35 @@ export function useUploadFile() {
         }),
       });
 
-      const tags = await uploader.upload(uploadFile);
+      // Retry the upload on transient failures (timeouts, all-server blips).
+      // Unlike event publishing there's no offline queue — the blob isn't
+      // persisted — so if the device is offline we fail fast with a clear
+      // message rather than burning through retries.
+      let tags: string[][] | null = null;
+      let lastError: unknown = null;
+
+      for (let attempt = 1; attempt <= RETRY_CONFIG.MAX_RETRIES; attempt++) {
+        if (isOfflineError()) {
+          throw new Error("You appear to be offline. Connect to the internet and try uploading again.");
+        }
+        try {
+          tags = await uploader.upload(uploadFile);
+          break;
+        } catch (error) {
+          lastError = error;
+          // Wait before retrying (except on the last attempt).
+          if (attempt < RETRY_CONFIG.MAX_RETRIES) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, RETRY_CONFIG.BASE_DELAY * attempt),
+            );
+          }
+        }
+      }
+
+      if (!tags) {
+        const message = (lastError as { message?: string })?.message || 'Unknown error';
+        throw new Error(`Upload failed after ${RETRY_CONFIG.MAX_RETRIES} attempts: ${message}`);
+      }
 
       // If the returned URL is missing a file extension, append one from the
       // source file name. Blossom URLs are content-addressed (`/<sha256>`) and

@@ -1,28 +1,16 @@
 import { useNostr } from "@nostrify/react";
 import { useMutation } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { TIMEOUTS, RETRY_CONFIG } from "@/config";
-import { getAdaptiveTimeout } from "@/utils/network";
+import { TIMEOUTS } from "@/config";
 import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { ensureClientTag } from "@/lib/clientTag";
-import { enqueueEvent } from "@/lib/offlinePublishQueue";
+import { resilientPublish } from "@/lib/resilientPublish";
 
 interface EventTemplate {
   kind: number;
   content?: string;
   tags?: string[][];
   created_at?: number;
-}
-
-/** Errors that indicate the network (not the user/signer) is the problem. */
-function isConnectivityError(message: string): boolean {
-  return (
-    message.includes('no promise in promise.any resolved') ||
-    message.includes('timeout') ||
-    message.includes('WebSocket') ||
-    message.includes('network') ||
-    message.includes('Failed to fetch')
-  );
 }
 
 export function useNostrPublish() {
@@ -54,103 +42,45 @@ export function useNostrPublish() {
           created_at: t.created_at ?? Math.floor(Date.now() / 1000),
         });
 
-        // Send to relays with retry logic and better error handling
-        let lastError: Error | null = null;
-        let publishSuccess = false;
+        // Send to relays with retry + offline queueing (shared primitive).
+        const { status } = await resilientPublish(nostr, event);
 
-        // Device is offline: skip the doomed relay attempts, queue the
-        // signed event for delivery when connectivity returns, and treat
-        // the action as successful from the user's point of view.
-        if (typeof navigator !== 'undefined' && !navigator.onLine) {
-          await enqueueEvent(event);
+        // If the event was queued for offline delivery, there's nothing to
+        // verify yet — report success so the offline flush can deliver later.
+        if (status === 'queued') {
           return event;
         }
 
-        for (let attempt = 1; attempt <= RETRY_CONFIG.PUBLISH_MAX_RETRIES; attempt++) {
-          try {
-            // Use shorter, more reasonable timeout for publishing
-            const baseTimeout = TIMEOUTS.PUBLISH + (attempt - 1) * 3000; // Increase timeout slightly per attempt
-            const timeout = getAdaptiveTimeout(baseTimeout);
-            await nostr.event(event, { signal: AbortSignal.timeout(timeout) });
-            publishSuccess = true;
-            break;
-          } catch (error) {
-            const errorObj = error as { message?: string };
-            const errorMessage = errorObj.message || 'Unknown error';
-            
-            lastError = new Error(errorMessage);
-            
-            // Don't retry for certain types of errors
-            if (errorMessage.includes('User rejected') || 
-                errorMessage.includes('cancelled') ||
-                errorMessage.includes('denied') ||
-                errorMessage.includes('user denied') ||
-                errorMessage.includes('user cancelled') ||
-                errorMessage.includes('user rejected') ||
-                errorMessage.includes('signEvent')) {
-              throw error;
-            }
-            
-            // Log the attempt
-            console.warn(`Publish attempt ${attempt}/${RETRY_CONFIG.PUBLISH_MAX_RETRIES} failed:`, errorMessage);
-            
-            // Wait before retrying (except on last attempt)
-            if (attempt < RETRY_CONFIG.PUBLISH_MAX_RETRIES) {
-              await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.PUBLISH_BASE_DELAY * attempt));
-            }
-          }
-        }
-        
-        // If all retries failed, throw the last error with better messaging
-        if (!publishSuccess && lastError) {
-          const errorMessage = lastError.message;
-
-          // Connectivity failure: queue the signed event so it isn't lost,
-          // then surface success — the offline flush will deliver it.
-          if (isConnectivityError(errorMessage)) {
-            await enqueueEvent(event);
-            return event;
-          }
-
-          if (errorMessage.includes('relay')) {
-            throw new Error("Relay error occurred after multiple attempts. Your event may have been published successfully.");
-          } else {
-            throw new Error(`Failed to publish event after ${RETRY_CONFIG.PUBLISH_MAX_RETRIES} attempts: ${errorMessage}`);
-          }
-        }
-        
         // Verify the event was published by querying for it
-        if (publishSuccess) {
-          console.log('[useNostrPublish] Verifying event publication', { eventId: event.id });
-          const verifyStartTime = Date.now();
-          try {
-            const verification = await nostr.query(
-              [{ ids: [event.id] }], 
-              { signal: AbortSignal.timeout(TIMEOUTS.FAST_QUERY) }
-            );
-            const verifyDuration = Date.now() - verifyStartTime;
-            
-            if (verification.length === 0) {
-              console.warn('[useNostrPublish] Event not found in verification query', { 
-                eventId: event.id, 
-                duration: verifyDuration 
-              });
-            } else {
-              console.log('[useNostrPublish] Event successfully verified', { 
-                eventId: event.id, 
-                duration: verifyDuration 
-              });
-            }
-          } catch (verifyError) {
-            const verifyDuration = Date.now() - verifyStartTime;
-            console.warn('[useNostrPublish] Verification query failed', { 
-              eventId: event.id, 
-              error: verifyError, 
-              duration: verifyDuration 
+        console.log('[useNostrPublish] Verifying event publication', { eventId: event.id });
+        const verifyStartTime = Date.now();
+        try {
+          const verification = await nostr.query(
+            [{ ids: [event.id] }],
+            { signal: AbortSignal.timeout(TIMEOUTS.FAST_QUERY) }
+          );
+          const verifyDuration = Date.now() - verifyStartTime;
+
+          if (verification.length === 0) {
+            console.warn('[useNostrPublish] Event not found in verification query', {
+              eventId: event.id,
+              duration: verifyDuration
+            });
+          } else {
+            console.log('[useNostrPublish] Event successfully verified', {
+              eventId: event.id,
+              duration: verifyDuration
             });
           }
+        } catch (verifyError) {
+          const verifyDuration = Date.now() - verifyStartTime;
+          console.warn('[useNostrPublish] Verification query failed', {
+            eventId: event.id,
+            error: verifyError,
+            duration: verifyDuration
+          });
         }
-        
+
         return event; // Return the signed event
       } catch (error: unknown) {
         const errorObj = error as { message?: string };

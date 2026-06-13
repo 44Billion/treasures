@@ -32,8 +32,9 @@ import { generateVerificationKeyPair } from '@/utils/verification';
 import { generateCompactDTag } from '@/utils/dTag';
 import { useAppContext } from '@/hooks/useAppContext';
 import { getEffectiveRelays } from '@/lib/appRelays';
+import { resilientPublish } from '@/lib/resilientPublish';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { QUERY_LIMITS, TIMEOUTS, LEGACY_GEOCACHE_IDS } from '@/config';
+import { QUERY_LIMITS, LEGACY_GEOCACHE_IDS } from '@/config';
 import { calculateDistance } from '@/utils/geo';
 
 /**
@@ -344,9 +345,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
       const signedEvent = await user.signer.signEvent(event);
 
-      // Publish to relay
-      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
-      await baseStore.nostr.event(signedEvent, { signal });
+      // Publish with retry + offline queueing (shared primitive). A failed
+      // delivery on a flaky connection is queued and re-broadcast when
+      // connectivity returns instead of being lost.
+      await resilientPublish(baseStore.nostr, signedEvent);
 
       return { event: signedEvent, verificationKeyPair };
     },
@@ -443,9 +445,8 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
       const signedEvent = await user.signer.signEvent(event);
 
-      // Publish to relay
-      const signal = AbortSignal.timeout(TIMEOUTS.QUERY);
-      await baseStore.nostr.event(signedEvent, { signal });
+      // Publish with retry + offline queueing (shared primitive).
+      await resilientPublish(baseStore.nostr, signedEvent);
 
       return signedEvent;
     },
@@ -500,11 +501,10 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
 
       const signedEvent = await user.signer.signEvent(deletionEvent);
 
-      // Fire-and-forget deletion: send to relays without strict verification
+      // Fire-and-forget deletion: publish with retry + offline queueing, but
+      // never block the optimistic local removal if relays are unreachable.
       try {
-        await baseStore.nostr.event(signedEvent, {
-          signal: AbortSignal.timeout(TIMEOUTS.DELETE_OPERATION)
-        });
+        await resilientPublish(baseStore.nostr, signedEvent);
       } catch (publishError) {
         // Don't throw here - the event was signed and some relays might have received it
         console.warn('Deletion event publish warning (continuing optimistically):', publishError);
