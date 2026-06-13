@@ -25,12 +25,12 @@ export function WelcomeModal({ isOpen, onClose, isNewUser = false }: WelcomeModa
         </span>
       }
       description={
-        <div className="text-center text-muted-foreground">
+        <span className="block text-center text-muted-foreground">
           {isNewUser 
             ? t('welcomeModal.description.newUser')
             : t('welcomeModal.description.returningUser')
           }
-        </div>
+        </span>
       }
       headerClassName='px-6 pt-6 pb-1 relative flex-shrink-0'
       contentClassName='flex flex-col max-h-[90vh]'
