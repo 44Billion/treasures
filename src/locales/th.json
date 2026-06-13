@@ -1200,7 +1200,7 @@
   "notFound.attemptedPath": "We couldn't find anything at {{path}}.",
   "notFound.tryInstead": "Try one of these instead:",
   "notFound.exploreMap": "Explore Map",
-  "notFound.myCaches": "My Caches",
+  "notFound.savedTreasures": "สมบัติที่บันทึกไว้",
   "notFound.claim": "Claim a Treasure",
   "notFound.blog": "Blog",
   "errorBoundary.title": "Something went wrong",

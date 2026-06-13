@@ -14,7 +14,7 @@ const NotFound = () => {
     icon: React.ComponentType<{ className?: string }>;
   }> = [
     { to: "/map", labelKey: "notFound.exploreMap", fallback: "Explore Map", icon: Map },
-    { to: "/saved", labelKey: "notFound.myCaches", fallback: "My Caches", icon: Bookmark },
+    { to: "/saved", labelKey: "notFound.savedTreasures", fallback: "Saved Treasures", icon: Bookmark },
     { to: "/claim", labelKey: "notFound.claim", fallback: "Claim a Treasure", icon: ScanQrCode },
     { to: "/blog", labelKey: "notFound.blog", fallback: "Blog", icon: BookOpen },
   ];
