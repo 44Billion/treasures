@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { decodeCompactUrl, compactToNaddr } from "@/utils/compactUrl";
 import { ComponentLoading } from "@/components/ui/loading";
 import { PageLayout } from "@/components/PageLayout";
+import NotFound from "@/pages/NotFound";
 
 /**
  * Handles compact URL format: /c/{base64url-payload}
@@ -11,10 +12,11 @@ import { PageLayout } from "@/components/PageLayout";
 export default function CompactRedirect() {
   const { payload } = useParams<{ payload: string }>();
   const navigate = useNavigate();
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!payload) {
-      navigate("/404", { replace: true });
+      setNotFound(true);
       return;
     }
 
@@ -23,7 +25,7 @@ export default function CompactRedirect() {
     
     if (!decoded) {
       console.error("Failed to decode compact URL payload:", payload);
-      navigate("/404", { replace: true });
+      setNotFound(true);
       return;
     }
 
@@ -36,6 +38,11 @@ export default function CompactRedirect() {
     // Use replace so back button doesn't get stuck on this redirect page
     navigate(targetUrl, { replace: true });
   }, [payload, navigate]);
+
+  // Render the 404 page in place so the invalid /c/... URL is preserved.
+  if (notFound) {
+    return <NotFound />;
+  }
 
   return (
     <PageLayout maxWidth="md" className="py-16">

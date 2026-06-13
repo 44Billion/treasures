@@ -8,6 +8,7 @@ import { useZapStore } from '@/stores/useZapStore';
 import { ZapButton } from "@/components/ZapButton";
 import { GeocacheLoading } from "@/components/GeocacheLoading";
 import { NaddrAuthorCard } from "@/components/NaddrAuthorCard";
+import NotFound from "@/pages/NotFound";
 import { useDirectNavigation } from '@/hooks/useDirectNavigation';
 
 import { Navigation, Calendar, User, Edit, Trash2, RefreshCw, Save, RotateCcw, QrCode, Zap, Plus, Archive, Wrench } from "lucide-react";
@@ -277,13 +278,9 @@ export default function CacheDetail() {
     setIsMultiRelayLoading(false);
   }, [naddr]);
 
-  // Handle invalid naddr parameter - redirect to NotFound if it doesn't look like a valid naddr
-  useEffect(() => {
-    if (naddr && !naddr.startsWith('naddr1')) {
-      // Invalid path - doesn't look like an naddr, redirect to NotFound
-      navigate('/404', { replace: true });
-    }
-  }, [naddr, navigate]);
+  // Detect invalid naddr parameter — render NotFound in place so the
+  // invalid URL is preserved (no hard redirect to /404).
+  const isInvalidNaddr = !!naddr && !naddr.startsWith('naddr1');
 
   // Check if this naddr belongs to the current user (can be determined without waiting for relay)
   const isOwnNaddr = (() => {
@@ -291,6 +288,12 @@ export default function CacheDetail() {
     const decoded = parseNaddr(naddr);
     return decoded?.pubkey === user.pubkey;
   })();
+
+  // Invalid naddr in the URL — show the 404 page without changing the URL,
+  // so the attempted path is preserved.
+  if (isInvalidNaddr) {
+    return <NotFound />;
+  }
 
   // Show full-page loading animation for direct navigation
   if (shouldShowFullPageLoading) {
