@@ -4,6 +4,11 @@ name: Treasures
 
 summary: Decentralized geocaching on Nostr
 
+# Release notes: zsp reads this file and extracts the section matching the
+# APK versionName from the Keep a Changelog format (so the per-version
+# "What's New" shows up on Zapstore even with --skip-metadata).
+release_notes: ./CHANGELOG.md
+
 description: |
   Treasures is a free, open-source geocaching app built on the Nostr protocol.
   Hide and discover geocaches around the world without centralized servers

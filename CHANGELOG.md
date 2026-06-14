@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.7.1] - 2026-06-13
+
+Stay in the loop on your own treasures: a new notifications screen, with an unread dot in the menu, tells you when someone finds, verifies, or comments on a treasure you hid. Hiding and editing treasures is far more forgiving on shaky trail signal — uploads and saves now retry on their own, and if something does fail you get a clear message and can try again with one tap. Plus a more reliable first-try GPS fix and a handful of mobile polish fixes.
+
+### Added
+- A notifications screen that shows when people find, verify, or comment on the treasures you've hidden, with an unread dot on the menu so you never miss activity
+
+### Changed
+- Hiding, editing, and deleting treasures now recovers automatically from flaky connections, and when something genuinely fails you get an honest message and can retry in a single tap
+
+### Fixed
+- Getting a GPS fix on a fresh start is more reliable, and you no longer see a location error while it's still searching
+- Opening a bad link now keeps you where you were instead of bouncing you to a generic page, with clearer wording on the not-found screen
+- Polished the mobile menu: the Join button is the right height and the menu icon matches the top bar
+- Fixed a display glitch in some dialogs
+
 ## [2.7.0] - 2026-06-12
 
 Treasures that pay out in Lightning now wear a yellow bolt wherever you spot them — on cards, the map, and the treasure details — so a payout is easy to recognize at a glance. Found a treasure while offline? Your log is held safely on your device and sent automatically the moment you reconnect, with a quick heads-up when it goes through. You can also edit a treasure's spoiler warning after publishing, and verified finds are now cryptographically double-checked for real authenticity.
