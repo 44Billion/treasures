@@ -168,6 +168,10 @@ export default {
 				'0%, 100%': { transform: 'rotate(-1.5deg)' },
 				'50%': { transform: 'rotate(1.5deg)' },
 			},
+			'dot-pulse': {
+				'0%, 100%': { opacity: '1' },
+				'50%': { opacity: '0.75' },
+			},
 			},
 		animation: {
 			'accordion-down': 'accordion-down 0.2s ease-out',
@@ -179,6 +183,7 @@ export default {
 			'slide-up-delay-2': 'slide-up 0.6s ease-out 0.4s both',
 			'scan-line': 'scan-line 2s ease-in-out infinite',
 			'bunting-sway': 'bunting-sway 5s ease-in-out infinite',
+			'dot-pulse': 'dot-pulse 2s ease-in-out infinite',
 		}
 		}
 	},

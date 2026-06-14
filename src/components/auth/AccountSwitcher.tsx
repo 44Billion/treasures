@@ -1,9 +1,11 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Sun, Moon, Sword, Mountain, Monitor } from 'lucide-react';
+import { LogOut, UserIcon, UserPlus, Settings, Bookmark, Sun, Moon, Sword, Mountain, Monitor, Bell } from 'lucide-react';
 import { DittoIcon } from '@/components/icons/DittoIcon';
 import { useActiveProfileTheme } from '@/hooks/useActiveProfileTheme';
+import { useHasUnreadNotifications } from '@/hooks/useHasUnreadNotifications';
+import { NotificationDot } from '@/components/NotificationDot';
 import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
@@ -36,13 +38,14 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
   const navigate = useNavigate();
   const { setTheme, theme } = useTheme();
   const { hasDittoTheme } = useActiveProfileTheme();
+  const hasUnreadNotifications = useHasUnreadNotifications();
 
   if (!currentUser) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className='flex items-center gap-3 p-2 rounded-full hover:bg-accent adventure:hover:bg-stone-200 transition-all text-foreground'>
+        <button className='relative flex items-center gap-3 p-2 rounded-full hover:bg-accent adventure:hover:bg-stone-200 transition-all text-foreground'>
           <Avatar className='w-8 h-8'>
             {isLoadingCurrentUser ? (
               <AvatarFallback>
@@ -57,6 +60,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
               </>
             )}
           </Avatar>
+          <NotificationDot show={hasUnreadNotifications} className="top-1.5 right-1.5" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -104,6 +108,16 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
             <DropdownMenuSeparator />
           </>
         )}
+        <DropdownMenuItem
+          onClick={() => navigate('/notifications')}
+          className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
+        >
+          <Bell className='w-4 h-4' />
+          <span className='flex-1'>{t('navigation.notifications', 'Notifications')}</span>
+          {hasUnreadNotifications && (
+            <span className='w-2 h-2 rounded-full bg-primary shrink-0' aria-hidden="true" />
+          )}
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => navigate(`/profile/${currentUser.pubkey}`)}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'

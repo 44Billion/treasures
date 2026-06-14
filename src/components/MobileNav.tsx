@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Map, Plus, Menu, Settings, Bookmark, LogOut, User, UserPlus, QrCode,
   ScanQrCode, Info, BookOpen, BookMarked, Sparkles, Sparkle, List, Compass, ChevronDown, ChevronUp,
-  Search, Sun, Moon, Sword, Mountain, Monitor, Scroll,
+  Search, Sun, Moon, Sword, Mountain, Monitor, Scroll, Bell,
 } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { DittoIcon } from '@/components/icons/DittoIcon';
@@ -16,6 +16,8 @@ import { WelcomeModal } from '@/components/auth/WelcomeModal';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { useActiveProfileTheme } from '@/hooks/useActiveProfileTheme';
+import { useHasUnreadNotifications } from '@/hooks/useHasUnreadNotifications';
+import { NotificationDot } from '@/components/NotificationDot';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from '@/lib/utils';
@@ -123,6 +125,7 @@ export function MobileHeader() {
   const { theme, resolvedTheme, setTheme } = useTheme();
   const { hasDittoTheme } = useActiveProfileTheme();
   const themeClasses = getThemeClasses(theme);
+  const hasUnreadNotifications = useHasUnreadNotifications();
   const isHero = location.pathname === '/' || location.pathname === '/adventures';
   const hideHeaderLogo = location.pathname === '/'; // Home has its own large logo in the hero
   const isAdventureTheme = theme === 'adventure';
@@ -269,7 +272,7 @@ export function MobileHeader() {
               {currentUser ? (
                 <button
                   className={cn(
-                    "flex items-center gap-2 rounded-full p-1 -ml-1 transition-all",
+                    "relative flex items-center gap-2 rounded-full p-1 -ml-1 transition-all",
                     isHero ? "hover:bg-white/15" : "hover:bg-accent"
                   )}
                 >
@@ -289,6 +292,7 @@ export function MobileHeader() {
                       </>
                     )}
                   </Avatar>
+                  <NotificationDot show={hasUnreadNotifications} />
                   <span className="sr-only">{t('navigation.toggleMenu')}</span>
                 </button>
               ) : (
@@ -414,8 +418,54 @@ export function MobileHeader() {
               {/* Scrollable Navigation */}
               <div className="mobile-nav-scroll flex-1 overflow-y-auto">
                 <div className="px-2 pb-2 xs:px-3 xs:pb-3">
+                  {/* Account Section (logged in only) */}
+                  {user && (
+                    <>
+                      <NavSectionLabel first>{t('navigation.account', 'Account')}</NavSectionLabel>
+                      <div className="space-y-0.5">
+                        <NavLink
+                          to="/notifications"
+                          icon={Bell}
+                          isActive={location.pathname === '/notifications'}
+                          onClick={closeSheet}
+                        >
+                          <span className="flex items-center gap-2">
+                            {t('navigation.notifications', 'Notifications')}
+                            {hasUnreadNotifications && (
+                              <span className="size-2 rounded-full bg-primary shrink-0" aria-hidden="true" />
+                            )}
+                          </span>
+                        </NavLink>
+                        <NavLink
+                          to={`/profile/${currentUser?.pubkey || ''}`}
+                          icon={User}
+                          isActive={location.pathname === '/profile' || location.pathname.startsWith('/profile/')}
+                          onClick={closeSheet}
+                        >
+                          {t('navigation.myProfile')}
+                        </NavLink>
+                        <NavLink
+                          to="/saved"
+                          icon={Bookmark}
+                          isActive={location.pathname === '/saved'}
+                          onClick={closeSheet}
+                        >
+                          {t('navigation.savedCaches')}
+                        </NavLink>
+                        <NavLink
+                          to="/settings"
+                          icon={Settings}
+                          isActive={location.pathname === '/settings'}
+                          onClick={closeSheet}
+                        >
+                          {t('navigation.appSettings')}
+                        </NavLink>
+                      </div>
+                    </>
+                  )}
+
                   {/* Explore Section */}
-                  <NavSectionLabel first>{t('navigation.explore')}</NavSectionLabel>
+                  <NavSectionLabel first={!user}>{t('navigation.explore')}</NavSectionLabel>
                   <div className="space-y-0.5">
                     <NavLink
                       to="/map?tab=map"
@@ -528,39 +578,6 @@ export function MobileHeader() {
                       <span className="truncate">{t('navigation.viewOnDitto')}</span>
                     </a>
                   </div>
-
-                  {/* Account Section (logged in only) */}
-                  {user && (
-                    <>
-                      <NavSectionLabel>{t('navigation.account', 'Account')}</NavSectionLabel>
-                      <div className="space-y-0.5">
-                        <NavLink
-                          to={`/profile/${currentUser?.pubkey || ''}`}
-                          icon={User}
-                          isActive={location.pathname === '/profile' || location.pathname.startsWith('/profile/')}
-                          onClick={closeSheet}
-                        >
-                          {t('navigation.myProfile')}
-                        </NavLink>
-                        <NavLink
-                          to="/saved"
-                          icon={Bookmark}
-                          isActive={location.pathname === '/saved'}
-                          onClick={closeSheet}
-                        >
-                          {t('navigation.savedCaches')}
-                        </NavLink>
-                        <NavLink
-                          to="/settings"
-                          icon={Settings}
-                          isActive={location.pathname === '/settings'}
-                          onClick={closeSheet}
-                        >
-                          {t('navigation.appSettings')}
-                        </NavLink>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
 

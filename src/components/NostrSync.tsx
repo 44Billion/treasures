@@ -1,10 +1,16 @@
 import { useNostr } from '@nostrify/react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useAppContext } from '@/hooks/useAppContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { parseBlossomServerList } from '@/lib/appBlossom';
+import { EncryptedSettingsSchema, type EncryptedSettings } from '@/lib/schemas';
 import type { NostrEvent } from '@nostrify/nostrify';
+
+/** NIP-78 (kind 30078) addressable application-data event. */
+const SETTINGS_KIND = 30078;
+/** `d` tag identifying the single Treasures metadata event. */
+const SETTINGS_D_TAG = 'treasures/metadata';
 
 /**
  * NostrSync - Syncs user's Nostr data when logged in.
@@ -13,11 +19,13 @@ import type { NostrEvent } from '@nostrify/nostrify';
  * - NIP-65 relay list (kind 10002)
  * - NIP-51 search relay list (kind 10007)
  * - BUD-03 Blossom server list (kind 10063)
+ * - NIP-78 encrypted app settings (kind 30078, `treasures/metadata`)
  */
 export function NostrSync() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
   const { config, updateConfig } = useAppContext();
+  const queryClient = useQueryClient();
 
   // --- NIP-65 relay list (kind 10002) ---
 
@@ -134,6 +142,64 @@ export function NostrSync() {
       }
     }
   }, [blossomListEvent, config.blossomServerMetadata.updatedAt, updateConfig]);
+
+  // --- NIP-78 encrypted app settings (kind 30078) ---
+  //
+  // Fetched here on login (mirroring the relay/blossom syncs above) so the
+  // value is seeded into the same TanStack Query cache keys that
+  // `useEncryptedSettings` reads from. This makes the first settings read
+  // (e.g. the notification cursor) instant and avoids a redundant round-trip.
+
+  const { data: settingsEvent } = useQuery<NostrEvent | null>({
+    queryKey: ['encryptedSettings', user?.pubkey ?? ''],
+    queryFn: async ({ signal }) => {
+      if (!user) return null;
+      const events = await nostr.query(
+        [{ kinds: [SETTINGS_KIND], authors: [user.pubkey], '#d': [SETTINGS_D_TAG], limit: 1 }],
+        { signal },
+      );
+      if (events.length === 0) return null;
+      // Most recent wins if multiple relays disagree.
+      return events.reduce((latest, current) =>
+        current.created_at > latest.created_at ? current : latest,
+      );
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (!settingsEvent || !user) return;
+    if (!settingsEvent.content || !user.signer.nip44) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const decrypted = await user.signer.nip44!.decrypt(user.pubkey, settingsEvent.content);
+        const json = JSON.parse(decrypted);
+        const result = EncryptedSettingsSchema.safeParse(json);
+        if (!result.success) {
+          console.warn('Encrypted settings failed validation during sync:', result.error.issues);
+        }
+        const parsed = (result.success ? result.data : (json ?? {})) as EncryptedSettings;
+
+        if (cancelled) return;
+
+        // Seed the parsed-settings cache so `useEncryptedSettings` resolves
+        // immediately without re-decrypting.
+        queryClient.setQueryData(['parsedSettings', settingsEvent.id], parsed);
+      } catch (error) {
+        console.error('Failed to decrypt settings during sync:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [settingsEvent, user, queryClient]);
 
   return null;
 }
