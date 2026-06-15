@@ -15,10 +15,21 @@ export interface BlossomServerMetadata {
 }
 
 export interface AppConfig {
-  /** NIP-65 relay list metadata */
+  /** NIP-65 relay list metadata (the user's personal kind 10002 relay list). */
   relayMetadata: RelayMetadata;
-  /** Whether to use app default relays in addition to user relays */
+  /**
+   * Whether to use the app's default relays. When true, the hardcoded
+   * `APP_RELAYS` are included in the effective relay set (first). Defaults to
+   * `true` so the app works out of the box without the user configuring relays.
+   */
   useAppRelays: boolean;
+  /**
+   * Whether to include the user's personal NIP-65 relay list (`relayMetadata`)
+   * in the effective relay set. Defaults to `false` — users must opt in via
+   * Settings to actually connect to their own relays. Until enabled, only the
+   * app-default relays are used (assuming `useAppRelays` is true).
+   */
+  useUserRelays: boolean;
   /** BUD-03 Blossom server list metadata */
   blossomServerMetadata: BlossomServerMetadata;
   /** Whether to use app default Blossom servers in addition to user servers */

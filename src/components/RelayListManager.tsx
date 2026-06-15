@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useAppContext } from '@/hooks/useAppContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useEncryptedSettings } from '@/hooks/useEncryptedSettings';
 import { useToast } from '@/hooks/useToast';
 import { APP_RELAYS } from '@/lib/appRelays';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ export function RelayListManager() {
   const { config, updateConfig } = useAppContext();
   const { user } = useCurrentUser();
   const { mutate: publishEvent } = useNostrPublish();
+  const { updateSettings } = useEncryptedSettings();
   const { toast } = useToast();
 
   const [relays, setRelays] = useState<Relay[]>(config.relayMetadata.relays);
@@ -64,11 +66,35 @@ export function RelayListManager() {
       useAppRelays: enabled,
     }));
 
+    // Persist cross-device when logged in.
+    if (user) {
+      updateSettings.mutate({ useAppRelays: enabled });
+    }
+
     toast({
       title: enabled ? 'App relays enabled' : 'App relays disabled',
       description: enabled
-        ? 'App relays will be used alongside your personal relays.'
-        : 'Only your personal relays will be used.',
+        ? 'The app default relays will be used.'
+        : 'The app default relays will not be used.',
+    });
+  };
+
+  const handleToggleUserRelays = (enabled: boolean) => {
+    updateConfig((current) => ({
+      ...current,
+      useUserRelays: enabled,
+    }));
+
+    // Persist cross-device when logged in.
+    if (user) {
+      updateSettings.mutate({ useUserRelays: enabled });
+    }
+
+    toast({
+      title: enabled ? 'Your relays enabled' : 'Your relays disabled',
+      description: enabled
+        ? 'Your personal relays will be used.'
+        : 'Your personal relays will not be used.',
     });
   };
 
@@ -188,7 +214,7 @@ export function RelayListManager() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Default relays for reliable connectivity. Used alongside your personal relays when enabled.
+            Default relays for reliable connectivity. Recommended for most users.
           </p>
         </div>
 
@@ -218,17 +244,33 @@ export function RelayListManager() {
       {/* User Relays Section */}
       <div className="pb-4 pt-4">
         <div className="px-3 space-y-3">
-          <h3 className="text-sm font-medium">Your Relays</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">Your Relays</h3>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="use-user-relays" className="text-xs text-muted-foreground cursor-pointer">
+                {config.useUserRelays ? 'Enabled' : 'Disabled'}
+              </Label>
+              <Switch
+                id="use-user-relays"
+                checked={config.useUserRelays}
+                onCheckedChange={handleToggleUserRelays}
+                className="scale-90"
+              />
+            </div>
+          </div>
           <p className="text-xs text-muted-foreground">
-            Your personal relay list. These are synced to Nostr when logged in.
+            Your personal relay list (synced to Nostr when logged in). Off by default — enable to also connect to your own relays.
           </p>
         </div>
 
         {/* Relay List */}
-        <div className="mt-3">
+        <div className={cn(
+          "mt-3 transition-opacity",
+          !config.useUserRelays && "opacity-40"
+        )}>
           {relays.length === 0 ? (
             <div className="text-xs text-muted-foreground py-8 text-center">
-              No personal relays configured. Add relays below or enable App Relays above.
+              No personal relays configured. Add relays below, or keep App Relays enabled above.
             </div>
           ) : (
             <div className="space-y-1">

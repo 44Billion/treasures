@@ -5,6 +5,7 @@ import { generateSecretKey, getPublicKey } from 'nostr-tools';
 import { nip19 } from 'nostr-tools';
 
 import { useAppContext } from '@/hooks/useAppContext';
+import { getEffectiveRelays } from '@/lib/appRelays';
 
 // NOTE: This file should not be edited except for adding new login methods.
 
@@ -150,7 +151,10 @@ export function useLoginActions() {
     },
     // Get relay URLs for nostrconnect
     getRelayUrls(): string[] {
-      return config.relayMetadata.relays
+      // Use the effective write relays so the handshake works out of the box
+      // even when the user hasn't opted into their own personal relays.
+      return getEffectiveRelays(config.relayMetadata, config.useAppRelays, config.useUserRelays)
+        .relays
         .filter(r => r.write)
         .map(r => r.url);
     },

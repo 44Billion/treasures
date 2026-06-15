@@ -25,6 +25,10 @@ export const EncryptedSettingsSchema = z
   .object({
     /** Notification read-state and preferences. */
     notifications: NotificationSettingsSchema.optional(),
+    /** Whether to include the app's default relays in the effective relay set. */
+    useAppRelays: z.boolean().optional(),
+    /** Whether to include the user's personal NIP-65 relays in the effective relay set. */
+    useUserRelays: z.boolean().optional(),
     /** Timestamp (ms) of the last successful settings write. */
     lastSync: z.number().optional(),
   })

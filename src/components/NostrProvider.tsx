@@ -29,8 +29,13 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
   const eventStore = useRef<Promise<NIndexedDBStore> | undefined>(undefined);
   eventStore.current ??= NIndexedDBStore.open();
 
-  // Use refs so the pool always has the latest data
-  const effectiveRelays = useRef(getEffectiveRelays(config.relayMetadata, config.useAppRelays));
+  // Use refs so the pool always has the latest data.
+  //
+  // `effectiveRelays` is the merged relay set derived from the app-default
+  // relays and the user's NIP-65 list, gated by `useAppRelays`/`useUserRelays`.
+  const effectiveRelays = useRef(
+    getEffectiveRelays(config.relayMetadata, config.useAppRelays, config.useUserRelays),
+  );
 
   // Stable ref to the current user's signer for NIP-42 AUTH.
   const signerRef = useRef<NostrSigner | undefined>(undefined);
@@ -60,8 +65,12 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
 
   // Update effective relays ref when config changes.
   useEffect(() => {
-    effectiveRelays.current = getEffectiveRelays(config.relayMetadata, config.useAppRelays);
-  }, [config.relayMetadata, config.useAppRelays]);
+    effectiveRelays.current = getEffectiveRelays(
+      config.relayMetadata,
+      config.useAppRelays,
+      config.useUserRelays,
+    );
+  }, [config.relayMetadata, config.useAppRelays, config.useUserRelays]);
 
   // Initialize NPool only once
   if (!pool.current) {

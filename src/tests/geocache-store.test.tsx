@@ -49,6 +49,7 @@ vi.mock('@/hooks/useAppContext', () => ({
       // No user relays — effective relays fall back to APP_RELAYS
       relayMetadata: { relays: [], updatedAt: 0 },
       useAppRelays: true,
+      useUserRelays: false,
     },
   }),
 }));

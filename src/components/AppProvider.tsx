@@ -10,12 +10,24 @@ interface AppProviderProps {
   defaultConfig: AppConfig;
 }
 
-// One-time migration: clear old config shape that had `relayUrl` instead of `relayMetadata`.
+// One-time migration: clear old config shapes so the new relay model re-seeds.
+// Triggers when:
+//  - the pre-relayMetadata shape (had `relayUrl`) is present, OR
+//  - the relay toggles are missing (`useAppRelays`/`useUserRelays` undefined),
+//    which also means the old `relayMetadata` defaulted to the app relays
+//    (Ditto/Damus/nos.lol). Clearing lets `relayMetadata` reset to the user's
+//    own NIP-65 list (empty until synced) under the new opt-in model.
 try {
   const raw = localStorage.getItem('treasures:app-config');
   if (raw) {
     const parsed = JSON.parse(raw);
-    if (parsed && (!parsed.relayMetadata || parsed.useAppRelays === undefined || !parsed.blossomServerMetadata)) {
+    if (
+      parsed &&
+      (!parsed.relayMetadata ||
+        parsed.useAppRelays === undefined ||
+        parsed.useUserRelays === undefined ||
+        !parsed.blossomServerMetadata)
+    ) {
       localStorage.removeItem('treasures:app-config');
     }
   }

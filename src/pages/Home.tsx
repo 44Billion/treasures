@@ -175,10 +175,10 @@ export default function Home() {
     }
   };
 
-  // Auto-refresh when relay changes
+  // Auto-refresh when the effective relay set changes (NIP-65 list or toggles)
   useEffect(() => {
     refresh();
-  }, [config.relayMetadata, refresh]);
+  }, [config.relayMetadata, config.useAppRelays, config.useUserRelays, refresh]);
 
   return (
     <div className={`min-h-screen ${isDitto ? 'bg-background' : isMojave ? 'bg-background' : 'bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/40 dark:from-background dark:via-primary-50 dark:to-background adventure:from-amber-100/80 adventure:via-yellow-50/60 adventure:to-orange-100/70'}`}>

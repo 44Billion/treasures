@@ -191,6 +191,29 @@ export function NostrSync() {
         // Seed the parsed-settings cache so `useEncryptedSettings` resolves
         // immediately without re-decrypting.
         queryClient.setQueryData(['parsedSettings', settingsEvent.id], parsed);
+
+        // Mirror the relay toggles into AppConfig so the effective relay set
+        // reflects the user's cross-device preference. Only apply when present
+        // and different, so we never clobber the local default needlessly.
+        updateConfig((current) => {
+          const updates: Partial<typeof current> = {};
+          let changed = false;
+          if (
+            typeof parsed.useAppRelays === 'boolean' &&
+            parsed.useAppRelays !== current.useAppRelays
+          ) {
+            updates.useAppRelays = parsed.useAppRelays;
+            changed = true;
+          }
+          if (
+            typeof parsed.useUserRelays === 'boolean' &&
+            parsed.useUserRelays !== current.useUserRelays
+          ) {
+            updates.useUserRelays = parsed.useUserRelays;
+            changed = true;
+          }
+          return changed ? { ...current, ...updates } : current;
+        });
       } catch (error) {
         console.error('Failed to decrypt settings during sync:', error);
       }
@@ -199,7 +222,7 @@ export function NostrSync() {
     return () => {
       cancelled = true;
     };
-  }, [settingsEvent, user, queryClient]);
+  }, [settingsEvent, user, queryClient, updateConfig]);
 
   return null;
 }

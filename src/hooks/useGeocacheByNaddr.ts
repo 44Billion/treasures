@@ -94,7 +94,9 @@ export function useGeocacheByNaddr(naddr: string, options?: {
               '#d': [dTag],
               limit: 1,
             }], {
-              extraRelays: config.relayMetadata.relays.map(r => ({ url: r.url })),
+              extraRelays: config.useUserRelays
+                ? config.relayMetadata.relays.map(r => ({ url: r.url }))
+                : [],
               onRelayAttempt: (relayUrl, attempt) => {
                 // This will be used by the UI to show relay attempts
                 onRelayAttempt?.(relayUrl, attempt);

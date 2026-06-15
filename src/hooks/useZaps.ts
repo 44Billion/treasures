@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { TIMEOUTS, QUERY_LIMITS } from '@/config';
+import { getEffectiveRelays } from '@/lib/appRelays';
 
 export function useZaps(
   target: Event | Event[],
@@ -211,7 +212,8 @@ export function useZaps(
         profile: actualTarget.pubkey,
         event: eventParam as any,
         amount: zapAmount,
-        relays: config.relayMetadata.relays.filter(r => r.write).map(r => r.url),
+        relays: getEffectiveRelays(config.relayMetadata, config.useAppRelays, config.useUserRelays)
+          .relays.filter(r => r.write).map(r => r.url),
         comment
       } as any);
 

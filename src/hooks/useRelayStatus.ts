@@ -14,7 +14,7 @@ interface RelayStatus {
 export function useRelayStatus() {
   const { nostr } = useNostr();
   const { config } = useAppContext();
-  const relays = getEffectiveRelays(config.relayMetadata, config.useAppRelays)
+  const relays = getEffectiveRelays(config.relayMetadata, config.useAppRelays, config.useUserRelays)
     .relays.map((r) => r.url);
 
   return useQuery({

@@ -6,14 +6,14 @@ function normalizeUrl(url: string): string {
 }
 
 /**
- * App default relays used as a fallback when the user has no NIP-65 relay list,
- * and optionally combined with user relays when useAppRelays is true.
+ * App default relays. Hardcoded in the app (not user-editable) and included in
+ * the effective relay set whenever `useAppRelays` is enabled. Also used as the
+ * sole connectivity source out of the box, since the user's personal relays are
+ * opt-in (`useUserRelays`, default off).
  */
 export const APP_RELAYS: RelayMetadata = {
   relays: [
     { url: 'wss://relay.ditto.pub/', read: true, write: true },
-    { url: 'wss://relay.damus.io/', read: true, write: true },
-    { url: 'wss://nos.lol/', read: true, write: false },
     { url: 'wss://relay.dreamith.to/', read: true, write: true },
   ],
   updatedAt: 0,
@@ -32,34 +32,33 @@ export const SEARCH_RELAYS = [
  */
 export const PRESET_RELAYS = [
   { name: 'Ditto', url: 'wss://relay.ditto.pub/' },
-  { name: 'Damus', url: 'wss://relay.damus.io/' },
-  { name: 'nos.lol', url: 'wss://nos.lol/' },
   { name: 'Dreamith', url: 'wss://relay.dreamith.to/' },
 ];
 
 /**
  * Get the effective relay list based on user settings.
- * Combines app relays with user relays if useAppRelays is true,
- * otherwise returns only user relays.
+ *
+ * - `useAppRelays`: when true, the hardcoded app-default relays are included (first).
+ * - `useUserRelays`: when true, the user's personal NIP-65 list is included.
+ *
+ * When both flags are off the result is empty. When both are on the two lists
+ * are merged with app relays first, deduplicated by normalized URL.
  */
 export function getEffectiveRelays(
   userRelays: RelayMetadata | undefined,
   useAppRelays: boolean,
+  useUserRelays: boolean,
 ): RelayMetadata {
-  // Defensive: if userRelays is missing or malformed, use app defaults
-  if (!userRelays?.relays || !Array.isArray(userRelays.relays)) {
-    return APP_RELAYS;
-  }
-
-  if (!useAppRelays) {
-    return deduplicateRelays(userRelays);
-  }
-
-  // Merge app relays with user relays, avoiding duplicates by normalized URL
   const seen = new Set<string>();
   const mergedRelays: RelayMetadata['relays'][number][] = [];
 
-  for (const relay of [...APP_RELAYS.relays, ...userRelays.relays]) {
+  const sources: RelayMetadata['relays'][number][] = [];
+  if (useAppRelays) sources.push(...APP_RELAYS.relays);
+  if (useUserRelays && Array.isArray(userRelays?.relays)) {
+    sources.push(...userRelays.relays);
+  }
+
+  for (const relay of sources) {
     const normalized = normalizeUrl(relay.url);
     if (!seen.has(normalized)) {
       seen.add(normalized);
@@ -69,7 +68,7 @@ export function getEffectiveRelays(
 
   return {
     relays: mergedRelays,
-    updatedAt: userRelays.updatedAt,
+    updatedAt: userRelays?.updatedAt ?? 0,
   };
 }
 
@@ -105,20 +104,4 @@ function deduplicateUrls(urls: string[]): string[] {
     }
   }
   return result;
-}
-
-/** Deduplicate relays within a single list by normalized URL. */
-function deduplicateRelays(metadata: RelayMetadata): RelayMetadata {
-  const seen = new Set<string>();
-  const relays: RelayMetadata['relays'][number][] = [];
-
-  for (const relay of metadata.relays) {
-    const normalized = normalizeUrl(relay.url);
-    if (!seen.has(normalized)) {
-      seen.add(normalized);
-      relays.push(relay);
-    }
-  }
-
-  return { relays, updatedAt: metadata.updatedAt };
 }

@@ -16,7 +16,6 @@ import { AppConfig } from '@/contexts/AppContext';
 import { StoreProvider } from '@/stores/StoreProvider';
 import { NWCProvider } from '@/components/NWCProvider';
 import { PlausibleProvider } from '@/components/PlausibleProvider';
-import { APP_RELAYS } from '@/lib/appRelays';
 import { APP_BLOSSOM_SERVERS } from '@/lib/appBlossom';
 
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
@@ -40,8 +39,9 @@ const queryClient = new QueryClient({
 });
 
 const defaultConfig: AppConfig = {
-  relayMetadata: APP_RELAYS,
+  relayMetadata: { relays: [], updatedAt: 0 },
   useAppRelays: true,
+  useUserRelays: false,
   blossomServerMetadata: APP_BLOSSOM_SERVERS,
   useAppBlossomServers: true,
   imageQuality: 'compressed',
