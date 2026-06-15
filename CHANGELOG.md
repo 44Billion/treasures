@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.8.0] - 2026-06-15
+
+The map now finds treasures right where you're looking: pan or zoom anywhere on Earth and nearby treasures surface on their own, even across a whole state, and the results bar shows the true worldwide treasure count instead of just the ones already loaded. You also get finer control over where Treasures looks for data, with toggles to use the app's relays, your own relays, or both. Plus crisper notifications that no longer wash out against the colored header.
+
+### Added
+- The map now discovers treasures in whatever area you're viewing — pan or zoom anywhere and nearby treasures appear automatically, even on wide views like an entire state
+- The results bar shows the real worldwide treasure total, not just the treasures currently loaded
+- New relay toggles let you choose whether to use the app's relays, your own relays, or both
+
+### Fixed
+- Notifications and the loading spinner are now clearly visible against the colored page header in light mode
+
 ## [2.7.1] - 2026-06-13
 
 Stay in the loop on your own treasures: a new notifications screen, with an unread dot in the menu, tells you when someone finds, verifies, or comments on a treasure you hid. Hiding and editing treasures is far more forgiving on shaky trail signal — uploads and saves now retry on their own, and if something does fail you get a clear message and can try again with one tap. Plus a more reliable first-try GPS fix and a handful of mobile polish fixes.
