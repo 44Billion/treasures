@@ -26,9 +26,11 @@ export function GeocacheLoading({
 }: GeocacheLoadingProps) {
   const { config } = useAppContext();
   // Build the same ordered, deduplicated relay list the multi-relay query uses,
-  // so the UI shows PRESET_RELAYS + the user's own NIP-65 relays.
+  // so the UI shows PRESET_RELAYS + (when opted in) the user's own NIP-65 relays.
   const relayList = buildMultiRelayList(
-    config.relayMetadata.relays.map(r => ({ url: r.url })),
+    config.useUserRelays
+      ? config.relayMetadata.relays.map(r => ({ url: r.url }))
+      : [],
   );
   // If we're doing multi-relay loading, show relay attempts
   if (isMultiRelayLoading && relayAttempts.length > 0) {
