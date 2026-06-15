@@ -15,6 +15,13 @@ interface CompassSpinnerProps {
   variant?: 'page' | 'component' | 'button';
   className?: string;
   /**
+   * Render for placement on top of a colored `PageHero` background. Uses the
+   * same light-on-hero contrast convention as `PageHero` (white in the default
+   * and dark themes, theme-foreground for ditto, stone for adventure) so the
+   * spinner doesn't disappear into a light hero in light mode.
+   */
+  onHero?: boolean;
+  /**
    * Optional label for screen readers. When omitted a default "Loading..."
    * translation is used. Set to `''` explicitly to suppress (when the
    * spinner is purely decorative next to its own visible label).
@@ -26,6 +33,7 @@ export function CompassSpinner({
   size = 'md',
   variant = 'component',
   className = '',
+  onHero = false,
   srLabel,
 }: CompassSpinnerProps) {
   const { t } = useTranslation();
@@ -39,14 +47,20 @@ export function CompassSpinner({
         xl: 'h-12 w-12'
       }[size];
 
-  // Use green for page loads, grey for components, inherit for buttons
+  // Use green for page loads, grey for components, inherit for buttons.
+  // When sitting on a colored hero, follow PageHero's light-on-hero convention.
   const { theme } = useTheme();
   const isAdventureTheme = theme === 'adventure';
-  const colorClass = variant === 'page'
-    ? isAdventureTheme ? 'text-stone-600' : 'text-primary'
-    : variant === 'button'
-      ? 'text-current'
-      : 'text-muted-foreground';
+  const isDittoTheme = theme === 'ditto';
+  const colorClass = onHero
+    ? isDittoTheme
+      ? 'text-foreground'
+      : 'text-white adventure:text-stone-800'
+    : variant === 'page'
+      ? isAdventureTheme ? 'text-stone-600' : 'text-primary'
+      : variant === 'button'
+        ? 'text-current'
+        : 'text-muted-foreground';
 
   const label = srLabel === undefined ? t('common.loading', 'Loading...') : srLabel;
 
@@ -75,6 +89,11 @@ interface LoadingStateProps {
   className?: string;
   icon?: LucideIcon;
   showSpinner?: boolean;
+  /**
+   * Render for placement on top of a colored `PageHero` background (light-on-hero
+   * contrast). See {@link CompassSpinner}'s `onHero`.
+   */
+  onHero?: boolean;
 }
 
 export function LoadingState({
@@ -85,7 +104,8 @@ export function LoadingState({
   fullPage = false,
   className = "",
   icon: Icon,
-  showSpinner = true
+  showSpinner = true,
+  onHero = false,
 }: LoadingStateProps) {
   const sizeMap = {
     sm: { spinner: 'md', text: 'text-sm', desc: 'text-xs' },
@@ -95,22 +115,38 @@ export function LoadingState({
 
   const sizes = sizeMap[size];
 
+  // On a colored hero, follow PageHero's light-on-hero text convention. There is
+  // no `ditto:` Tailwind variant, so branch on the theme in JS (as PageHero does).
+  const { theme } = useTheme();
+  const isDittoTheme = theme === 'ditto';
+  const titleColor = !onHero
+    ? 'text-foreground'
+    : isDittoTheme
+      ? 'text-foreground'
+      : 'text-white adventure:text-stone-800';
+  const descColor = !onHero
+    ? 'text-muted-foreground'
+    : isDittoTheme
+      ? 'text-muted-foreground'
+      : 'text-white/80 adventure:text-stone-600';
+
   const content = (
     <div className={cn('text-center', className)} role="status" aria-live="polite">
       {showSpinner ? (
         <CompassSpinner
           size={sizes.spinner as 'md' | 'lg' | 'xl'}
           variant={variant}
+          onHero={onHero}
           className="mx-auto mb-4"
           srLabel=""
         />
       ) : Icon ? (
-        <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
+        <Icon className={cn('h-12 w-12 mx-auto mb-4', onHero ? titleColor : 'text-muted-foreground')} aria-hidden="true" />
       ) : null}
 
-      <p className={cn('text-foreground font-medium', sizes.text)}>{title}</p>
+      <p className={cn('font-medium', titleColor, sizes.text)}>{title}</p>
       {description && (
-        <p className={cn('text-muted-foreground mt-2', sizes.desc)}>{description}</p>
+        <p className={cn('mt-2', descColor, sizes.desc)}>{description}</p>
       )}
     </div>
   );

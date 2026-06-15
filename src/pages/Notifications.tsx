@@ -60,10 +60,10 @@ function NotificationRow({ notification }: { notification: TreasureNotification 
   return (
     <div
       className={cn(
-        'rounded-xl border p-3 space-y-3 transition-colors',
+        'rounded-xl border p-3 space-y-3 transition-colors backdrop-blur-sm',
         notification.isNew
-          ? 'bg-primary/5 border-primary/30'
-          : 'bg-card/80 backdrop-blur-sm',
+          ? 'bg-primary/15 dark:bg-primary/10 border-primary/40'
+          : 'bg-background/70 dark:bg-card/80 border-border/60',
       )}
     >
       {/* Header: actor + action + type icon */}
@@ -195,7 +195,7 @@ export default function Notifications() {
       >
         <div className="container mx-auto px-4 max-w-2xl pb-12">
           {isLoading ? (
-            <ComponentLoading />
+            <ComponentLoading onHero />
           ) : notifications.length === 0 ? (
             <EmptyStateCard
               icon={Bell}
