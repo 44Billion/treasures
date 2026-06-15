@@ -61,6 +61,12 @@ interface GeocacheStoreActions {
   fetchGeocache: (id: string) => Promise<StoreActionResult<Geocache>>;
   fetchUserGeocaches: (pubkey: string) => Promise<StoreActionResult<Geocache[]>>;
   fetchNearbyGeocaches: (lat: number, lon: number, radius?: number) => Promise<StoreActionResult<Geocache[]>>;
+  /**
+   * Fetch treasures whose geohash `g` tag matches any of the given prefixes
+   * (used for viewport-scoped local discovery), merging the results into the
+   * shared list cache so cards, markers and stats all benefit.
+   */
+  fetchGeocachesByGeohash: (geohashes: string[]) => Promise<StoreActionResult<Geocache[]>>;
   loadMoreGeocaches: () => Promise<StoreActionResult<Geocache[]>>;
 
   // CRUD operations

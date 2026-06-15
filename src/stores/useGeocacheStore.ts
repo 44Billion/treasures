@@ -265,6 +265,63 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     }, 'fetchNearbyGeocaches');
   }, [baseStore, geocaches]);
 
+  /**
+   * Fetch treasures by geohash `g` tag prefixes (viewport-scoped discovery) and
+   * merge any newly-discovered caches into the shared list cache. This is how the
+   * map surfaces local treasures that fall outside the globally-paginated set:
+   * NIP-GC events carry `g` tags at multiple precisions (always incl. 3 and 4), so
+   * a relay `#g` filter at those precisions reliably matches caches in the area.
+   */
+  const fetchGeocachesByGeohash = useCallback(async (
+    geohashes: string[]
+  ): Promise<StoreActionResult<Geocache[]>> => {
+    return baseStore.safeAsyncOperation(async () => {
+      const prefixes = geohashes.filter(Boolean);
+      if (prefixes.length === 0) return geocaches;
+
+      const { data: events } = await baseStore.batchQuery([{
+        kinds: [NIP_GC_KINDS.GEOCACHE],
+        '#g': prefixes,
+        limit: QUERY_LIMITS.GEOCACHES_MAX,
+      }], 'fetchGeocachesByGeohash');
+
+      const fetched = (events || [])
+        .map(parseGeocacheEvent)
+        .filter((g: Geocache | null): g is Geocache => {
+          if (!g) return false;
+          // Show hidden caches to their creator only
+          if (g.hidden && g.pubkey !== user?.pubkey) return false;
+          return true;
+        });
+
+      if (fetched.length === 0) return geocaches;
+
+      // Geocaches are addressable (replaceable) events, so dedup by the
+      // addressable coordinate (kind:pubkey:dTag) — NOT the event id, which
+      // changes between versions — keeping the newest version of each cache.
+      const addrKey = (g: Geocache) => `${g.kind}:${g.pubkey}:${g.dTag}`;
+
+      let merged: Geocache[] = geocaches;
+      setGeocacheList(prev => {
+        const byAddr = new Map<string, Geocache>();
+        for (const g of prev) byAddr.set(addrKey(g), g);
+        for (const g of fetched) {
+          const key = addrKey(g);
+          const existing = byAddr.get(key);
+          if (!existing || g.created_at >= existing.created_at) {
+            byAddr.set(key, g);
+          }
+        }
+        merged = Array.from(byAddr.values()).sort(
+          (a, b) => b.created_at - a.created_at
+        );
+        return merged;
+      });
+
+      return merged;
+    }, 'fetchGeocachesByGeohash');
+  }, [baseStore, geocaches, setGeocacheList, user?.pubkey]);
+
 
 
   // CRUD operations - Real implementations
@@ -307,7 +364,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       // 6-char random hex d-tag (compact and URL-friendly).
       const dTag = geocacheData.dTag || generateCompactDTag();
       // Relay hints for the event's `r` tags: the user's effective write relays
-      const relayPreferences = getEffectiveRelays(appConfig.relayMetadata, appConfig.useAppRelays)
+      const relayPreferences = getEffectiveRelays(appConfig.relayMetadata, appConfig.useAppRelays, appConfig.useUserRelays)
         .relays.filter((r) => r.write)
         .map((r) => r.url)
         .slice(0, 4);
@@ -661,6 +718,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     fetchGeocache,
     fetchUserGeocaches,
     fetchNearbyGeocaches,
+    fetchGeocachesByGeohash,
     loadMoreGeocaches,
 
     // CRUD operations
@@ -700,6 +758,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
     fetchGeocache,
     fetchUserGeocaches,
     fetchNearbyGeocaches,
+    fetchGeocachesByGeohash,
     loadMoreGeocaches,
 
     createGeocache,

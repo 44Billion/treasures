@@ -20,6 +20,8 @@ import {
 import { ExploreMenuItems } from "@/components/ExploreMenuItems";
 import { useAdaptiveReliableGeocaches, type GeocacheWithDistance } from "@/hooks/useReliableProximitySearch";
 import { useGeocaches } from "@/hooks/useGeocaches";
+import { useGeocacheCount } from "@/hooks/useGeocacheCount";
+import { useViewportGeocaches, type Viewport } from "@/hooks/useViewportGeocaches";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { GeocacheMap } from "@/components/GeocacheMap";
@@ -180,6 +182,25 @@ export default function Map() {
 
   // Use the same geocaches hook as Home page to ensure consistent stats
   const baseGeocaches = useGeocaches();
+
+  // Current map viewport (bounds + zoom), updated when the map settles after a
+  // pan/zoom. Drives viewport-scoped local discovery (geohash relay filtering).
+  const [viewport, setViewport] = useState<Viewport | null>(null);
+
+  // Accurate global treasure count via NIP-45 COUNT across relays. Falls back to
+  // the number of loaded treasures when relays don't support COUNT.
+  const { data: globalCount } = useGeocacheCount();
+  const accurateTotal = globalCount && !globalCount.unsupported
+    ? globalCount.count
+    : (baseGeocaches.data?.length ?? 0);
+  const accurateTotalApprox = Boolean(globalCount?.approximate);
+
+  // Pull treasures local to the visible map area from relays and merge them into
+  // the shared store cache. Disabled while a text/proximity search is active so
+  // it doesn't fight the search-driven result set.
+  useViewportGeocaches(viewport, {
+    enabled: !searchQuery && !showNearMe && !searchInView && !searchLocation,
+  });
 
   // Add state for skeleton loading. Keep a brief (~200ms) minimum to avoid
   // flicker when data is already cached, but don't artificially delay beyond
@@ -824,6 +845,18 @@ export default function Map() {
         center: { lat: center.lat, lng: center.lng },
         zoom: map.getZoom(),
       });
+      // Publish the settled viewport so geohash-based local discovery can query
+      // treasures within the visible bounds at a zoom-appropriate precision.
+      const b = map.getBounds();
+      setViewport({
+        bounds: {
+          south: b.getSouth(),
+          west: b.getWest(),
+          north: b.getNorth(),
+          east: b.getEast(),
+        },
+        zoom: map.getZoom(),
+      });
     };
 
     const attach = () => {
@@ -832,6 +865,8 @@ export default function Map() {
       if (map) {
         map.on('moveend', persistView);
         map.on('zoomend', persistView);
+        // Seed the initial viewport so discovery runs without requiring a pan.
+        persistView();
       } else {
         retryTimer = window.setTimeout(attach, 150);
       }
@@ -857,7 +892,22 @@ export default function Map() {
   };
 
   const ResultsCountRow = ({ showInView = false, className = "" }: { showInView?: boolean; className?: string }) => {
-    if (!searchQuery && difficulty === undefined && terrain === undefined && !cacheType && !isProximitySearchActive) return null;
+    const hasFilters = Boolean(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive);
+    // With no active filters, show the accurate global total (NIP-45 COUNT).
+    if (!hasFilters) {
+      if (accurateTotal <= 0) return null;
+      return (
+        <div className={`flex items-center justify-between gap-2 ${className}`}>
+          <div className="text-sm text-muted-foreground min-w-0" role="status" aria-live="polite">
+            <span>
+              {accurateTotalApprox
+                ? t('map.results.totalApprox', { count: accurateTotal })
+                : t('map.results.total', { count: accurateTotal })}
+            </span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={`flex items-center justify-between gap-2 ${className}`}>
         <div className="text-sm text-muted-foreground min-w-0" role="status" aria-live="polite">
