@@ -17,6 +17,9 @@ import { useMyFoundCaches } from "@/hooks/useMyFoundCaches";
 import { useCuratedTreasures, CURATED_HERO_IMAGES } from "@/hooks/useCuratedTreasures";
 import { useGeocacheNavigation } from "@/hooks/useGeocacheNavigation";
 import { useAuthor } from "@/hooks/useAuthor";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { BlogShowcase } from "@/components/BlogShowcase";
+import { BLOG_CONFIG } from "@/config/blog";
 import { offlineGeocode } from "@/utils/offlineGeocode";
 
 import { RelayErrorFallback } from "@/components/RelayErrorFallback";
@@ -110,6 +113,12 @@ export default function Home() {
     isStatsLoading,
     refetch: refresh
   } = useGeocaches();
+
+  // Recent blog posts from authorized (admin) authors for the home showcase.
+  const { data: blogPosts } = useBlogPosts();
+  const adminPosts = (blogPosts ?? [])
+    .filter((post) => BLOG_CONFIG.authorizedAuthors.includes(post.pubkey))
+    .slice(0, 4);
 
   const [isRetrying, setIsRetrying] = useState(false);
 
@@ -510,6 +519,9 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Blog Showcase */}
+      {adminPosts.length > 0 && <BlogShowcase posts={adminPosts} />}
 
       {/* Recent Caches */}
       <section className="relative py-6 xs:py-12 md:py-16 px-3 xs:px-4">
