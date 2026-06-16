@@ -62,7 +62,7 @@ function NotificationRow({ notification }: { notification: TreasureNotification 
       className={cn(
         'rounded-xl border p-3 space-y-3 transition-colors backdrop-blur-sm',
         notification.isNew
-          ? 'bg-primary/15 dark:bg-primary/10 border-primary/40'
+          ? 'bg-secondary dark:bg-primary/10 border-primary/40'
           : 'bg-background/70 dark:bg-card/80 border-border/60',
       )}
     >
