@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.9.0] - 2026-06-16
+
+The home page now opens a window onto the latest from the Treasures blog: a fresh, magazine-style showcase highlights recent stories and updates right above the newest hidden treasures, so there's always something new to read and explore. Notification cards also got a subtle light-mode refresh for easier reading.
+
+### Added
+- A blog showcase on the home page featuring recent stories and updates, with a lead article and full-art cards leading straight into the blog
+
+### Changed
+- Unread notification cards use a softer background in light mode for easier reading
+
 ## [2.8.0] - 2026-06-15
 
 The map now finds treasures right where you're looking: pan or zoom anywhere on Earth and nearby treasures surface on their own, even across a whole state, and the results bar shows the true worldwide treasure count instead of just the ones already loaded. You also get finer control over where Treasures looks for data, with toggles to use the app's relays, your own relays, or both. Plus crisper notifications that no longer wash out against the colored header.
