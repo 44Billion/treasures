@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Home, Map, Bookmark, ScanQrCode, BookOpen, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const NotFound = () => {
+const NotFound = ({ reason }: { reason?: "invalid-link" } = {}) => {
   const { t } = useTranslation();
   const location = useLocation();
 
@@ -30,12 +30,28 @@ const NotFound = () => {
 
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">404</h1>
-          <p className="text-lg text-muted-foreground">{t('notFound.message')}</p>
+          <p className="text-lg text-muted-foreground">
+            {reason === "invalid-link"
+              ? t('notFound.invalidLink.message', { defaultValue: 'This link is invalid or incomplete' })
+              : t('notFound.message')}
+          </p>
           <p className="text-sm text-muted-foreground break-all">
-            {t('notFound.attemptedPath', {
-              path: location.pathname,
-              defaultValue: "We couldn't find anything at {{path}}.",
-            })}
+            {reason === "invalid-link" ? (
+              <>
+                {t('notFound.invalidLink.description', {
+                  defaultValue: "We couldn't read this link.",
+                })}
+                <br />
+                {t('notFound.invalidLink.hint', {
+                  defaultValue: "It may be damaged or only partially copied.",
+                })}
+              </>
+            ) : (
+              t('notFound.attemptedPath', {
+                path: location.pathname,
+                defaultValue: "We couldn't find anything at {{path}}.",
+              })
+            )}
           </p>
         </div>
 

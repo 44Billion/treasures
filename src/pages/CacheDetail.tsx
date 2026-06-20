@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Copy, Check, HelpCircle } from "lucide-react";
 
 import { useStore } from 'zustand';
@@ -53,8 +53,10 @@ import { BlurredImage } from "@/components/BlurredImage";
 import { RegenerateQRDialog } from "@/components/RegenerateQRDialog";
 import { CacheMenu } from "@/components/CacheMenu";
 import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
-import { parseNaddr } from "@/utils/naddr";
-import { encodeGeohash } from "@/utils/nip-gc";
+import { parseNaddr, decodeNaddr } from "@/utils/naddr";
+import { BLOG_POST_KIND } from "@/config/blog";
+import { UnsupportedNaddr } from "@/components/UnsupportedNaddr";
+import { encodeGeohash, NIP_GC_KINDS } from "@/utils/nip-gc";
 import { VerifiedReveal } from "@/components/VerifiedReveal";
 import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
@@ -293,6 +295,39 @@ export default function CacheDetail() {
   // so the attempted path is preserved.
   if (isInvalidNaddr) {
     return <NotFound />;
+  }
+
+  // Route by event kind. The catch-all `/:naddr` route receives every kind of
+  // addressable identifier, but Treasures only renders treasures here. Blog
+  // posts have their own page; anything else is offered up on Ditto.
+  if (naddr && naddr.startsWith('naddr1')) {
+    const decoded = decodeNaddr(naddr);
+
+    // Looks like an naddr but doesn't decode (corrupt/truncated bech32) —
+    // treat it like a 404, preserving the attempted URL rather than spinning
+    // through the relay-fetch error states.
+    if (!decoded) {
+      return <NotFound reason="invalid-link" />;
+    }
+
+    const isTreasure =
+      decoded.kind === NIP_GC_KINDS.GEOCACHE ||
+      decoded.kind === NIP_GC_KINDS.GEOCACHE_LEGACY;
+
+    // Blog post → hand off to the dedicated blog route.
+    if (decoded.kind === BLOG_POST_KIND) {
+      return (
+        <Navigate
+          to={`/blog/${decoded.pubkey}/${encodeURIComponent(decoded.dTag)}`}
+          replace
+        />
+      );
+    }
+
+    // Any other (non-treasure) kind → friendly "view on Ditto" fallback.
+    if (!isTreasure) {
+      return <UnsupportedNaddr naddr={naddr} />;
+    }
   }
 
   // Show full-page loading animation for direct navigation

@@ -14,6 +14,25 @@ export function geocacheToNaddr(pubkey: string, dTag: string, relays?: string[],
 }
 
 /**
+ * Decode any naddr into its coordinates, regardless of kind. Unlike
+ * `parseNaddr` (which only accepts geocache kinds), this is used to route an
+ * arbitrary addressable identifier to the right page (e.g. blog posts) or to a
+ * friendly "unsupported content" fallback.
+ *
+ * Returns null only when the value is not a valid naddr.
+ */
+export function decodeNaddr(naddr: string): { pubkey: string; dTag: string; relays?: string[]; kind: number } | null {
+  try {
+    const decoded = nip19.decode(naddr);
+    if (decoded.type !== 'naddr') return null;
+    const { pubkey, identifier, relays, kind } = decoded.data;
+    return { pubkey, dTag: identifier, relays, kind };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Parse naddr to get geocache coordinates
  */
 export function parseNaddr(naddr: string): { pubkey: string; dTag: string; relays?: string[]; kind?: number } | null {
