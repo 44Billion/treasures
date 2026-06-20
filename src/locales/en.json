@@ -65,6 +65,8 @@
   "profile.created.actionButton": "Hide Your First Treasure",
   "profile.created.descriptionOther": "Treasures hidden by {{name}}",
   "profile.created.descriptionOwn": "Treasures you've hidden for others to find",
+  "profile.created.discoveringDescription": "Checking their personal relays for more treasures",
+  "profile.created.discoveringTitle": "Discovering treasures...",
   "profile.created.emptyDescriptionOther": "{{name}} hasn't hidden any treasures yet.",
   "profile.created.emptyDescriptionOwn": "Start your adventure by hiding your first treasure!",
   "profile.created.emptyTitleOther": "No treasures found",

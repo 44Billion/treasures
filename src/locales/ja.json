@@ -65,6 +65,8 @@
   "profile.created.actionButton": "最初の宝物を隠す",
   "profile.created.descriptionOther": "{{name}}が隠した宝物",
   "profile.created.descriptionOwn": "他の人が見つけるために隠したジオキャッシュ",
+  "profile.created.discoveringDescription": "個人のリレーから他の宝物を探しています",
+  "profile.created.discoveringTitle": "宝物を探索中...",
   "profile.created.emptyDescriptionOther": "{{name}}はまだ宝物を隠していません。",
   "profile.created.emptyDescriptionOwn": "最初のキャッシュを隠して宝探しの冒険を始めましょう！",
   "profile.created.emptyTitleOther": "宝物が見つかりません",

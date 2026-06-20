@@ -65,6 +65,8 @@
   "profile.created.actionButton": "Verstecke deinen ersten Schatz",
   "profile.created.descriptionOther": "Von {{name}} versteckte Schätze",
   "profile.created.descriptionOwn": "Schätze, die du zum Finden versteckt hast",
+  "profile.created.discoveringDescription": "Persönliche Relays werden nach weiteren Schätzen durchsucht",
+  "profile.created.discoveringTitle": "Schätze werden entdeckt...",
   "profile.created.emptyDescriptionOther": "{{name}} hat noch keine Schätze versteckt.",
   "profile.created.emptyDescriptionOwn": "Beginne dein Abenteuer, indem du deinen ersten Schatz versteckst!",
   "profile.created.emptyTitleOther": "Keine Schätze gefunden",

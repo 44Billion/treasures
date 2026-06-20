@@ -65,6 +65,8 @@
   "profile.created.actionButton": "ซ่อนสมบัติแรกของคุณ",
   "profile.created.descriptionOther": "จีโอแคชที่ {{name}} ซ่อนไว้",
   "profile.created.descriptionOwn": "สมบัติที่คุณซ่อนไว้ให้คนอื่นหา",
+  "profile.created.discoveringDescription": "กำลังค้นหาสมบัติเพิ่มเติมจากรีเลย์ส่วนตัวของพวกเขา",
+  "profile.created.discoveringTitle": "กำลังค้นพบสมบัติ...",
   "profile.created.emptyDescriptionOther": "{{name}} ยังไม่ได้ซ่อนสมบัติ",
   "profile.created.emptyDescriptionOwn": "เริ่มต้นการผจญภัยล่าสมบัติของคุณโดยการซ่อนสมบัติแรกของคุณ!",
   "profile.created.emptyTitleOther": "ไม่พบสมบัติ",

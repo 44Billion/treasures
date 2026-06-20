@@ -30,6 +30,7 @@ import { useTheme } from '@/hooks/useTheme';
 
 import { useAuthor } from '@/hooks/useAuthor';
 import { useUserGeocaches } from '@/hooks/useUserGeocaches';
+import { useUserRelayGeocaches } from '@/hooks/useUserRelayGeocaches';
 import { useUserFoundCaches } from '@/hooks/useUserFoundCaches';
 import { useSavedCaches } from '@/hooks/useSavedCaches';
 import { useGeocaches } from '@/hooks/useGeocaches';
@@ -77,6 +78,9 @@ export default function Profile() {
 
   const { data: authorData, isLoading: isLoadingAuthor } = useAuthor(targetPubkey);
   const { data: userCaches, isLoading: isLoadingUserCaches } = useUserGeocaches(targetPubkey);
+  // Additionally discover treasures the profile owner published to their own
+  // NIP-65 relays (which may not be on the app/viewer's relays).
+  const { data: relayCaches, isLoading: isLoadingRelayCaches } = useUserRelayGeocaches(targetPubkey, isOwnProfile);
   const { savedCaches, isLoading: isLoadingSavedCaches } = useSavedCaches();
 
   // NIP-37 encrypted drafts — only queried on own profile
@@ -95,11 +99,22 @@ export default function Profile() {
   const metadata = authorData?.metadata;
 
   // Merge published caches with drafts (drafts first, then published, all sorted by date)
-  // Filter out optimistically deleted drafts
-  const userGeocachesWithStats = [
-    ...draftGeocaches.filter(d => !optimisticallyDeleted.has(d.dTag)),
-    ...(userCaches || []),
-  ].sort((a, b) => b.created_at - a.created_at);
+  // Filter out optimistically deleted drafts.
+  // `relayCaches` adds treasures discovered on the owner's own NIP-65 relays;
+  // dedupe everything by addressable coordinate (kind:pubkey:dTag) since
+  // geocaches are replaceable, keeping the newest version of each.
+  const userGeocachesWithStats = (() => {
+    const drafts = draftGeocaches.filter(d => !optimisticallyDeleted.has(d.dTag));
+    const byAddr = new Map<string, Geocache>();
+    for (const cache of [...(userCaches || []), ...(relayCaches || [])]) {
+      const key = `${cache.kind}:${cache.pubkey}:${cache.dTag}`;
+      const existing = byAddr.get(key);
+      if (!existing || cache.created_at >= existing.created_at) {
+        byAddr.set(key, cache);
+      }
+    }
+    return [...drafts, ...Array.from(byAddr.values())].sort((a, b) => b.created_at - a.created_at);
+  })();
 
   // Calculate distances if location is available
   const userCachesWithDistance = (userGeocachesWithStats || []).map(cache => {
@@ -330,10 +345,16 @@ export default function Profile() {
                 </div>
                 {/* Subtle inline indicator while published caches are still
                     arriving in the background — drafts are already visible
-                    above, so we don't block the whole tab. */}
-                {isLoadingUserCaches && (
+                    above, so we don't block the whole tab. While the primary
+                    list has loaded but we're still scanning the owner's own
+                    NIP-65 relays, show a relay-discovery message instead. */}
+                {(isLoadingUserCaches || isLoadingRelayCaches) && (
                   <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
-                    <ComponentLoading size="sm" title={t('profile.created.loadingTitle')} description={t('profile.created.loadingDescription')} />
+                    <ComponentLoading
+                      size="sm"
+                      title={isLoadingUserCaches ? t('profile.created.loadingTitle') : t('profile.created.discoveringTitle')}
+                      description={isLoadingUserCaches ? t('profile.created.loadingDescription') : t('profile.created.discoveringDescription')}
+                    />
                   </div>
                 )}
               </>
