@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.9.1] - 2026-06-26
+
+Profiles now show more of an explorer's work: when you visit someone's page, Treasures also looks on their own relays to surface treasures that might otherwise stay hidden from view. Shared links are friendlier too — a link to a blog post takes you straight to the story, links to other kinds of content offer a graceful way to view them, and a broken or incomplete link now gives you a clear message instead of a confusing error.
+
+### Added
+- Profile pages surface more of a person's treasures by also looking on the relays they publish to, so you see the full picture of what someone has hidden
+
+### Changed
+- Shared links handle more than treasures now: blog links open the story directly, other content offers a clean way to view it, and broken links show a clear "invalid or incomplete link" message instead of churning on an error
+
 ## [2.9.0] - 2026-06-16
 
 The home page now opens a window onto the latest from the Treasures blog: a fresh, magazine-style showcase highlights recent stories and updates right above the newest hidden treasures, so there's always something new to read and explore. Notification cards also got a subtle light-mode refresh for easier reading.
