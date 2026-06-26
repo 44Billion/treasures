@@ -20,6 +20,24 @@ const pubkey = getPublicKey(secretKey);
 
 const publishedEvents: NostrEvent[] = [];
 
+// The real client tag is suppressed on non-https origins. jsdom runs on
+// http://localhost, so we mock the helper to deterministically toggle the
+// tag on/off and assert both branches.
+const CLIENT_HANDLER_ADDRESS = '31990:86184109eae937d8d6f980b4a0b46da4ef0d983eade403ee1b4c0b6bde238b47:cgdgkgvtgnb';
+const CLIENT_HANDLER_RELAY = 'wss://relay.ditto.pub';
+let clientTagEnabled = true;
+const setClientTagEnabled = (enabled: boolean) => {
+  clientTagEnabled = enabled;
+};
+
+vi.mock('@/lib/clientTag', () => ({
+  ensureClientTag: (tags: string[][]) => {
+    if (!clientTagEnabled) return;
+    if (tags.some(([name]) => name === 'client')) return;
+    tags.push(['client', 'Treasures', CLIENT_HANDLER_ADDRESS, CLIENT_HANDLER_RELAY]);
+  },
+}));
+
 vi.mock('@nostrify/react', () => ({
   useNostr: () => ({
     nostr: {
@@ -72,6 +90,7 @@ describe('useGeocacheStore.createGeocache', () => {
       defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
     });
     publishedEvents.length = 0;
+    setClientTagEnabled(true);
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -103,6 +122,24 @@ describe('useGeocacheStore.createGeocache', () => {
 
     // Parsed geocache comes back to the caller
     expect(res.data?.geocache.name).toBe('Test Treasure');
+  });
+
+  it('attaches the NIP-89 client tag on create (https origin)', async () => {
+    setClientTagEnabled(true);
+    const { result } = renderHook(() => useGeocacheStore(), { wrapper });
+    await result.current.createGeocache(validGeocache);
+
+    const clientTag = publishedEvents[0].tags.find((t) => t[0] === 'client');
+    expect(clientTag).toEqual(['client', 'Treasures', CLIENT_HANDLER_ADDRESS, CLIENT_HANDLER_RELAY]);
+  });
+
+  it('omits the client tag on non-https origins', async () => {
+    setClientTagEnabled(false);
+    const { result } = renderHook(() => useGeocacheStore(), { wrapper });
+    await result.current.createGeocache(validGeocache);
+
+    const clientTag = publishedEvents[0].tags.find((t) => t[0] === 'client');
+    expect(clientTag).toBeUndefined();
   });
 
   it('attaches relay hints from the effective (app) relays', async () => {

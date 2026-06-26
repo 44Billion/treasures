@@ -31,6 +31,7 @@ import {
   type ValidCommentLogType
 } from '@/utils/nip-gc';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { ensureClientTag } from '@/lib/clientTag';
 import { QUERY_LIMITS, TIMEOUTS } from '@/config';
 import { separateQueries } from '@/utils/batchQuery';
 
@@ -293,6 +294,9 @@ export function useLogStore(config: Partial<StoreConfig> = {}): LogStore {
           geocacheKind: (logData as any).geocacheKind,
         });
       }
+
+      // Attach the NIP-89 client tag (kinds 7516 / 1111).
+      ensureClientTag(tags);
 
       const event = {
         kind: eventKind,

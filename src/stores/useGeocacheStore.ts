@@ -34,6 +34,7 @@ import { useAppContext } from '@/hooks/useAppContext';
 import { getEffectiveRelays } from '@/lib/appRelays';
 import { resilientPublish } from '@/lib/resilientPublish';
 import { signEventWithTimeout } from '@/lib/publishErrors';
+import { ensureClientTag } from '@/lib/clientTag';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { QUERY_LIMITS, TIMEOUTS, LEGACY_GEOCACHE_IDS } from '@/config';
 import { calculateDistance } from '@/utils/geo';
@@ -394,6 +395,9 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         kind: geocacheData.kind, // Pass the kind to determine tag format
       });
 
+      // Attach the NIP-89 client tag (kind 37516).
+      ensureClientTag(tags);
+
       const event = {
         kind: geocacheData.kind || NIP_GC_KINDS.GEOCACHE, // Use provided kind or default to new kind
         content: geocacheData.description.trim(),
@@ -496,6 +500,9 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
         ftfWinner: updatedData.ftfWinner,
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
       });
+
+      // Attach the NIP-89 client tag (kind 37516).
+      ensureClientTag(tags);
 
       const event = {
         kind: originalGeocache.kind || NIP_GC_KINDS.GEOCACHE, // Preserve original kind
