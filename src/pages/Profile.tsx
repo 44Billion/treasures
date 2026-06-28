@@ -41,6 +41,7 @@ import { useMyFoundCaches } from '@/hooks/useMyFoundCaches';
 import { ProfileMap } from '@/components/ProfileMap';
 import { useToast } from '@/hooks/useToast';
 import { useTreasureDrafts, draftToGeocache } from '@/hooks/useTreasureDrafts';
+import { OfflineQueueSection } from '@/components/OfflineQueueSection';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import type { Geocache } from '@/types/geocache';
 
@@ -85,8 +86,15 @@ export default function Profile() {
 
   // NIP-37 encrypted drafts — only queried on own profile
   const { relayDrafts, deleteDraft } = useTreasureDrafts();
+  // Unsynced (local-only) drafts are surfaced in the unified "Pending offline"
+  // section, NOT the main grid — they haven't reached a relay yet.
+  const localOnlyDrafts = isOwnProfile
+    ? (relayDrafts.data || []).filter(d => d.source === 'local' && !optimisticallyDeleted.has(d.slug))
+    : [];
   const draftGeocaches: Geocache[] = isOwnProfile && currentUser
-    ? (relayDrafts.data || []).map(d => draftToGeocache(d, currentUser.pubkey))
+    ? (relayDrafts.data || [])
+        .filter(d => d.source !== 'local')
+        .map(d => draftToGeocache(d, currentUser.pubkey))
     : [];
 
   // Use the same stats query/store system as index/map page for created caches
@@ -303,6 +311,24 @@ export default function Profile() {
                 {isOwnProfile ? t('profile.created.descriptionOwn') : t('profile.created.descriptionOther', { name: displayName })}
               </p>
             </div>
+
+            {/* Treasures published while offline are queued on this device and
+                listed here until they broadcast. Unsynced drafts (Save Draft
+                that couldn't reach a relay) are merged in too. Own profile
+                only — both sources are device-local. */}
+            {isOwnProfile && (
+              <OfflineQueueSection
+                localDrafts={localOnlyDrafts}
+                onDeleteDraft={(slug, eventId) => {
+                  const draft = localOnlyDrafts.find(d => d.slug === slug);
+                  setDeletingDraft({
+                    dTag: slug,
+                    name: draft?.formData.name?.trim() || t('offlineQueue.item.untitledDraft', 'Untitled draft'),
+                    eventId,
+                  });
+                }}
+              />
+            )}
 
             {/* Profile Map - shows user's hidden geocaches */}
             {!isLoadingUserCaches && userGeocachesWithStats && userGeocachesWithStats.length > 0 && (

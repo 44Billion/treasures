@@ -14,6 +14,11 @@ import { useGeocacheStore } from '@/stores/useGeocacheStore';
 import type { Geocache } from '@/types/geocache';
 import { NIP_GC_KINDS } from '@/utils/nip-gc';
 import { APP_RELAYS } from '@/lib/appRelays';
+import {
+  getQueuedEvents,
+  removeQueuedEvent,
+  _resetQueueForTests,
+} from '@/lib/offlinePublishQueue';
 
 const secretKey = generateSecretKey();
 const pubkey = getPublicKey(secretKey);
@@ -96,6 +101,64 @@ describe('useGeocacheStore.createGeocache', () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+
+  const setOnline = (value: boolean) => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value });
+  };
+
+  it('reports status "published" when a relay accepts the event (online)', async () => {
+    setOnline(true);
+    const { result } = renderHook(() => useGeocacheStore(), { wrapper });
+
+    const res = await result.current.createGeocache(validGeocache);
+    expect(res.success).toBe(true);
+    expect(res.data?.status).toBe('published');
+  });
+
+  it('queues the event and reports status "queued" when offline', async () => {
+    _resetQueueForTests();
+    for (const e of await getQueuedEvents()) await removeQueuedEvent(e.id);
+    setOnline(false);
+
+    try {
+      const { result } = renderHook(() => useGeocacheStore(), { wrapper });
+      const res = await result.current.createGeocache(validGeocache);
+
+      // Honest result: not "published" — saved locally for later delivery.
+      expect(res.success).toBe(true);
+      expect(res.data?.status).toBe('queued');
+      // Did NOT hit relays while offline.
+      expect(publishedEvents).toHaveLength(0);
+      // The signed event (with its d-tag) is sitting in the queue.
+      const queued = await getQueuedEvents();
+      expect(queued).toHaveLength(1);
+      expect(queued[0].kind).toBe(NIP_GC_KINDS.GEOCACHE);
+    } finally {
+      setOnline(true);
+      for (const e of await getQueuedEvents()) await removeQueuedEvent(e.id);
+    }
+  });
+
+  it('queues two offline treasures under distinct d-tags (no overwrite)', async () => {
+    _resetQueueForTests();
+    for (const e of await getQueuedEvents()) await removeQueuedEvent(e.id);
+    setOnline(false);
+
+    try {
+      const { result } = renderHook(() => useGeocacheStore(), { wrapper });
+      await result.current.createGeocache({ ...validGeocache, name: 'First' });
+      await result.current.createGeocache({ ...validGeocache, name: 'Second' });
+
+      const queued = await getQueuedEvents();
+      // Both survive — distinct compact d-tags -> distinct ids -> 2 rows.
+      expect(queued).toHaveLength(2);
+      const dTags = queued.map((e) => e.tags.find((t) => t[0] === 'd')?.[1]);
+      expect(new Set(dTags).size).toBe(2);
+    } finally {
+      setOnline(true);
+      for (const e of await getQueuedEvents()) await removeQueuedEvent(e.id);
+    }
+  });
 
   it('publishes a kind 37516 event with required NIP-GC tags', async () => {
     const { result } = renderHook(() => useGeocacheStore(), { wrapper });

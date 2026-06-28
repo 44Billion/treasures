@@ -70,7 +70,7 @@ interface GeocacheStoreActions {
   loadMoreGeocaches: () => Promise<StoreActionResult<Geocache[]>>;
 
   // CRUD operations
-  createGeocache: (geocache: Partial<Geocache>) => Promise<StoreActionResult<{ event: any; geocache: Geocache }>>;
+  createGeocache: (geocache: Partial<Geocache>) => Promise<StoreActionResult<{ event: any; geocache: Geocache; status: 'published' | 'queued' }>>;
   updateGeocache: (id: string, updates: Partial<Geocache>) => Promise<StoreActionResult<Geocache>>;
   deleteGeocache: (id: string) => Promise<StoreActionResult<void>>;
   batchDeleteGeocaches: (ids: string[]) => Promise<StoreActionResult<void>>;

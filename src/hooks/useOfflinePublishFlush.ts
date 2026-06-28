@@ -9,14 +9,17 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNostr } from '@nostrify/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/useToast';
 import { flushQueuedEvents, getQueuedEventCount } from '@/lib/offlinePublishQueue';
+import { OFFLINE_QUEUE_QUERY_KEY } from '@/hooks/useOfflineQueue';
 import { TIMEOUTS } from '@/config';
 
 export function useOfflinePublishFlush(): void {
   const { nostr } = useNostr();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const flushing = useRef(false);
 
   useEffect(() => {
@@ -32,6 +35,11 @@ export function useOfflinePublishFlush(): void {
         });
 
         if (published > 0) {
+          // Refresh the Profile "Pending offline" section now that items left
+          // the queue (and the published-caches list will pick them up).
+          queryClient.invalidateQueries({ queryKey: OFFLINE_QUEUE_QUERY_KEY });
+          queryClient.invalidateQueries({ queryKey: ['geocaches'] });
+          queryClient.invalidateQueries({ queryKey: ['user-geocaches'] });
           toast({
             title: t('offlineQueue.flushed.title', 'Back online'),
             description: t('offlineQueue.flushed.description', {
@@ -55,5 +63,5 @@ export function useOfflinePublishFlush(): void {
     if (navigator.onLine) void flush();
 
     return () => window.removeEventListener('online', onOnline);
-  }, [nostr, toast, t]);
+  }, [nostr, toast, t, queryClient]);
 }

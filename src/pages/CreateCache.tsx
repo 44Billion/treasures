@@ -36,7 +36,7 @@ import { nip19 } from "nostr-tools";
 import { parseVerificationFromHash } from "@/utils/verification";
 import { parseNaddr } from "@/utils/naddr";
 import { useTreasureDrafts, loadLocalDraft, saveLocalDraft, clearLocalDraft, type TreasureDraftPayload } from "@/hooks/useTreasureDrafts";
-import { getLocalDraft, upsertLocalDraft, newLocalDraftSlug } from "@/lib/localDraftsStore";
+import { getLocalDraft, upsertLocalDraft, removeLocalDraft, newLocalDraftSlug } from "@/lib/localDraftsStore";
 import { isUserCancelledPublishError, isSignerTimeoutError } from "@/lib/publishErrors";
 import { generateCompactDTag } from "@/utils/dTag";
 import { getAppOrigin } from "@/utils/appUrl";
@@ -227,7 +227,7 @@ export default function CreateCache() {
   // QR code). Locking this in early lets us display the public short-URL on the
   // Finish step BEFORE publishing, and guarantees the URL we show matches the
   // d-tag the event ultimately uses.
-  const [generatedDTag] = useState<string>(() => generateCompactDTag());
+  const [generatedDTag, setGeneratedDTag] = useState<string>(() => generateCompactDTag());
 
   // The effective d-tag for this draft: the one imported from a claim URL takes
   // precedence; otherwise we use the freshly-generated one.
@@ -430,7 +430,36 @@ export default function CreateCache() {
         kind: importedKind || undefined,
       });
 
-      const { event, geocache } = result;
+      const { event, geocache, status } = result;
+
+      // Offline (or relays unreachable): the signed event is queued in the
+      // offline publish queue and will broadcast on reconnect. The cache does
+      // NOT exist on any relay yet, so navigating to its naddr would 404.
+      // Send the user to their profile, where the queued treasure is listed in
+      // the "Pending offline" section. The honest "Saved offline" toast is
+      // shown by useCreateGeocache.
+      //
+      // Critically: reset the form AND mint a FRESH d-tag so a second offline
+      // create can't reuse this one. Two queued addressable events sharing a
+      // d-tag would collide (the relay keeps only the latest), which is the
+      // "second treasure overwrote the first" bug.
+      if (status === 'queued') {
+        clearFormDraft();
+        if (editingDraftSlug) {
+          removeLocalDraft(user!.pubkey, editingDraftSlug);
+        }
+        setFormData(createDefaultGeocacheFormData());
+        setLocation(null);
+        setImages([]);
+        setCurrentStep(1);
+        setLocationVerification(null);
+        setEditingDraftSlug(null);
+        setEditingDraftEventId(null);
+        setGeneratedDTag(generateCompactDTag());
+        queryClient.invalidateQueries({ queryKey: ['treasure-drafts', user!.pubkey] });
+        navigate('/profile');
+        return;
+      }
 
       // Generate naddr for the created cache
       const dTag = event.tags.find((tag: string[]) => tag[0] === 'd')?.[1];
@@ -441,11 +470,6 @@ export default function CreateCache() {
 
         const includeRelays = !importedDTag;
         const naddr = geocacheToNaddr(event.pubkey, dTag, includeRelays ? (relays as string[]) : [], event.kind);
-
-        toast({
-          title: t('createCache.publish.success.title'),
-          description: t('createCache.publish.success.redirecting'),
-        });
 
         clearFormDraft();
 

@@ -118,4 +118,49 @@ describe('offlinePublishQueue', () => {
     expect(result).toEqual({ published: 0, remaining: 0 });
     expect(publish).not.toHaveBeenCalled();
   });
+
+  it('keeps two distinct offline-created treasures (no overwrite)', async () => {
+    // Regression: publishing one treasure offline, then a second, must keep
+    // BOTH queued. Distinct addressable events differ by d-tag -> distinct
+    // event ids -> two independent queue rows. (The create flow mints a fresh
+    // d-tag per publish so they never collide.)
+    const first = makeEvent({
+      id: 'treasure-1',
+      kind: 37516,
+      tags: [['d', 'aaa111']],
+    });
+    const second = makeEvent({
+      id: 'treasure-2',
+      kind: 37516,
+      tags: [['d', 'bbb222']],
+    });
+
+    await enqueueEvent(first);
+    await enqueueEvent(second);
+
+    expect(await getQueuedEventCount()).toBe(2);
+    const events = await getQueuedEvents();
+    expect(events.map((e) => e.tags.find((t) => t[0] === 'd')?.[1]).sort()).toEqual([
+      'aaa111',
+      'bbb222',
+    ]);
+  });
+
+  it('two treasures sharing a d-tag would collide to one row (why fresh d-tags matter)', async () => {
+    // Documents the failure mode the create flow guards against: if two
+    // offline creates reused the SAME d-tag, the addressable events would be
+    // identical enough to share an id and the second would overwrite the
+    // first in the queue. The fix (fresh d-tag per publish) prevents this.
+    const shared = {
+      id: 'same-id',
+      kind: 37516 as const,
+      tags: [['d', 'reused']],
+    };
+    await enqueueEvent(makeEvent({ ...shared, content: 'first' }));
+    await enqueueEvent(makeEvent({ ...shared, content: 'second' }));
+
+    expect(await getQueuedEventCount()).toBe(1);
+    const [only] = await getQueuedEvents();
+    expect(only.content).toBe('second'); // first was clobbered
+  });
 });

@@ -413,9 +413,9 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       // Publish with retry + offline queueing (shared primitive). A failed
       // delivery on a flaky connection is queued and re-broadcast when
       // connectivity returns instead of being lost.
-      await resilientPublish(baseStore.nostr, signedEvent);
+      const { status } = await resilientPublish(baseStore.nostr, signedEvent);
 
-      return { event: signedEvent, verificationKeyPair };
+      return { event: signedEvent, verificationKeyPair, status };
     },
     onSuccess: ({ event }) => {
       // Parse the new geocache from the event and prepend to the cached list
@@ -596,16 +596,16 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
   });
 
   // Action implementations
-  const createGeocache = useCallback(async (geocache: Partial<Geocache>): Promise<StoreActionResult<{ event: any; geocache: Geocache }>> => {
+  const createGeocache = useCallback(async (geocache: Partial<Geocache>): Promise<StoreActionResult<{ event: any; geocache: Geocache; status: 'published' | 'queued' }>> => {
     try {
-      const { event } = await createGeocacheMutation.mutateAsync(geocache);
+      const { event, status } = await createGeocacheMutation.mutateAsync(geocache);
       const newGeocache = parseGeocacheEvent(event);
       if (!newGeocache) {
         throw new Error('Failed to parse created geocache');
       }
-      return baseStore.createSuccessResult({ event, geocache: newGeocache });
+      return baseStore.createSuccessResult({ event, geocache: newGeocache, status });
     } catch (error) {
-      return baseStore.createErrorResult(baseStore.handleError(error, 'createGeocache')) as StoreActionResult<{ event: any; geocache: Geocache }>;
+      return baseStore.createErrorResult(baseStore.handleError(error, 'createGeocache')) as StoreActionResult<{ event: any; geocache: Geocache; status: 'published' | 'queued' }>;
     }
   }, [createGeocacheMutation, baseStore]);
 
