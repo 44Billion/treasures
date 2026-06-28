@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.9.2] - 2026-06-28
+
+Hiding treasures off the grid just got more trustworthy. When you're out of signal, Treasures now tells you right away that your treasure is saved on your device and will go live the moment you're back online — no more waiting on a misleading "hidden!" message. Hide several treasures in a row offline and each is kept separate instead of overwriting the last. Your profile also gains a tidy "Pending offline" area where everything waiting to sync lives in one place to retry, resume, or discard.
+
+### Added
+- A "Pending offline" area on your profile that gathers everything saved on your device but not yet live — treasures you hid offline and drafts that haven't synced — so you can retry, resume, or discard each one in a single place
+
+### Fixed
+- Hiding a treasure while offline now confirms instantly that it's saved on your device and will publish when you reconnect, instead of waiting on the network and showing a misleading success message
+- Hiding several treasures in a row while offline no longer lets a later one overwrite an earlier one — each is saved and published separately
+
 ## [2.9.1] - 2026-06-26
 
 Profiles now show more of an explorer's work: when you visit someone's page, Treasures also looks on their own relays to surface treasures that might otherwise stay hidden from view. Shared links are friendlier too — a link to a blog post takes you straight to the story, links to other kinds of content offer a graceful way to view them, and a broken or incomplete link now gives you a clear message instead of a confusing error.
