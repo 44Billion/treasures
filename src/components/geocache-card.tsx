@@ -22,7 +22,7 @@ import { offlineGeocode } from '@/utils/offlineGeocode';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Geocache } from '@/types/geocache';
-import { NIP_GC_KINDS } from '@/utils/nip-gc';
+import { NIP_GC_KINDS, isLightningPiggyClient } from '@/utils/nip-gc';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useThumbnailUrl } from '@/hooks/useThumbnailUrl';
 
@@ -58,6 +58,11 @@ interface BaseGeocacheCardProps {
      * modifier badge so finders can see the treasure pays out sats.
      */
     lightningEnabled?: boolean;
+    /**
+     * The client that created this treasure (`client` tag). Lightning
+     * Piggy treasures render a pig type icon on a pink background.
+     */
+    client?: string;
     /**
      * Locked-in FTF winner pubkey (NIP-GC `F` tag). When present we render
      * the FTF badge in its "claimed" state on the card without needing logs.
@@ -208,6 +213,11 @@ export function GeocacheCard({
   // Palette glyph wherever the icon appears, mirroring the map marker
   // behavior in `cacheMapIcons.ts` so cards and pins stay in lockstep.
   const isArt = cache.modifiers?.includes('art') ?? false;
+
+  // Lightning Piggy treasures (client tag) swap the type glyph for a pink
+  // pig on the normal icon backdrop, echoing the pink map marker in
+  // `cacheMapIcons.ts`.
+  const isPiggy = isLightningPiggyClient(cache.client);
 
   // Resolve the effective FTF claimed flag once. Explicit prop wins (used by
   // adventure views to surface provisional verified-found claims); otherwise
@@ -576,7 +586,7 @@ export function GeocacheCard({
                 <div className="absolute bottom-2 left-2 z-10">
                   <div className="relative">
                     <div className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 ${isAdventureTheme ? '' : 'rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm'} shadow-lg`}>
-                      <CacheIcon type={cache.type} size="sm" className="w-4.5 h-4.5 sm:w-5 sm:h-5" theme={theme} isArt={isArt} />
+                      <CacheIcon type={cache.type} size="sm" className="w-4.5 h-4.5 sm:w-5 sm:h-5" theme={theme} isArt={isArt} isPiggy={isPiggy} />
                     </div>
                     {isHiddenByCreator && (
                       <div className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] sm:w-6 sm:h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-md ring-2 ring-white dark:ring-slate-800">
@@ -707,7 +717,7 @@ export function GeocacheCard({
                 <div className="absolute bottom-1.5 left-1.5 z-10">
                   <div className="relative">
                     <div className={`flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 ${isAdventureTheme ? '' : 'rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm'} shadow-lg`}>
-                      <CacheIcon type={cache.type} size="sm" className="w-3 h-3 sm:w-3.5 sm:h-3.5" theme={theme} isArt={isArt} />
+                      <CacheIcon type={cache.type} size="sm" className="w-3 h-3 sm:w-3.5 sm:h-3.5" theme={theme} isArt={isArt} isPiggy={isPiggy} />
                     </div>
                     {isHiddenByCreator && (
                       <div className="absolute -top-1 -right-1 w-[15px] h-[15px] bg-orange-500 rounded-full flex items-center justify-center shadow-md ring-1 ring-white dark:ring-slate-800">

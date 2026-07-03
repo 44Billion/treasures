@@ -8,6 +8,7 @@ import { CustomZoomControl } from "@/components/map/CustomZoomControl";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import type { Geocache } from "@/types/geocache";
 import { getCachedCacheIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
+import { isLightningPiggyClient } from "@/utils/nip-gc";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
 
 // Import Leaflet CSS, overrides, and adventure theme
@@ -420,7 +421,7 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
             <Marker
               key={geocache.dTag}
               position={[geocache.location.lat, geocache.location.lng]}
-              icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle), false, geocache.lightningEnabled ?? false)}
+              icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle), false, geocache.lightningEnabled ?? false, isLightningPiggyClient(geocache.client))}
               eventHandlers={{
                 click: (e) => {
                   const marker = e.target;

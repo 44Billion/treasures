@@ -213,6 +213,20 @@ export function validateCoordinates(lat: number, lng: number): boolean {
          lng >= -180 && lng <= 180;
 }
 
+/**
+ * Whether a geocache's `client` tag identifies Lightning Piggy
+ * (e.g. `["client", "Lightning Piggy"]`).
+ *
+ * Lightning Piggy treasures get pig-branded type/map icons on a pink
+ * background so they read as piggy treasures at a glance. Matching is
+ * case/separator-insensitive so identifier-style values like
+ * `com.lightningpiggy.app` also match.
+ */
+export function isLightningPiggyClient(client: string | undefined): boolean {
+  if (!client) return false;
+  return client.toLowerCase().replace(/[\s._-]/g, '').includes('lightningpiggy');
+}
+
 // ===== PARSING =====
 
 export function parseGeocacheEvent(event: NostrEvent): Geocache | null {

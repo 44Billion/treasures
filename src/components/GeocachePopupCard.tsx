@@ -5,7 +5,9 @@ import { Navigation, User, ChevronRight, Zap, Bookmark, BookmarkCheck, Trophy, X
 import { Button } from "@/components/ui/button";
 import { useGeocacheLogs } from "../hooks/useGeocacheLogs";
 import { ModifierBadges, LightningBadge } from "@/components/ModifierBadges";
+import { LightningPiggyCallout } from "@/components/LightningPiggyBadge";
 import { getFtfStatus } from "@/utils/modifiers";
+import { isLightningPiggyClient } from "@/utils/nip-gc";
 import { useZapStore } from "@/stores/useZapStore";
 import { ZapButton } from "@/components/ZapButton";
 import { useSavedCaches } from "../hooks/useSavedCaches";
@@ -251,6 +253,12 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
               </span>
             )}
           </button>
+        )}
+
+        {/* Lightning Piggy explainer — full-width strip above the action
+            buttons with a link to lightningpiggy.com for the full story. */}
+        {isLightningPiggyClient(geocache.client) && (
+          <LightningPiggyCallout className="-mx-2 sm:-mx-3" />
         )}
 
         {/* Actions — hidden in compact mode */}

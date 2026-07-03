@@ -5,6 +5,7 @@ import {
   MOJAVE_AMBER_GLOW,
   MOJAVE_TERMINAL_BG,
   MOJAVE_AMBER_BORDER,
+  PIGGY_PINK,
 } from "@/config/cacheIconConstants";
 
 /**
@@ -68,6 +69,23 @@ function getArtModifierIconSvg(): string {
     <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
     <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+  </svg>`;
+}
+
+/**
+ * Get the SVG glyph for Lightning Piggy treasures (Lucide `PiggyBank`).
+ *
+ * Hand-transcribed copy of the `PiggyBank` glyph rendered by
+ * `cacheIcons.tsx` — keep them in lockstep. Used on map markers in place
+ * of the per-type glyph when a treasure carries the Lightning Piggy
+ * `client` tag, composited on a pink (`PIGGY_PINK`) marker background so
+ * piggy treasures are recognizable at a glance.
+ */
+function getPiggyIconSvg(): string {
+  return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 17h3v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a3.16 3.16 0 0 0 2-2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1a5 5 0 0 0-2-4V3a4 4 0 0 0-3.2 1.6l-.3.4H11a6 6 0 0 0-6 6v1a5 5 0 0 0 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z"/>
+    <path d="M16 10h.01"/>
+    <path d="M2 8v1a2 2 0 0 0 2 2h1"/>
   </svg>`;
 }
 
@@ -171,13 +189,22 @@ function buildLightningBadgeHtml(slot: number = 0): string {
   );
 }
 
-function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolean): string {
+function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolean, isPiggy: boolean = false): string {
   // When the treasure carries the `art` modifier we swap the per-type glyph
   // for a Palette glyph so the marker visibly signals "this cache IS a
   // piece of art". The cache type's color and marker frame stay so the
   // type itself is still readable from the marker shape.
-  const iconSvg = isArt ? getArtModifierIconSvg() : getCacheIconSvg(type);
-  const color = getCacheColor(type);
+  //
+  // Lightning Piggy treasures (`client` tag) take precedence: they get a
+  // PiggyBank glyph and — in the default theme — a pink marker background.
+  // The adventure/mojave themes keep their frame colors (they already
+  // flatten per-type colors) and only swap the glyph.
+  const iconSvg = isPiggy
+    ? getPiggyIconSvg()
+    : isArt
+      ? getArtModifierIconSvg()
+      : getCacheIconSvg(type);
+  const color = isPiggy ? PIGGY_PINK : getCacheColor(type);
 
   if (iconTheme === 'adventure') {
     const adventureColors = {
@@ -310,8 +337,9 @@ export function getCachedCacheIcon(
   iconTheme: MapIconTheme,
   isArt: boolean = false,
   isLightning: boolean = false,
+  isPiggy: boolean = false,
 ): L.DivIcon {
-  const key = `${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}`;
+  const key = `${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}${isPiggy ? '-piggy' : ''}`;
   const cached = iconCache.get(key);
   if (cached) return cached;
 
@@ -324,12 +352,13 @@ export function getCachedCacheIcon(
         : 'custom-cache-icon';
   let className = isArt ? `${baseClassName} art-cache-icon` : baseClassName;
   if (isLightning) className = `${className} lightning-cache-icon`;
+  if (isPiggy) className = `${className} piggy-cache-icon`;
 
   // The bolt badge needs a positioning shell so it can be absolutely
   // positioned relative to the marker as a whole (same approach as the
   // claimed-FTF trophy badge). It's the only badge here, so it takes
   // slot 0 (top-right corner).
-  let html = buildCacheIconHtml(type, iconTheme, isArt);
+  let html = buildCacheIconHtml(type, iconTheme, isArt, isPiggy);
   if (isLightning) {
     html = `
       <div style="position: relative; width: 100%; height: 100%;">
@@ -359,14 +388,16 @@ export function getCachedCacheIcon(
  * remains visibly art-flagged even after its FTF claim is taken.
  * `isLightning` composes the bolt badge in the upper-left corner so both
  * indicators can coexist on one marker.
+ * `isPiggy` propagates the Lightning Piggy pig-on-pink treatment.
  */
 export function getCachedClaimedFtfIcon(
   type: string,
   iconTheme: MapIconTheme,
   isArt: boolean = false,
   isLightning: boolean = false,
+  isPiggy: boolean = false,
 ): L.DivIcon {
-  const key = `claimed-ftf-${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}`;
+  const key = `claimed-ftf-${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}${isPiggy ? '-piggy' : ''}`;
   const cached = iconCache.get(key);
   if (cached) return cached;
 
@@ -379,12 +410,13 @@ export function getCachedClaimedFtfIcon(
         : 'custom-cache-icon claimed-ftf-marker';
   let className = isArt ? `${baseClassName} art-cache-icon` : baseClassName;
   if (isLightning) className = `${className} lightning-cache-icon`;
+  if (isPiggy) className = `${className} piggy-cache-icon`;
 
   // Wrap the underlying marker HTML in a positioning shell so the corner
   // badges can be absolutely positioned relative to the marker as a whole.
   // The trophy takes slot 0 (top-right); when the treasure is also
   // lightning-enabled the bolt stacks vertically below it in slot 1.
-  const innerHtml = buildCacheIconHtml(type, iconTheme, isArt);
+  const innerHtml = buildCacheIconHtml(type, iconTheme, isArt, isPiggy);
   const html = `
     <div style="position: relative; width: 100%; height: 100%;">
       ${innerHtml}

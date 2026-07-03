@@ -38,6 +38,11 @@ export const colorClasses = {
   mystery: "text-purple-600"
 };
 
+// Lightning Piggy pink — background for pig-branded map markers on
+// treasures created by the Lightning Piggy client. Tailwind pink-500;
+// keep in lockstep with the `text-pink-500` piggy glyph in `cacheIcons.tsx`.
+export const PIGGY_PINK = '#ec4899';
+
 // Adventure theme styling
 export const adventureIconStyle: React.CSSProperties = {
   background: `url('/parchment-50.jpg'), #5f7292`,

@@ -11,6 +11,7 @@ import { useInitialLocation } from "@/hooks/useInitialLocation";
 import type { Geocache } from "@/types/geocache";
 import type { Adventure } from "@/types/adventure";
 import { getCachedCacheIcon, getCachedClaimedFtfIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
+import { isLightningPiggyClient } from "@/utils/nip-gc";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
 
 // Import Leaflet CSS, overrides, and adventure theme
@@ -317,9 +318,12 @@ export function GeocacheMap({
       // Lightning-enabled treasures (payout-lnurl-w label) get a small bolt
       // badge so finders can spot sat-paying caches directly on the map.
       const isLightning = geocache.lightningEnabled ?? false;
+      // Lightning Piggy treasures (client tag) render a pig glyph on a pink
+      // marker so piggy treasures are recognizable at a glance.
+      const isPiggy = isLightningPiggyClient(geocache.client);
       const markerIcon = isClaimed
-        ? getCachedClaimedFtfIcon(geocache.type, iconTheme, isArt, isLightning)
-        : getCachedCacheIcon(geocache.type, iconTheme, isArt, isLightning);
+        ? getCachedClaimedFtfIcon(geocache.type, iconTheme, isArt, isLightning, isPiggy)
+        : getCachedCacheIcon(geocache.type, iconTheme, isArt, isLightning, isPiggy);
 
       return (
         <Marker

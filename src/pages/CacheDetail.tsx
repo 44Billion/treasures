@@ -32,6 +32,7 @@ import { useEditGeocache } from "@/hooks/useEditGeocache";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { LogsSection } from "@/components/LogsSection";
 import { ModifierBadges, LightningBadge } from "@/components/ModifierBadges";
+import { LightningPiggyCallout } from "@/components/LightningPiggyBadge";
 import { FtfClaimBanner } from "@/components/FtfClaimBanner";
 import { getFtfStatus } from "@/utils/modifiers";
 import { useAuthor } from "@/hooks/useAuthor";
@@ -56,7 +57,7 @@ import { parseVerificationFromHash, verifyKeyPair } from "@/utils/verification";
 import { parseNaddr, decodeNaddr } from "@/utils/naddr";
 import { BLOG_POST_KIND } from "@/config/blog";
 import { UnsupportedNaddr } from "@/components/UnsupportedNaddr";
-import { encodeGeohash, NIP_GC_KINDS } from "@/utils/nip-gc";
+import { encodeGeohash, NIP_GC_KINDS, isLightningPiggyClient } from "@/utils/nip-gc";
 import { VerifiedReveal } from "@/components/VerifiedReveal";
 import { LoginDialog } from "@/components/auth";
 import SignupDialog from "@/components/auth/SignupDialog";
@@ -954,6 +955,13 @@ export default function CacheDetail() {
                       <Badge variant="secondary">{getTypeLabel(geocache.type)}</Badge>
                       {geocache.lightningEnabled && <LightningBadge />}
                     </div>
+
+                    {/* Lightning Piggy explainer banner — same treatment as
+                        the map popup card, sized up and stretched edge-to-
+                        edge across the detail card. */}
+                    {isLightningPiggyClient(geocache.client) && (
+                      <LightningPiggyCallout size="default" className="-mx-4 lg:-mx-6 mb-4" />
+                    )}
 
                     <div className="prose max-w-none">
                       <p className="text-foreground whitespace-pre-wrap break-words select-text">{geocache.description}</p>
