@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle, Sparkles, Archive, Wrench, CheckCircle2 } from "lucide-react";
+import { ListFilter, X, Eye, Search, Lightbulb, Brain, Cpu, Footprints, Mountain, Pickaxe, Compass, HelpCircle, Sparkles, Archive, Wrench, CheckCircle2, PiggyBank } from "lucide-react";
 import { sneaker, treesForest, chest } from '@lucide/lab';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -100,6 +100,10 @@ interface FilterButtonProps {
   onShowArchivedChange?: (value: boolean) => void;
   onShowMaintenanceChange?: (value: boolean) => void;
 
+  /** When true, only Lightning Piggy treasures are shown. Off by default. */
+  showPiggyOnly?: boolean;
+  onShowPiggyOnlyChange?: (value: boolean) => void;
+
   className?: string;
   compact?: boolean;
 }
@@ -121,6 +125,8 @@ export function FilterButton({
   onShowActiveChange,
   onShowArchivedChange,
   onShowMaintenanceChange,
+  showPiggyOnly = false,
+  onShowPiggyOnlyChange,
   className,
   compact = false,
 }: FilterButtonProps) {
@@ -193,6 +199,7 @@ export function FilterButton({
     terrain !== undefined,
     cacheType !== undefined,
     statusFilterActive,
+    showPiggyOnly,
   ].filter(Boolean).length;
 
   // Clear all filters
@@ -205,6 +212,7 @@ export function FilterButton({
     onShowActiveChange?.(true);
     onShowArchivedChange?.(false);
     onShowMaintenanceChange?.(false);
+    onShowPiggyOnlyChange?.(false);
   };
 
   return (
@@ -418,6 +426,26 @@ export function FilterButton({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Lightning Piggy source filter */}
+            {onShowPiggyOnlyChange && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground">
+                  {t('filters.source', 'Source')}
+                </Label>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={showPiggyOnly}
+                    onCheckedChange={(checked) => onShowPiggyOnlyChange(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <span className="flex items-center gap-1.5 text-sm">
+                    <PiggyBank className="h-3.5 w-3.5 text-pink-500" />
+                    {t('filters.piggyOnly', 'Lightning Piggy')}
+                  </span>
+                </label>
+              </div>
+            )}
 
             {/* Status Filter (archived / maintenance listings are hidden by default) */}
             {(onShowActiveChange || onShowArchivedChange || onShowMaintenanceChange) && (

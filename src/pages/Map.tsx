@@ -36,6 +36,7 @@ import { type ComparisonOperator } from "@/components/FilterButton";
 import { FilterButton } from "@/components/FilterButton";
 import type { Geocache } from "@/types/geocache";
 import { calculateDistance as calculateDistanceFn } from "@/utils/geo";
+import { isLightningPiggyClient } from "@/utils/nip-gc";
 import { Badge } from "@/components/ui/badge";
 import { SmartLoadingState } from "@/components/ui/skeleton-patterns";
 import { cn } from "@/lib/utils";
@@ -105,6 +106,8 @@ export default function Map() {
   const [showActive, setShowActive] = useState<boolean>(true);
   const [showArchived, setShowArchived] = useState<boolean>(false);
   const [showMaintenance, setShowMaintenance] = useState<boolean>(false);
+  // Source filter: when true, only Lightning Piggy treasures are shown.
+  const [showPiggyOnly, setShowPiggyOnly] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   // Restore the last map view (center + zoom) the user was looking at when they
   // navigated away (e.g. to a treasure detail page) so that returning to the map
@@ -233,6 +236,7 @@ export default function Map() {
     terrain,
     terrainOperator,
     cacheType,
+    piggyOnly: showPiggyOnly,
     userLocation,
     searchLocation,
     searchRadius,
@@ -387,12 +391,16 @@ export default function Map() {
       return showActive;
     };
 
+    // Lightning Piggy source filter. Applied in every branch so proximity
+    // results honor it too.
+    const bySource = (g: Geocache) => !showPiggyOnly || isLightningPiggyClient(g.client);
+
     if (isProximitySearchActive) {
-      return (geocaches || []).filter(byStatus);
+      return (geocaches || []).filter(byStatus).filter(bySource);
     }
 
     const caches = baseGeocaches.data || [];
-    let filtered = caches.filter(byStatus);
+    let filtered = caches.filter(byStatus).filter(bySource);
 
     // Text search filter
     if (searchQuery) {
@@ -426,7 +434,7 @@ export default function Map() {
     filtered.sort((a, b) => b.created_at - a.created_at);
 
     return filtered;
-  }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType, showActive, showArchived, showMaintenance]);
+  }, [isProximitySearchActive, geocaches, baseGeocaches.data, searchQuery, difficulty, difficultyOperator, terrain, terrainOperator, cacheType, showActive, showArchived, showMaintenance, showPiggyOnly]);
 
   // Virtualizers for desktop sidebar and mobile list.
   // They share the same data but each has its own scroll container.
@@ -682,7 +690,7 @@ export default function Map() {
     }
   };
 
-  /** Clear text + D/T/type filters but keep map location. */
+  /** Clear text + D/T/type/source filters but keep map location. */
   const handleClearFilters = () => {
     setSearchQuery("");
     setDifficulty(undefined);
@@ -690,14 +698,16 @@ export default function Map() {
     setTerrain(undefined);
     setTerrainOperator("all");
     setCacheType(undefined);
+    setShowPiggyOnly(false);
   };
 
-  /** True when any text / D / T / type filter is active. */
+  /** True when any text / D / T / type / source filter is active. */
   const hasActiveFilters = Boolean(
     searchQuery.trim() ||
     difficulty !== undefined ||
     terrain !== undefined ||
-    cacheType
+    cacheType ||
+    showPiggyOnly
   );
 
   /** Shared filter-aware empty state. */
@@ -892,7 +902,7 @@ export default function Map() {
   };
 
   const ResultsCountRow = ({ showInView = false, className = "" }: { showInView?: boolean; className?: string }) => {
-    const hasFilters = Boolean(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || isProximitySearchActive);
+    const hasFilters = Boolean(searchQuery || difficulty !== undefined || terrain !== undefined || cacheType || showPiggyOnly || isProximitySearchActive);
     // With no active filters, show the accurate global total (NIP-45 COUNT).
     if (!hasFilters) {
       if (accurateTotal <= 0) return null;
@@ -1008,6 +1018,8 @@ export default function Map() {
                 onShowActiveChange={setShowActive}
                 onShowArchivedChange={setShowArchived}
                 onShowMaintenanceChange={setShowMaintenance}
+                showPiggyOnly={showPiggyOnly}
+                onShowPiggyOnlyChange={setShowPiggyOnly}
               />
             </div>
           </div>
@@ -1274,6 +1286,8 @@ export default function Map() {
                       onShowActiveChange={setShowActive}
                       onShowArchivedChange={setShowArchived}
                       onShowMaintenanceChange={setShowMaintenance}
+                      showPiggyOnly={showPiggyOnly}
+                      onShowPiggyOnlyChange={setShowPiggyOnly}
                       compact
                     />
                   </div>
@@ -1418,6 +1432,8 @@ export default function Map() {
                     onShowActiveChange={setShowActive}
                     onShowArchivedChange={setShowArchived}
                     onShowMaintenanceChange={setShowMaintenance}
+                    showPiggyOnly={showPiggyOnly}
+                    onShowPiggyOnlyChange={setShowPiggyOnly}
                     compact
                   />
                 </div>

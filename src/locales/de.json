@@ -1159,6 +1159,8 @@
   "filters.statusActive": "Aktiv",
   "filters.statusMaintenance": "Wartung erforderlich",
   "filters.statusArchived": "Archiviert",
+  "filters.source": "Quelle",
+  "filters.piggyOnly": "Lightning Piggy",
   "geocache.status.archived": "Archiviert",
   "geocache.status.maintenance": "Wartung",
   "geocacheCard.by": "von",

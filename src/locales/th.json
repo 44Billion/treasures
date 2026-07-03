@@ -1159,6 +1159,8 @@
   "filters.statusActive": "ใช้งานอยู่",
   "filters.statusMaintenance": "ต้องการบำรุงรักษา",
   "filters.statusArchived": "เก็บถาวรแล้ว",
+  "filters.source": "แหล่งที่มา",
+  "filters.piggyOnly": "Lightning Piggy",
   "geocache.status.archived": "เก็บถาวรแล้ว",
   "geocache.status.maintenance": "บำรุงรักษา",
   "geocacheCard.by": "โดย",

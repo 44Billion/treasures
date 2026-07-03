@@ -10,6 +10,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { POLLING_INTERVALS } from '@/config';
 import type { ComparisonOperator } from '@/components/FilterButton';
 import { calculateDistance as calculateGeoDistance } from '@/utils/geo';
+import { isLightningPiggyClient } from '@/utils/nip-gc';
 import type { Geocache } from '@/types/geocache';
 
 interface UseReliableProximitySearchOptions {
@@ -20,6 +21,8 @@ interface UseReliableProximitySearchOptions {
   terrain?: number;
   terrainOperator?: ComparisonOperator;
   cacheType?: string;
+  /** When true, only treasures created by the Lightning Piggy client are returned. */
+  piggyOnly?: boolean;
   authorPubkey?: string;
   // Proximity parameters
   centerLat?: number;
@@ -112,6 +115,11 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
       filtered = filtered.filter(g => g.type === options.cacheType);
     }
 
+    // Lightning Piggy source filter
+    if (options.piggyOnly) {
+      filtered = filtered.filter(g => isLightningPiggyClient(g.client));
+    }
+
     // Apply proximity sorting and add distances (all items shown, sorted by distance)
     if (hasProximityParams) {
       filtered = filtered.map(cache => ({
@@ -136,6 +144,7 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
     options.terrain,
     options.terrainOperator,
     options.cacheType,
+    options.piggyOnly,
     hasProximityParams,
     options.centerLat,
     options.centerLng,

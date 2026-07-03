@@ -1159,6 +1159,8 @@
   "filters.statusActive": "アクティブ",
   "filters.statusMaintenance": "メンテナンスが必要",
   "filters.statusArchived": "アーカイブ済み",
+  "filters.source": "ソース",
+  "filters.piggyOnly": "Lightning Piggy",
   "geocache.status.archived": "アーカイブ済み",
   "geocache.status.maintenance": "メンテナンス",
   "geocacheCard.by": "作成者",
