@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.3] - 2026-07-03
+
+Piggy treasures now stand out on the hunt! Treasures hidden with Lightning Piggy — the bitcoin piggy bank for kids — get their own look: a pink pig marker on the map, a pig icon on treasure cards, and a friendly banner explaining what a piggy treasure is, with a link to learn more. Spot the pig, find the piggy, scan it, and collect what's inside.
+
+### Added
+- Lightning Piggy treasures get their own branding: a pig-on-pink map marker, a pig icon on treasure cards, and an explainer banner on the map popup and treasure page with a link to learn more about piggy treasure hunts
+
 ## [2.9.2] - 2026-06-28
 
 Hiding treasures off the grid just got more trustworthy. When you're out of signal, Treasures now tells you right away that your treasure is saved on your device and will go live the moment you're back online — no more waiting on a misleading "hidden!" message. Hide several treasures in a row offline and each is kept separate instead of overwriting the last. Your profile also gains a tidy "Pending offline" area where everything waiting to sync lives in one place to retry, resume, or discard.
