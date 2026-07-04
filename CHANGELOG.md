@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.9.4] - 2026-07-03
+
+Dialing in the perfect hunt just got easier. The map's filter panel has been redesigned with big, tap-friendly chips for difficulty, terrain, and hunt type — each with little help hints that explain what the settings mean. There's also a new Source filter, so piggy hunters can show only Lightning Piggy treasures on the map with a single tap.
+
+### Added
+- A Source filter on the map to show only Lightning Piggy treasures
+
+### Changed
+- The map filter panel is redesigned with tap-friendly chips and help hints explaining difficulty, terrain, and hunt types
+
 ## [2.9.3] - 2026-07-03
 
 Piggy treasures now stand out on the hunt! Treasures hidden with Lightning Piggy — the bitcoin piggy bank for kids — get their own look: a pink pig marker on the map, a pig icon on treasure cards, and a friendly banner explaining what a piggy treasure is, with a link to learn more. Spot the pig, find the piggy, scan it, and collect what's inside.
