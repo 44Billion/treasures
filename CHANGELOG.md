@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.5] - 2026-07-03
+
+A small polish pass for piggy hunters. Map markers with a corner badge — sats payouts or claimed first-to-find trophies — now show a clean round highlight when you hover them instead of a boxy shadow, and the "Learn more" link on Lightning Piggy treasures is now piggy-pink in light mode too.
+
+### Fixed
+- Hovering a map marker that carries a corner badge (sats payout or claimed first-to-find) now highlights the round marker itself instead of drawing a square shadow around it
+- The "Learn more" link on Lightning Piggy treasures now shows in pink in light mode instead of blue
+
 ## [2.9.4] - 2026-07-03
 
 Dialing in the perfect hunt just got easier. The map's filter panel has been redesigned with big, tap-friendly chips for difficulty, terrain, and hunt type — each with little help hints that explain what the settings mean. There's also a new Source filter, so piggy hunters can show only Lightning Piggy treasures on the map with a single tap.
