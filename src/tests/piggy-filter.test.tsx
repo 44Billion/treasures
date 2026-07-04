@@ -6,9 +6,9 @@
  *    treasures whose `client` tag identifies Lightning Piggy (matching is
  *    case/separator-insensitive via `isLightningPiggyClient`).
  *  - When the flag is off/omitted, all treasures pass through unchanged.
- *  - `FilterButton` exposes a "Source" checkbox that reports toggles via
- *    `onShowPiggyOnlyChange`, counts toward the active-filter badge, and is
- *    reset by "Clear all".
+ *  - `FilterButton` exposes "Source" chips ("Treasures" default, "Lightning
+ *    Piggy") that report changes via `onShowPiggyOnlyChange`, count toward
+ *    the active-filter badge, and are reset by "Clear all".
  */
 
 import React from 'react';
@@ -136,15 +136,30 @@ describe('FilterButton — Lightning Piggy source filter', () => {
     fireEvent.click(screen.getAllByRole('button')[0]);
   }
 
-  it('renders the piggy-only checkbox and reports toggles', () => {
+  it('renders source chips with "Treasures" selected by default', () => {
+    renderFilterButton();
+    openPopover();
+
+    const treasuresChip = screen.getByRole('button', { name: /Treasures/ });
+    const piggyChip = screen.getByRole('button', { name: /Lightning Piggy/ });
+    expect(treasuresChip).toHaveAttribute('aria-pressed', 'true');
+    expect(piggyChip).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('reports selecting the Lightning Piggy source chip', () => {
     const { onShowPiggyOnlyChange } = renderFilterButton();
     openPopover();
 
-    const checkboxLabel = screen.getByText('Lightning Piggy');
-    expect(checkboxLabel).toBeInTheDocument();
-
-    fireEvent.click(checkboxLabel);
+    fireEvent.click(screen.getByRole('button', { name: /Lightning Piggy/ }));
     expect(onShowPiggyOnlyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('reports switching back to the Treasures source chip', () => {
+    const { onShowPiggyOnlyChange } = renderFilterButton({ showPiggyOnly: true });
+    openPopover();
+
+    fireEvent.click(screen.getByRole('button', { name: /Treasures/ }));
+    expect(onShowPiggyOnlyChange).toHaveBeenCalledWith(false);
   });
 
   it('counts the piggy filter toward the active-filter badge', () => {
@@ -165,5 +180,6 @@ describe('FilterButton — Lightning Piggy source filter', () => {
     openPopover();
 
     expect(screen.queryByText('Lightning Piggy')).not.toBeInTheDocument();
+    expect(screen.queryByText('Source')).not.toBeInTheDocument();
   });
 });
