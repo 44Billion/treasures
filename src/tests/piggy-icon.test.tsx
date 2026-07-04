@@ -144,3 +144,49 @@ describe('map markers — piggy variant', () => {
     expect(html).not.toContain(PIGGY_PINK); // theme frame color preserved
   });
 });
+
+describe('map markers — hover target class', () => {
+  /**
+   * Regression: the hover CSS (`.custom-cache-icon:hover .cache-marker-body`)
+   * must be able to reach the round marker body in every variant. Markers
+   * with corner badges (lightning — which includes Lightning Piggy
+   * treasures — and claimed-FTF) wrap the body in a rectangular positioning
+   * shell; the old `> div:first-child` selector hit that shell and drew a
+   * square box-shadow around the marker on hover.
+   */
+  function bodyOf(html: string): Element | null {
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    return el.querySelector('.cache-marker-body');
+  }
+
+  it('tags the marker body on the plain default-theme marker', () => {
+    const icon = getCachedCacheIcon('traditional', 'default', false, false, false);
+    const body = bodyOf(icon.options.html as string);
+    expect(body).not.toBeNull();
+    expect(body?.getAttribute('style')).toContain('border-radius: 50%');
+  });
+
+  it('tags the round body (not the badge shell) on lightning piggy markers', () => {
+    const icon = getCachedCacheIcon('traditional', 'default', false, true, true);
+    const html = icon.options.html as string;
+    const body = bodyOf(html);
+    expect(body).not.toBeNull();
+    // The hover target must be the circular pink body, not the wrapper.
+    expect(body?.getAttribute('style')).toContain('border-radius: 50%');
+    expect(body?.getAttribute('style')).toContain(`background: ${PIGGY_PINK}`);
+    // The badge shell wraps the body, so the shell must NOT be the target.
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    expect(el.firstElementChild?.classList.contains('cache-marker-body')).toBe(false);
+  });
+
+  it('tags the body on claimed-FTF and themed variants too', () => {
+    const claimed = getCachedClaimedFtfIcon('traditional', 'default', false, true, true);
+    expect(bodyOf(claimed.options.html as string)).not.toBeNull();
+    for (const theme of ['adventure', 'mojave'] as const) {
+      const icon = getCachedCacheIcon('traditional', theme, false, false, true);
+      expect(bodyOf(icon.options.html as string)).not.toBeNull();
+    }
+  });
+});

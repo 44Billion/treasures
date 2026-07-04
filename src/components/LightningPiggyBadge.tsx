@@ -158,7 +158,16 @@ export function LightningPiggyCallout({ size = 'compact', className }: Lightning
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-0.5 font-medium text-pink-600 dark:text-pink-400 hover:underline whitespace-nowrap"
+          className={cn(
+            'inline-flex items-center gap-0.5 font-medium hover:underline whitespace-nowrap',
+            // Important variants: inside the Leaflet map popup the link is
+            // matched by Leaflet's `.leaflet-container a { color: #0078A8 }`
+            // rule, whose specificity (0-1-1) beats a plain Tailwind color
+            // utility (0-1-0) — without `!` the link renders Leaflet-blue
+            // in light mode while dark mode (`.dark .dark:…`, 0-2-0) stays
+            // pink.
+            '!text-pink-600 dark:!text-pink-400',
+          )}
         >
           {t('lightningPiggy.popover.learnMore')}
           <ExternalLink className={isCompact ? 'h-2.5 w-2.5' : 'h-3.5 w-3.5'} />

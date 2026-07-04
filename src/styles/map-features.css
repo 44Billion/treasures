@@ -618,20 +618,24 @@
   z-index: 1000;
 }
 
-/* Standard marker hover effect — no transition, instant feedback */
-.custom-cache-icon:hover > div:first-child {
+/* Standard marker hover effect — no transition, instant feedback.
+   Targets the `.cache-marker-body` class (not `> div:first-child`) because
+   badge-carrying markers (lightning / claimed-FTF, e.g. Lightning Piggy)
+   wrap the body in a rectangular positioning shell — a structural selector
+   would put the scale + shadow on that shell instead of the round body. */
+.custom-cache-icon:hover .cache-marker-body {
   transform: scale(1.1);
   box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
 /* Adventure marker hover effect */
-.adventure-cache-icon:hover > div:first-child {
+.adventure-cache-icon:hover .cache-marker-body {
   transform: scale(1.05);
   box-shadow: 0 3px 6px rgba(65, 105, 225, 0.4);
 }
 
 /* Mojave (Pip-Boy) marker hover — amber phosphor glow intensifies */
-.mojave-cache-icon:hover > div:first-child {
+.mojave-cache-icon:hover .cache-marker-body {
   transform: scale(1.05);
   box-shadow: 0 0 14px rgba(232, 168, 56, 0.75), 0 2px 6px rgba(0, 0, 0, 0.6);
 }

@@ -206,6 +206,12 @@ function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolea
       : getCacheIconSvg(type);
   const color = isPiggy ? PIGGY_PINK : getCacheColor(type);
 
+  // The marker body carries the `cache-marker-body` class so the hover CSS
+  // (map-features.css) can target the round/square body directly. A
+  // structural `> div:first-child` selector breaks whenever the marker is
+  // wrapped in the corner-badge positioning shell (lightning / claimed-FTF
+  // variants) — the hover shadow would land on the rectangular shell
+  // instead of the marker body.
   if (iconTheme === 'adventure') {
     const adventureColors = {
       background: '#6495ED',
@@ -213,7 +219,7 @@ function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolea
       icon: '#FFFFFF',
     };
     return `
-      <div style="
+      <div class="cache-marker-body" style="
         background: ${adventureColors.background};
         border: 2px solid ${adventureColors.border};
         border-radius: 4px;
@@ -251,7 +257,7 @@ function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolea
       glow: MOJAVE_AMBER_GLOW,
     };
     return `
-      <div style="
+      <div class="cache-marker-body" style="
         background: ${mojaveColors.background};
         border: 2px solid ${mojaveColors.border};
         border-radius: 4px;
@@ -283,7 +289,7 @@ function buildCacheIconHtml(type: string, iconTheme: MapIconTheme, isArt: boolea
   }
 
   return `
-    <div style="
+    <div class="cache-marker-body" style="
       background: ${color};
       border: 3px solid white;
       border-radius: 50%;
