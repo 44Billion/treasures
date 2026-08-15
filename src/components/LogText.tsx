@@ -125,8 +125,14 @@ function tokenize(text: string): ContentToken[] {
         continue;
       }
 
-      // Regular URL -> inline clickable link
-      result.push({ type: "inline-link", url });
+      // Treasure URL (https://…/naddr1…) -> rich card, same as nostr:naddr1…
+      const naddrInUrl = url.match(/(naddr1[023456789acdefghjklmnpqrstuvwxyz]+)/)?.[1];
+      if (naddrInUrl) {
+        result.push({ type: "naddr-link", naddrId: naddrInUrl });
+      } else {
+        // Regular URL -> inline clickable link
+        result.push({ type: "inline-link", url });
+      }
     } else if (nostrPrefix && nostrData) {
       const nostrId = `${nostrPrefix}${nostrData}`;
       try {

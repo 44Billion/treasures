@@ -21,8 +21,20 @@ interface BlogPostDetailProps {
   onDelete?: (post: BlogPost) => void;
 }
 
-/** Matches an `naddr1…` reference, with or without the `nostr:` URI prefix. */
-const NADDR_REGEX = /(?:nostr:)?(naddr1[023456789acdefghjklmnpqrstuvwxyz]+)/g;
+/**
+ * Matches an `naddr1…` reference in any supported form:
+ * 1. A full https:// URL where the naddr is part of the path (e.g. https://treasures.to/naddr1…)
+ * 2. A nostr: URI (nostr:naddr1…)
+ * 3. A bare naddr1… token
+ *
+ * In all cases the entire matched text (including any URL prefix) is consumed so
+ * that no dangling URL fragment is left in the surrounding markdown.
+ *
+ * match[1] — naddr extracted from a full URL
+ * match[2] — naddr from nostr: or bare form
+ */
+const NADDR_REGEX =
+  /https?:\/\/[^\s]*?(naddr1[023456789acdefghjklmnpqrstuvwxyz]+)|(?:nostr:)?(naddr1[023456789acdefghjklmnpqrstuvwxyz]+)/g;
 
 type ContentSegment =
   | { type: 'markdown'; text: string }
@@ -41,9 +53,10 @@ function splitContentSegments(content: string): ContentSegment[] {
   let match: RegExpExecArray | null;
 
   while ((match = NADDR_REGEX.exec(content)) !== null) {
-    const naddr = match[1];
+    // match[1] = naddr from a full URL; match[2] = naddr from nostr: or bare form
+    const naddr = match[1] ?? match[2];
     // Skip non-geocache addressable identifiers — leave them in the markdown.
-    if (!parseNaddr(naddr)) continue;
+    if (!naddr || !parseNaddr(naddr)) continue;
 
     if (match.index > lastIndex) {
       segments.push({ type: 'markdown', text: content.slice(lastIndex, match.index) });
