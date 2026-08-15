@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.0] - 2026-08-15
+
+Two new ways to play. Create a mystery treasure with no pinned location — it won't appear on the map or in nearby searches, so hunters discover it only through your description, mission, or hidden clues. And when you link to a treasure in a blog post or a found log, it now shows up as a rich preview card so readers can see exactly what's waiting for them.
+
+### Added
+- Create a mystery treasure with no location: it stays off the map and out of nearby searches, discoverable only through your description, mission, or other clues
+- Treasure links in blog posts and found logs now render as rich preview cards
+
 ## [2.9.5] - 2026-07-03
 
 A small polish pass for piggy hunters. Map markers with a corner badge — sats payouts or claimed first-to-find trophies — now show a clean round highlight when you hover them instead of a boxy shadow, and the "Learn more" link on Lightning Piggy treasures is now piggy-pink in light mode too.
