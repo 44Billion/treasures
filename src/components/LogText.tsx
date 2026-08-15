@@ -4,6 +4,8 @@ import { BlurredImage } from "@/components/BlurredImage";
 import { ImageGallery } from "@/components/ImageGallery";
 import { NostrEventCard } from "./NostrEvent";
 import { NostrPubkey } from "./NostrPubkey";
+import { TreasureEmbedCard } from "./TreasureEmbedCard";
+import { parseNaddr } from "@/utils/naddr";
 import { cn } from "@/lib/utils";
 
 interface LogTextProps {
@@ -356,6 +358,15 @@ export function LogText({ text, hideNostrLinks = false, className, onClick }: Lo
 
           case "naddr-link": {
             if (hideNostrLinks) return null;
+            // Treasure listings render as a rich preview card; any other
+            // addressable naddr falls back to an external link.
+            if (parseNaddr(token.naddrId)) {
+              return (
+                <div key={i} className="my-1">
+                  <TreasureEmbedCard naddr={token.naddrId} />
+                </div>
+              );
+            }
             return (
               <a
                 key={i}

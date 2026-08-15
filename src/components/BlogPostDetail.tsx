@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,94 @@ import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { TreasureEmbedCard } from '@/components/TreasureEmbedCard';
+import { parseNaddr } from '@/utils/naddr';
 
 interface BlogPostDetailProps {
   post: BlogPost;
   showAuthorActions?: boolean;
   onEdit?: (post: BlogPost) => void;
   onDelete?: (post: BlogPost) => void;
+}
+
+/** Matches an `naddr1…` reference, with or without the `nostr:` URI prefix. */
+const NADDR_REGEX = /(?:nostr:)?(naddr1[023456789acdefghjklmnpqrstuvwxyz]+)/g;
+
+type ContentSegment =
+  | { type: 'markdown'; text: string }
+  | { type: 'treasure'; naddr: string };
+
+/**
+ * Splits blog markdown into markdown chunks and treasure-embed segments so
+ * that `nostr:naddr1…` references to geocache listings render as rich preview
+ * cards instead of raw text. Only valid geocache naddrs are extracted; any
+ * other addressable naddr is left inside the markdown untouched.
+ */
+function splitContentSegments(content: string): ContentSegment[] {
+  const segments: ContentSegment[] = [];
+  let lastIndex = 0;
+  NADDR_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = NADDR_REGEX.exec(content)) !== null) {
+    const naddr = match[1];
+    // Skip non-geocache addressable identifiers — leave them in the markdown.
+    if (!parseNaddr(naddr)) continue;
+
+    if (match.index > lastIndex) {
+      segments.push({ type: 'markdown', text: content.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: 'treasure', naddr });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    segments.push({ type: 'markdown', text: content.slice(lastIndex) });
+  }
+
+  return segments;
+}
+
+const markdownComponents = {
+  a: ({ href, children, ...props }: ComponentProps<'a'>) => {
+    const isExternal = href?.startsWith('http');
+    return (
+      <a
+        href={href}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  },
+  img: ({ src, alt, ...props }: ComponentProps<'img'>) => (
+    <img src={src} alt={alt} className="rounded-lg max-w-full h-auto" {...props} />
+  ),
+};
+
+function BlogContent({ content }: { content: string }) {
+  const segments = splitContentSegments(content);
+
+  return (
+    <>
+      {segments.map((segment, i) =>
+        segment.type === 'treasure' ? (
+          <TreasureEmbedCard key={i} naddr={segment.naddr} />
+        ) : (
+          <ReactMarkdown
+            key={i}
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+            components={markdownComponents}
+          >
+            {segment.text}
+          </ReactMarkdown>
+        ),
+      )}
+    </>
+  );
 }
 
 export function BlogPostDetail({ 
@@ -108,35 +191,7 @@ export function BlogPostDetail({
 
           {/* Content */}
           <div className="prose prose-invert max-w-none mt-6 prose-a:text-white prose-a:underline prose-strong:text-white adventure:prose-headings:text-stone-800 adventure:prose-p:text-stone-700 adventure:prose-li:text-stone-700 adventure:prose-strong:text-stone-800 adventure:prose-a:text-stone-800">
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
-              components={{
-                a: ({ href, children, ...props }) => {
-                  const isExternal = href?.startsWith('http');
-                  return (
-                    <a 
-                      href={href} 
-                      target={isExternal ? '_blank' : undefined}
-                      rel={isExternal ? 'noopener noreferrer' : undefined}
-                      {...props}
-                    >
-                      {children}
-                    </a>
-                  );
-                },
-                img: ({ src, alt, ...props }) => (
-                  <img 
-                    src={src} 
-                    alt={alt} 
-                    className="rounded-lg max-w-full h-auto"
-                    {...props}
-                  />
-                ),
-              }}
-            >
-              {post.content}
-            </ReactMarkdown>
+            <BlogContent content={post.content} />
           </div>
 
           {/* Tags */}
