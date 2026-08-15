@@ -48,6 +48,7 @@ import { GeocacheForm } from "@/components/ui/geocache-form";
 import type { GeocacheFormData } from "@/components/ui/geocache-form.types";
 import { LocationPicker } from "@/components/LocationPicker";
 import { Label } from "@/components/ui/label";
+import { MysteriousMap } from "@/components/MysteriousMap";
 
 import { ImageGallery } from "@/components/ImageGallery";
 import { BlurredImage } from "@/components/BlurredImage";
@@ -161,6 +162,9 @@ export default function CacheDetail() {
   });
   const [editImages, setEditImages] = useState<string[]>([]);
   const [editLocation, setEditLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // Edit-mode "unknown location" toggle. Lets an owner keep (or convert to) a
+  // mystery treasure with no `g` tag.
+  const [editLocationUnknown, setEditLocationUnknown] = useState(false);
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
   const [editLocationVerification, setEditLocationVerification] = useState<LocationVerification | null>(null);
 
@@ -199,7 +203,8 @@ export default function CacheDetail() {
         modifiers: geocache.modifiers || [],
       });
       setEditImages(geocache.images || []);
-      setEditLocation(geocache.location);
+      setEditLocation(geocache.location ?? null);
+      setEditLocationUnknown(!geocache.location);
 
       // Show toast if we're using passed data (just created)
       if (justCreated && passedGeocacheData) {
@@ -390,7 +395,8 @@ export default function CacheDetail() {
         modifiers: geocache.modifiers || [],
       });
       setEditImages(geocache.images || []);
-      setEditLocation(geocache.location);
+      setEditLocation(geocache.location ?? null);
+      setEditLocationUnknown(!geocache.location);
       setEditLocationVerification(null);
     }
   };
@@ -414,7 +420,7 @@ export default function CacheDetail() {
       return;
     }
 
-    if (!editLocation) {
+    if (!editLocationUnknown && !editLocation) {
       toast({
         title: t('cacheDetail.toast.locationRequired.title'),
         description: t('cacheDetail.toast.locationRequired.description'),
@@ -428,7 +434,8 @@ export default function CacheDetail() {
       images: editImages,
       hidden: editFormData.hidden,
       status: editFormData.status,
-      location: editLocation,
+      location: editLocationUnknown ? undefined : (editLocation ?? undefined),
+      locationUnknown: editLocationUnknown,
       difficulty: parseFloat(editFormData.difficulty),
       terrain: parseFloat(editFormData.terrain),
       size: editFormData.size as "micro" | "small" | "regular" | "large" | "other",
@@ -647,6 +654,13 @@ export default function CacheDetail() {
   const authorName = author.data?.metadata?.name || geocache.pubkey.slice(0, 8);
   const profilePicture = author.data?.metadata?.picture;
 
+  // Effective location to display. In edit mode the toggle/picker win; the
+  // "unknown location" state resolves to null (→ mysterious placeholder, no
+  // coordinates shown). Outside edit mode it's simply the cache's location.
+  const editingLocation = editLocationUnknown ? null : editLocation;
+  const bannerLocation = isEditing ? editingLocation : (geocache.location ?? null);
+  const detailLocation = isEditing ? editingLocation : (geocache.location ?? null);
+
   return (
     <div className="min-h-screen lg:bg-muted bg-card pb-8 lg:pb-0">
       {/* Full-screen verified discovery reveal */}
@@ -719,19 +733,25 @@ export default function CacheDetail() {
           <div className="lg:col-span-2 space-y-4 lg:space-y-6 min-w-0">
             {/* Mobile: No card wrapper, Desktop: Card wrapper */}
             <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:mt-4">
-              {/* Map Banner */}
+              {/* Map Banner. `bannerLocation` is null for an "unknown location"
+                  treasure (or while the edit toggle marks it unknown), in which
+                  case we render the mysterious placeholder instead of a map. */}
               <div className="relative h-72 lg:mb-4 lg:rounded-t-lg overflow-hidden bg-muted lg:mt-0">
-                <GeocacheMap
-                  geocaches={[{
-                    ...geocache,
-                    location: isEditing && editLocation ? editLocation : geocache.location
-                  }]}
-                  center={isEditing && editLocation ? editLocation : geocache.location}
-                  zoom={14}
-                  showStyleSelector={false}
-                />
-                {/* Compass button overlay */}
-                {!isEditing && (
+                {bannerLocation ? (
+                  <GeocacheMap
+                    geocaches={[{
+                      ...geocache,
+                      location: bannerLocation
+                    }]}
+                    center={bannerLocation}
+                    zoom={14}
+                    showStyleSelector={false}
+                  />
+                ) : (
+                  <MysteriousMap />
+                )}
+                {/* Compass button overlay — only for treasures with a location */}
+                {!isEditing && geocache.location && (
                   <button
                     onClick={() => setShowQuickCompass(true)}
                     className="absolute bottom-3 right-3 z-[500] flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl active:scale-95 transition-all"
@@ -741,7 +761,7 @@ export default function CacheDetail() {
                 )}
               </div>
 
-              {showQuickCompass && (
+              {showQuickCompass && geocache.location && (
                 <NavigationCompass
                   target={geocache.location}
                   autoActivate
@@ -887,17 +907,26 @@ export default function CacheDetail() {
                       isEditing={true}
                     />
 
-                    {/* Location */}
-                    <div>
-                      <Label>{t('cacheDetail.details.coordinates')} *</Label>
+                    {/* Location — the "unknown location" toggle lives inside the
+                        picker's "Enter manually" advanced disclosure. */}
+                    <div className="space-y-3">
+                      {!editLocationUnknown && <Label>{t('cacheDetail.details.coordinates')} *</Label>}
                       <LocationPicker
                         value={editLocation}
                         onChange={setEditLocation}
+                        locationUnknown={editLocationUnknown}
+                        onLocationUnknownChange={(next) => {
+                          setEditLocationUnknown(next);
+                          if (next) {
+                            setEditLocation(null);
+                            setEditLocationVerification(null);
+                          }
+                        }}
                       />
                     </div>
 
                     {/* Location Verification for Edit */}
-                    {editLocationVerification && (
+                    {!editLocationUnknown && editLocationVerification && (
                       <LocationWarnings
                         verification={editLocationVerification}
                         className="border rounded-lg p-4 bg-muted/50 dark:bg-muted space-y-2"
@@ -1064,23 +1093,21 @@ export default function CacheDetail() {
                 />
 
                 <div>
+                  {detailLocation ? (
+                  <>
                   <p className="text-sm font-medium text-muted-foreground">
-                    {t('cacheDetail.details.coordinates')} {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
+                    {t('cacheDetail.details.coordinates')} {isEditing && editLocation && geocache.location && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
                       <span className="text-orange-600 dark:text-orange-400 adventure:text-amber-700 mojave:text-primary text-xs">{t('cacheDetail.details.coordinatesModified')}</span>
                     )}
                   </p>
                   <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">
                     <span className="flex-1 text-xs md:text-sm font-mono break-all text-foreground select-text">
-                      {isEditing && editLocation ?
-                        `${editLocation.lat.toFixed(6)}, ${editLocation.lng.toFixed(6)}` :
-                        `${geocache.location.lat.toFixed(6)}, ${geocache.location.lng.toFixed(6)}`
-                      }
+                      {`${detailLocation.lat.toFixed(6)}, ${detailLocation.lng.toFixed(6)}`}
                     </span>
                     <button
                       onClick={() => {
-                        const location = isEditing && editLocation ? editLocation : geocache.location;
                         handleCopyToClipboard(
-                          `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,
+                          `${detailLocation.lat.toFixed(6)}, ${detailLocation.lng.toFixed(6)}`,
                           t('cacheDetail.details.coordinates')
                         );
                       }}
@@ -1096,22 +1123,18 @@ export default function CacheDetail() {
                     </button>
                   </div>
                   <p className="text-xs font-medium text-muted-foreground mt-3">
-                    {t('cacheDetail.details.geohash')} {isEditing && editLocation && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
+                    {t('cacheDetail.details.geohash')} {isEditing && editLocation && geocache.location && (editLocation.lat !== geocache.location.lat || editLocation.lng !== geocache.location.lng) && (
                       <span className="text-orange-600 dark:text-orange-400 adventure:text-amber-700 mojave:text-primary text-xs">{t('cacheDetail.details.geohashModified')}</span>
                     )}
                   </p>
                   <div className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded transition-colors group">
                     <span className="flex-1 text-xs md:text-sm font-mono break-all text-foreground select-text">
-                      {isEditing && editLocation ?
-                        encodeGeohash(editLocation.lat, editLocation.lng, 9) :
-                        encodeGeohash(geocache.location.lat, geocache.location.lng, 9)
-                      }
+                      {encodeGeohash(detailLocation.lat, detailLocation.lng, 9)}
                     </span>
                     <button
                       onClick={() => {
-                        const location = isEditing && editLocation ? editLocation : geocache.location;
                         handleCopyToClipboard(
-                          encodeGeohash(location.lat, location.lng, 9),
+                          encodeGeohash(detailLocation.lat, detailLocation.lng, 9),
                           t('cacheDetail.details.geohash')
                         );
                       }}
@@ -1126,6 +1149,16 @@ export default function CacheDetail() {
                       )}
                     </button>
                   </div>
+                  </>
+                  ) : (
+                  <div className="flex items-start gap-2">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t('cacheDetail.details.locationUnknown')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('cacheDetail.details.locationUnknownDescription')}</p>
+                    </div>
+                  </div>
+                  )}
                   {/* Short link — public URL keyed by the cache's d-tag.
                       Clickable so users can navigate / right-click → copy. */}
                   {geocache.dTag && (
@@ -1188,14 +1221,14 @@ export default function CacheDetail() {
                       </div>
                     </>
                   )}
+                  {detailLocation && (
                   <Button
                     variant="outline"
                     size="sm"
                     className="mt-2 w-full"
                     onClick={() => {
-                      const location = isEditing && editLocation ? editLocation : geocache.location;
                       window.open(
-                        `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${location.lat}%2C${location.lng}#map=15/${location.lat}/${location.lng}`,
+                        `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${detailLocation.lat}%2C${detailLocation.lng}#map=15/${detailLocation.lat}/${detailLocation.lng}`,
                         "_blank"
                       );
                     }}
@@ -1203,12 +1236,13 @@ export default function CacheDetail() {
                     <Navigation className="h-4 w-4 mr-2" />
                     {t('cacheDetail.details.getDirections')}
                   </Button>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Navigation Compass */}
-            {!isEditing && (
+            {/* Navigation Compass — only for treasures with a known location */}
+            {!isEditing && geocache.location && (
               <div className="lg:rounded-lg lg:border lg:bg-card lg:shadow-sm lg:p-6 p-4 lg:mt-0 mt-2">
                 <NavigationCompass target={geocache.location} />
               </div>

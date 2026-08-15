@@ -9,6 +9,8 @@ import type { GeocacheFormData } from "@/types/geocache-form";
 export interface TreasureDraftPayload {
   formData: GeocacheFormData;
   location: { lat: number; lng: number } | null;
+  /** When true, the treasure is a deliberate "unknown location" mystery (no `g` tag). */
+  locationUnknown?: boolean;
   images: string[];
   currentStep: number;
 }

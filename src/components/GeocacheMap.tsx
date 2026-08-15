@@ -303,8 +303,8 @@ export function GeocacheMap({
       const seen = new Set<string>();
       return geocaches.filter(g => g.location && g.dTag && !seen.has(g.dTag) && seen.add(g.dTag));
     })().slice(0, 200).map((geocache) => {
-      const normalizedLng = ((geocache.location.lng + 180) % 360 + 360) % 360 - 180;
-      const normalizedPosition = [geocache.location.lat, normalizedLng];
+      const normalizedLng = ((geocache.location!.lng + 180) % 360 + 360) % 360 - 180;
+      const normalizedPosition = [geocache.location!.lat, normalizedLng];
 
       // Choose the claimed-FTF marker when the caller has flagged this
       // treasure as won. Falls back to the standard themed marker so

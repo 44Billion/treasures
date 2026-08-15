@@ -38,7 +38,8 @@ export interface FoundCache {
   foundAt: number;
   logId: string;
   logText: string;
-  location: {
+  /** Absent for an "unknown location" mystery treasure (no `g` tag). */
+  location?: {
     lat: number;
     lng: number;
   };

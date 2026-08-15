@@ -76,6 +76,7 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
   }, []);
 
   const handleViewOnMap = () => {
+    if (!geocache.location) return;
     const mapUrl = `/map?lat=${geocache.location.lat}&lng=${geocache.location.lng}&zoom=16&highlight=${geocache.dTag}&tab=map`;
     navigate(mapUrl);
     setDropdownOpen(false); // Close dropdown after action
@@ -241,6 +242,9 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             {getSaveLabel()}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {/* "Unknown location" treasures have no map position to show. */}
+          {geocache.location && (
+            <>
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
@@ -256,6 +260,8 @@ export function CacheMenu({ geocache, variant = 'default', className }: CacheMen
             {t('geocacheCard.viewOnMap')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

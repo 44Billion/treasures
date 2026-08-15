@@ -57,7 +57,8 @@ export function computeNearbyTargets(
   maxTargets: number = 6,
 ): RadarTarget[] {
   return geocaches
-    .filter(g => g.location && isFinite(g.location.lat) && isFinite(g.location.lng))
+    .filter((g): g is Geocache & { location: { lat: number; lng: number } } =>
+      !!g.location && isFinite(g.location.lat) && isFinite(g.location.lng))
     .map(g => ({
       geocache: g,
       bearing: calculateBearing(userLat, userLng, g.location.lat, g.location.lng),
@@ -99,7 +100,7 @@ export function useRadarCompass(geocaches: Geocache[], maxTargets: number = 6) {
 
     if (withDistance.length > 0) {
       const nearest = withDistance.reduce((a, b) => a.distance < b.distance ? a : b);
-      return nearest.location;
+      return nearest.location ?? null;
     }
 
     // Fallback: just use the first geocache

@@ -273,13 +273,14 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
               <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 ml-0.5 -mr-1" />
             </Button>
 
+            {geocache.location && (
             <Button
               variant="outline"
               size="icon"
               className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 border-primary-200 text-primary hover:bg-primary-50 hover:text-primary dark:border-primary-100 dark:text-primary dark:hover:bg-primary-50"
               onClick={() => {
                 window.open(
-                  `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${geocache.location.lat}%2C${geocache.location.lng}#map=15/${geocache.location.lat}/${geocache.location.lng}`,
+                  `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=%3B${geocache.location!.lat}%2C${geocache.location!.lng}#map=15/${geocache.location!.lat}/${geocache.location!.lng}`,
                   "_blank"
                 );
               }}
@@ -287,6 +288,7 @@ export function GeocachePopupCard({ geocache, onClose, compact = false }: Geocac
             >
               <Navigation className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </Button>
+            )}
 
             <Button
               variant="outline"

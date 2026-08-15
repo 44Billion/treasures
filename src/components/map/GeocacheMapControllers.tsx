@@ -161,8 +161,8 @@ export function PopupController({
           const marker = layer as L.Marker;
           const markerLatLng = marker.getLatLng();
 
-          if (Math.abs(markerLatLng.lat - geocache.location.lat) < 0.0001 &&
-              Math.abs(markerLatLng.lng - geocache.location.lng) < 0.0001) {
+          if (Math.abs(markerLatLng.lat - geocache.location!.lat) < 0.0001 &&
+              Math.abs(markerLatLng.lng - geocache.location!.lng) < 0.0001) {
 
             // Only open popup on markers that are actually rendered on the map
             // (not still inside a cluster). Rendered markers have an _icon element.

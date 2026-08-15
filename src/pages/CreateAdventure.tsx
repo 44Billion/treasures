@@ -113,6 +113,8 @@ export default function CreateAdventure() {
   const treasuresInRadius = useMemo(() => {
     if (!location || !allGeocaches) return [];
     return allGeocaches
+      // "Unknown location" treasures can't be placed on an adventure map.
+      .filter((cache): cache is typeof cache & { location: { lat: number; lng: number } } => !!cache.location)
       .map(cache => ({
         ...cache,
         distance: calculateDistance(location.lat, location.lng, cache.location.lat, cache.location.lng),

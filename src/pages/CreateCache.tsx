@@ -101,6 +101,11 @@ export default function CreateCache() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     initialDraft?.location || null,
   );
+  // "Unknown location" mystery treasure: published with no `g` tag, hidden from
+  // the map/proximity search. Mutually exclusive with a picked location.
+  const [locationUnknown, setLocationUnknown] = useState<boolean>(
+    initialDraft?.locationUnknown || false,
+  );
   const [images, setImages] = useState<string[]>(initialDraft?.images || []);
   const [currentStep, setCurrentStep] = useState(initialDraft?.currentStep || 1);
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
@@ -130,6 +135,7 @@ export default function CreateCache() {
     if (loadedRelayDraft && draftSlugParam) {
       setFormData(loadedRelayDraft.formData);
       setLocation(loadedRelayDraft.location);
+      setLocationUnknown(loadedRelayDraft.locationUnknown ?? false);
       setImages(loadedRelayDraft.images);
       setCurrentStep(loadedRelayDraft.currentStep);
       setEditingDraftSlug(loadedRelayDraft.slug);
@@ -148,23 +154,24 @@ export default function CreateCache() {
       formData.mission !== defaults.mission ||
       formData.contentWarning !== defaults.contentWarning ||
       (formData.modifiers?.length ?? 0) > 0;
-    const hasCustomInfo = hasCustomFormData || location !== null || images.length > 0;
+    const hasCustomInfo = hasCustomFormData || location !== null || locationUnknown || images.length > 0;
 
     if (!hasCustomInfo) {
       clearLocalDraft();
       return;
     }
 
-    saveLocalDraft({ formData, location, images, currentStep });
-  }, [formData, location, images, currentStep]);
+    saveLocalDraft({ formData, location, locationUnknown, images, currentStep });
+  }, [formData, location, locationUnknown, images, currentStep]);
 
   // Build the current draft payload (reused by save + publish cleanup)
   const currentPayload = useCallback((): TreasureDraftPayload => ({
     formData,
     location,
+    locationUnknown,
     images,
     currentStep,
-  }), [formData, location, images, currentStep]);
+  }), [formData, location, locationUnknown, images, currentStep]);
 
   // Explicit "Save as Draft". Tries the relay first; on failure the draft
   // is kept in a multi-slot local store (handled by `useTreasureDrafts`),
@@ -173,8 +180,9 @@ export default function CreateCache() {
   // fall-through path is always the same, and gives instant recovery for
   // both true offline cases and transient relay failures.
   const handleSaveDraft = useCallback(async () => {
-    // Basic validation — need at least name + description + location
-    if (!formData.name.trim() || !formData.description.trim() || !location) {
+    // Basic validation — need at least name + description + a location choice
+    // (real coordinates OR an explicit "unknown location").
+    if (!formData.name.trim() || !formData.description.trim() || (!location && !locationUnknown)) {
       toast({
         title: t('createCache.draft.incomplete'),
         description: t('createCache.draft.incompleteDescription'),
@@ -212,7 +220,7 @@ export default function CreateCache() {
       });
       navigate('/profile');
     }
-  }, [saveDraft, currentPayload, toast, navigate, formData, location, editingDraftSlug, t]);
+  }, [saveDraft, currentPayload, toast, navigate, formData, location, locationUnknown, editingDraftSlug, t]);
 
   // Clear the local form draft (relay drafts are managed from the profile)
   const clearFormDraft = useCallback(() => {
@@ -395,6 +403,17 @@ export default function CreateCache() {
     }
   };
 
+  // Toggle "unknown location". Enabling it clears any picked coordinates and
+  // pending verification so the two states can't disagree.
+  const handleToggleLocationUnknown = (next: boolean) => {
+    setLocationUnknown(next);
+    if (next) {
+      setLocation(null);
+      setLocationVerification(null);
+      setIsVerifying(false);
+    }
+  };
+
   // Re-verify location from draft when component mounts
   useEffect(() => {
     if (localDraft?.location && currentStep === 1) {
@@ -409,7 +428,7 @@ export default function CreateCache() {
 
   const handleCreateGeocache = async () => {
     // Basic guard — the wizard steps already enforce these, but check just in case
-    if (!formData.name.trim() || !formData.description.trim() || !location) {
+    if (!formData.name.trim() || !formData.description.trim() || (!location && !locationUnknown)) {
       toast({
         title: t('createCache.validation.locationRequired.title'),
         description: t('createCache.validation.completeAllFields'),
@@ -421,7 +440,8 @@ export default function CreateCache() {
     try {
       const result = await createGeocache({
         ...formData,
-        location,
+        // An "unknown location" treasure carries no coordinates (no `g` tag).
+        location: locationUnknown ? undefined : (location ?? undefined),
         images,
         difficulty: parseInt(formData.difficulty),
         terrain: parseInt(formData.terrain),
@@ -584,6 +604,11 @@ export default function CreateCache() {
   // Step validation logic
   const validateAndAdvance = () => {
     if (currentStep === 1) {
+      // An "unknown location" treasure skips both the picker and OSM verification.
+      if (locationUnknown) {
+        setCurrentStep(2);
+        return;
+      }
       if (!location) {
         toast({
           title: t('createCache.stepValidation.locationRequired.title'),
@@ -743,7 +768,7 @@ export default function CreateCache() {
                 <div className="space-y-4">
 
                   {/* What you'll need hint - only shown on first visit */}
-                  {!hasDraft && !location && (
+                  {!hasDraft && !location && !locationUnknown && (
                     <Alert className="border-amber-500/40 bg-amber-500/10 text-foreground">
                       <AlertDescription className="text-sm text-foreground">
                         <span className="font-medium">{t('createCache.whatYouNeed')}</span> {t('createCache.whatYouNeedDescription')}
@@ -751,12 +776,22 @@ export default function CreateCache() {
                     </Alert>
                   )}
 
+                  {/* The "unknown location" mystery toggle lives inside the
+                      picker's "Enter manually" advanced disclosure. */}
                   <LocationPicker
                     value={location}
                     onChange={handleLocationChange}
+                    locationUnknown={locationUnknown}
+                    onLocationUnknownChange={handleToggleLocationUnknown}
                   />
 
-                  {isVerifying && (
+                  {locationUnknown && (
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      {t('createCache.unknownLocation.hint')}
+                    </p>
+                  )}
+
+                  {!locationUnknown && isVerifying && (
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 dark:bg-muted rounded-lg p-3">
                       <CompassSpinner size={16} variant="component" />
                       {t('createCache.step1.checking')}
@@ -1026,7 +1061,7 @@ export default function CreateCache() {
                   <Button
                     type="button"
                     onClick={validateAndAdvance}
-                    disabled={currentStep === 1 && (isVerifying || (!!location && !locationVerification))}
+                    disabled={currentStep === 1 && !locationUnknown && (isVerifying || (!!location && !locationVerification))}
                     className="flex-1"
                   >
                     {currentStep === 1 && isVerifying ? (

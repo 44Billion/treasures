@@ -220,11 +220,15 @@ export default function AdventureDetail() {
     return s;
   }, [geocaches, isFtfClaimed]);
 
-  // Map center for initial render — fitBounds handles the actual zoom
-  const mapCenter = geocaches.length > 0
+  // Map center for initial render — fitBounds handles the actual zoom.
+  // "Unknown location" treasures carry no coordinates, so they're excluded here.
+  const locatedGeocaches = geocaches.filter(
+    (g): g is typeof g & { location: { lat: number; lng: number } } => !!g.location,
+  );
+  const mapCenter = locatedGeocaches.length > 0
     ? {
-        lat: geocaches.reduce((sum, g) => sum + g.location.lat, 0) / geocaches.length,
-        lng: geocaches.reduce((sum, g) => sum + g.location.lng, 0) / geocaches.length,
+        lat: locatedGeocaches.reduce((sum, g) => sum + g.location.lat, 0) / locatedGeocaches.length,
+        lng: locatedGeocaches.reduce((sum, g) => sum + g.location.lng, 0) / locatedGeocaches.length,
       }
     : adventure?.location || undefined;
 
@@ -288,6 +292,9 @@ export default function AdventureDetail() {
   };
 
   const handleCardClick = (geocache: Geocache) => {
+    // "Unknown location" treasures have no coordinates to pan the map to.
+    if (!geocache.location) return;
+    const cacheLocation = geocache.location;
     if (isMobile && drawerOpen) {
       setDrawerOpen(false);
     }
@@ -301,7 +308,7 @@ export default function AdventureDetail() {
     setHighlightedGeocache(`${geocache.dTag}::${Date.now()}`);
     if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).handleMapCardClick) {
       ((window as unknown as Record<string, unknown>).handleMapCardClick as (loc: { lat: number; lng: number }, zoom: number) => void)(
-        { lat: geocache.location.lat, lng: geocache.location.lng },
+        { lat: cacheLocation.lat, lng: cacheLocation.lng },
         20
       );
     }
@@ -334,8 +341,15 @@ export default function AdventureDetail() {
 
     const interval = setInterval(() => {
       if (!mapRef.current) return;
+      const located = geocaches.filter(
+        (g): g is typeof g & { location: { lat: number; lng: number } } => !!g.location,
+      );
+      if (located.length === 0) {
+        clearInterval(interval);
+        return;
+      }
       const bounds = L.latLngBounds(
-        geocaches.map(g => [g.location.lat, g.location.lng] as [number, number])
+        located.map(g => [g.location.lat, g.location.lng] as [number, number])
       );
       mapRef.current.fitBounds(bounds.pad(0.05));
       lastFittedKey.current = key;

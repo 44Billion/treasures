@@ -18,7 +18,16 @@ export interface Geocache {
   hint?: string;
   /** Optional "Key Quest": a mission (passphrase, riddle answer, item to bring, etc.) finders are expected to complete to claim this treasure. Stored on the event as a `mission` tag. Plain visible text. */
   mission?: string;
-  location: {
+  /**
+   * Physical location of the cache.
+   *
+   * OPTIONAL: an "unknown location" treasure is published with no `g` (geohash)
+   * tag, so `location` is `undefined`. These caches are a deliberate mystery —
+   * they never appear on the map/proximity searches and render a "mysterious"
+   * placeholder on the detail page. Every consumer that reads `location` must
+   * guard for its absence.
+   */
+  location?: {
     lat: number;
     lng: number;
   };
@@ -124,7 +133,8 @@ export interface CreateGeocacheData {
   hint?: string;
   /** Optional "Key Quest" mission to claim this treasure. Stored on the event as a `mission` tag. */
   mission?: string;
-  location: {
+  /** Optional location. Omit (or pass `undefined`) to publish an "unknown location" treasure with no `g` tag. */
+  location?: {
     lat: number;
     lng: number;
   };

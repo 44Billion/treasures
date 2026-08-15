@@ -339,7 +339,9 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       if (!geocacheData.description?.trim()) {
         throw new Error("Cache description is required");
       }
-      if (!geocacheData.location || typeof geocacheData.location.lat !== 'number' || typeof geocacheData.location.lng !== 'number') {
+      // Location is optional: an "unknown location" treasure has none. Only
+      // validate the shape when coordinates are actually provided.
+      if (geocacheData.location && (typeof geocacheData.location.lat !== 'number' || typeof geocacheData.location.lng !== 'number')) {
         throw new Error("Valid location coordinates are required");
       }
       if (!geocacheData.difficulty || geocacheData.difficulty < 1 || geocacheData.difficulty > 5) {
@@ -356,7 +358,7 @@ export function useGeocacheStore(config: Partial<StoreConfig> = {}): GeocacheSto
       if (!geocacheData.size || !validateCacheSize(geocacheData.size)) {
         throw new Error(`Invalid cache size: ${geocacheData.size}`);
       }
-      if (!validateCoordinates(geocacheData.location.lat, geocacheData.location.lng)) {
+      if (geocacheData.location && !validateCoordinates(geocacheData.location.lat, geocacheData.location.lng)) {
         throw new Error(`Invalid coordinates: ${geocacheData.location.lat}, ${geocacheData.location.lng}`);
       }
 

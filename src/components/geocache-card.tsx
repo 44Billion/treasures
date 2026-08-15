@@ -34,7 +34,8 @@ interface BaseGeocacheCardProps {
     naddr?: string;
     pubkey: string;
     name: string;
-    location: {
+    /** Absent for an "unknown location" mystery treasure (no `g` tag). */
+    location?: {
       lat: number;
       lng: number;
     };

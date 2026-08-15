@@ -273,8 +273,9 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       t => t[0] === 't' && t[1] !== undefined && !RESERVED_T_TAG_VALUES.includes(t[1] as typeof RESERVED_T_TAG_VALUES[number])
     )?.[1] || 'traditional';
 
-    // Validate required fields
-    if (!name || !geohash || !difficulty || !terrain || !size) {
+    // Validate required fields. Note: the geohash (`g` tag) is intentionally
+    // NOT required — an "unknown location" treasure is published without one.
+    if (!name || !difficulty || !terrain || !size) {
       return null;
     }
 
@@ -287,17 +288,20 @@ export function parseGeocacheEvent(event: NostrEvent): Geocache | null {
       return null;
     }
 
-    // Parse location from geohash
-    let location: { lat: number; lng: number };
-    try {
-      location = decodeGeohash(geohash);
-    } catch (error) {
-      return null;
-    }
+    // Parse location from geohash. When no `g` tag is present this is an
+    // "unknown location" treasure and `location` stays undefined.
+    let location: { lat: number; lng: number } | undefined;
+    if (geohash) {
+      try {
+        location = decodeGeohash(geohash);
+      } catch (error) {
+        return null;
+      }
 
-    // Validate coordinates
-    if (!validateCoordinates(location.lat, location.lng)) {
-      return null;
+      // Validate coordinates
+      if (!validateCoordinates(location.lat, location.lng)) {
+        return null;
+      }
     }
 
     // Parse optional tags
@@ -503,7 +507,8 @@ function parseCommentLogEvent(event: NostrEvent): GeocacheLog | null {
 export function buildGeocacheTags(data: {
   dTag: string;
   name: string;
-  location: { lat: number; lng: number };
+  /** Omit for an "unknown location" treasure — no `g` (geohash) tag is emitted. */
+  location?: { lat: number; lng: number };
   difficulty: number;
   terrain: number;
   size: ValidCacheSize;
@@ -532,7 +537,7 @@ export function buildGeocacheTags(data: {
   if (!validateCacheSize(data.size)) {
     throw new Error(`Invalid cache size: ${data.size}`);
   }
-  if (!validateCoordinates(data.location.lat, data.location.lng)) {
+  if (data.location && !validateCoordinates(data.location.lat, data.location.lng)) {
     throw new Error(`Invalid coordinates: ${data.location.lat}, ${data.location.lng}`);
   }
 
@@ -556,16 +561,20 @@ export function buildGeocacheTags(data: {
   }
 
   // Add multiple geohash tags at precision levels appropriate for the coordinate specificity
-  // This enables efficient filtering while avoiding overly precise geohashes for imprecise coordinates
-  const { lat, lng } = data.location;
+  // This enables efficient filtering while avoiding overly precise geohashes for imprecise coordinates.
+  // Skipped entirely for an "unknown location" treasure (no `location`) so the
+  // event carries no `g` tag and is excluded from map/proximity discovery.
+  if (data.location) {
+    const { lat, lng } = data.location;
 
-  // Determine appropriate precision levels based on coordinate specificity
-  const precisionLevels = getGeohashPrecisionLevels(lat, lng);
+    // Determine appropriate precision levels based on coordinate specificity
+    const precisionLevels = getGeohashPrecisionLevels(lat, lng);
 
-  // Generate geohashes at the determined precision levels
-  for (const precision of precisionLevels) {
-    const geohash = encodeGeohash(lat, lng, precision);
-    tags.push(['g', geohash]);
+    // Generate geohashes at the determined precision levels
+    for (const precision of precisionLevels) {
+      const geohash = encodeGeohash(lat, lng, precision);
+      tags.push(['g', geohash]);
+    }
   }
 
   // Add type tag only if not 'traditional' (defaults to traditional per NIP-GC)

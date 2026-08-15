@@ -119,7 +119,10 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
 
   // Filter geocaches that have valid locations
   const validGeocaches = useMemo(() => {
-    return geocaches.filter(g => g.location && g.location.lat && g.location.lng);
+    return geocaches.filter(
+      (g): g is typeof g & { location: { lat: number; lng: number } } =>
+        !!g.location && !!g.location.lat && !!g.location.lng,
+    );
   }, [geocaches]);
 
   // Determine if we should use dark mode for the map

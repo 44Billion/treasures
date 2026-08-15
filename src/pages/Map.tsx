@@ -644,6 +644,10 @@ export default function Map() {
   }, []);
 
   const handleCardClick = (geocache: Geocache) => {
+    // "Unknown location" treasures have no coordinates and never appear on the
+    // map, so there's nowhere to pan to.
+    if (!geocache.location) return;
+    const cacheLocation = geocache.location;
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
 
@@ -656,7 +660,7 @@ export default function Map() {
     setPopupContainer(null);
 
     // Move the map to the geocache via useMapController
-    setMapCenter({ lat: geocache.location.lat, lng: geocache.location.lng });
+    setMapCenter({ lat: cacheLocation.lat, lng: cacheLocation.lng });
     setMapZoom(17);
 
     // Clear any location-based searches to prevent conflicts
@@ -671,7 +675,7 @@ export default function Map() {
     // Use the map controller for immediate navigation
     if (typeof window !== 'undefined' && (window as any).handleMapCardClick) {
       (window as any).handleMapCardClick(
-        { lat: geocache.location.lat, lng: geocache.location.lng },
+        { lat: cacheLocation.lat, lng: cacheLocation.lng },
         17
       );
     }

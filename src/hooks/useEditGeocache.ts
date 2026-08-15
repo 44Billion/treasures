@@ -30,6 +30,13 @@ interface EditGeocacheData {
   /** Optional first-to-find lock-in winner pubkey (hex). */
   ftfWinner?: string;
   location?: { lat: number; lng: number };
+  /**
+   * When true, publish this treasure as an "unknown location" cache: no `g`
+   * tag is emitted regardless of `location` / the original coordinates. Lets an
+   * owner convert a located treasure into a mystery (or keep an existing
+   * mystery a mystery on edit).
+   */
+  locationUnknown?: boolean;
 }
 
 export function useEditGeocache(originalGeocache: Geocache | null) {
@@ -71,11 +78,17 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
       // FIXED: Use the original d-tag for proper replacement
       // This ensures any edits will replace the original properly
       
+      // Resolve the final location. `locationUnknown` forces an "unknown
+      // location" treasure (no `g` tag) regardless of any coordinates.
+      const finalLocation = data.locationUnknown
+        ? undefined
+        : (data.location || originalGeocache.location);
+
       // Build tags using consolidated utility
       const tags = buildGeocacheTags({
         dTag: originalGeocache.dTag, // Use original d-tag - this will replace it!
         name: data.name.trim(),
-        location: data.location || originalGeocache.location, // Use new location if provided, otherwise keep original
+        location: finalLocation, // undefined => no geohash (mystery cache)
         difficulty: data.difficulty,
         terrain: data.terrain,
         size: data.size as ValidCacheSize,
@@ -145,7 +158,7 @@ export function useEditGeocache(originalGeocache: Geocache | null) {
         contentWarning: (data.contentWarning ?? originalGeocache.contentWarning)?.trim() || undefined,
         modifiers: data.modifiers,
         ftfWinner: data.ftfWinner ?? originalGeocache.ftfWinner,
-        location: data.location || originalGeocache.location,
+        location: data.locationUnknown ? undefined : (data.location || originalGeocache.location),
         // Keep the same IDs and metadata
         id: originalGeocache.id,
         dTag: originalGeocache.dTag,

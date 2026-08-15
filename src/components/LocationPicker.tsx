@@ -2,8 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { useTranslation } from "react-i18next";
+import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { MysteriousMap } from "@/components/MysteriousMap";
 import { OmniSearch } from "@/components/OmniSearch";
 import { MapStyleSelector } from "@/components/MapStyleSelector";
 import { NearMeButton } from "@/components/NearMeButton";
@@ -23,6 +27,14 @@ import "@/styles/leaflet-overrides.css";
 interface LocationPickerProps {
   value: { lat: number; lng: number } | null;
   onChange: (location: { lat: number; lng: number }) => void;
+  /**
+   * Optional "unknown location" mystery mode. When these props are provided a
+   * toggle appears inside the "Enter manually" advanced disclosure; enabling it
+   * swaps the map for the mysterious placeholder and hides coordinate entry.
+   * Omit both to render a plain picker (unchanged behaviour for other callers).
+   */
+  locationUnknown?: boolean;
+  onLocationUnknownChange?: (value: boolean) => void;
 }
 
 // Component to handle map clicks and center updates
@@ -291,7 +303,7 @@ function NearMeControl({
   return null;
 }
 
-export function LocationPicker({ value, onChange }: LocationPickerProps) {
+export function LocationPicker({ value, onChange, locationUnknown, onLocationUnknownChange }: LocationPickerProps) {
   const { t } = useTranslation();
   const { theme, systemTheme } = useTheme();
   const { location: initialLocation } = useInitialLocation();
@@ -521,6 +533,13 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   return (
     <div className="space-y-4">
+      {locationUnknown ? (
+        /* Mystery mode — no map, no coordinates leaked */
+        <div className="w-full h-96 rounded-lg overflow-hidden border">
+          <MysteriousMap />
+        </div>
+      ) : (
+      <>
       {/* Map */}
       <div className="w-full h-96 rounded-lg overflow-hidden border relative">
         {/* Search bar overlay */}
@@ -575,14 +594,18 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
           t("locationPicker.tapToSet")
         )}
       </p>
+      </>
+      )}
 
       {/* Manual Coordinates - Collapsible */}
       <div className="space-y-4">
-        <details className="group">
+        <details className="group" open={locationUnknown}>
           <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-center">
             {t("locationPicker.enterManually")}
           </summary>
           <div className="mt-3 space-y-2">
+            {!locationUnknown && (
+            <>
             {/* Selected location display */}
             {value && (
               <div className="bg-muted/50 dark:bg-muted rounded-lg p-3 text-center">
@@ -673,6 +696,30 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             >
               {t("locationPicker.setCoordinates")}
             </Button>
+            </>
+            )}
+
+            {/* Unknown-location mystery toggle (only when the caller opts in) */}
+            {onLocationUnknownChange && (
+              <div className="mt-1 space-y-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <Label htmlFor="lp-location-unknown" className="text-sm font-normal text-muted-foreground cursor-pointer">
+                      {t("locationPicker.unknownLocation.label")}
+                    </Label>
+                  </div>
+                  <Switch
+                    id="lp-location-unknown"
+                    checked={!!locationUnknown}
+                    onCheckedChange={onLocationUnknownChange}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground pl-6">
+                  {t("locationPicker.unknownLocation.description")}
+                </p>
+              </div>
+            )}
           </div>
         </details>
       </div>

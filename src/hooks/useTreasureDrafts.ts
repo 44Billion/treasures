@@ -56,6 +56,7 @@ export function loadLocalDraft(): TreasureDraftPayload | null {
     return {
       formData: parsed.formData,
       location: parsed.location ?? null,
+      locationUnknown: parsed.locationUnknown ?? false,
       images: parsed.images ?? [],
       currentStep: parsed.currentStep ?? 1,
     };
@@ -95,7 +96,7 @@ export function draftToGeocache(draft: TreasureDraft, pubkey: string): Geocache 
     description: draft.formData.description || '',
     hint: draft.formData.hint || undefined,
     mission: draft.formData.mission || undefined,
-    location: draft.location || { lat: 0, lng: 0 },
+    location: draft.locationUnknown ? undefined : (draft.location ?? undefined),
     difficulty: parseInt(draft.formData.difficulty) || 1,
     terrain: parseInt(draft.formData.terrain) || 1,
     size: (draft.formData.size as Geocache['size']) || 'regular',

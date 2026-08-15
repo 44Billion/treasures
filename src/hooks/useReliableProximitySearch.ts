@@ -124,12 +124,15 @@ export function useReliableProximitySearch(options: UseReliableProximitySearchOp
     if (hasProximityParams) {
       filtered = filtered.map(cache => ({
         ...cache,
-        distance: calculateGeoDistance(
-          options.centerLat!,
-          options.centerLng!,
-          cache.location.lat,
-          cache.location.lng
-        )
+        // "Unknown location" treasures have no coordinates — sort them last.
+        distance: cache.location
+          ? calculateGeoDistance(
+              options.centerLat!,
+              options.centerLng!,
+              cache.location.lat,
+              cache.location.lng,
+            )
+          : Infinity,
       })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
     } else {
       // Preserve original order if no proximity search
