@@ -14,6 +14,8 @@ import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { TIMEOUTS, QUERY_LIMITS } from '@/config';
 import { getEffectiveRelays } from '@/lib/appRelays';
+import { assertInvoiceAmount, invoiceCommitsTo } from '@/lib/bolt11';
+import { resolveLnurlPay, type LnurlPayParams } from '@/lib/lnurlPay';
 
 export function useZaps(
   target: Event | Event[],
@@ -186,12 +188,19 @@ export function useZaps(
         return;
       }
 
-      // Get zap endpoint using the old reliable method
-      const zapEndpoint = await nip57.getZapEndpoint(author.data.event);
-      if (!zapEndpoint) {
+      // Resolve the recipient's LNURL-pay endpoint in-repo. Unlike
+      // nip57.getZapEndpoint (which returns only the callback URL), this pins
+      // the transport to HTTPS and keeps the advertised limits and metadata so
+      // the invoice can be validated before we pay it.
+      let lnurlParams: LnurlPayParams;
+      try {
+        lnurlParams = await resolveLnurlPay({ lud06, lud16 });
+      } catch (endpointError) {
         toast({
           title: t('zap.toast.endpointNotFound.title'),
-          description: t('zap.toast.endpointNotFound.description'),
+          description: endpointError instanceof Error
+            ? endpointError.message
+            : t('zap.toast.endpointNotFound.description'),
           variant: 'destructive',
         });
         setIsZapping(false);
@@ -206,6 +215,21 @@ export function useZaps(
         : actualTarget.id;
 
       const zapAmount = amount * 1000; // convert to millisats
+
+      // The endpoint advertises what it will accept; asking for anything
+      // outside that range can only produce an invoice we'd have to reject.
+      if (zapAmount < lnurlParams.minSendable || zapAmount > lnurlParams.maxSendable) {
+        toast({
+          title: t('zap.toast.amountOutOfRange.title'),
+          description: t('zap.toast.amountOutOfRange.description', {
+            min: Math.ceil(lnurlParams.minSendable / 1000),
+            max: Math.floor(lnurlParams.maxSendable / 1000),
+          }),
+          variant: 'destructive',
+        });
+        setIsZapping(false);
+        return;
+      }
 
       // nip57.makeZapRequest has strict types but accepts both profile and event
       const zapRequest = nip57.makeZapRequest({
@@ -222,9 +246,14 @@ export function useZaps(
         throw new Error(t('zap.toast.noSigner'));
       }
       const signedZapRequest = await user.signer.signEvent(zapRequest);
+      const zapRequestJson = JSON.stringify(signedZapRequest);
 
       try {
-        const res = await fetch(`${zapEndpoint}?amount=${zapAmount}&nostr=${encodeURI(JSON.stringify(signedZapRequest))}`);
+        const zapUrl = new URL(lnurlParams.callback);
+        zapUrl.searchParams.set('amount', String(zapAmount));
+        zapUrl.searchParams.set('nostr', zapRequestJson);
+
+        const res = await fetch(zapUrl.toString());
             const responseData = await res.json();
 
             if (!res.ok) {
@@ -236,13 +265,31 @@ export function useZaps(
               throw new Error(t('zap.toast.invalidInvoice'));
             }
 
+            // The endpoint that produced this invoice is chosen by the
+            // recipient, so the invoice is not trusted: decode it and require
+            // that it charges exactly what the user approved. Without this, the
+            // recipient — not the sender — decides how much the sender pays.
+            // Throwing here aborts before any wallet is touched, on every path.
+            const decodedInvoice = assertInvoiceAmount(newInvoice, zapAmount);
+
+            // LUD-06 binds the invoice to the endpoint's `metadata`; NIP-57
+            // binds it to the zap request instead. Either is fine; anything
+            // else means the invoice was not issued for this request.
+            if (!invoiceCommitsTo(decodedInvoice, [zapRequestJson, lnurlParams.metadata])) {
+              throw new Error(t('zap.toast.invoiceMismatch'));
+            }
+
+            // Report what the invoice actually charges rather than what was
+            // asked for, so a success screen can never understate a spend.
+            const paidSats = Math.round(decodedInvoice.amountMsat / 1000);
+
             // Get the current active NWC connection dynamically
             const currentNWCConnection = getActiveConnection();
 
             // Try NWC first if available and properly connected
             if (currentNWCConnection && currentNWCConnection.connectionString && currentNWCConnection.isConnected) {
               try {
-                await sendPayment(currentNWCConnection, newInvoice);
+                await sendPayment(currentNWCConnection, newInvoice, zapAmount);
 
                 // Clear states immediately on success
                 setIsZapping(false);
@@ -250,7 +297,7 @@ export function useZaps(
 
                 toast({
                   title: t('zap.toast.success.title'),
-                  description: t('zap.toast.success.nwcDescription', { amount }),
+                  description: t('zap.toast.success.nwcDescription', { amount: paidSats }),
                 });
 
                 // Invalidate zap queries to refresh counts
@@ -282,7 +329,7 @@ export function useZaps(
 
                 toast({
                   title: t('zap.toast.success.title'),
-                  description: t('zap.toast.success.weblnDescription', { amount }),
+                  description: t('zap.toast.success.weblnDescription', { amount: paidSats }),
                 });
 
                 // Invalidate zap queries to refresh counts

@@ -8,7 +8,11 @@ import { visualizer } from 'rollup-plugin-visualizer';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    // Bind loopback only by default. The dev server has no auth and serves the
+    // whole working tree, so binding every interface ("::") made it reachable
+    // from anyone on the same LAN/VPN. To expose it deliberately (e.g. to test
+    // the PWA on a physical device), run `vite --host` / `vite --host <ip>`.
+    host: "localhost",
     port: 8080,
     // https: false, // Set to true for production testing
   },

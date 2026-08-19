@@ -1,8 +1,6 @@
-import { NConnectSigner, NSecSigner } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 import { NLogin, useNostrLogin } from '@nostrify/react/login';
 import { generateSecretKey, getPublicKey } from 'nostr-tools';
-import { nip19 } from 'nostr-tools';
 
 import { useAppContext } from '@/hooks/useAppContext';
 import { getEffectiveRelays } from '@/lib/appRelays';
@@ -88,66 +86,18 @@ export function useLoginActions() {
       addLogin(login);
     },
     // Login via nostrconnect:// (client-initiated NIP-46)
-    // The client displays a QR code and waits for the remote signer to connect
+    // The client displays a QR code and waits for the remote signer to connect.
+    //
+    // Delegates the handshake to @nostrify's NLogin.fromNostrConnect, which
+    // binds the session to the generated `secret` (and, crucially, does NOT
+    // accept a bare "ack" in its place). Reimplementing the handshake here was
+    // how the "ack" bypass — a substituted signer during login — crept in; the
+    // library is now the single source of truth for it.
     async nostrconnect(params: NostrConnectParams): Promise<void> {
-      const clientSigner = new NSecSigner(params.clientSecretKey);
-      const clientPubkey = getPublicKey(params.clientSecretKey);
-
-      // Create a relay group for the connection
-      const relayGroup = nostr.group(params.relays);
-
-      // Wait for the connect response from the remote signer
-      // We subscribe to kind 24133 events p-tagged to our client pubkey
-      const signal = AbortSignal.timeout(120_000); // 2 minute timeout
-
-      const sub = relayGroup.req(
-        [{ kinds: [24133], '#p': [clientPubkey], limit: 1 }],
-        { signal }
-      );
-
-      for await (const msg of sub) {
-        if (msg[0] === 'CLOSED') {
-          throw new Error('Connection closed before remote signer responded');
-        }
-        if (msg[0] === 'EVENT') {
-          const event = msg[2];
-
-          // Decrypt the response
-          const decrypted = await clientSigner.nip44!.decrypt(event.pubkey, event.content);
-          const response = JSON.parse(decrypted);
-
-          // Validate the secret matches
-          if (response.result !== params.secret && response.result !== 'ack') {
-            continue; // Not our response, keep waiting
-          }
-
-          // Success! The remote signer has connected
-          // Now create the NConnectSigner for ongoing use
-          const bunkerPubkey = event.pubkey;
-
-          const signer = new NConnectSigner({
-            relay: relayGroup,
-            pubkey: bunkerPubkey,
-            signer: clientSigner,
-            timeout: 60_000,
-          });
-
-          // Get the actual user pubkey
-          const userPubkey = await signer.getPublicKey();
-
-          // Create and add the login
-          const login = new NLogin('bunker', userPubkey, {
-            bunkerPubkey,
-            clientNsec: nip19.nsecEncode(params.clientSecretKey),
-            relays: params.relays,
-          });
-
-          addLogin(login);
-          return;
-        }
-      }
-
-      throw new Error('Timeout waiting for remote signer');
+      // fromNostrConnect defaults to a 2-minute wait when no signal is passed,
+      // matching the previous behaviour.
+      const login = await NLogin.fromNostrConnect(params, nostr);
+      addLogin(login);
     },
     // Get relay URLs for nostrconnect
     getRelayUrls(): string[] {

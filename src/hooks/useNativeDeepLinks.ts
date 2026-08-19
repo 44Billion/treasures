@@ -22,6 +22,62 @@ const HANDLED_HOSTS = new Set([
 ]);
 
 /**
+ * Routes that are safe to reach from an externally-supplied deep link.
+ *
+ * A deep link arrives from outside the app — a tapped URL in a chat, an email,
+ * or another app's intent — so the target route is attacker-influenced. We only
+ * navigate to routes on this allowlist; anything else falls through and is
+ * ignored. This keeps the class of bug where merely *landing* on a route
+ * performs a side effect (a publish/write on mount) from being externally
+ * triggerable.
+ *
+ * No current route writes on mount, so today this is defence in depth: any
+ * future side-effecting route must be added here deliberately. Because the
+ * single-segment catch-all below matches only read-only cache detail
+ * (`/:naddr`), a namespaced multi-segment route (e.g. a hypothetical
+ * `/follow/:npub`) is blocked by default until it is explicitly listed.
+ */
+const ALLOWED_ROUTE_PATTERNS: readonly RegExp[] = [
+  /^\/$/,
+  /^\/map$/,
+  /^\/create$/,
+  /^\/create-cache$/,
+  /^\/generate-qr$/,
+  /^\/saved$/,
+  /^\/profile(?:\/[^/]+)?$/,
+  /^\/settings$/,
+  /^\/blog$/,
+  /^\/blog\/[^/]+\/[^/]+$/,
+  /^\/install$/,
+  /^\/claim$/,
+  /^\/about$/,
+  /^\/how-to$/,
+  /^\/changelog$/,
+  /^\/texas-ren-fest$/,
+  /^\/adventures$/,
+  /^\/adventure\/[^/]+$/,
+  /^\/create-adventure$/,
+  /^\/edit-adventure\/[^/]+$/,
+  /^\/c\/[^/]+$/,
+  /^\/d\/[^/]+$/,
+  /^\/remoteloginsuccess$/,
+  /^\/boqm$/,
+  /^\/treasure-trolls$/,
+  /^\/notifications$/,
+  /^\/404$/,
+  // Catch-all cache detail (`/:naddr`) — a single path segment, read-only.
+  // Keep this last; it is the only pattern that matches an unenumerated path,
+  // so any new side-effecting route must use a distinct (multi-segment) path
+  // or be added to this list explicitly.
+  /^\/[^/]+$/,
+];
+
+/** Whether `pathname` corresponds to a route safe to reach from a deep link. */
+function isAllowedRoute(pathname: string): boolean {
+  return ALLOWED_ROUTE_PATTERNS.some((re) => re.test(pathname));
+}
+
+/**
  * Convert an absolute URL coming from a native deep link into the
  * relative path+search+hash we can hand to react-router.
  *
@@ -41,10 +97,19 @@ export function deepLinkToRoute(url: string): string | null {
     return null;
   }
 
+  const path = parsed.pathname || '/';
+
+  // The path is attacker-influenced (the link is opened from outside the app),
+  // so only navigate to routes that are safe to reach this way. Anything not on
+  // the allowlist is ignored, so a future write-on-mount route can never be
+  // triggered by merely opening a crafted link.
+  if (!isAllowedRoute(path)) {
+    return null;
+  }
+
   // Preserve everything after the origin verbatim so claim URLs
   // (`/<naddr>#verify=<nsec>`) and the create flow's
   // (`/create-cache?claimUrl=...`) keep working.
-  const path = parsed.pathname || '/';
   return `${path}${parsed.search}${parsed.hash}`;
 }
 
