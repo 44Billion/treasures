@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.1] - 2026-08-19
+
+A safety-and-polish release. Lightning payments now double-check every invoice before a single sat leaves your wallet, and remote logins are more careful about what they'll accept, so both are better protected against tampering. We also fixed treasure preview cards so linking to a treasure in a blog post or found log no longer swallows the text or link right before it.
+
+### Fixed
+- Linking to a treasure in a blog post or found log no longer drops the text or web link immediately before the preview card, and treasure web links now render as rich cards too
+- Lightning zaps verify each invoice against the requested amount before paying, and remote logins reject malformed or hostile requests, guarding your payments and sign-ins against tampering
+
 ## [2.10.0] - 2026-08-15
 
 Two new ways to play. Create a mystery treasure with no pinned location — it won't appear on the map or in nearby searches, so hunters discover it only through your description, mission, or hidden clues. And when you link to a treasure in a blog post or a found log, it now shows up as a rich preview card so readers can see exactly what's waiting for them.
