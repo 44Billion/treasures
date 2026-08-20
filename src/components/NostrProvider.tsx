@@ -8,6 +8,7 @@ import { getEffectiveRelays } from '@/lib/appRelays';
 import { NostrBatcher } from '@/lib/NostrBatcher';
 import { NIndexedDBStore } from '@/lib/NIndexedDBStore';
 import { EventStoreContext } from '@/contexts/EventStoreContext';
+import { AutoLogin } from '@/components/AutoLogin';
 
 interface NostrProviderProps {
   children: React.ReactNode;
@@ -139,6 +140,7 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
 
   return (
     <NostrContext.Provider value={{ nostr: (batcher.current ?? pool.current) as unknown as NPool }}>
+      <AutoLogin />
       <EventStoreContext.Provider value={eventStore.current}>
         {children}
       </EventStoreContext.Provider>
