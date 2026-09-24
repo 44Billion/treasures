@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.11.0] - 2026-09-24
+
+Fresh maps for the hunt. Every map in Treasures — the main map, profiles, the location picker, and adventures — now draws crisp, smooth-zooming maps from our own map server, with less clutter so trails and roads stand out. All your favorite map styles are still here, and maps you've browsed keep working offline. Devices that can't run the new maps get a classic fallback automatically.
+
+### Changed
+- All maps now use sharp, smooth-zooming maps served from Treasures' own map server, with all existing map styles kept
+- Maps hide points of interest, airports, and other extra labels for a calmer view while keeping road info
+- Map data you've browsed is saved for offline use
+- Devices that can't display the new maps (such as iPhones in Lockdown Mode) automatically get a classic map with the same markers and popups, and if a map can't load at all you can switch to a list or open the spot in OpenStreetMap
+
+### Added
+- A Map Tiles option in Settings to use a different compatible map server, synced across your devices
+
 ## [2.10.1] - 2026-08-19
 
 A safety-and-polish release. Lightning payments now double-check every invoice before a single sat leaves your wallet, and remote logins are more careful about what they'll accept, so both are better protected against tampering. We also fixed treasure preview cards so linking to a treasure in a blog post or found log no longer swallows the text or link right before it.
