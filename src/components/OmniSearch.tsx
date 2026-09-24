@@ -568,7 +568,7 @@ export function OmniSearch({
     if (!showResults) return null;
 
     // Z-index hierarchy:
-    // - Leaflet map: 0
+    // - Map: 0
     // - Map controls (zoom, style): 1000
     // - Search overlay in map: 1000
     // - Dropdown menus (account, etc): 9999

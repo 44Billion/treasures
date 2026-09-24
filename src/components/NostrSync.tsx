@@ -19,7 +19,8 @@ const SETTINGS_D_TAG = 'treasures/metadata';
  * - NIP-65 relay list (kind 10002)
  * - NIP-51 search relay list (kind 10007)
  * - BUD-03 Blossom server list (kind 10063)
- * - NIP-78 encrypted app settings (kind 30078, `treasures/metadata`)
+ * - NIP-78 encrypted app settings (kind 30078, `treasures/metadata`):
+ *   relay toggles, map tile server
  */
 export function NostrSync() {
   const { nostr } = useNostr();
@@ -192,8 +193,8 @@ export function NostrSync() {
         // immediately without re-decrypting.
         queryClient.setQueryData(['parsedSettings', settingsEvent.id], parsed);
 
-        // Mirror the relay toggles into AppConfig so the effective relay set
-        // reflects the user's cross-device preference. Only apply when present
+        // Mirror the relay toggles and map tile server into AppConfig so they
+        // reflect the user's cross-device preference. Only apply when present
         // and different, so we never clobber the local default needlessly.
         updateConfig((current) => {
           const updates: Partial<typeof current> = {};
@@ -210,6 +211,13 @@ export function NostrSync() {
             parsed.useUserRelays !== current.useUserRelays
           ) {
             updates.useUserRelays = parsed.useUserRelays;
+            changed = true;
+          }
+          if (
+            typeof parsed.mapTilesUrl === 'string' &&
+            parsed.mapTilesUrl !== current.mapTilesUrl
+          ) {
+            updates.mapTilesUrl = parsed.mapTilesUrl;
             changed = true;
           }
           return changed ? { ...current, ...updates } : current;

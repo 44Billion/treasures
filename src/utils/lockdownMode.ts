@@ -76,7 +76,7 @@ export function detectLockdownMode(): boolean {
   // If we're on iOS and both Canvas readback AND WebGL are broken,
   // it's almost certainly Lockdown Mode.
   // If only WebGL is missing (older iPads, etc.) we still err on the side
-  // of caution since Leaflet's Canvas renderer is the primary concern.
+  // of caution.
   _isLockdownMode = canvasFailed || webglFailed;
   return _isLockdownMode;
 }
@@ -85,10 +85,6 @@ export function detectLockdownMode(): boolean {
  * Feature flags that components can use for graceful degradation.
  */
 export interface LockdownFeatures {
-  /** Whether Leaflet should use Canvas renderer (false in Lockdown Mode) */
-  preferCanvas: boolean;
-  /** Whether cross-origin tile loading is safe */
-  crossOriginTiles: boolean;
   /** Whether CSS mix-blend-mode compositing is safe */
   mixBlendMode: boolean;
   /** Whether complex CSS animations are safe */
@@ -104,16 +100,12 @@ export function getLockdownFeatures(): LockdownFeatures {
 
   if (!lockdown) {
     return {
-      preferCanvas: true,
-      crossOriginTiles: true,
       mixBlendMode: true,
       complexAnimations: true,
     };
   }
 
   return {
-    preferCanvas: false,       // Use SVG/DOM renderer instead of Canvas
-    crossOriginTiles: false,   // Don't set crossOrigin on tile <img> tags
     mixBlendMode: false,       // Skip blend-mode overlays
     complexAnimations: false,  // Use simpler or no animations
   };

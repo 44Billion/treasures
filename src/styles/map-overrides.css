@@ -1,0 +1,67 @@
+/* ===== MAPLIBRE CORE FIXES ===== */
+.treasure-map {
+  block-size: 100%;
+  inline-size: 100%;
+  z-index: 0;
+  position: relative;
+  min-block-size: 18.75rem; /* 300px */
+}
+
+/* Keep markers (and a hovered marker's raised z-index) in their own layer,
+   so they never stack above popups or the floating controls. */
+.maplibregl-canvas-container {
+  isolation: isolate;
+}
+
+/* ===== POPUP IMPROVEMENTS ===== */
+.maplibregl-popup {
+  z-index: 500;
+}
+
+.maplibregl-popup-content {
+  padding: 0;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* ===== CUSTOM ICONS ===== */
+.custom-cache-icon {
+  background: none;
+  border: none;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 1024px) {
+  .maplibregl-popup-content {
+    max-inline-size: calc(100vw - 2.5rem);
+  }
+
+  .treasure-map {
+    block-size: 100%;
+    inline-size: 100%;
+    min-block-size: 25rem; /* 400px */
+    display: block;
+  }
+
+  .treasure-map a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ===== iOS SAFARI FIXES ===== */
+@supports (-webkit-touch-callout: none) {
+  .treasure-map {
+    position: relative;
+    overflow: hidden;
+    block-size: 100%;
+    inline-size: 100%;
+    min-block-size: 25rem; /* 400px */
+  }
+
+  .adventure-parchment-overlay,
+  .adventure-border-overlay {
+    opacity: 0.3;
+  }
+}

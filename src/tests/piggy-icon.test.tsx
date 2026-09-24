@@ -115,31 +115,31 @@ describe('CacheIcon — isPiggy', () => {
 describe('map markers — piggy variant', () => {
   it('renders a pig glyph on a pink background in the default theme', () => {
     const icon = getCachedCacheIcon('traditional', 'default', false, false, true);
-    const html = icon.options.html as string;
+    const html = icon.html;
     expect(html).toContain(`background: ${PIGGY_PINK}`);
     // PiggyBank snout path (distinct from chest/compass/help-circle glyphs).
     expect(html).toContain('M16 10h.01');
-    expect(icon.options.className).toContain('piggy-cache-icon');
+    expect(icon.className).toContain('piggy-cache-icon');
   });
 
   it('does not collide with the non-piggy cached icon of the same type', () => {
     const piggy = getCachedCacheIcon('traditional', 'default', false, false, true);
     const plain = getCachedCacheIcon('traditional', 'default', false, false, false);
     expect(piggy).not.toBe(plain);
-    expect(plain.options.html as string).not.toContain(`background: ${PIGGY_PINK}`);
+    expect(plain.html).not.toContain(`background: ${PIGGY_PINK}`);
   });
 
   it('propagates the pig glyph to the claimed-FTF marker variant', () => {
     const icon = getCachedClaimedFtfIcon('traditional', 'default', false, false, true);
-    const html = icon.options.html as string;
+    const html = icon.html;
     expect(html).toContain(`background: ${PIGGY_PINK}`);
     expect(html).toContain('M16 10h.01');
-    expect(icon.options.className).toContain('piggy-cache-icon');
+    expect(icon.className).toContain('piggy-cache-icon');
   });
 
   it('keeps theme frames but swaps the glyph in the adventure theme', () => {
     const icon = getCachedCacheIcon('traditional', 'adventure', false, false, true);
-    const html = icon.options.html as string;
+    const html = icon.html;
     expect(html).toContain('M16 10h.01'); // pig glyph
     expect(html).not.toContain(PIGGY_PINK); // theme frame color preserved
   });
@@ -162,14 +162,14 @@ describe('map markers — hover target class', () => {
 
   it('tags the marker body on the plain default-theme marker', () => {
     const icon = getCachedCacheIcon('traditional', 'default', false, false, false);
-    const body = bodyOf(icon.options.html as string);
+    const body = bodyOf(icon.html);
     expect(body).not.toBeNull();
     expect(body?.getAttribute('style')).toContain('border-radius: 50%');
   });
 
   it('tags the round body (not the badge shell) on lightning piggy markers', () => {
     const icon = getCachedCacheIcon('traditional', 'default', false, true, true);
-    const html = icon.options.html as string;
+    const html = icon.html;
     const body = bodyOf(html);
     expect(body).not.toBeNull();
     // The hover target must be the circular pink body, not the wrapper.
@@ -183,10 +183,10 @@ describe('map markers — hover target class', () => {
 
   it('tags the body on claimed-FTF and themed variants too', () => {
     const claimed = getCachedClaimedFtfIcon('traditional', 'default', false, true, true);
-    expect(bodyOf(claimed.options.html as string)).not.toBeNull();
+    expect(bodyOf(claimed.html)).not.toBeNull();
     for (const theme of ['adventure', 'mojave'] as const) {
       const icon = getCachedCacheIcon('traditional', theme, false, false, true);
-      expect(bodyOf(icon.options.html as string)).not.toBeNull();
+      expect(bodyOf(icon.html)).not.toBeNull();
     }
   });
 });

@@ -46,6 +46,7 @@ const defaultConfig: AppConfig = {
   useAppBlossomServers: true,
   imageQuality: 'compressed',
   imageProxy: 'https://wsrv.nl',
+  mapTilesUrl: '',
   searchRelayMetadata: { relays: [], updatedAt: 0 },
   useAppSearchRelays: true,
   plausibleDomain: import.meta.env.VITE_PLAUSIBLE_DOMAIN || '',

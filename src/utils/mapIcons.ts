@@ -1,7 +1,19 @@
-import L from 'leaflet';
+/**
+ * HTML map marker descriptor. The marker element is a `className` div of
+ * `iconSize` containing `html`, positioned so that `iconAnchor` (pixels from
+ * the top-left corner) sits on the marker's coordinate.
+ */
+export interface MapIcon {
+  html: string;
+  className: string;
+  iconSize: [number, number];
+  iconAnchor: [number, number];
+  /** Where popups attach, relative to `iconAnchor` */
+  popupAnchor?: [number, number];
+}
 
 // Custom marker icon for dropped pin (cache location)
-export const droppedPinIcon = L.divIcon({
+export const droppedPinIcon: MapIcon = {
   html: `
     <div style="position: relative;">
       <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,10 +25,10 @@ export const droppedPinIcon = L.divIcon({
   className: "location-picker-icon",
   iconSize: [32, 40],
   iconAnchor: [16, 12],
-});
+};
 
 // Blue beacon icon for current/searched location
-export const blueBeaconIcon = L.divIcon({
+export const blueBeaconIcon: MapIcon = {
   html: `
     <div style="position: relative; width: 24px; height: 24px;">
       <div style="
@@ -50,7 +62,7 @@ export const blueBeaconIcon = L.divIcon({
   className: "blue-beacon-icon",
   iconSize: [24, 24],
   iconAnchor: [12, 12],
-});
+};
 
 export const mapIcons = {
   droppedPin: droppedPinIcon,

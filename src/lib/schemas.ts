@@ -29,6 +29,8 @@ export const EncryptedSettingsSchema = z
     useAppRelays: z.boolean().optional(),
     /** Whether to include the user's personal NIP-65 relays in the effective relay set. */
     useUserRelays: z.boolean().optional(),
+    /** Custom OpenFreeMap-compatible map tile server URL ('' = app default). */
+    mapTilesUrl: z.string().optional(),
     /** Timestamp (ms) of the last successful settings write. */
     lastSync: z.number().optional(),
   })

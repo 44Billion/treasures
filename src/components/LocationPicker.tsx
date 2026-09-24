@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
 import { useTranslation } from "react-i18next";
 import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,20 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { MysteriousMap } from "@/components/MysteriousMap";
 import { OmniSearch } from "@/components/OmniSearch";
-import { MapStyleSelector } from "@/components/MapStyleSelector";
-import { NearMeButton } from "@/components/NearMeButton";
 import { CustomZoomControl } from "@/components/map/CustomZoomControl";
-import { MAP_STYLES } from "@/config/mapStyles";
+import { MapView } from "@/components/map/MapView";
+import { MapMarker } from "@/components/map/MapMarker";
+import { MapClickHandler } from "@/components/map/GeocacheMapControllers";
+import { MapStyleControl, NearMeButtonControl } from "@/components/map/GeocacheMapControls";
+import { useMapHandle } from "@/components/map/mapContext";
+import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useInitialLocation } from "@/hooks/useInitialLocation";
 import { useTheme } from "@/hooks/useTheme";
 import { autocorrectCoordinates, formatCoordinateForInput, parseCoordinateString, CoordinateParseResult, CoordinateParseError } from "@/utils/coordinates";
 import { mapIcons } from "@/utils/mapIcons";
 import { hapticMedium } from "@/utils/haptics";
-import { createRoot } from "react-dom/client";
-
-import "leaflet/dist/leaflet.css";
-import "@/styles/leaflet-overrides.css";
 
 interface LocationPickerProps {
   value: { lat: number; lng: number } | null;
@@ -48,259 +45,46 @@ function LocationSelector({
 }: {
   value: { lat: number; lng: number } | null;
   onChange: (location: { lat: number; lng: number }) => void;
-  center?: LatLngExpression;
+  center?: [number, number];
   beaconLocation?: { lat: number; lng: number } | null;
   onPinDropped?: () => void;
   onMapClick?: () => void;
 }) {
-  const map = useMap();
+  const map = useMapHandle();
 
-  useMapEvents({
-    click: (e) => {
-      // Check if click was on a control element (they have pointer-events: auto)
-      const target = e.originalEvent.target as HTMLElement;
-      if (target.closest('.custom-zoom-control') ||
-          target.closest('.map-style-control-container') ||
-          target.closest('.near-me-button-container') ||
-          target.closest('button') ||
-          target.closest('.leaflet-control')) {
-        return; // Don't place marker on control clicks
-      }
-
-      hapticMedium();
-      onChange({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng,
-      });
-      // Notify parent that pin was dropped (so it doesn't update map center)
-      onPinDropped?.();
-      // Notify parent that map was clicked (to reset manual coords modification)
-      onMapClick?.();
-    },
-  });
+  // Floating controls and markers never reach the map's click handler, so
+  // every click here landed on the map itself.
+  const handleClick = (location: { lat: number; lng: number }) => {
+    hapticMedium();
+    onChange(location);
+    // Notify parent that pin was dropped (so it doesn't update map center)
+    onPinDropped?.();
+    // Notify parent that map was clicked (to reset manual coords modification)
+    onMapClick?.();
+  };
 
   useEffect(() => {
     if (center) {
       // Preserve current zoom level when updating center
-      const currentZoom = map.getZoom();
-      map.setView(center, currentZoom);
+      map.setView(center, map.getZoom());
     }
   }, [center, map]);
 
   return (
     <>
+      <MapClickHandler onClick={handleClick} />
+
       {/* Blue beacon for current/searched location */}
       {beaconLocation && (
-        <Marker
-          position={[beaconLocation.lat, beaconLocation.lng]}
-          icon={mapIcons.blueBeacon}
-          interactive={false}
-        />
+        <MapMarker position={beaconLocation} icon={mapIcons.blueBeacon} interactive={false} />
       )}
 
       {/* Red pin for selected cache location */}
       {value && (
-        <Marker position={[value.lat, value.lng]} icon={mapIcons.droppedPin} />
+        <MapMarker position={value} icon={mapIcons.droppedPin} />
       )}
     </>
   );
-}
-// Custom map style control - positioned at lower left above zoom
-function MapStyleControl({
-  currentStyle,
-  onStyleChange
-}: {
-  currentStyle: string;
-  onStyleChange: (style: string) => void;
-}) {
-  const map = useMap();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
-  const isInitializedRef = useRef(false);
-
-  // Use refs to store the latest props to avoid dependency issues
-  const currentStyleRef = useRef(currentStyle);
-  const onStyleChangeRef = useRef(onStyleChange);
-
-  // Update refs when props change
-  useEffect(() => {
-    currentStyleRef.current = currentStyle;
-    onStyleChangeRef.current = onStyleChange;
-  });
-
-  useEffect(() => {
-    // Only initialize once
-    if (isInitializedRef.current) return;
-
-    const mapContainer = map.getContainer();
-
-    // Create container div for the map style control
-    const container = document.createElement('div');
-    container.className = 'map-style-control-container';
-    container.style.cssText = `
-      position: absolute;
-      bottom: 114px;
-      left: 10px;
-      z-index: 10000;
-      pointer-events: auto;
-    `;
-
-    // Add container to map container
-    mapContainer.appendChild(container);
-    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = container;
-
-    // Create React root and render the MapStyleSelector
-    rootRef.current = createRoot(container);
-    rootRef.current.render(
-      <MapStyleSelector
-        currentStyle={currentStyleRef.current}
-        onStyleChange={onStyleChangeRef.current}
-      />
-    );
-
-    (isInitializedRef as React.MutableRefObject<boolean>).current = true;
-
-    const currentContainer = containerRef.current;
-
-    // Cleanup
-    return () => {
-      if (currentContainer && currentContainer.parentNode) {
-        currentContainer.parentNode.removeChild(currentContainer);
-      }
-
-      if (rootRef.current) {
-        const root = rootRef.current;
-        rootRef.current = null;
-
-        setTimeout(() => {
-          try {
-            if (root && typeof root.unmount === 'function') {
-              root.unmount();
-            }
-          } catch (error) {
-            console.debug('MapStyleControl unmount:', error);
-          }
-        }, 0);
-      }
-
-      (isInitializedRef as React.MutableRefObject<boolean>).current = false;
-    };
-  }, [map]);
-
-  // Update the rendered component when props change
-  useEffect(() => {
-    if (rootRef.current && isInitializedRef.current) {
-      rootRef.current.render(
-        <MapStyleSelector
-          currentStyle={currentStyleRef.current}
-          onStyleChange={onStyleChangeRef.current}
-        />
-      );
-    }
-  }, [currentStyle, onStyleChange]);
-
-  return null;
-}
-
-// Custom "Near Me" button control - positioned at lower right corner
-function NearMeControl({
-  onGetLocation,
-  isGettingLocation
-}: {
-  onGetLocation: () => void;
-  isGettingLocation: boolean;
-}) {
-  const map = useMap();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
-  const isInitializedRef = useRef(false);
-
-  // Use refs to store the latest props to avoid dependency issues
-  const onGetLocationRef = useRef(onGetLocation);
-  const isGettingLocationRef = useRef(isGettingLocation);
-
-  // Update refs when props change
-  useEffect(() => {
-    onGetLocationRef.current = onGetLocation;
-    isGettingLocationRef.current = isGettingLocation;
-  });
-
-  useEffect(() => {
-    // Only initialize once
-    if (isInitializedRef.current) return;
-
-    const mapContainer = map.getContainer();
-
-    // Create container div for the near me button
-    const container = document.createElement('div');
-    container.className = 'near-me-button-container';
-    container.style.cssText = `
-      position: absolute;
-      bottom: 24px;
-      right: 10px;
-      z-index: 10000;
-      pointer-events: auto;
-    `;
-
-    // Add container to map container
-    mapContainer.appendChild(container);
-    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = container;
-
-    // Create React root and render the NearMeButton
-    rootRef.current = createRoot(container);
-    rootRef.current.render(
-      <NearMeButton
-        onNearMe={onGetLocationRef.current}
-        isActive={false}
-        isLocating={isGettingLocationRef.current}
-        isAdventureTheme={false}
-      />
-    );
-
-    (isInitializedRef as React.MutableRefObject<boolean>).current = true;
-
-    const currentContainer = containerRef.current;
-
-    // Cleanup
-    return () => {
-      if (currentContainer && currentContainer.parentNode) {
-        currentContainer.parentNode.removeChild(currentContainer);
-      }
-
-      if (rootRef.current) {
-        const root = rootRef.current;
-        rootRef.current = null;
-
-        setTimeout(() => {
-          try {
-            if (root && typeof root.unmount === 'function') {
-              root.unmount();
-            }
-          } catch (error) {
-            console.debug('NearMeControl unmount:', error);
-          }
-        }, 0);
-      }
-
-      (isInitializedRef as React.MutableRefObject<boolean>).current = false;
-    };
-  }, [map]);
-
-  // Update the rendered component when props change
-  useEffect(() => {
-    if (rootRef.current && isInitializedRef.current) {
-      rootRef.current.render(
-        <NearMeButton
-          onNearMe={onGetLocationRef.current}
-          isActive={false}
-          isLocating={isGettingLocationRef.current}
-          isAdventureTheme={false}
-        />
-      );
-    }
-  }, [isGettingLocation]);
-
-  return null;
 }
 
 export function LocationPicker({ value, onChange, locationUnknown, onLocationUnknownChange }: LocationPickerProps) {
@@ -311,7 +95,7 @@ export function LocationPicker({ value, onChange, locationUnknown, onLocationUnk
     value ? `${value.lat}, ${value.lng}` : ""
   );
   const [coordParseResult, setCoordParseResult] = useState<CoordinateParseResult | CoordinateParseError | null>(null);
-  const [mapCenter, setMapCenter] = useState<LatLngExpression>([initialLocation.lat, initialLocation.lng]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([initialLocation.lat, initialLocation.lng]);
   const [beaconLocation, setBeaconLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pinDropped, setPinDropped] = useState(false);
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
@@ -351,7 +135,7 @@ export function LocationPicker({ value, onChange, locationUnknown, onLocationUnk
 
   const [currentMapStyle, setCurrentMapStyle] = useState(getDefaultMapStyle());
   const [hasManuallySelectedStyle, setHasManuallySelectedStyle] = useState(false);
-  const mapStyle = MAP_STYLES[currentMapStyle] || MAP_STYLES.original;
+  const mapStyle = (MAP_STYLES[currentMapStyle] || MAP_STYLES.original) as MapStyle;
 
   // Handle manual style changes
   const handleStyleChange = (style: string) => {
@@ -554,18 +338,12 @@ export function LocationPicker({ value, onChange, locationUnknown, onLocationUnk
           />
         </div>
 
-        <MapContainer
+        <MapView
           center={mapCenter}
           zoom={value ? 15 : 10}
-          style={{ height: "100%", width: "100%" }}
-          attributionControl={false}
-          zoomControl={false}
+          maxZoom={19}
+          mapStyle={mapStyle}
         >
-          <TileLayer
-            attribution={mapStyle?.attribution ?? ''}
-            url={mapStyle?.url ?? ''}
-            maxZoom={19}
-          />
           <LocationSelector
             value={value}
             onChange={onChange}
@@ -578,12 +356,19 @@ export function LocationPicker({ value, onChange, locationUnknown, onLocationUnk
           <MapStyleControl
             currentStyle={currentMapStyle}
             onStyleChange={handleStyleChange}
+            bottom="114px"
+            zIndex={10000}
           />
-          <NearMeControl
-            onGetLocation={handleGetCurrentLocation}
+          <NearMeButtonControl
+            onNearMe={handleGetCurrentLocation}
+            isNearMeActive={false}
             isGettingLocation={isGettingLocation}
+            isAdventureTheme={false}
+            bottom="24px"
+            right={10}
+            zIndex={10000}
           />
-        </MapContainer>
+        </MapView>
       </div>
 
       <p className="text-sm text-muted-foreground text-center">

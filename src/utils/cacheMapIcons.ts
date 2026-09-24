@@ -1,4 +1,4 @@
-import L from "leaflet";
+import type { MapIcon } from "./mapIcons";
 import type { CacheType } from "./cacheIcons.types";
 import {
   MOJAVE_AMBER,
@@ -113,10 +113,10 @@ function getCacheColor(type: string): string {
  */
 export type MapIconTheme = 'default' | 'adventure' | 'mojave';
 
-// Cached Leaflet DivIcon instances: 3 types × 3 themes = 9 icons, plus the
+// Cached marker icon descriptors: 3 types × 3 themes = 9 icons, plus the
 // claimed-FTF / art / lightning variants. Shared across every map in the app
 // so we don't duplicate the DOM allocations once per map instance.
-const iconCache = new Map<string, L.DivIcon>();
+const iconCache = new Map<string, MapIcon>();
 
 /**
  * Shared shell for the small 16px corner badges composited onto markers
@@ -344,7 +344,7 @@ export function getCachedCacheIcon(
   isArt: boolean = false,
   isLightning: boolean = false,
   isPiggy: boolean = false,
-): L.DivIcon {
+): MapIcon {
   const key = `${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}${isPiggy ? '-piggy' : ''}`;
   const cached = iconCache.get(key);
   if (cached) return cached;
@@ -374,11 +374,11 @@ export function getCachedCacheIcon(
     `;
   }
 
-  const icon = L.divIcon({
+  const icon: MapIcon = {
     html,
     className,
     ...dims,
-  });
+  };
 
   iconCache.set(key, icon);
   return icon;
@@ -402,7 +402,7 @@ export function getCachedClaimedFtfIcon(
   isArt: boolean = false,
   isLightning: boolean = false,
   isPiggy: boolean = false,
-): L.DivIcon {
+): MapIcon {
   const key = `claimed-ftf-${type}-${iconTheme}${isArt ? '-art' : ''}${isLightning ? '-lightning' : ''}${isPiggy ? '-piggy' : ''}`;
   const cached = iconCache.get(key);
   if (cached) return cached;
@@ -431,11 +431,11 @@ export function getCachedClaimedFtfIcon(
     </div>
   `;
 
-  const icon = L.divIcon({
+  const icon: MapIcon = {
     html,
     className,
     ...dims,
-  });
+  };
 
   iconCache.set(key, icon);
   return icon;

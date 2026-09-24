@@ -202,11 +202,6 @@
   }
 }
 
-/* ===== MAP MOBILE FIXES ===== */
-.leaflet-container {
-  touch-action: pan-x pan-y;
-}
-
 /* ===== DROPDOWN Z-INDEX FIXES ===== */
 @media (max-width: 768px) {
   [data-radix-popper-content-wrapper],

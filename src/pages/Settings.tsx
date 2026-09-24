@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Sun, Moon, Monitor, Wifi, Search, Compass, Mountain, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown, ShieldCheck } from "lucide-react";
+import { Palette, Sun, Moon, Monitor, Wifi, Search, Compass, Mountain, Settings as SettingsIcon, Globe, Wallet, Upload, ChevronDown, ShieldCheck, Map as MapIcon } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useActiveProfileTheme } from "@/hooks/useActiveProfileTheme";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -18,6 +18,7 @@ import { BlossomSettings } from "../components/BlossomSettings";
 import { WalletSettings } from "../components/WalletSettings";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { WotSettings } from "../components/WotSettings";
+import { MapTileSettings } from "../components/MapTileSettings";
 
 
 export default function Settings() {
@@ -29,6 +30,7 @@ export default function Settings() {
   const [relaysOpen, setRelaysOpen] = useState(false);
   const [searchRelaysOpen, setSearchRelaysOpen] = useState(false);
   const [blossomOpen, setBlossomOpen] = useState(false);
+  const [mapTilesOpen, setMapTilesOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [analyticsInitial] = useState(() => config.analyticsEnabled);
@@ -222,6 +224,31 @@ export default function Settings() {
             <CollapsibleContent>
               <CardContent>
                 <SearchRelaySettings />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Map Tiles — Collapsible */}
+        <Collapsible open={mapTilesOpen} onOpenChange={setMapTilesOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer select-none hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <MapIcon className="h-5 w-5" />
+                    {t('settings.mapTiles.title')}
+                  </CardTitle>
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${mapTilesOpen ? 'rotate-180' : ''}`} />
+                </div>
+                <CardDescription>
+                  {t('settings.mapTiles.description')}
+                </CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <MapTileSettings />
               </CardContent>
             </CollapsibleContent>
           </Card>

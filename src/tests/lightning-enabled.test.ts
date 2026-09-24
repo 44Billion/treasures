@@ -7,7 +7,7 @@
  * Detection keys on the label value only — the namespace is informational.
  *
  * The flag surfaces as a bolt badge on treasure cards / map popups (via
- * `getActiveModifiers`) and as a bolt corner badge on Leaflet map markers.
+ * `getActiveModifiers`) and as a bolt corner badge on map markers.
  */
 
 import { describe, it, expect } from 'vitest';

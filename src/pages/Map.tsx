@@ -6,7 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useSearchParams, Link } from "react-router-dom";
 import { RefreshCw, Sparkles, Compass, ChevronDown, Earth, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import L from "leaflet";
+import type { MapBounds, MapHandle } from "@/components/map/mapHandle";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LoginArea } from "@/components/auth/LoginArea";
@@ -176,8 +176,8 @@ export default function Map() {
   })();
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
-  const mapRef = useRef<L.Map | null>(null);
-  const desktopMapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<MapHandle | null>(null);
+  const desktopMapRef = useRef<MapHandle | null>(null);
   const pendingFlyTo = useRef<{ lat: number; lng: number; zoom: number; onEnd?: () => void } | null>(null);
 
   const { loading: isGettingLocation, coords, getLocation } = useGeolocation();
@@ -590,7 +590,7 @@ export default function Map() {
     }
   };
 
-  const handleSearchInView = (bounds?: L.LatLngBounds) => {
+  const handleSearchInView = (bounds?: MapBounds) => {
     // This is an explicit user action - clear all interaction locks
     clearMapInteractionLock();
 
@@ -819,7 +819,7 @@ export default function Map() {
       onEnd?.();
       return true;
     }
-    map.flyTo([lat, lng], zoom, { animate: true, duration: 1.5 });
+    map.flyTo([lat, lng], zoom, { duration: 1.5 });
     if (onEnd) map.once('moveend', onEnd);
     return true;
   };
@@ -836,7 +836,7 @@ export default function Map() {
       const size = map.getSize();
       if (size.x > 0 && size.y > 0) {
         pendingFlyTo.current = null;
-        map.flyTo([pending.lat, pending.lng], pending.zoom, { animate: true, duration: 1.5 });
+        map.flyTo([pending.lat, pending.lng], pending.zoom, { duration: 1.5 });
       }
     }, 100); // just after MapSizeController's 50ms invalidateSize
     return () => clearTimeout(timer);
@@ -844,12 +844,12 @@ export default function Map() {
 
   // Persist the live map view (center + zoom) whenever the user pans or zooms so
   // that navigating away and back (e.g. to view a treasure) restores their position.
-  // Leaflet's internal view is the source of truth after a user gesture, so we
+  // The map's internal view is the source of truth after a user gesture, so we
   // read directly from the map instance rather than from React state. The map ref
   // is populated asynchronously by GeocacheMap's MapRefController, so we retry
   // briefly until the instance is available, then attach the listeners.
   useEffect(() => {
-    let map: L.Map | null = null;
+    let map: MapHandle | null = null;
     let cancelled = false;
 
     const persistView = () => {
@@ -1224,6 +1224,7 @@ export default function Map() {
               mapRef={mapRef}
               isMapCenterLocked={isMapCenterLocked}
               isVisible={activeTab === 'map'}
+              onShowList={() => setActiveTab('list')}
               adventures={filteredAdventures}
               onAdventureMarkerClick={(adventure, container) => {
                 if (!adventure && !container) {
@@ -1447,7 +1448,7 @@ export default function Map() {
         </div>
       </div>
 
-      {/* React portal into Leaflet popup */}
+      {/* React portal into map popup */}
       {selectedGeocache && popupContainer && createPortal(
         <GeocachePopupCard
           geocache={selectedGeocache}

@@ -15,7 +15,7 @@ import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 import Home from "./pages/Home";
 
 // Lazy load all other pages for optimal code splitting
-// Map and map-heavy pages are lazy loaded to keep leaflet out of the main bundle
+// Map and map-heavy pages are lazy loaded to keep maplibre out of the main bundle
 const Map = lazy(() => import("./pages/Map"));
 const CacheDetail = lazy(() => import("./pages/CacheDetail"));
 const MyCaches = lazy(() => import("./pages/MyCaches"));

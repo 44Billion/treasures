@@ -41,6 +41,12 @@ export interface AppConfig {
    *  Any URL = proxy thumbnails through that host (must support wsrv.nl-compatible API).
    *  Default public instance: 'https://wsrv.nl' (open-source, self-hostable). */
   imageProxy: string;
+  /**
+   * Map tile server: base URL of an OpenFreeMap-compatible server (styles at
+   * `{url}/styles/liberty|dark|positron`). Empty string = app default
+   * (`DEFAULT_MAP_TILES_URL`). Synced cross-device via encrypted settings.
+   */
+  mapTilesUrl: string;
   /** NIP-51 search relay list (kind 10007) */
   searchRelayMetadata: {
     relays: string[];

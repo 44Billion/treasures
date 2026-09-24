@@ -32,7 +32,7 @@ export function useGeocacheNavigation() {
    * Pre-populates the cache to avoid re-fetching data we already have
    */
   const navigateToGeocache = useCallback((geocache: Geocache, options?: { fromMap?: boolean }) => {
-    // Defensive: callers (e.g. Leaflet `popupclose` handlers firing during
+    // Defensive: callers (e.g. map popup `close` handlers firing during
     // map teardown on route changes) can hand us a null geocache. Bail out
     // rather than crash the app trying to read .pubkey off of nothing.
     if (!geocache) return;

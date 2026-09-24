@@ -57,14 +57,41 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit for large bundles
         cleanupOutdatedCaches: true, // Automatically cleanup old caches
         runtimeCaching: [
+          // Map tiles/styles from OpenFreeMap-compatible servers — the app
+          // default (DEFAULT_MAP_TILES_URL in src/config/mapStyles.ts) or a
+          // user's own (Settings → Map Tiles), so match on path, not host.
           {
-            urlPattern: /^https:\/\/.*\.tile\.openstreetmap\.org\//,
+            // Vector tiles live under a dated path, so a cached tile never goes stale
+            urlPattern: /^https:\/\/[^/]+\/planet\/[^/]+\/\d+\/\d+\/\d+\.pbf$/,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'osm-tiles',
+              cacheName: 'map-tiles',
               expiration: {
-                maxEntries: 500,
+                maxEntries: 1000,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                purgeOnQuotaError: true,
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/[^/]+\/(fonts\/[^/]+\/\d+-\d+\.pbf|sprites\/ofm[^/]*\/.+)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-assets',
+              expiration: {
+                maxEntries: 300,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          {
+            // Style JSON and the TileJSON that points at the current tile build
+            urlPattern: /^https:\/\/[^/]+\/(styles\/(liberty|dark|positron)|planet)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'map-styles',
+              expiration: {
+                maxEntries: 20,
               },
             },
           },
@@ -169,6 +196,10 @@ export default defineConfig(({ mode }) => ({
       }
     })
   ],
+  // MapLibre's worker is loaded as a module worker (see src/components/map/MapView.tsx)
+  worker: {
+    format: 'es',
+  },
   test: {
     globals: true,
     environment: 'jsdom',

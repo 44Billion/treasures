@@ -1,9 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useMap } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
+import { useMapHandle } from '@/components/map/mapContext';
+import { toLatLng, type LatLngInput } from '@/components/map/mapHandle';
 
 interface UseMapControllerProps {
-  center: LatLngExpression;
+  center: LatLngInput;
   zoom: number;
   searchLocation?: { lat: number; lng: number } | null;
   searchRadius?: number;
@@ -17,7 +17,7 @@ export function useMapController({
   searchRadius,
   isMapCenterLocked = false,
 }: UseMapControllerProps) {
-  const map = useMap();
+  const map = useMapHandle();
   const lastCenterRef = useRef<string | null>(null);
   const lastRadiusRef = useRef<number | null>(null);
   // Track whether the user is actively dragging the map
@@ -33,10 +33,7 @@ export function useMapController({
     isDragging.current = false;
     isProgrammatic.current = true;
 
-    map.setView([newCenter.lat, newCenter.lng], newZoom, {
-      animate: false,
-      duration: 0,
-    });
+    map.setView([newCenter.lat, newCenter.lng], newZoom, { animate: false });
 
     const centerKey = `${newCenter.lat},${newCenter.lng},${newZoom}`;
     lastCenterRef.current = centerKey;
@@ -70,10 +67,8 @@ export function useMapController({
   useEffect(() => {
     if (!center || isMapCenterLocked) return;
 
-    const centerArray = Array.isArray(center)
-      ? center
-      : [(center as { lat: number; lng: number }).lat, (center as { lat: number; lng: number }).lng];
-    const centerKey = `${centerArray[0]},${centerArray[1]},${zoom}`;
+    const { lat, lng } = toLatLng(center);
+    const centerKey = `${lat},${lng},${zoom}`;
 
     if (centerKey === lastCenterRef.current) return;
     if (isDragging.current || Date.now() < cooldownUntil.current) return;

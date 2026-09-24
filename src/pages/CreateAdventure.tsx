@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { MapPinned, FileText, ListChecks, Eye, Check, ChevronLeft, ChevronRight, X, MapPin, Compass, Image as ImageIcon, Sword, Mountain, Map, Moon, Satellite } from "lucide-react";
 import { nip19 } from "nostr-tools";
-import L from "leaflet";
+import type { MapHandle } from "@/components/map/mapHandle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,7 +73,7 @@ export default function CreateAdventure() {
   const [popupContainer, setPopupContainer] = useState<HTMLDivElement | null>(null);
   const [hasPrePopulated, setHasPrePopulated] = useState(false);
 
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<MapHandle | null>(null);
 
   // Pre-populate form when editing an existing adventure
   useEffect(() => {
@@ -758,7 +758,7 @@ export default function CreateAdventure() {
         </div>
       </PageHero>
 
-      {/* React portal into Leaflet popup */}
+      {/* React portal into map popup */}
       {selectedPopupGeocache && popupContainer && createPortal(
         <GeocachePopupCard
           geocache={selectedPopupGeocache}

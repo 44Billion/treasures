@@ -23,8 +23,8 @@
 }
 
 /* Dark theme colors */
-.leaflet-container.dark-theme,
-.leaflet-container.system-dark-theme {
+.treasure-map.dark-theme,
+.treasure-map.system-dark-theme {
   --map-bg: #1a1a1a;
   --popup-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   --popup-border: hsl(217.2 32.6% 17.5%);
@@ -47,7 +47,7 @@
 }
 
 /* Adventure theme colors */
-.leaflet-container.adventure-theme {
+.treasure-map.adventure-theme {
   --map-bg: #e8dcc0;
   --popup-bg: #faf8f4;
   --popup-border: #d4af37;
@@ -72,7 +72,7 @@
 }
 
 /* Mojave theme colors — Pip-Boy CRT aesthetic: dark panels, amber glow, rust accents */
-.leaflet-container.mojave-theme {
+.treasure-map.mojave-theme {
   --map-bg: #0f0a05;                  /* Near-black base, shows during tile load */
   --popup-bg: #1a1108;                 /* Dark terminal panel */
   --popup-border: #e8a838;             /* Amber CRT border */
@@ -96,165 +96,42 @@
   --badge-outline-text: #f4c876;
 }
 
-/* Mojave map tile tint — Pip-Boy CRT on CARTO dark_all tiles.
-
-   The insight: dark_all is already structurally a Pip-Boy — dark ground
-   with near-white glowing features. I don't need to flip anything.
-   I just need to recolor the glow from white to amber, while keeping
-   the dark ground dark.
-
-   sepia(1) does exactly this: every pixel becomes (brown × original luminance).
-     - Dark ground pixels (low luminance) stay dark, now faintly warm-brown.
-     - Road/label pixels (high luminance) become bright brown.
-   hue-rotate(-25deg) shifts the brown cast toward amber-orange (Pip-Boy hue).
-   saturate(3) cranks the amber — without this, sepia's brown is too muted.
-
-   NO invert. NO brightness dimming. NO contrast. The source is already CRT.  */
-.leaflet-container.mojave-theme .leaflet-tile-pane {
-  filter: sepia(1) hue-rotate(-25deg) saturate(3);
-}
-
 /* ===== BASE MAP CONTAINER ===== */
-.leaflet-container {
+.treasure-map {
   background: var(--map-bg);
   position: relative;
   overflow: hidden;
 }
 
 /* Enhanced gradient for light theme only */
-.leaflet-container:not(.adventure-theme):not(.mojave-theme):not(.dark-theme):not(.system-dark-theme) {
+.treasure-map:not(.adventure-theme):not(.mojave-theme):not(.dark-theme):not(.system-dark-theme) {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
 }
 
 /* ===== POPUP STYLING ===== */
-.leaflet-popup-content-wrapper {
-  background: var(--popup-bg);
-  border: 2px solid var(--popup-border);
+/* Popups carry React content (see popupPositioning.ts); the wrapper just
+   frames it with the app's theme tokens. */
+.react-popup .maplibregl-popup-content {
+  padding: 0;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
   border-radius: 0.75rem;
-  color: var(--popup-text);
+  color: hsl(var(--foreground));
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  padding: 0.25rem;
-}
-
-.leaflet-popup-content {
-  margin: 0;
-  border-radius: 0.625rem;
   overflow: hidden;
-  color: var(--popup-text);
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji" !important;
 }
 
-.leaflet-popup-tip {
-  background: var(--popup-bg);
-  border: 2px solid var(--popup-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Close button hidden — popups dismiss on outside click / Escape instead */
-.leaflet-popup-close-button {
-  display: none !important;
-  position: absolute !important;
-  top: 8px !important;
-  right: 8px !important;
-  width: 32px !important;
-  height: 32px !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  background: rgba(0, 0, 0, 0.75) !important;
-  backdrop-filter: blur(8px) !important;
-  border: 2px solid rgba(255, 255, 255, 0.9) !important;
-  color: white !important;
-  font-size: 24px !important;
-  line-height: 28px !important;
-  font-weight: 400 !important;
-  text-align: center !important;
-  z-index: 10 !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-}
-
-.leaflet-popup-close-button span {
-  display: block !important;
-  line-height: 1 !important;
-}
-
-.leaflet-popup-close-button:hover {
-  background: rgba(0, 0, 0, 0.9) !important;
-  border-color: white !important;
-  transform: scale(1.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-}
-
-.leaflet-popup-close-button:active {
-  transform: scale(0.95) !important;
-}
-
-/* Dark theme adjustments */
-.leaflet-container.dark-theme .leaflet-popup-close-button,
-.leaflet-container.system-dark-theme .leaflet-popup-close-button {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border-color: rgba(0, 0, 0, 0.9) !important;
-  color: #1f2937 !important;
-}
-
-.leaflet-container.dark-theme .leaflet-popup-close-button:hover,
-.leaflet-container.system-dark-theme .leaflet-popup-close-button:hover {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: black !important;
-}
-
-/* Adventure theme adjustments */
-.leaflet-container.adventure-theme .leaflet-popup-close-button {
-  background: rgba(139, 69, 19, 0.9) !important;
-  border-color: #d4af37 !important;
-  color: #f5f1e8 !important;
-}
-
-.leaflet-container.adventure-theme .leaflet-popup-close-button:hover {
-  background: rgba(101, 67, 33, 0.95) !important;
-  border-color: #f4e4bc !important;
-}
-
-/* Popup text colors (HTML popups only) */
-.leaflet-popup:not(.react-popup) .leaflet-popup-content h3,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content h4,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content p {
-  color: var(--popup-text);
-}
-
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .text-gray-600,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .text-gray-500,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .text-muted-foreground {
-  color: var(--popup-muted);
-}
-
-/* Popup image placeholder - matches geocache card styling */
-.leaflet-popup-content .popup-image-placeholder {
-  background-color: rgb(220, 252, 231); /* green-100 */
-  border-top-left-radius: 0.625rem; /* matches .leaflet-popup-content border-radius */
-  border-top-right-radius: 0.625rem;
-}
-
-.leaflet-container.dark-theme .leaflet-popup-content .popup-image-placeholder,
-.leaflet-container.system-dark-theme .leaflet-popup-content .popup-image-placeholder {
-  background-color: rgba(6, 95, 70, 0.2); /* green-900/20 */
-}
-
-.leaflet-container.adventure-theme .leaflet-popup-content .popup-image-placeholder {
-  background-color: rgb(254, 243, 199); /* amber-100 */
-}
-
-/* Ensure images inside the placeholder also have rounded top corners */
-.leaflet-popup-content .popup-image-placeholder img {
-  border-top-left-radius: 0.625rem;
-  border-top-right-radius: 0.625rem;
+.react-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: hsl(var(--background));
 }
 
 /* Adventure theme text contrast improvements */
-.leaflet-container.adventure-theme .leaflet-popup-content h3,
-.leaflet-container.adventure-theme .leaflet-popup-content h4,
-.leaflet-container.adventure-theme .leaflet-popup-content p {
+.treasure-map.adventure-theme .react-popup-root h3,
+.treasure-map.adventure-theme .react-popup-root h4,
+.treasure-map.adventure-theme .react-popup-root p {
   color: #2d1810;
   font-weight: 500;
 }
@@ -262,92 +139,17 @@
 /* Quest Map — adventure popup card readability.
    The blend-mode overlays darken everything in the map container.
    Force the adventure card to use white text so it stays legible. */
-.leaflet-container.adventure-theme .adventure-popup-card h3,
-.leaflet-container.adventure-theme .adventure-popup-card span,
-.leaflet-container.adventure-theme .adventure-popup-card p {
+.treasure-map.adventure-theme .adventure-popup-card h3,
+.treasure-map.adventure-theme .adventure-popup-card span,
+.treasure-map.adventure-theme .adventure-popup-card p {
   color: #ffffff !important;
 }
-.leaflet-container.adventure-theme .adventure-popup-card * {
+.treasure-map.adventure-theme .adventure-popup-card * {
   text-shadow: none !important;
 }
 
-/* ===== REACT POPUP OVERRIDES ===== */
-/* When the popup uses React portal, clean up Leaflet's wrapper and let Tailwind work. */
-.react-popup .leaflet-popup-content-wrapper {
-  padding: 0;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  max-inline-size: none !important;
-  max-width: none !important;
-  overflow: hidden;
-  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji" !important;
-}
-.react-popup .leaflet-popup-content {
-  width: auto !important;
-  max-inline-size: none !important;
-  max-width: none !important;
-  min-inline-size: 0 !important;
-  border-radius: inherit !important;
-  color: hsl(var(--foreground));
-}
-.react-popup .leaflet-popup-tip {
-  background: hsl(var(--background));
-  border-color: hsl(var(--border));
-}
-
-/* ===== BUTTON STYLING (HTML popups only) ===== */
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .popup-btn-primary,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content button:not([class*="outline"]):not(.popup-btn-outline) {
-  background: var(--button-primary-bg);
-  color: var(--button-primary-text);
-  border: 1px solid var(--button-primary-border);
-  font-weight: 500;
-}
-
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .popup-btn-primary:hover,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content button:not([class*="outline"]):not(.popup-btn-outline):hover {
-  background: var(--button-primary-border);
-  color: var(--button-primary-text);
-}
-
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .popup-btn-outline,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content button[class*="outline"] {
-  background: var(--button-outline-bg);
-  color: var(--button-primary-bg);
-  border: 1px solid var(--button-primary-bg);
-  opacity: 0.8;
-}
-
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .popup-btn-outline:hover,
-.leaflet-popup:not(.react-popup) .leaflet-popup-content button[class*="outline"]:hover {
-  background: var(--button-primary-bg);
-  color: var(--button-primary-text);
-  opacity: 1;
-}
-
-/* ===== BADGE STYLING (HTML popups only) ===== */
-.leaflet-popup:not(.react-popup) .leaflet-popup-content [class*="inline-flex"][class*="items-center"][class*="border"],
-.leaflet-popup:not(.react-popup) .leaflet-popup-content [class*="inline-flex"][class*="rounded"],
-.leaflet-popup:not(.react-popup) .leaflet-popup-content .badge {
-  color: var(--badge-text);
-  font-weight: 600;
-}
-
-.leaflet-popup:not(.react-popup) .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
-  background: var(--badge-outline-bg, var(--button-outline-bg));
-  color: var(--badge-outline-text, var(--button-outline-text));
-  border-color: var(--badge-border);
-}
-
-.leaflet-popup:not(.react-popup) .leaflet-popup-content [class*="bg-secondary"],
-.leaflet-popup:not(.react-popup) .leaflet-popup-content [class*="secondary"][class*="inline-flex"] {
-  background: var(--badge-bg);
-  color: var(--badge-text);
-  border-color: var(--badge-border);
-}
-
 /* Adventure theme badge contrast fixes */
-.leaflet-container.adventure-theme .leaflet-popup-content [class*="outline"][class*="inline-flex"] {
+.treasure-map.adventure-theme .react-popup-root [class*="outline"][class*="inline-flex"] {
   background: rgba(255, 255, 255, 0.95);
   color: #2d1810;
   border-color: #8b4513;
@@ -356,7 +158,7 @@
   opacity: .5;
 }
 
-.leaflet-container.adventure-theme .leaflet-popup-content [class*="bg-secondary"] {
+.treasure-map.adventure-theme .react-popup-root [class*="bg-secondary"] {
   background: #8b4513;
   color: #ffffff;
   border-color: #654321;
@@ -365,15 +167,6 @@
 }
 
 /* ===== CONTROL STYLING ===== */
-.leaflet-control-zoom,
-.leaflet-touch .leaflet-control-zoom {
-  border: none;
-  border-radius: 0.375rem;
-  overflow: hidden;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  margin-block-end: 0.625rem;
-}
-
 /* Custom zoom control styling */
 .custom-zoom-control {
   box-shadow: none;
@@ -390,56 +183,11 @@
   background: rgba(255, 255, 255, 0.7) !important;
 }
 
-.leaflet-control-zoom a,
-.leaflet-touch .leaflet-control-zoom a,
-.leaflet-touch .leaflet-bar a {
-  background: var(--control-bg);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--control-border);
-  color: var(--control-text);
-  font-weight: 500;
-  font-size: 1.125rem;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  line-height: 2.25rem;
-  transition: all 0.2s ease;
-}
-
-.leaflet-control-zoom a:hover,
-.leaflet-touch .leaflet-control-zoom a:hover,
-.leaflet-touch .leaflet-bar a:hover {
-  background: var(--control-hover-bg);
-  color: var(--control-hover-text);
-}
-
-.leaflet-control-zoom a:first-child {
-  border-start-start-radius: 0.375rem;
-  border-start-end-radius: 0.375rem;
-}
-
-.leaflet-control-zoom a:last-child {
-  border-end-start-radius: 0.375rem;
-  border-end-end-radius: 0.375rem;
-}
-
-/* ===== ATTRIBUTION ===== */
-.leaflet-control-attribution {
-  background: var(--control-bg);
-  backdrop-filter: blur(8px);
-  border-radius: 0.5rem;
-  border: 1px solid var(--control-border);
-  color: var(--control-text);
-  font-size: 0.6875rem;
-  padding: 0.25rem 0.5rem;
-  margin: 0.5rem;
-}
-
 /* ===== MAP STYLE CONTROL ===== */
 .map-style-control {
   margin-block-start: 0.625rem;
 }
 
-.map-style-control .leaflet-control,
 .map-style-control button {
   position: relative;
   z-index: 401;
@@ -501,7 +249,7 @@
 }
 
 /* ===== ADVENTURE THEME SPECIFIC ===== */
-.leaflet-container.adventure-theme {
+.treasure-map.adventure-theme {
   position: relative;
   overflow: hidden;
 }
@@ -561,19 +309,6 @@
 }
 
 /* ===== Z-INDEX MANAGEMENT ===== */
-.leaflet-container .leaflet-control-container {
-  position: relative;
-  z-index: 1000;
-}
-
-.leaflet-container .leaflet-marker-pane,
-.leaflet-container .leaflet-popup-pane,
-.leaflet-container .leaflet-tooltip-pane,
-.leaflet-container .leaflet-shadow-pane {
-  position: relative;
-  z-index: 500;
-}
-
 /* Modal and overlay z-index */
 [data-radix-dialog-overlay],
 [data-radix-dialog-content],
@@ -707,14 +442,6 @@
   }
 }
 
-.leaflet-container.leaflet-touch-drag {
-  cursor: grabbing;
-}
-
-.leaflet-container.leaflet-touch-zoom {
-  cursor: zoom-in;
-}
-
 /* ===== MARKER CLUSTER STYLING ===== */
 .custom-cluster-icon {
   background: transparent !important;
@@ -764,67 +491,67 @@
 }
 
 /* Adventure theme cluster styling */
-.leaflet-container.adventure-theme .cluster-marker {
+.treasure-map.adventure-theme .cluster-marker {
   border-color: #f5f1e8;
   text-shadow: 0 1px 2px rgba(45, 24, 16, 0.4);
 }
 
-.leaflet-container.adventure-theme .cluster-small {
+.treasure-map.adventure-theme .cluster-small {
   background: #8fbc3b;
 }
 
-.leaflet-container.adventure-theme .cluster-medium {
+.treasure-map.adventure-theme .cluster-medium {
   background: #6b8e23;
 }
 
-.leaflet-container.adventure-theme .cluster-large {
+.treasure-map.adventure-theme .cluster-large {
   background: #4a7c1a;
 }
 
 /* Mojave cluster styling — glowing amber Pip-Boy waypoints against the dark wasteland */
-.leaflet-container.mojave-theme .cluster-marker {
+.treasure-map.mojave-theme .cluster-marker {
   border-color: #1a0f08;
   text-shadow: 0 0 4px rgba(232, 168, 56, 0.8);
   color: #1a0f08;
   box-shadow: 0 0 8px rgba(232, 168, 56, 0.5);
 }
 
-.leaflet-container.mojave-theme .cluster-small {
+.treasure-map.mojave-theme .cluster-small {
   background: #f4c876;   /* Bright amber — small waypoint */
 }
 
-.leaflet-container.mojave-theme .cluster-medium {
+.treasure-map.mojave-theme .cluster-medium {
   background: #e8a838;   /* Core Pip-Boy amber */
 }
 
-.leaflet-container.mojave-theme .cluster-large {
+.treasure-map.mojave-theme .cluster-large {
   background: #c4691c;   /* Burnt amber — dense signal */
 }
 
 /* Dark theme cluster styling */
-.leaflet-container.dark-theme .cluster-marker,
-.leaflet-container.system-dark-theme .cluster-marker {
+.treasure-map.dark-theme .cluster-marker,
+.treasure-map.system-dark-theme .cluster-marker {
   border-color: #374151;
 }
 
-.leaflet-container.dark-theme .cluster-small,
-.leaflet-container.system-dark-theme .cluster-small {
+.treasure-map.dark-theme .cluster-small,
+.treasure-map.system-dark-theme .cluster-small {
   background: #4ade80;
 }
 
-.leaflet-container.dark-theme .cluster-medium,
-.leaflet-container.system-dark-theme .cluster-medium {
+.treasure-map.dark-theme .cluster-medium,
+.treasure-map.system-dark-theme .cluster-medium {
   background: #22c55e;
 }
 
-.leaflet-container.dark-theme .cluster-large,
-.leaflet-container.system-dark-theme .cluster-large {
+.treasure-map.dark-theme .cluster-large,
+.treasure-map.system-dark-theme .cluster-large {
   background: #16a34a;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (min-width: 1024px) {
-  .leaflet-container {
+  .treasure-map {
     block-size: 100%;
     inline-size: 100%;
     min-block-size: 100%;
@@ -832,27 +559,15 @@
 }
 
 @media (max-width: 1024px) {
-  [data-state="active"][data-orientation="horizontal"] .leaflet-container {
+  [data-state="active"][data-orientation="horizontal"] .treasure-map {
     block-size: 100%;
     inline-size: 100%;
     min-block-size: 25rem;
   }
-
-  .leaflet-map-pane,
-  .leaflet-tile-pane,
-  .leaflet-overlay-pane,
-  .leaflet-marker-pane {
-    display: block;
-    position: relative;
-  }
 }
 
 @media (max-width: 768px) {
-  .leaflet-popup-content-wrapper {
+  .react-popup .maplibregl-popup-content {
     border-radius: 0.75rem;
-  }
-
-  .custom-cache-icon {
-    transform: scale(0.9);
   }
 }

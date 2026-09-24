@@ -1,20 +1,16 @@
-import { useEffect, useState, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
-import L from "leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { CustomZoomControl } from "@/components/map/CustomZoomControl";
+import { MapView } from "@/components/map/MapView";
+import { ClusteredMarkers, type ClusterPoint } from "@/components/map/ClusteredMarkers";
+import { ThemeController } from "@/components/map/GeocacheMapControllers";
+import { useMapHandle } from "@/components/map/mapContext";
+import { openReactPopup } from "@/components/map/popupPositioning";
 import { MAP_STYLES, type MapStyle } from "@/config/mapStyles";
 import type { Geocache } from "@/types/geocache";
-import { getCachedCacheIcon, mapStyleToIconTheme } from "@/utils/cacheMapIcons";
+import { getCachedCacheIcon, mapStyleToIconTheme, type MapIconTheme } from "@/utils/cacheMapIcons";
 import { isLightningPiggyClient } from "@/utils/nip-gc";
 import { getLockdownFeatures } from "@/utils/lockdownMode";
-
-// Import Leaflet CSS, overrides, and adventure theme
-import "leaflet/dist/leaflet.css";
-import "@/styles/leaflet-overrides.css";
-import "@/styles/map-features.css";
 
 // Map marker icons come from the shared helper in `@/utils/cacheMapIcons`
 // so ProfileMap and GeocacheMap stay in sync.
@@ -25,90 +21,64 @@ interface ProfileMapProps {
   onMarkerClick?: (geocache: Geocache, popupContainer?: HTMLDivElement) => void;
 }
 
-// Component to handle theme styling
-function ThemeController({
-  currentStyle,
-  appTheme,
-  systemTheme
+type LocatedGeocache = Geocache & { location: { lat: number; lng: number } };
+
+function ProfileMarkers({
+  geocaches,
+  iconTheme,
+  onGeocacheClick,
+  onMarkerClick,
 }: {
-  currentStyle: string;
-  appTheme?: string;
-  systemTheme?: string;
+  geocaches: LocatedGeocache[];
+  iconTheme: MapIconTheme;
+  onGeocacheClick?: (geocache: Geocache) => void;
+  onMarkerClick?: (geocache: Geocache, popupContainer?: HTMLDivElement) => void;
 }) {
-  const map = useMap();
+  const map = useMapHandle();
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
+  const onGeocacheClickRef = useRef(onGeocacheClick);
+  onGeocacheClickRef.current = onGeocacheClick;
 
-  useEffect(() => {
-    const container = map.getContainer();
+  const byDTag = useMemo(() => new Map(geocaches.map(g => [g.dTag, g])), [geocaches]);
 
-    // Remove all theme classes
-    container.classList.remove('dark-theme', 'adventure-theme', 'mojave-theme', 'system-dark-theme');
+  const points = useMemo<ClusterPoint[]>(() => geocaches.map(geocache => ({
+    id: geocache.dTag,
+    lat: geocache.location.lat,
+    lng: geocache.location.lng,
+    icon: getCachedCacheIcon(geocache.type, iconTheme, false, geocache.lightningEnabled ?? false, isLightningPiggyClient(geocache.client)),
+    title: geocache.name,
+  })), [geocaches, iconTheme]);
 
-    // Add current theme class
-    if (currentStyle === 'dark') {
-      container.classList.add('dark-theme');
-    } else if (currentStyle === 'adventure') {
-      container.classList.add('adventure-theme');
-    } else if (currentStyle === 'mojave') {
-      container.classList.add('mojave-theme');
-    } else if (currentStyle === 'original') {
-      // For original style, check if we should apply system dark theme
-      if (appTheme === 'system' && systemTheme === 'dark') {
-        container.classList.add('system-dark-theme');
-      }
-      // If app theme is explicitly light, don't add any dark theme classes
+  // Handle marker click - create React popup container
+  const handlePointClick = useCallback((point: ClusterPoint) => {
+    const geocache = byDTag.get(point.id);
+    if (!geocache) return;
+
+    // Close all existing popups
+    map.closePopup();
+
+    if (onMarkerClickRef.current) {
+      // React popup approach - same as main map
+      const { container } = openReactPopup(map, {
+        position: geocache.location,
+        anchor: point.icon.popupAnchor,
+        maxWidth: 400,
+        onClose: () => onMarkerClickRef.current?.(null as unknown as Geocache, null as unknown as HTMLDivElement),
+      });
+      onMarkerClickRef.current(geocache, container);
+    } else {
+      onGeocacheClickRef.current?.(geocache);
     }
-  }, [map, currentStyle, appTheme, systemTheme]);
+  }, [map, byDTag]);
 
-  return null;
-}
-
-// Component to handle map size invalidation
-function MapSizeController() {
-  const map = useMap();
-
-  useEffect(() => {
-    // Add a small delay to ensure map is fully initialized
-    const timer = setTimeout(() => {
-      if (map && typeof map.invalidateSize === 'function') {
-        map.invalidateSize();
-      }
-    }, 100);
-
-    // Also invalidate size on window resize
-    const handleResize = () => {
-      if (map && typeof map.invalidateSize === 'function') {
-        map.invalidateSize();
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [map]);
-
-  return null;
-}
-
-// Custom tile layer with optimizations
-function OptimizedTileLayer({ mapStyle, crossOriginTiles = true }: { mapStyle: MapStyle; crossOriginTiles?: boolean }) {
   return (
-    <TileLayer
-      attribution={mapStyle.attribution}
-      url={mapStyle.url}
+    <ClusteredMarkers
+      points={points}
+      onPointClick={handlePointClick}
+      radius={22}
+      disableClusteringAtZoom={14}
       maxZoom={18}
-      minZoom={2}
-      keepBuffer={1}
-      updateWhenIdle={true}
-      updateWhenZooming={false}
-      updateInterval={200}
-      crossOrigin={crossOriginTiles ? "anonymous" : undefined}
-      tileSize={256}
-      zoomOffset={0}
-      detectRetina={false}
-      noWrap={false}
     />
   );
 }
@@ -200,14 +170,14 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
   const mapConfig = useMemo(() => {
     if (validGeocaches.length === 0) {
       return {
-        center: [40.7128, -74.0060] as LatLngExpression, // Default to NYC
+        center: [40.7128, -74.0060] as [number, number], // Default to NYC
         zoom: 10
       };
     }
 
     if (validGeocaches.length === 1) {
       return {
-        center: [validGeocaches[0]!.location.lat, validGeocaches[0]!.location.lng] as LatLngExpression,
+        center: [validGeocaches[0]!.location.lat, validGeocaches[0]!.location.lng] as [number, number],
         zoom: 12
       };
     }
@@ -228,85 +198,13 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
     const zoom = 2; // World view
 
     return {
-      center: [centerLat, centerLng] as LatLngExpression,
+      center: [centerLat, centerLng] as [number, number],
       zoom
     };
   }, [validGeocaches]);
 
   // Detect iOS Lockdown Mode and adjust features accordingly
   const lockdownFeatures = useMemo(() => getLockdownFeatures(), []);
-
-  // Optimized map options
-  const mapOptions = {
-    scrollWheelZoom: true,
-    tap: false,
-    tapTolerance: 15,
-    bounceAtZoomLimits: false,
-    maxBoundsViscosity: 0.3,
-    preferCanvas: lockdownFeatures.preferCanvas, // Disabled in iOS Lockdown Mode
-    fadeAnimation: false,
-    zoomAnimation: lockdownFeatures.complexAnimations, // Disabled in Lockdown Mode
-    zoomAnimationThreshold: 2,
-    markerZoomAnimation: false,
-    trackResize: false,
-    boxZoom: false,
-    keyboard: false,
-    inertia: true,
-    inertiaDeceleration: 3000,
-    inertiaMaxSpeed: 1500,
-    worldCopyJump: false,
-  };
-
-  // Handle marker click - create React popup container
-  const handleMarkerClickInternal = (geocache: Geocache, marker: L.Marker) => {
-    const map = (marker as unknown as { _map: L.Map })._map;
-
-    // Close all existing popups
-    if (map) {
-      map.closePopup();
-    }
-
-    if (onMarkerClick) {
-      // React popup approach - same as main map
-      const container = document.createElement('div');
-      container.className = 'react-popup-root';
-
-      if (marker.getPopup()) {
-        marker.unbindPopup();
-      }
-      marker.bindPopup(container, {
-        maxWidth: 400,
-        minWidth: 200,
-        className: 'geocache-popup react-popup',
-        closeButton: false,
-        autoPan: true,
-        keepInView: true,
-        closeOnClick: true,
-        closeOnEscapeKey: true,
-      });
-
-      // Trigger React render first, then open popup once content exists
-      onMarkerClick(geocache, container);
-
-      const observer = new MutationObserver(() => {
-        if (container.childNodes.length > 0) {
-          observer.disconnect();
-          marker.openPopup();
-        }
-      });
-      observer.observe(container, { childList: true });
-
-      // Safety fallback
-      setTimeout(() => {
-        observer.disconnect();
-        if (!marker.isPopupOpen()) {
-          marker.openPopup();
-        }
-      }, 500);
-    } else if (onGeocacheClick) {
-      onGeocacheClick(geocache);
-    }
-  };
 
   if (validGeocaches.length === 0) {
     return (
@@ -367,24 +265,17 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         </div>
       )}
 
-      <MapContainer
+      <MapView
         center={mapConfig.center}
         zoom={mapConfig.zoom}
-        style={{ height: "100%", width: "100%" }}
-        className="z-0"
-        zoomControl={false}
-        doubleClickZoom={true}
-        touchZoom={true}
-        attributionControl={false}
         minZoom={2}
         maxZoom={18}
-        whenReady={() => {
-          setIsMapReady(true);
-        }}
-        {...mapOptions}
+        mapStyle={mapStyle}
+        keyboard={false}
+        className="z-0"
+        onLoad={() => setIsMapReady(true)}
+        onUnavailable={() => setIsMapReady(true)}
       >
-        <OptimizedTileLayer mapStyle={mapStyle} crossOriginTiles={lockdownFeatures.crossOriginTiles} />
-        <MapSizeController />
         <CustomZoomControl />
         <ThemeController
           currentStyle={currentMapStyle}
@@ -393,55 +284,13 @@ export function ProfileMap({ geocaches, onGeocacheClick, onMarkerClick }: Profil
         />
 
         {/* Geocache markers with clustering */}
-        <MarkerClusterGroup
-          chunkedLoading={true}
-          chunkInterval={50}
-          chunkDelay={10}
-          maxClusterRadius={22}
-          spiderfyOnMaxZoom={false}
-          showCoverageOnHover={false}
-          zoomToBoundsOnClick={true}
-          removeOutsideVisibleBounds={true}
-          animate={false}
-          animateAddingMarkers={false}
-          disableClusteringAtZoom={14}
-          maxZoom={18}
-          spiderfyDistanceMultiplier={1.5}
-          clusterPane="markerPane"
-          iconCreateFunction={(cluster: { getChildCount: () => any; }) => {
-            const count = cluster.getChildCount();
-            const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
-            const px = size === 'large' ? 50 : size === 'medium' ? 42 : 36;
-
-            return L.divIcon({
-              html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
-              className: 'custom-cluster-icon',
-              iconSize: L.point(px, px, true),
-            });
-          }}
-        >
-          {validGeocaches.map((geocache) => (
-            <Marker
-              key={geocache.dTag}
-              position={[geocache.location.lat, geocache.location.lng]}
-              icon={getCachedCacheIcon(geocache.type, mapStyleToIconTheme(currentMapStyle), false, geocache.lightningEnabled ?? false, isLightningPiggyClient(geocache.client))}
-              eventHandlers={{
-                click: (e) => {
-                  const marker = e.target;
-                  L.DomEvent.stopPropagation(e as unknown as Event);
-                  L.DomEvent.preventDefault(e as unknown as Event);
-                  handleMarkerClickInternal(geocache, marker);
-                },
-                popupclose: () => {
-                  if (onMarkerClick) {
-                    onMarkerClick(null as unknown as Geocache, null as unknown as HTMLDivElement);
-                  }
-                }
-              }}
-            />
-          ))}
-        </MarkerClusterGroup>
-      </MapContainer>
+        <ProfileMarkers
+          geocaches={validGeocaches}
+          iconTheme={mapStyleToIconTheme(currentMapStyle)}
+          onGeocacheClick={onGeocacheClick}
+          onMarkerClick={onMarkerClick}
+        />
+      </MapView>
     </div>
   );
 }

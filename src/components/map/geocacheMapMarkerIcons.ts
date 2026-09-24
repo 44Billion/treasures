@@ -3,13 +3,13 @@
  * (Cache-type markers live in `@/utils/cacheMapIcons`.)
  */
 
-import L from "leaflet";
+import type { MapIcon } from "@/utils/mapIcons";
 
 // Google Maps-style "you are here" indicator: a solid theme-colored dot with a
 // white halo and a softly expanding pulse ring. Styling lives in
 // `src/styles/map-features.css` so the indicator inherits the active theme's
 // `--primary` token across all themes (forest, steel, Mojave, etc.).
-export const userLocationIcon = L.divIcon({
+export const userLocationIcon: MapIcon = {
   html: `
     <div class="user-location-marker">
       <div class="user-location-marker__pulse" aria-hidden="true"></div>
@@ -19,10 +19,18 @@ export const userLocationIcon = L.divIcon({
   className: "user-location-icon",
   iconSize: [24, 24],
   iconAnchor: [12, 12],
-});
+};
+
+// Small green dot marking a clicked map location (adventure center selection)
+export const centerPinIcon: MapIcon = {
+  html: '<div style="width:12px;height:12px;background:#228c4e;border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>',
+  className: "adventure-center-pin",
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+};
 
 // Adventure marker icon — amber/gold sparkles
-export const adventureMarkerIcon = L.divIcon({
+export const adventureMarkerIcon: MapIcon = {
   html: `
     <div style="
       background: linear-gradient(135deg, #d97706, #b45309);
@@ -61,4 +69,4 @@ export const adventureMarkerIcon = L.divIcon({
   iconSize: [40, 48],
   iconAnchor: [20, 48],
   popupAnchor: [0, -48],
-});
+};

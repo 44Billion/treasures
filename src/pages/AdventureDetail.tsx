@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { Compass, Share2, Pencil, Trash2, ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import L from "leaflet";
+import { MapBounds, type MapHandle } from "@/components/map/mapHandle";
 import { GeocacheMap } from "@/components/GeocacheMap";
 import { CompactGeocacheCard } from "@/components/ui/geocache-card";
 import { GeocachePopupCard } from "@/components/GeocachePopupCard";
@@ -109,7 +109,7 @@ export default function AdventureDetail() {
     }
   };
 
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<MapHandle | null>(null);
 
   const { data: adventure, isLoading, isError } = useAdventure(naddr || '');
   const author = useAuthor(adventure?.pubkey);
@@ -348,9 +348,7 @@ export default function AdventureDetail() {
         clearInterval(interval);
         return;
       }
-      const bounds = L.latLngBounds(
-        located.map(g => [g.location.lat, g.location.lng] as [number, number])
-      );
+      const bounds = MapBounds.fromPoints(located.map(g => g.location));
       mapRef.current.fitBounds(bounds.pad(0.05));
       lastFittedKey.current = key;
       clearInterval(interval);
@@ -753,7 +751,7 @@ export default function AdventureDetail() {
         </div>
       </div>
 
-      {/* React portal into Leaflet popup */}
+      {/* React portal into map popup */}
       {selectedGeocache && popupContainer && createPortal(
         <GeocachePopupCard
           geocache={selectedGeocache}

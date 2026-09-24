@@ -89,7 +89,7 @@ const GEOHASH_CELL_SIZE_DEG: Record<number, { lng: number; lat: number }> = {
  *    handful of cells, so we cap at 4 rather than risk missing caches that lack a
  *    precision-5 tag.
  *
- * @param zoom Leaflet zoom level (roughly 1 = whole world, 18 = building level)
+ * @param zoom 256px-tile map zoom level (roughly 1 = whole world, 18 = building level)
  * @returns geohash prefix length in the range 3–4 (or 0 for "world view, no filter")
  */
 export function geohashPrecisionForZoom(zoom: number): number {

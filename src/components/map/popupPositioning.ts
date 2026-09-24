@@ -1,18 +1,16 @@
 /**
- * Popup positioning utilities for Leaflet maps.
- *
- * Extracted from GeocacheMap so popup auto-pan math (aware of the app's
- * floating UI overlays) can be reasoned about and tested independently.
+ * React-content map popups, plus auto-pan math aware of the app's floating
+ * UI overlays (search bar, zoom/style controls, near-me button).
  */
 
-import L from "leaflet";
+import type { LatLng, MapHandle, MapPopupRef } from "./mapHandle";
 
 /**
  * Calculate autopan padding that accounts for floating UI elements
  * (search bar at top, zoom/style controls at left, near-me button at right).
  * Returns {top, left, bottom, right} pixel padding for the map viewport.
  */
-export function getPopupAutoPanPadding(map: L.Map): { top: number; left: number; bottom: number; right: number } {
+export function getPopupAutoPanPadding(map: MapHandle): { top: number; left: number; bottom: number; right: number } {
   const container = map.getContainer();
   const containerRect = container.getBoundingClientRect();
 
@@ -88,18 +86,15 @@ export function getPopupAutoPanPadding(map: L.Map): { top: number; left: number;
 
 /**
  * Pan the map so a popup is fully visible, respecting UI overlay padding.
- * The popup tip extends ~12px below the popup element, and the marker icon
+ * The popup tip extends ~10px below the popup element, and the marker icon
  * sits below that. We include extra bottom clearance for the tip + marker.
  */
-export function panMapForPopup(map: L.Map, popup: L.Popup) {
-  const popupEl = popup.getElement();
-  if (!popupEl) return;
-
+export function panMapForPopup(map: MapHandle, popupEl: HTMLElement) {
   const containerRect = map.getContainer().getBoundingClientRect();
   const popupRect = popupEl.getBoundingClientRect();
   const padding = getPopupAutoPanPadding(map);
 
-  // The popup tip (~12px) + marker icon (~48px) extend below the popup element.
+  // The popup tip + marker icon (~48px) extend below the popup element.
   // We need the marker anchor point to stay above the bottom controls.
   const tipAndMarkerHeight = 60;
 
@@ -131,46 +126,89 @@ export function panMapForPopup(map: L.Map, popup: L.Popup) {
   }
 
   if (dx !== 0 || dy !== 0) {
-    map.panBy([dx, dy], { animate: true, duration: 0.3 });
+    map.panBy([dx, dy], { duration: 0.3 });
   }
 }
 
+export interface ReactPopupOptions {
+  position: LatLng;
+  /**
+   * Popup attachment point relative to the marker anchor, in pixels
+   * (a `MapIcon.popupAnchor`) — negative y lifts the popup above the icon.
+   */
+  anchor?: [number, number];
+  maxWidth?: number;
+  /** Fired whenever the popup closes (outside click, Escape, replaced, map teardown) */
+  onClose?: () => void;
+}
+
+// One pending popup per map: opening a new popup aborts a previous one that
+// is still waiting for its React content.
+const pendingOpens = new WeakMap<MapHandle, () => void>();
+
 /**
- * Open a Leaflet popup on a marker after React renders content into a container.
- * Uses a MutationObserver with a single fallback. Returns a cleanup function.
+ * Create a popup whose content React will portal into `container`, and open
+ * it once that content has rendered (so it's measured and positioned with
+ * its real size), then pan the map to keep it clear of the floating UI.
+ *
+ * Returns the container to hand to React. Closes any open popup first.
  */
-export function openPopupWhenReady(
-  marker: L.Marker,
-  container: HTMLDivElement,
-  map: L.Map,
-  abortSignal: { aborted: boolean },
-): () => void {
+export function openReactPopup(map: MapHandle, options: ReactPopupOptions): { container: HTMLDivElement; popup: MapPopupRef } {
+  pendingOpens.get(map)?.();
+  map.closePopup();
+
+  const container = document.createElement('div');
+  container.className = 'react-popup-root';
+
+  let cancel = () => {};
+
+  // Leaflet's default 7px popup offset sat the tip slightly over the icon top;
+  // keep that so popups land where they always have.
+  const [anchorX, anchorY] = options.anchor ?? [0, 0];
+  const popup = map.createPopup({
+    position: options.position,
+    content: container,
+    offset: [anchorX, anchorY + 7],
+    maxWidth: options.maxWidth ?? 400,
+    className: 'geocache-popup react-popup',
+    onClose: () => {
+      cancel();
+      options.onClose?.();
+    },
+  });
+
   let observer: MutationObserver | null = null;
   let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
   let panTimer: ReturnType<typeof setTimeout> | null = null;
+  let aborted = false;
   let opened = false;
 
-  const doOpen = () => {
-    if (opened || abortSignal.aborted) return;
-    opened = true;
+  cancel = () => {
+    aborted = true;
+    if (observer) { observer.disconnect(); observer = null; }
+    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+    if (panTimer) { clearTimeout(panTimer); panTimer = null; }
+    if (pendingOpens.get(map) === cancel) pendingOpens.delete(map);
+  };
 
-    // Disconnect observer and clear fallback
+  const doOpen = () => {
+    if (opened || aborted) return;
+    opened = true;
     if (observer) { observer.disconnect(); observer = null; }
     if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
 
-    if (!marker.isPopupOpen()) {
-      marker.openPopup();
-    }
+    popup.open();
 
-    // After popup is open and painted, pan to ensure it's fully visible
-    // Use two rAF to wait for layout + paint
+    // After the popup is open and painted, pan to ensure it's fully visible.
+    // Two rAFs wait for layout + paint.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (abortSignal.aborted) return;
+        if (aborted) return;
         panTimer = setTimeout(() => {
-          const popup = marker.getPopup();
-          if (popup && map.hasLayer(popup)) {
-            panMapForPopup(map, popup);
+          pendingOpens.delete(map);
+          const el = popup.getElement();
+          if (el && popup.isOpen()) {
+            panMapForPopup(map, el);
           }
         }, 60);
       });
@@ -179,26 +217,14 @@ export function openPopupWhenReady(
 
   // Watch for React to render content into the container
   observer = new MutationObserver(() => {
-    if (container.childNodes.length > 0) {
-      doOpen();
-    }
+    if (container.childNodes.length > 0) doOpen();
   });
   observer.observe(container, { childList: true, subtree: true });
 
-  // If content is already there (unlikely but safe)
-  if (container.childNodes.length > 0) {
-    doOpen();
-  }
-
   // Safety fallback: if React doesn't render within 800ms, open anyway
-  fallbackTimer = setTimeout(() => {
-    doOpen();
-  }, 800);
+  fallbackTimer = setTimeout(doOpen, 800);
 
-  return () => {
-    abortSignal.aborted = true;
-    if (observer) { observer.disconnect(); observer = null; }
-    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
-    if (panTimer) { clearTimeout(panTimer); panTimer = null; }
-  };
+  pendingOpens.set(map, cancel);
+
+  return { container, popup };
 }

@@ -508,7 +508,7 @@ export default function Profile() {
       </div>
       </div>
 
-      {/* React portal into Leaflet popup - same system as main map */}
+      {/* React portal into map popup - same system as main map */}
       {selectedPopupGeocache && popupContainer && createPortal(
         <GeocachePopupCard
           geocache={selectedPopupGeocache}

@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
-import { useMap } from "react-leaflet";
+import { useMemo, useState } from "react";
+import { useMapHandle } from "./mapContext";
+import { MapOverlay } from "./MapOverlay";
 
 interface CustomZoomControlProps {
   /**
@@ -27,16 +28,80 @@ interface CustomZoomControlProps {
   respectSafeArea?: boolean;
 }
 
+/** Read the theme colors once, when the control mounts. */
+function useThemeColors() {
+  return useMemo(() => {
+    const root = getComputedStyle(document.documentElement);
+    const bg = root.getPropertyValue('--background').trim();
+    const accent = root.getPropertyValue('--accent').trim();
+    const fg = root.getPropertyValue('--foreground').trim();
+    return {
+      background: bg ? `hsl(${bg} / 0.9)` : 'rgba(255, 255, 255, 0.9)',
+      accentBackground: accent ? `hsl(${accent})` : 'rgba(240, 240, 240, 1)',
+      foreground: fg ? `hsl(${fg})` : '#374151',
+    };
+  }, []);
+}
+
+function ZoomButton({
+  label,
+  symbol,
+  className,
+  position,
+  onClick,
+}: {
+  label: string;
+  symbol: string;
+  className: string;
+  position: 'top' | 'bottom';
+  onClick: () => void;
+}) {
+  const colors = useThemeColors();
+  const [hovered, setHovered] = useState(false);
+  const radius = '0.375rem';
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={`zoom-btn ${className}`}
+      onClick={onClick}
+      onMouseOver={() => setHovered(true)}
+      onMouseOut={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 40,
+        height: 40,
+        background: hovered ? colors.accentBackground : colors.background,
+        border: '1px solid hsl(var(--border))',
+        borderBottom: position === 'top' ? 'none' : undefined,
+        color: colors.foreground,
+        fontSize: 18,
+        fontWeight: 500,
+        lineHeight: 1,
+        cursor: 'pointer',
+        borderTopLeftRadius: position === 'top' ? radius : undefined,
+        borderTopRightRadius: position === 'top' ? radius : undefined,
+        borderBottomLeftRadius: position === 'bottom' ? radius : undefined,
+        borderBottomRightRadius: position === 'bottom' ? radius : undefined,
+        transition: 'all 0.2s ease',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      {symbol}
+    </button>
+  );
+}
+
 /**
- * Shared themed zoom control for Leaflet maps.
+ * Shared themed zoom control for maps.
  *
  * Renders a +/- button stack at the lower-left of the map container,
  * styled with the app's theme tokens (`--background`, `--foreground`,
- * `--accent`, `--border`). Use this in place of Leaflet's default
- * `Control.Zoom` so every map in the app looks consistent across themes.
- *
- * Set `zoomControl={false}` on the parent `<MapContainer>` to avoid
- * duplicating the default Leaflet control.
+ * `--accent`, `--border`), so every map in the app looks consistent
+ * across themes.
  */
 export function CustomZoomControl({
   bottomOffset = 16,
@@ -44,126 +109,17 @@ export function CustomZoomControl({
   zIndex = 1000,
   respectSafeArea = true,
 }: CustomZoomControlProps = {}) {
-  const map = useMap();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const isInitializedRef = useRef(false);
+  const map = useMapHandle();
+  const bottom = respectSafeArea
+    ? `calc(${bottomOffset}px + env(safe-area-inset-bottom, 0px))`
+    : `${bottomOffset}px`;
 
-  useEffect(() => {
-    if (isInitializedRef.current) return;
-
-    const mapContainer = map.getContainer();
-
-    // Create container div for the zoom control
-    const container = document.createElement('div');
-    container.className = 'custom-zoom-control';
-    const bottomCss = respectSafeArea
-      ? `calc(${bottomOffset}px + env(safe-area-inset-bottom, 0px))`
-      : `${bottomOffset}px`;
-    container.style.cssText = `
-      position: absolute;
-      bottom: ${bottomCss};
-      left: ${leftOffset}px;
-      z-index: ${zIndex};
-      pointer-events: auto;
-    `;
-
-    // Pull theme colors from CSS variables so the control matches the
-    // current app theme (light, dark, adventure, mojave, ditto, ...).
-    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
-    const backgroundColor = bgColor ? `hsl(${bgColor} / 0.9)` : 'rgba(255, 255, 255, 0.9)';
-
-    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    const accentBgColor = accentColor ? `hsl(${accentColor})` : 'rgba(240, 240, 240, 1)';
-
-    const fgColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
-    const foregroundColor = fgColor ? `hsl(${fgColor})` : '#374151';
-
-    // Create zoom in button
-    const zoomInBtn = document.createElement('button');
-    zoomInBtn.type = 'button';
-    zoomInBtn.innerHTML = '+';
-    zoomInBtn.setAttribute('aria-label', 'Zoom in');
-    zoomInBtn.className = 'zoom-btn zoom-in-btn';
-    zoomInBtn.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: ${backgroundColor};
-      border: 1px solid hsl(var(--border));
-      border-bottom: none;
-      color: ${foregroundColor};
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1;
-      cursor: pointer;
-      border-top-left-radius: 0.375rem;
-      border-top-right-radius: 0.375rem;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-    `;
-    zoomInBtn.onmouseover = () => {
-      zoomInBtn.style.background = accentBgColor;
-    };
-    zoomInBtn.onmouseout = () => {
-      zoomInBtn.style.background = backgroundColor;
-    };
-    zoomInBtn.onclick = () => {
-      map.zoomIn();
-    };
-
-    // Create zoom out button
-    const zoomOutBtn = document.createElement('button');
-    zoomOutBtn.type = 'button';
-    zoomOutBtn.innerHTML = '−';
-    zoomOutBtn.setAttribute('aria-label', 'Zoom out');
-    zoomOutBtn.className = 'zoom-btn zoom-out-btn';
-    zoomOutBtn.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: ${backgroundColor};
-      border: 1px solid hsl(var(--border));
-      color: ${foregroundColor};
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1;
-      cursor: pointer;
-      border-bottom-left-radius: 0.375rem;
-      border-bottom-right-radius: 0.375rem;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-    `;
-    zoomOutBtn.onmouseover = () => {
-      zoomOutBtn.style.background = accentBgColor;
-    };
-    zoomOutBtn.onmouseout = () => {
-      zoomOutBtn.style.background = backgroundColor;
-    };
-    zoomOutBtn.onclick = () => {
-      map.zoomOut();
-    };
-
-    container.appendChild(zoomInBtn);
-    container.appendChild(zoomOutBtn);
-
-    mapContainer.appendChild(container);
-    containerRef.current = container;
-    isInitializedRef.current = true;
-
-    const currentContainer = container;
-    return () => {
-      if (currentContainer.parentNode) {
-        currentContainer.parentNode.removeChild(currentContainer);
-      }
-      isInitializedRef.current = false;
-    };
-  }, [map, bottomOffset, leftOffset, zIndex, respectSafeArea]);
-
-  return null;
+  return (
+    <MapOverlay className="custom-zoom-control" style={{ bottom, left: leftOffset, zIndex }}>
+      <ZoomButton label="Zoom in" symbol="+" className="zoom-in-btn" position="top" onClick={() => map.zoomIn()} />
+      <ZoomButton label="Zoom out" symbol="−" className="zoom-out-btn" position="bottom" onClick={() => map.zoomOut()} />
+    </MapOverlay>
+  );
 }
 
 export default CustomZoomControl;
