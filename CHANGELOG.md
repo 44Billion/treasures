@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.11.3] - 2026-09-24
+
+A behind-the-scenes maintenance release that brings the new maps from 2.11.0 to Zapstore, with no other user-facing changes.
+
 ## [2.11.2] - 2026-09-24
 
 A behind-the-scenes maintenance release that brings the new maps from 2.11.0 to Zapstore, with no other user-facing changes.
