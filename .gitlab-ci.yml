@@ -210,7 +210,7 @@ release:
 
 publish-zapstore:
   stage: publish
-  image: golang:1.24
+  image: golang:1.25
   needs:
     - build-apk
   rules:
