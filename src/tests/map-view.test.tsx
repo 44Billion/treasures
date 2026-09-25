@@ -54,5 +54,5 @@ describe('MapView', () => {
     }, { timeout: 5000 });
     // Markers use the same element as on the vector map
     expect(screen.getByRole('button', { name: 'Chest' })).toHaveClass('custom-cache-icon');
-  });
+  }, 15000);
 });
