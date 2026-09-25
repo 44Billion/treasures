@@ -216,15 +216,14 @@ publish-zapstore:
     - release-notes
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+  # A stuck bunker request otherwise waits out the runner's 1h limit.
+  timeout: 20m
   variables:
     SIGN_WITH: $ZAPSTORE_BUNKER_URL
     RELAYS: "wss://relay.zapstore.dev,wss://relay.ditto.pub,wss://relay.dreamith.to,wss://relay.primal.net"
     BLOSSOM_URL: "https://cdn.zapstore.dev"
-    NAK_VERSION: "v0.20.7"
   script:
     - go install github.com/zapstore/zsp/cmd/zsp@latest
-    - curl -fsSL "https://github.com/fiatjaf/nak/releases/download/${NAK_VERSION}/nak-${NAK_VERSION}-linux-amd64" -o /usr/local/bin/nak
-    - chmod +x /usr/local/bin/nak
 
     # Restore the persistent NIP-46 client key so the bunker recognizes us across CI runs.
     - BUNKER_PUBKEY=$(echo "$ZAPSTORE_BUNKER_URL" | sed 's|bunker://||;s|?.*||')
@@ -236,12 +235,16 @@ publish-zapstore:
     - 'sed -i "s|^release_notes:.*|release_notes: ./release-notes.md|" zapstore.yaml'
 
     # zsp v0.5 only gives the asset event a download url when the APK comes from
-    # a remote source, so upload it to Blossom first and publish from that URL.
-    - APK_SHA256=$(sha256sum artifacts/Treasures.apk | cut -d' ' -f1)
-    - NOSTR_SECRET_KEY="$ZAPSTORE_BUNKER_URL" NOSTR_CLIENT_KEY="$ZAPSTORE_CLIENT_KEY" nak blossom --server "$BLOSSOM_URL" upload artifacts/Treasures.apk
-    - curl -fsSI "${BLOSSOM_URL}/${APK_SHA256}.apk" > /dev/null
-    - 'sed -i "2i release_source: ${BLOSSOM_URL}/${APK_SHA256}.apk" zapstore.yaml'
+    # a remote source. Pass 1 publishes the local APK, which uploads it to Blossom.
+    # Pass 2 republishes the same version from that Blossom URL so the release
+    # points at an asset event carrying the download link.
+    - cp zapstore.yaml zapstore.remote.yaml
+    - sed -i "2i release_source:\ ./artifacts/Treasures.apk" zapstore.yaml
     - zsp publish --quiet --skip-metadata --skip-preview zapstore.yaml
+    - APK_SHA256=$(sha256sum artifacts/Treasures.apk | cut -d' ' -f1)
+    - curl -fsSI "${BLOSSOM_URL}/${APK_SHA256}.apk" > /dev/null
+    - 'sed -i "2i release_source: ${BLOSSOM_URL}/${APK_SHA256}.apk" zapstore.remote.yaml'
+    - zsp publish --quiet --skip-metadata --skip-preview --overwrite-release zapstore.remote.yaml
 
 publish-google-play:
   stage: publish
