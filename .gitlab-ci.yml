@@ -219,10 +219,12 @@ publish-zapstore:
   variables:
     SIGN_WITH: $ZAPSTORE_BUNKER_URL
     RELAYS: "wss://relay.zapstore.dev,wss://relay.ditto.pub,wss://relay.dreamith.to,wss://relay.primal.net"
-    # No BLOSSOM_URL: zsp v0.5 omits the asset url tag and Zapstore resolves the
-    # APK by hash on its default CDN (cdn.zapstore.dev), so upload there.
+    BLOSSOM_URL: "https://cdn.zapstore.dev"
+    NAK_VERSION: "v0.20.7"
   script:
     - go install github.com/zapstore/zsp/cmd/zsp@latest
+    - curl -fsSL "https://github.com/fiatjaf/nak/releases/download/${NAK_VERSION}/nak-${NAK_VERSION}-linux-amd64" -o /usr/local/bin/nak
+    - chmod +x /usr/local/bin/nak
 
     # Restore the persistent NIP-46 client key so the bunker recognizes us across CI runs.
     - BUNKER_PUBKEY=$(echo "$ZAPSTORE_BUNKER_URL" | sed 's|bunker://||;s|?.*||')
@@ -232,7 +234,13 @@ publish-zapstore:
     # zsp publishes release_notes verbatim, so point it at this version's section
     # (from the release-notes job) instead of the whole CHANGELOG.
     - 'sed -i "s|^release_notes:.*|release_notes: ./release-notes.md|" zapstore.yaml'
-    - sed -i "2i release_source:\ ./artifacts/Treasures.apk" zapstore.yaml
+
+    # zsp v0.5 only gives the asset event a download url when the APK comes from
+    # a remote source, so upload it to Blossom first and publish from that URL.
+    - APK_SHA256=$(sha256sum artifacts/Treasures.apk | cut -d' ' -f1)
+    - NOSTR_SECRET_KEY="$ZAPSTORE_BUNKER_URL" NOSTR_CLIENT_KEY="$ZAPSTORE_CLIENT_KEY" nak blossom --server "$BLOSSOM_URL" upload artifacts/Treasures.apk
+    - curl -fsSI "${BLOSSOM_URL}/${APK_SHA256}.apk" > /dev/null
+    - 'sed -i "2i release_source: ${BLOSSOM_URL}/${APK_SHA256}.apk" zapstore.yaml'
     - zsp publish --quiet --skip-metadata --skip-preview zapstore.yaml
 
 publish-google-play:
