@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.11.1] - 2026-09-24
+
+A behind-the-scenes maintenance release that brings the new maps from 2.11.0 to Zapstore, with no other user-facing changes.
+
 ## [2.11.0] - 2026-09-24
 
 Fresh maps for the hunt. Every map in Treasures — the main map, profiles, the location picker, and adventures — now draws crisp, smooth-zooming maps from our own map server, with less clutter so trails and roads stand out. All your favorite map styles are still here, and maps you've browsed keep working offline. Devices that can't run the new maps get a classic fallback automatically.
