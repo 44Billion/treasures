@@ -213,24 +213,25 @@ publish-zapstore:
   image: golang:1.25
   needs:
     - build-apk
+    - release-notes
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
   variables:
     SIGN_WITH: $ZAPSTORE_BUNKER_URL
-    RELAY_URLS: "wss://relay.zapstore.dev,wss://relay.ditto.pub,wss://relay.dreamith.to,wss://relay.primal.net"
+    RELAYS: "wss://relay.zapstore.dev,wss://relay.ditto.pub,wss://relay.dreamith.to,wss://relay.primal.net"
     BLOSSOM_URL: "https://blossom.ditto.pub"
   script:
-    - go install github.com/zapstore/zsp@latest
+    - go install github.com/zapstore/zsp/cmd/zsp@latest
 
     # Restore the persistent NIP-46 client key so the bunker recognizes us across CI runs.
     - BUNKER_PUBKEY=$(echo "$ZAPSTORE_BUNKER_URL" | sed 's|bunker://||;s|?.*||')
     - mkdir -p ~/.config/zsp/bunker-keys
     - echo "$ZAPSTORE_CLIENT_KEY" > ~/.config/zsp/bunker-keys/${BUNKER_PUBKEY}.key
 
-    - APK_PATH="artifacts/Treasures.apk"
-    - VERSION="${CI_COMMIT_TAG#v}"
-    - sed -i "2i release_source:\ ./${APK_PATH}" zapstore.yaml
-    - sed -i "2i version:\ ${VERSION}" zapstore.yaml
+    # zsp publishes release_notes verbatim, so point it at this version's section
+    # (from the release-notes job) instead of the whole CHANGELOG.
+    - sed -i "s|^release_notes:.*|release_notes: ./release-notes.md|" zapstore.yaml
+    - sed -i "2i release_source:\ ./artifacts/Treasures.apk" zapstore.yaml
     - zsp publish --quiet --skip-metadata --skip-preview zapstore.yaml
 
 publish-google-play:

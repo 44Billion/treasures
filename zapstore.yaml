@@ -4,9 +4,8 @@ name: Treasures
 
 summary: Decentralized geocaching on Nostr
 
-# Release notes: zsp reads this file and extracts the section matching the
-# APK versionName from the Keep a Changelog format (so the per-version
-# "What's New" shows up on Zapstore even with --skip-metadata).
+# Release notes: zsp publishes this file verbatim. CI swaps in release-notes.md
+# (the current version's CHANGELOG section) before publishing.
 release_notes: ./CHANGELOG.md
 
 description: |
