@@ -230,7 +230,7 @@ publish-zapstore:
 
     # zsp publishes release_notes verbatim, so point it at this version's section
     # (from the release-notes job) instead of the whole CHANGELOG.
-    - sed -i "s|^release_notes:.*|release_notes: ./release-notes.md|" zapstore.yaml
+    - 'sed -i "s|^release_notes:.*|release_notes: ./release-notes.md|" zapstore.yaml'
     - sed -i "2i release_source:\ ./artifacts/Treasures.apk" zapstore.yaml
     - zsp publish --quiet --skip-metadata --skip-preview zapstore.yaml
 
